@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<ApplicationIcon>WallpaperControl.ico</ApplicationIcon>
+
+		<AssemblyName>WallpaperControl</AssemblyName>
+		<Product>Wallpaper Control</Product>
+		<Company>Yasmin Mahr</Company>
+		<Description>Verwaltung und Steuerung der Windows-Wallpaper-Diashow</Description>
+		<Copyright>© 2026 Yasmin Mahr</Copyright>
+
+		<Version>1.5.0</Version>
+		<AssemblyVersion>1.5.0.0</AssemblyVersion>
+		<FileVersion>1.5.0.0</FileVersion>
+
+		<SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
+
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="WallpaperControl.ico" />
+	</ItemGroup>
+
+</Project>

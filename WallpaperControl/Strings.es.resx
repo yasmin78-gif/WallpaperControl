@@ -1,0 +1,484 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageNameGerman" xml:space="preserve">
+    <value>Alemán</value>
+  </data>
+  <data name="LanguageNameEnglish" xml:space="preserve">
+    <value>Inglés</value>
+  </data>
+  <data name="SettingsLanguageLabel" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="ActivateSlideshow" xml:space="preserve">
+    <value>Activar presentación</value>
+  </data>
+  <data name="WallpaperFolder" xml:space="preserve">
+    <value>Carpeta de fondos de pantalla</value>
+  </data>
+  <data name="WallpaperInterval" xml:space="preserve">
+    <value>Intervalo del fondo de pantalla</value>
+  </data>
+  <data name="CurrentWindowsValueEmpty" xml:space="preserve">
+    <value>Valor actual de Windows: -</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>Orden aleatorio</value>
+  </data>
+  <data name="WallpaperPosition" xml:space="preserve">
+    <value>Posición del fondo de pantalla</value>
+  </data>
+  <data name="PauseSlideshow" xml:space="preserve">
+    <value>Pausar presentación</value>
+  </data>
+  <data name="ResumeSlideshow" xml:space="preserve">
+    <value>Reanudar presentación</value>
+  </data>
+  <data name="PinImage" xml:space="preserve">
+    <value>Establecer imagen</value>
+  </data>
+  <data name="NextWallpaper" xml:space="preserve">
+    <value>Siguiente fondo</value>
+  </data>
+  <data name="CurrentWallpaperEmpty" xml:space="preserve">
+    <value>Actual: -</value>
+  </data>
+  <data name="CurrentWallpaper" xml:space="preserve">
+    <value>Actual: {0}</value>
+  </data>
+  <data name="ShowInExplorer" xml:space="preserve">
+    <value>Mostrar en el Explorador</value>
+  </data>
+  <data name="RejectWallpaper" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="OpenRejectedFolder" xml:space="preserve">
+    <value>Abrir carpeta de descartados</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Deshacer</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="HistoryCount" xml:space="preserve">
+    <value>Historial ({0})</value>
+  </data>
+  <data name="HistoryCurrentSuffix" xml:space="preserve">
+    <value> (actual)</value>
+  </data>
+  <data name="OpenWallpaperControl" xml:space="preserve">
+    <value>Abrir Wallpaper Control</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+  <data name="StatusRemoteDisabled" xml:space="preserve">
+    <value>Presentación desactivada por una sesión remota</value>
+  </data>
+  <data name="StatusInactive" xml:space="preserve">
+    <value>Presentación inactiva</value>
+  </data>
+  <data name="StatusPaused" xml:space="preserve">
+    <value>Presentación en pausa</value>
+  </data>
+  <data name="WallpaperCountZero" xml:space="preserve">
+    <value>0 fondos</value>
+  </data>
+  <data name="WallpaperCountOne" xml:space="preserve">
+    <value>1 fondo</value>
+  </data>
+  <data name="WallpaperCountMany" xml:space="preserve">
+    <value>{0} fondos</value>
+  </data>
+  <data name="WallpaperCountUnavailable" xml:space="preserve">
+    <value>Número de fondos no disponible</value>
+  </data>
+  <data name="CurrentWindowsValueUnavailable" xml:space="preserve">
+    <value>Valor actual de Windows: no disponible</value>
+  </data>
+  <data name="CurrentWindowsValue" xml:space="preserve">
+    <value>Valor actual de Windows: {0} ({1} segundos)</value>
+  </data>
+  <data name="SelectWallpaperFolder" xml:space="preserve">
+    <value>Seleccionar carpeta de fondos de pantalla</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>no disponible</value>
+  </data>
+  <data name="Interval1Minute" xml:space="preserve">
+    <value>1 minuto</value>
+  </data>
+  <data name="Interval2Minutes" xml:space="preserve">
+    <value>2 minutos</value>
+  </data>
+  <data name="Interval3Minutes" xml:space="preserve">
+    <value>3 minutos</value>
+  </data>
+  <data name="Interval5Minutes" xml:space="preserve">
+    <value>5 minutos</value>
+  </data>
+  <data name="Interval10Minutes" xml:space="preserve">
+    <value>10 minutos</value>
+  </data>
+  <data name="Interval15Minutes" xml:space="preserve">
+    <value>15 minutos</value>
+  </data>
+  <data name="Interval30Minutes" xml:space="preserve">
+    <value>30 minutos</value>
+  </data>
+  <data name="Interval1Hour" xml:space="preserve">
+    <value>1 hora</value>
+  </data>
+  <data name="Interval6Hours" xml:space="preserve">
+    <value>6 horas</value>
+  </data>
+  <data name="Interval1Day" xml:space="preserve">
+    <value>1 día</value>
+  </data>
+  <data name="PositionFill" xml:space="preserve">
+    <value>Rellenar</value>
+  </data>
+  <data name="PositionFit" xml:space="preserve">
+    <value>Ajustar</value>
+  </data>
+  <data name="PositionStretch" xml:space="preserve">
+    <value>Estirar</value>
+  </data>
+  <data name="PositionTile" xml:space="preserve">
+    <value>Mosaico</value>
+  </data>
+  <data name="PositionCenter" xml:space="preserve">
+    <value>Centrar</value>
+  </data>
+  <data name="PositionSpan" xml:space="preserve">
+    <value>Expandir</value>
+  </data>
+  <data name="MsgDropWallpaperFolderOrImage" xml:space="preserve">
+    <value>Suelta una carpeta de fondos de pantalla o un archivo de imagen compatible.</value>
+  </data>
+  <data name="MsgSetWallpaperFolderFailed" xml:space="preserve">
+    <value>No se pudo establecer la carpeta de fondos de pantalla.
+
+</value>
+  </data>
+  <data name="MsgCurrentWallpaperUnknown" xml:space="preserve">
+    <value>No se pudo determinar el fondo de pantalla actual.</value>
+  </data>
+  <data name="MsgPauseFailed" xml:space="preserve">
+    <value>No se pudo pausar la presentación.
+
+</value>
+  </data>
+  <data name="MsgWallpaperFolderUnknown" xml:space="preserve">
+    <value>No se pudo determinar la carpeta de fondos de pantalla.</value>
+  </data>
+  <data name="MsgResumeFailed" xml:space="preserve">
+    <value>No se pudo reanudar la presentación.
+
+</value>
+  </data>
+  <data name="MsgPinFailed" xml:space="preserve">
+    <value>No se pudo establecer la imagen.
+
+</value>
+  </data>
+  <data name="MsgSelectWallpaperFolderFirst" xml:space="preserve">
+    <value>Selecciona primero una carpeta de fondos de pantalla.</value>
+  </data>
+  <data name="MsgPositionFailed" xml:space="preserve">
+    <value>No se pudo cambiar la posición del fondo de pantalla.
+
+</value>
+  </data>
+  <data name="MsgSlideshowSettingsFailed" xml:space="preserve">
+    <value>No se pudieron cambiar los ajustes de la presentación.
+
+</value>
+  </data>
+  <data name="MsgAdvanceFailed" xml:space="preserve">
+    <value>No se pudo pasar al siguiente fondo de pantalla.
+
+</value>
+  </data>
+  <data name="MsgWallpaperFolderUnavailable" xml:space="preserve">
+    <value>La carpeta de fondos de pantalla no está disponible.</value>
+  </data>
+  <data name="MsgOpenRejectedFolderFailed" xml:space="preserve">
+    <value>No se pudo abrir la carpeta de descartados.
+
+</value>
+  </data>
+  <data name="MsgOpenHistoryImageFailed" xml:space="preserve">
+    <value>No se pudo abrir la imagen del historial.
+
+</value>
+  </data>
+  <data name="MsgCurrentWallpaperNotFound" xml:space="preserve">
+    <value>No se encontró el fondo de pantalla actual.</value>
+  </data>
+  <data name="MsgFileManagerFailed" xml:space="preserve">
+    <value>No se pudo abrir el administrador de archivos.
+
+</value>
+  </data>
+  <data name="MsgOpenImageFailed" xml:space="preserve">
+    <value>No se pudo abrir la imagen.
+
+</value>
+  </data>
+  <data name="MsgRejectFailed" xml:space="preserve">
+    <value>No se pudo descartar el fondo de pantalla.
+
+</value>
+  </data>
+  <data name="MsgUndoRejectFailed" xml:space="preserve">
+    <value>No se pudo deshacer el último descarte.
+
+</value>
+  </data>
+  <data name="MsgAutostartFailed" xml:space="preserve">
+    <value>No se pudo cambiar el inicio automático.
+
+</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="SettingsHotkeysTitle" xml:space="preserve">
+    <value>Atajos de teclado globales</value>
+  </data>
+  <data name="SettingsHotkeysHint" xml:space="preserve">
+    <value>«Desactivado» deshabilita por completo el atajo correspondiente.</value>
+  </data>
+  <data name="SettingsHotkeyNext" xml:space="preserve">
+    <value>Siguiente fondo</value>
+  </data>
+  <data name="SettingsHotkeyPause" xml:space="preserve">
+    <value>Pausar / Reanudar</value>
+  </data>
+  <data name="SettingsHotkeyExplorer" xml:space="preserve">
+    <value>Mostrar en el Explorador</value>
+  </data>
+  <data name="SettingsResetHotkeys" xml:space="preserve">
+    <value>Restablecer atajos</value>
+  </data>
+  <data name="SettingsRejectTitle" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="SettingsRejectFolder" xml:space="preserve">
+    <value>Carpeta global de descartados</value>
+  </data>
+  <data name="SettingsRejectSubfolder" xml:space="preserve">
+    <value>Crear una subcarpeta para cada carpeta de fondos</value>
+  </data>
+  <data name="SettingsRejectHint" xml:space="preserve">
+    <value>Sin una carpeta global, se mantiene el comportamiento actual: &lt;Carpeta de fondos&gt;\Aussortiert.</value>
+  </data>
+  <data name="SettingsGeneralTitle" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="SettingsAutostart" xml:space="preserve">
+    <value>Iniciar con Windows</value>
+  </data>
+  <data name="SettingsRestoreDefaults" xml:space="preserve">
+    <value>Réinitialiser</value>
+  </data>
+  <data name="SettingsCancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="SettingsSave" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="SettingsSelectRejectFolder" xml:space="preserve">
+    <value>Seleccionar carpeta global de descartados</value>
+  </data>
+  <data name="SettingsDuplicateHotkey" xml:space="preserve">
+    <value>Cada atajo activo debe usar una combinación de teclas única.</value>
+  </data>
+  <data name="SettingsModifierDisabled" xml:space="preserve">
+    <value>Desactivado</value>
+  </data>
+  <data name="SettingsModifierCtrlAlt" xml:space="preserve">
+    <value>Ctrl + Alt</value>
+  </data>
+  <data name="SettingsModifierCtrlShift" xml:space="preserve">
+    <value>Ctrl + Mayús</value>
+  </data>
+  <data name="SettingsModifierAltShift" xml:space="preserve">
+    <value>Alt + Mayús</value>
+  </data>
+  <data name="SettingsModifierCtrlAltShift" xml:space="preserve">
+    <value>Ctrl + Alt + Mayús</value>
+  </data>
+  <data name="SettingsModifierWinCtrl" xml:space="preserve">
+    <value>Win + Ctrl</value>
+  </data>
+  <data name="SettingsModifierWinAlt" xml:space="preserve">
+    <value>Win + Alt</value>
+  </data>
+  <data name="AboutTitle" xml:space="preserve">
+    <value>Acerca de Wallpaper Control</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Versión {0}</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>Gestión y control de la presentación de fondos de pantalla de Windows</value>
+  </data>
+  <data name="AboutTechnicalInformation" xml:space="preserve">
+    <value>Información técnica</value>
+  </data>
+  <data name="AboutTechnicalDetails" xml:space="preserve">
+    <value>.NET Runtime: {0}
+Sistema operativo: {1}
+Arquitectura: {2}
+Proceso: {3}
+Compilación: {4}</value>
+  </data>
+  <data name="AboutProcess64Bit" xml:space="preserve">
+    <value>64 bits</value>
+  </data>
+  <data name="AboutProcess32Bit" xml:space="preserve">
+    <value>32 bits</value>
+  </data>
+  <data name="AboutClose" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="FileSizeByteSingular" xml:space="preserve">
+    <value>{0} byte</value>
+  </data>
+  <data name="FileSizeBytePlural" xml:space="preserve">
+    <value>{0} bytes</value>
+  </data>
+  <data name="LanguageNameFrench" xml:space="preserve">
+    <value>Francés</value>
+  </data>
+  <data name="LanguageNameSpanish" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="SettingsWindowOpacity" xml:space="preserve">
+    <value>Opacidad de la ventana</value>
+  </data>
+  <data name="SettingsHotkeyReject" xml:space="preserve">
+    <value>Descartar fondo</value>
+  </data>
+  <data name="ToolTipSettings" xml:space="preserve">
+    <value>Abrir configuración</value>
+  </data>
+  <data name="ToolTipAbout" xml:space="preserve">
+    <value>Acerca de Wallpaper Control</value>
+  </data>
+  <data name="ToolTipNext" xml:space="preserve">
+    <value>Cambiar al siguiente fondo</value>
+  </data>
+  <data name="ToolTipReject" xml:space="preserve">
+    <value>Descartar el fondo actual</value>
+  </data>
+  <data name="ToolTipUndo" xml:space="preserve">
+    <value>Deshacer el último descarte</value>
+  </data>
+  <data name="ToolTipHistory" xml:space="preserve">
+    <value>Mostrar historial de fondos</value>
+  </data>
+  <data name="LanguageNameJapanese" xml:space="preserve">
+    <value>Japonés</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Estadísticas</value>
+  </data>
+  <data name="StatisticsTitle" xml:space="preserve">
+    <value>Estadísticas de fondos</value>
+  </data>
+  <data name="StatisticsFilterLabel" xml:space="preserve">
+    <value>Mostrar:</value>
+  </data>
+  <data name="StatisticsFilterTop10" xml:space="preserve">
+    <value>Top 10</value>
+  </data>
+  <data name="StatisticsFilterAll" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="StatisticsRank" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="StatisticsWallpaper" xml:space="preserve">
+    <value>Fondo</value>
+  </data>
+  <data name="StatisticsViews" xml:space="preserve">
+    <value>Vistas</value>
+  </data>
+  <data name="StatisticsSummary" xml:space="preserve">
+    <value>Contando desde: {0:G}
+Contado hasta ahora: {1} vistas • {2} fondos</value>
+  </data>
+  <data name="StatisticsEmpty" xml:space="preserve">
+    <value>Todavía no se ha registrado ningún fondo.</value>
+  </data>
+  <data name="ToolTipStatistics" xml:space="preserve">
+    <value>Mostrar estadísticas de fondos</value>
+  </data>
+  <data name="StatisticsLastShown" xml:space="preserve">
+    <value>Última visualización</value>
+  </data>
+  <data name="SettingsCloseToTray" xml:space="preserve">
+    <value>Minimizar al área de notificación al hacer clic en X</value>
+  </data>
+</root>

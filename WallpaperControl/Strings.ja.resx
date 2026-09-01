@@ -1,0 +1,456 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageNameGerman" xml:space="preserve">
+    <value>ドイツ語</value>
+  </data>
+  <data name="LanguageNameEnglish" xml:space="preserve">
+    <value>英語</value>
+  </data>
+  <data name="SettingsLanguageLabel" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="ActivateSlideshow" xml:space="preserve">
+    <value>スライドショーを有効にする</value>
+  </data>
+  <data name="WallpaperFolder" xml:space="preserve">
+    <value>壁紙フォルダー</value>
+  </data>
+  <data name="WallpaperInterval" xml:space="preserve">
+    <value>壁紙の切り替え間隔</value>
+  </data>
+  <data name="CurrentWindowsValueEmpty" xml:space="preserve">
+    <value>現在のWindows設定値: -</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>ランダムな順序</value>
+  </data>
+  <data name="WallpaperPosition" xml:space="preserve">
+    <value>壁紙の表示方法</value>
+  </data>
+  <data name="PauseSlideshow" xml:space="preserve">
+    <value>スライドショーを一時停止</value>
+  </data>
+  <data name="ResumeSlideshow" xml:space="preserve">
+    <value>スライドショーを再開</value>
+  </data>
+  <data name="PinImage" xml:space="preserve">
+    <value>画像を固定</value>
+  </data>
+  <data name="NextWallpaper" xml:space="preserve">
+    <value>次の壁紙</value>
+  </data>
+  <data name="CurrentWallpaperEmpty" xml:space="preserve">
+    <value>現在: -</value>
+  </data>
+  <data name="CurrentWallpaper" xml:space="preserve">
+    <value>現在: {0}</value>
+  </data>
+  <data name="ShowInExplorer" xml:space="preserve">
+    <value>エクスプローラーで表示</value>
+  </data>
+  <data name="RejectWallpaper" xml:space="preserve">
+    <value>除外</value>
+  </data>
+  <data name="OpenRejectedFolder" xml:space="preserve">
+    <value>除外フォルダーを開く</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>元に戻す</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="HistoryCount" xml:space="preserve">
+    <value>履歴 ({0})</value>
+  </data>
+  <data name="HistoryCurrentSuffix" xml:space="preserve">
+    <value>  (現在)</value>
+  </data>
+  <data name="OpenWallpaperControl" xml:space="preserve">
+    <value>Wallpaper Controlを開く</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="StatusRemoteDisabled" xml:space="preserve">
+    <value>リモートセッション中はスライドショーが無効です。</value>
+  </data>
+  <data name="StatusInactive" xml:space="preserve">
+    <value>壁紙スライドショーは有効ではありません。</value>
+  </data>
+  <data name="StatusPaused" xml:space="preserve">
+    <value>壁紙スライドショーは一時停止中です。</value>
+  </data>
+  <data name="WallpaperCountZero" xml:space="preserve">
+    <value>壁紙 0 枚</value>
+  </data>
+  <data name="WallpaperCountOne" xml:space="preserve">
+    <value>壁紙 1 枚</value>
+  </data>
+  <data name="WallpaperCountMany" xml:space="preserve">
+    <value>壁紙 {0} 枚</value>
+  </data>
+  <data name="WallpaperCountUnavailable" xml:space="preserve">
+    <value>壁紙: -</value>
+  </data>
+  <data name="CurrentWindowsValueUnavailable" xml:space="preserve">
+    <value>現在のWindows設定値: 利用できません</value>
+  </data>
+  <data name="CurrentWindowsValue" xml:space="preserve">
+    <value>現在のWindows設定値: {0}分 ({1}秒)</value>
+  </data>
+  <data name="SelectWallpaperFolder" xml:space="preserve">
+    <value>壁紙フォルダーを選択</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>利用できません</value>
+  </data>
+  <data name="Interval1Minute" xml:space="preserve">
+    <value>1分</value>
+  </data>
+  <data name="Interval2Minutes" xml:space="preserve">
+    <value>2分</value>
+  </data>
+  <data name="Interval3Minutes" xml:space="preserve">
+    <value>3分</value>
+  </data>
+  <data name="Interval5Minutes" xml:space="preserve">
+    <value>5分</value>
+  </data>
+  <data name="Interval10Minutes" xml:space="preserve">
+    <value>10分</value>
+  </data>
+  <data name="Interval15Minutes" xml:space="preserve">
+    <value>15分</value>
+  </data>
+  <data name="Interval30Minutes" xml:space="preserve">
+    <value>30分</value>
+  </data>
+  <data name="Interval1Hour" xml:space="preserve">
+    <value>1時間</value>
+  </data>
+  <data name="Interval6Hours" xml:space="preserve">
+    <value>6時間</value>
+  </data>
+  <data name="Interval1Day" xml:space="preserve">
+    <value>1日</value>
+  </data>
+  <data name="PositionFill" xml:space="preserve">
+    <value>塗りつぶし</value>
+  </data>
+  <data name="PositionFit" xml:space="preserve">
+    <value>合わせる</value>
+  </data>
+  <data name="PositionStretch" xml:space="preserve">
+    <value>拡大</value>
+  </data>
+  <data name="PositionTile" xml:space="preserve">
+    <value>並べて表示</value>
+  </data>
+  <data name="PositionCenter" xml:space="preserve">
+    <value>中央</value>
+  </data>
+  <data name="PositionSpan" xml:space="preserve">
+    <value>スパン</value>
+  </data>
+  <data name="MsgDropWallpaperFolderOrImage" xml:space="preserve">
+    <value>壁紙フォルダーまたは対応している画像ファイルをドロップしてください。</value>
+  </data>
+  <data name="MsgSetWallpaperFolderFailed" xml:space="preserve">
+    <value>壁紙フォルダーを設定できませんでした。</value>
+  </data>
+  <data name="MsgCurrentWallpaperUnknown" xml:space="preserve">
+    <value>現在の壁紙を取得できませんでした。</value>
+  </data>
+  <data name="MsgPauseFailed" xml:space="preserve">
+    <value>スライドショーを一時停止できませんでした。</value>
+  </data>
+  <data name="MsgWallpaperFolderUnknown" xml:space="preserve">
+    <value>壁紙フォルダーが不明です。</value>
+  </data>
+  <data name="MsgResumeFailed" xml:space="preserve">
+    <value>スライドショーを再開できませんでした。</value>
+  </data>
+  <data name="MsgPinFailed" xml:space="preserve">
+    <value>現在の壁紙を固定できませんでした。</value>
+  </data>
+  <data name="MsgSelectWallpaperFolderFirst" xml:space="preserve">
+    <value>先に壁紙フォルダーを選択してください。</value>
+  </data>
+  <data name="MsgPositionFailed" xml:space="preserve">
+    <value>壁紙の表示方法を変更できませんでした。</value>
+  </data>
+  <data name="MsgSlideshowSettingsFailed" xml:space="preserve">
+    <value>スライドショー設定を保存できませんでした。</value>
+  </data>
+  <data name="MsgAdvanceFailed" xml:space="preserve">
+    <value>壁紙を切り替えられませんでした。</value>
+  </data>
+  <data name="MsgWallpaperFolderUnavailable" xml:space="preserve">
+    <value>現在の壁紙フォルダーは利用できません。</value>
+  </data>
+  <data name="MsgOpenRejectedFolderFailed" xml:space="preserve">
+    <value>除外フォルダーを開けませんでした。</value>
+  </data>
+  <data name="MsgOpenHistoryImageFailed" xml:space="preserve">
+    <value>履歴の画像を開けませんでした。</value>
+  </data>
+  <data name="MsgCurrentWallpaperNotFound" xml:space="preserve">
+    <value>現在の壁紙が見つかりませんでした。</value>
+  </data>
+  <data name="MsgFileManagerFailed" xml:space="preserve">
+    <value>ファイルマネージャーを開けませんでした。</value>
+  </data>
+  <data name="MsgOpenImageFailed" xml:space="preserve">
+    <value>画像を開けませんでした。</value>
+  </data>
+  <data name="MsgRejectFailed" xml:space="preserve">
+    <value>壁紙を除外できませんでした。</value>
+  </data>
+  <data name="MsgUndoRejectFailed" xml:space="preserve">
+    <value>除外を元に戻せませんでした。</value>
+  </data>
+  <data name="MsgAutostartFailed" xml:space="preserve">
+    <value>自動起動設定を変更できませんでした。</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="SettingsHotkeysTitle" xml:space="preserve">
+    <value>グローバルホットキー</value>
+  </data>
+  <data name="SettingsHotkeysHint" xml:space="preserve">
+    <value>「無効」を選択すると、そのホットキーを完全に無効にします。</value>
+  </data>
+  <data name="SettingsHotkeyNext" xml:space="preserve">
+    <value>次の壁紙</value>
+  </data>
+  <data name="SettingsHotkeyPause" xml:space="preserve">
+    <value>一時停止 / 再開</value>
+  </data>
+  <data name="SettingsHotkeyExplorer" xml:space="preserve">
+    <value>エクスプローラーで表示</value>
+  </data>
+  <data name="SettingsResetHotkeys" xml:space="preserve">
+    <value>ホットキーをリセット</value>
+  </data>
+  <data name="SettingsRejectTitle" xml:space="preserve">
+    <value>除外</value>
+  </data>
+  <data name="SettingsRejectFolder" xml:space="preserve">
+    <value>共通の除外フォルダー</value>
+  </data>
+  <data name="SettingsRejectSubfolder" xml:space="preserve">
+    <value>壁紙フォルダーごとにサブフォルダーを作成</value>
+  </data>
+  <data name="SettingsRejectHint" xml:space="preserve">
+    <value>共通フォルダーを指定しない場合は従来どおりです: &lt;壁紙フォルダー&gt;\Aussortiert。</value>
+  </data>
+  <data name="SettingsGeneralTitle" xml:space="preserve">
+    <value>全般</value>
+  </data>
+  <data name="SettingsAutostart" xml:space="preserve">
+    <value>Windows起動時に開始</value>
+  </data>
+  <data name="SettingsRestoreDefaults" xml:space="preserve">
+    <value>既定値に戻す</value>
+  </data>
+  <data name="SettingsCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="SettingsSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SettingsSelectRejectFolder" xml:space="preserve">
+    <value>共通の除外フォルダーを選択</value>
+  </data>
+  <data name="SettingsDuplicateHotkey" xml:space="preserve">
+    <value>有効なホットキーには、それぞれ異なるキーの組み合わせが必要です。</value>
+  </data>
+  <data name="SettingsModifierDisabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="SettingsModifierCtrlAlt" xml:space="preserve">
+    <value>Ctrl + Alt</value>
+  </data>
+  <data name="SettingsModifierCtrlShift" xml:space="preserve">
+    <value>Ctrl + Shift</value>
+  </data>
+  <data name="SettingsModifierAltShift" xml:space="preserve">
+    <value>Alt + Shift</value>
+  </data>
+  <data name="SettingsModifierCtrlAltShift" xml:space="preserve">
+    <value>Ctrl + Alt + Shift</value>
+  </data>
+  <data name="SettingsModifierWinCtrl" xml:space="preserve">
+    <value>Win + Ctrl</value>
+  </data>
+  <data name="SettingsModifierWinAlt" xml:space="preserve">
+    <value>Win + Alt</value>
+  </data>
+  <data name="AboutTitle" xml:space="preserve">
+    <value>Wallpaper Controlについて</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>バージョン {0}</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>Windows壁紙スライドショーの管理と制御</value>
+  </data>
+  <data name="AboutTechnicalInformation" xml:space="preserve">
+    <value>技術情報</value>
+  </data>
+  <data name="AboutTechnicalDetails" xml:space="preserve">
+    <value>.NET Runtime: {0}
+オペレーティングシステム: {1}
+アーキテクチャ: {2}
+プロセス: {3}
+ビルド: {4}</value>
+  </data>
+  <data name="AboutProcess64Bit" xml:space="preserve">
+    <value>64ビット</value>
+  </data>
+  <data name="AboutProcess32Bit" xml:space="preserve">
+    <value>32ビット</value>
+  </data>
+  <data name="AboutClose" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="FileSizeByteSingular" xml:space="preserve">
+    <value>{0} バイト</value>
+  </data>
+  <data name="FileSizeBytePlural" xml:space="preserve">
+    <value>{0} バイト</value>
+  </data>
+  <data name="LanguageNameFrench" xml:space="preserve">
+    <value>フランス語</value>
+  </data>
+  <data name="LanguageNameSpanish" xml:space="preserve">
+    <value>スペイン語</value>
+  </data>
+  <data name="SettingsWindowOpacity" xml:space="preserve">
+    <value>ウィンドウの不透明度</value>
+  </data>
+  <data name="SettingsHotkeyReject" xml:space="preserve">
+    <value>除外</value>
+  </data>
+  <data name="ToolTipSettings" xml:space="preserve">
+    <value>設定を開く</value>
+  </data>
+  <data name="ToolTipAbout" xml:space="preserve">
+    <value>Wallpaper Controlについて</value>
+  </data>
+  <data name="ToolTipNext" xml:space="preserve">
+    <value>次の壁紙に切り替える</value>
+  </data>
+  <data name="ToolTipReject" xml:space="preserve">
+    <value>現在の壁紙を除外</value>
+  </data>
+  <data name="ToolTipUndo" xml:space="preserve">
+    <value>最後の除外を元に戻す</value>
+  </data>
+  <data name="ToolTipHistory" xml:space="preserve">
+    <value>壁紙の履歴を表示</value>
+  </data>
+  <data name="LanguageNameJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>統計</value>
+  </data>
+  <data name="StatisticsTitle" xml:space="preserve">
+    <value>壁紙の統計</value>
+  </data>
+  <data name="StatisticsFilterLabel" xml:space="preserve">
+    <value>表示:</value>
+  </data>
+  <data name="StatisticsFilterTop10" xml:space="preserve">
+    <value>トップ10</value>
+  </data>
+  <data name="StatisticsFilterAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="StatisticsRank" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="StatisticsWallpaper" xml:space="preserve">
+    <value>壁紙</value>
+  </data>
+  <data name="StatisticsViews" xml:space="preserve">
+    <value>表示回数</value>
+  </data>
+  <data name="StatisticsSummary" xml:space="preserve">
+    <value>集計開始: {0:G}
+これまでの表示回数: {1}回 • 壁紙 {2}枚</value>
+  </data>
+  <data name="StatisticsEmpty" xml:space="preserve">
+    <value>まだ壁紙は記録されていません。</value>
+  </data>
+  <data name="ToolTipStatistics" xml:space="preserve">
+    <value>壁紙の統計を表示</value>
+  </data>
+  <data name="StatisticsLastShown" xml:space="preserve">
+    <value>最終表示</value>
+  </data>
+  <data name="SettingsCloseToTray" xml:space="preserve">
+    <value>Xをクリックしたとき通知領域に最小化する</value>
+  </data>
+</root>
