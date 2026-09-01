@@ -121,11 +121,15 @@ It does not require an account, cloud service or online connection to manage you
 
 ## 📄 License
 
-Wallpaper Control is licensed under the GNU General Public License v3.0 (GPL-3.0).
+Copyright (c) 2026 Yasmin Mahr
 
-You are free to use, modify and redistribute the software under the terms of the GPL-3.0 license.
+Wallpaper Control is free and open-source software licensed under the
+**GNU General Public License v3.0 (GPL-3.0)**.
 
-See the `LICENSE` file for details.
+You are free to use, study, modify and redistribute Wallpaper Control
+under the terms of the GNU General Public License v3.0.
+
+See the `LICENSE` file for the full license text.
 
 ---
 
