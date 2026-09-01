@@ -11,14 +11,16 @@
 		<AssemblyName>WallpaperControl</AssemblyName>
 		<Product>Wallpaper Control</Product>
 		<Company>Yasmin Mahr</Company>
-		<Description>Verwaltung und Steuerung der Windows-Wallpaper-Diashow</Description>
-		<Copyright>© 2026 Yasmin Mahr</Copyright>
+		<Authors>Yasmin Mahr</Authors>
+		<Description>A lightweight Windows wallpaper slideshow manager with hotkeys, tray controls, history, statistics and wallpaper filtering.</Description>
+		<Copyright>Copyright © 2026 Yasmin Mahr</Copyright>
+		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
 
 		<Version>1.5.0</Version>
 		<AssemblyVersion>1.5.0.0</AssemblyVersion>
 		<FileVersion>1.5.0.0</FileVersion>
 
-		<SatelliteResourceLanguages>en;fr;es</SatelliteResourceLanguages>
+		<SatelliteResourceLanguages>en;fr;es;ja</SatelliteResourceLanguages>
 
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<DebugType>none</DebugType>

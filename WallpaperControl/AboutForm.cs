@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -47,7 +47,7 @@ namespace WallpaperControl
                 RuntimeInformation.FrameworkDescription;
 
             string os =
-                RuntimeInformation.OSDescription;
+                GetFriendlyWindowsVersion();
 
             string architecture =
                 RuntimeInformation.ProcessArchitecture.ToString();
@@ -77,7 +77,7 @@ namespace WallpaperControl
                 FormStartPosition.CenterParent;
 
             ClientSize =
-                new Size(470, 390);
+                new Size(470, 402);
 
             Font =
                 new Font("Segoe UI", 10);
@@ -123,13 +123,20 @@ namespace WallpaperControl
             Label copyrightLabel = new Label
             {
                 Text = copyright,
-                Location = new Point(25, 174),
+                Location = new Point(25, 168),
+                Size = new Size(420, 22)
+            };
+
+            Label licenseLabel = new Label
+            {
+                Text = "GNU General Public License v3.0",
+                Location = new Point(25, 190),
                 Size = new Size(420, 22)
             };
 
             Label separator = new Label
             {
-                Location = new Point(25, 207),
+                Location = new Point(25, 219),
                 Size = new Size(420, 1),
                 BorderStyle =
                     BorderStyle.Fixed3D
@@ -140,7 +147,7 @@ namespace WallpaperControl
                 Text =
                     Localization.Get(
                         "AboutTechnicalInformation"),
-                Location = new Point(25, 215),
+                Location = new Point(25, 227),
                 AutoSize = true,
                 Font = new Font(
                     "Segoe UI",
@@ -160,7 +167,7 @@ namespace WallpaperControl
                         architecture,
                         processBits,
                         build),
-                Location = new Point(25, 247),
+                Location = new Point(25, 259),
                 Size = new Size(420, 100),
                 Font = new Font(
                     "Consolas",
@@ -172,7 +179,7 @@ namespace WallpaperControl
                 Text =
                     Localization.Get(
                         "AboutClose"),
-                Location = new Point(340, 340),
+                Location = new Point(340, 352),
                 Size = new Size(105, 34),
                 DialogResult = DialogResult.OK
             };
@@ -182,6 +189,7 @@ namespace WallpaperControl
             Controls.Add(versionLabel);
             Controls.Add(descriptionLabel);
             Controls.Add(copyrightLabel);
+            Controls.Add(licenseLabel);
             Controls.Add(separator);
             Controls.Add(technicalTitle);
             Controls.Add(technicalLabel);
@@ -205,6 +213,35 @@ namespace WallpaperControl
                     ref darkValue,
                     sizeof(int));
             }
+        }
+
+
+        private static string GetFriendlyWindowsVersion()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return RuntimeInformation.OSDescription;
+            }
+
+            Version version =
+                Environment.OSVersion.Version;
+
+            int build =
+                version.Build;
+
+            // Windows 11 starts at build 22000.
+            if (version.Major == 10)
+            {
+                if (build >= 22000)
+                {
+                    return $"Windows 11 (Build {build})";
+                }
+
+                return $"Windows 10 (Build {build})";
+            }
+
+            // Do not guess the marketing name of future Windows versions.
+            return $"Microsoft Windows {version.Major}.{version.Minor} (Build {build})";
         }
 
         private static Bitmap? LoadApplicationLogo()
