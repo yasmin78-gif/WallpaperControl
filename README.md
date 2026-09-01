@@ -74,7 +74,7 @@ The interface language can be changed directly from the application settings.
 
 ## 💻 Requirements
 
-- Windows 11
+- Windows 10 or Windows 11
 - 64-bit Windows
 - No separate .NET installation required when using the self-contained release
 
