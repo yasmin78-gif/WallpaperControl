@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -480,5 +480,177 @@ Bisher gezählt: {1} Anzeigen • {2} Wallpaper</value>
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Beim Klick auf X in den Infobereich minimieren</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>Top 25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>Wallpaper suchen...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>Anteil</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>Als Wallpaper setzen</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>Ordner öffnen</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>Pfad kopieren</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>Aus Statistik entfernen</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>Statistik zurücksetzen...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>Statistik zurücksetzen</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>Gezählt seit: {0:G}   •   Anzeigen: {1:N0}   •   Wallpaper: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>Ø {0:0.00} Anzeigen pro Wallpaper</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>Nicht gefunden</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>Soll „{0}“ wirklich aus der Statistik entfernt werden?
+
+Die bisherige Anzeigehistorie dieses Wallpapers geht dabei verloren.</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>Soll die komplette Wallpaper-Statistik wirklich zurückgesetzt werden?
+
+Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. Das aktuell sichtbare Wallpaper wird erst nach dem nächsten echten Wallpaperwechsel wieder gezählt.</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>Das Wallpaper konnte nicht gesetzt werden:
+</value>
+  </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>Am häufigsten</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>Am seltensten</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>Durchschnitt</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>Fairness</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} Anzeigen</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>Anzeigen pro Wallpaper</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>Verteilung der aufgezeichneten Anzeigen</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>Noch keine Daten</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100 % bedeutet: alle aufgezeichneten Wallpaper wurden gleich oft angezeigt. 0 % bedeutet: alle Anzeigen entfallen auf nur ein Wallpaper. Nicht aufgezeichnete Wallpaper können in diese Berechnung noch nicht einfließen.</value>
+  </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Zeitraum:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Heute</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Gestern</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>Letzte 30 Tage</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Zeitraum: {0}   •   Anzeigen: {1:N0}   •   Wallpaper: {2:N0}   •   Zeitdaten seit: {3:G}</value>
+  </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 Wallpaper</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 Wallpaper • {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Ø Wiederkehr: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>noch keine Daten</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Durchschnittliche Zeit zwischen zwei Anzeigen desselben Wallpapers. Gemessen seit {0:G}. Bisher wurden {1:N0} Wiederkehr-Intervalle erfasst.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} Tage</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} Std.</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} Min.</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} Sek.</value>
+  </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>Vernachlässigt</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>Noch nie</value>
+  </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>Hotkeys</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>Verhalten</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>Farbschema:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>„System“ folgt automatisch dem Windows-App-Modus und reagiert auch während Wallpaper Control läuft auf Änderungen.</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>Darstellung zurücksetzen</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ Zwei aktive Funktionen verwenden denselben Hotkey.</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>Die folgenden globalen Hotkeys konnten von Windows nicht registriert werden. Wahrscheinlich werden sie bereits von einem anderen Programm verwendet:
+
+{0}</value>
   </data>
 </root>

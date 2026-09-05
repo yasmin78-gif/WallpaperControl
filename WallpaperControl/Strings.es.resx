@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -480,5 +480,177 @@ Contado hasta ahora: {1} vistas • {2} fondos</value>
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Minimizar al área de notificación al hacer clic en X</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>Top 25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>Buscar fondos...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>Proporción</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>Establecer como fondo</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>Abrir carpeta</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>Copiar ruta</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>Quitar de las estadísticas</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>Restablecer estadísticas...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>Restablecer estadísticas</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>Contando desde: {0:G}   •   Vistas: {1:N0}   •   Fondos: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>Ø {0:0.00} vistas por fondo</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>No encontrado</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>¿Quitar «{0}» de las estadísticas?
+
+Se perderá su historial de visualizaciones.</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>¿Restablecer todas las estadísticas de fondos?
+
+Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteriores. El fondo visible actualmente solo volverá a contarse después del próximo cambio real.</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>No se pudo establecer el fondo:
+</value>
+  </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>Más visto</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>Menos visto</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>Promedio</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>Equilibrio</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} vistas</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>vistas por fondo</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>distribución de vistas registradas</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>Aún no hay datos</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100 % significa que todos los fondos registrados se mostraron con la misma frecuencia. 0 % significa que todas las vistas pertenecen a un solo fondo. Los fondos sin vistas registradas aún no pueden incluirse.</value>
+  </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Período:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Hoy</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Ayer</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>Últimos 7 días</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Período: {0}   •   Vistas: {1:N0}   •   Fondos: {2:N0}   •   Datos temporales desde: {3:G}</value>
+  </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 fondos</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 fondos • {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Reaparición media: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>aún sin datos</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Tiempo medio entre dos apariciones del mismo fondo. Medido desde {0:G}. Hasta ahora se han registrado {1:N0} intervalos de reaparición.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} días</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} h</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} min</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} s</value>
+  </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>Desatendidos</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>Atajos</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>Comportamiento</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>Apariencia</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>Apariencia</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>Tema de color:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>Oscuro</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>Claro</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>«Sistema» sigue automáticamente el modo de aplicaciones de Windows y reacciona a los cambios mientras Wallpaper Control está abierto.</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>Restablecer apariencia</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ Dos funciones activas usan el mismo atajo.</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>Windows no pudo registrar los siguientes atajos globales. Probablemente ya los utiliza otra aplicación:
+
+{0}</value>
   </data>
 </root>

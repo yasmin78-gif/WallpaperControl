@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -28,10 +29,15 @@ namespace WallpaperControl
         private readonly CheckBox autostartCheckBox;
         private readonly CheckBox closeToTrayCheckBox;
         private readonly ComboBox languageComboBox;
+        private readonly ComboBox themeComboBox;
         private readonly TrackBar opacityTrackBar;
         private readonly Label opacityValueLabel;
+        private readonly Label hotkeyWarningLabel;
+        private readonly Button resetAppearanceButton;
         private string previewLanguageCode;
+        private string previewThemeMode;
         private bool updatingLanguagePreview;
+        private bool updatingThemePreview;
 
         public uint NextModifiers { get; private set; }
         public uint NextKey { get; private set; }
@@ -46,6 +52,7 @@ namespace WallpaperControl
         public bool AutostartEnabled { get; private set; }
         public bool CloseToTrayEnabled { get; private set; } = true;
         public int WindowOpacityPercent { get; private set; } = 80;
+        public string ThemeMode { get; private set; } = "system";
 
         private sealed class Choice
         {
@@ -81,8 +88,26 @@ namespace WallpaperControl
                 Text;
         }
 
+        private sealed class ThemeChoice
+        {
+            public string Text { get; }
+            public string Mode { get; }
+
+            public ThemeChoice(
+                string text,
+                string mode)
+            {
+                Text = text;
+                Mode = mode;
+            }
+
+            public override string ToString() =>
+                Text;
+        }
+
         public SettingsForm(
             bool darkMode,
+            string themeMode,
             uint nextModifiers,
             uint nextKey,
             uint pauseModifiers,
@@ -100,22 +125,85 @@ namespace WallpaperControl
             previewLanguageCode =
                 Localization.CurrentLanguage;
 
+            previewThemeMode =
+                NormalizeThemeMode(
+                    themeMode);
+
+            ThemeMode =
+                previewThemeMode;
+
             Text = Localization.Get(
                 "SettingsTitle",
                 previewLanguageCode);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+
+            FormBorderStyle =
+                FormBorderStyle.FixedDialog;
+
             MaximizeBox = false;
             MinimizeBox = false;
             ShowInTaskbar = false;
-            StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(520, 710);
-            Font = new Font("Segoe UI", 10);
+            StartPosition =
+                FormStartPosition.CenterParent;
 
+            ClientSize =
+                new Size(570, 650);
+
+            Font =
+                new Font("Segoe UI", 10);
+
+            TabControl tabControl =
+                new TabControl
+                {
+                    Location = new Point(20, 18),
+                    Size = new Size(530, 555)
+                };
+
+            TabPage hotkeysPage =
+                new TabPage
+                {
+                    Text = Localization.Get(
+                        "SettingsTabHotkeys",
+                        previewLanguageCode),
+                    Tag = "SettingsTabHotkeys"
+                };
+
+            TabPage behaviorPage =
+                new TabPage
+                {
+                    Text = Localization.Get(
+                        "SettingsTabBehavior",
+                        previewLanguageCode),
+                    Tag = "SettingsTabBehavior"
+                };
+
+            TabPage appearancePage =
+                new TabPage
+                {
+                    Text = Localization.Get(
+                        "SettingsTabAppearance",
+                        previewLanguageCode),
+                    Tag = "SettingsTabAppearance"
+                };
+
+            tabControl.TabPages.Add(
+                hotkeysPage);
+
+            tabControl.TabPages.Add(
+                behaviorPage);
+
+            tabControl.TabPages.Add(
+                appearancePage);
+
+            // ==========================================================
+            // HOTKEYS
+            // ==========================================================
             Label titleLabel = new Label
             {
-                Text = Localization.Get("SettingsHotkeysTitle", previewLanguageCode),
+                Text = Localization.Get(
+                    "SettingsHotkeysTitle",
+                    previewLanguageCode),
                 Tag = "SettingsHotkeysTitle",
-                Location = new Point(25, 20),
+                Location = new Point(18, 18),
                 AutoSize = true,
                 Font = new Font(
                     "Segoe UI",
@@ -125,33 +213,45 @@ namespace WallpaperControl
 
             Label hintLabel = new Label
             {
-                Text = Localization.Get("SettingsHotkeysHint", previewLanguageCode),
+                Text = Localization.Get(
+                    "SettingsHotkeysHint",
+                    previewLanguageCode),
                 Tag = "SettingsHotkeysHint",
-                Location = new Point(25, 50),
-                Size = new Size(470, 24)
+                Location = new Point(18, 48),
+                Size = new Size(475, 42)
             };
 
+            hotkeysPage.Controls.Add(
+                titleLabel);
+
+            hotkeysPage.Controls.Add(
+                hintLabel);
+
             CreateHotkeyRow(
+                hotkeysPage,
                 "SettingsHotkeyNext",
-                85,
+                100,
                 out nextModifierCombo,
                 out nextKeyCombo);
 
             CreateHotkeyRow(
+                hotkeysPage,
                 "SettingsHotkeyPause",
-                125,
+                145,
                 out pauseModifierCombo,
                 out pauseKeyCombo);
 
             CreateHotkeyRow(
+                hotkeysPage,
                 "SettingsHotkeyExplorer",
-                165,
+                190,
                 out explorerModifierCombo,
                 out explorerKeyCombo);
 
             CreateHotkeyRow(
+                hotkeysPage,
                 "SettingsHotkeyReject",
-                205,
+                235,
                 out rejectModifierCombo,
                 out rejectKeyCombo);
 
@@ -179,237 +279,526 @@ namespace WallpaperControl
                 rejectModifiers,
                 rejectKey);
 
-            Button resetHotkeysButton = new Button
-            {
-                Text = Localization.Get("SettingsResetHotkeys", previewLanguageCode),
-                Tag = "SettingsResetHotkeys",
-                Location = new Point(295, 240),
-                Size = new Size(200, 32)
-            };
+            hotkeyWarningLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsHotkeyConflictInline",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsHotkeyConflictInline",
+                    Location =
+                        new Point(18, 285),
+                    Size =
+                        new Size(475, 42),
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            8.5f,
+                            FontStyle.Bold),
+                    Visible = false
+                };
+
+            Button resetHotkeysButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsResetHotkeys",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsResetHotkeys",
+                    Location =
+                        new Point(293, 345),
+                    Size =
+                        new Size(200, 34)
+                };
 
             resetHotkeysButton.Click +=
-                (_, _) => SetDefaultHotkeys();
+                (_, _) =>
+                {
+                    SetDefaultHotkeys();
+                    UpdateHotkeyValidation();
+                };
 
-            Controls.Add(resetHotkeysButton);
+            hotkeysPage.Controls.Add(
+                hotkeyWarningLabel);
 
-            Label rejectTitleLabel = new Label
-            {
-                Text = Localization.Get("SettingsRejectTitle", previewLanguageCode),
-                Tag = "SettingsRejectTitle",
-                Location = new Point(25, 325),
-                AutoSize = true,
-                Font = new Font(
-                    "Segoe UI",
-                    12,
-                    FontStyle.Bold)
-            };
+            hotkeysPage.Controls.Add(
+                resetHotkeysButton);
 
-            Label rejectFolderLabel = new Label
-            {
-                Text = Localization.Get("SettingsRejectFolder", previewLanguageCode),
-                Tag = "SettingsRejectFolder",
-                Location = new Point(25, 290),
-                AutoSize = true
-            };
+            HookHotkeyValidation();
 
-            rejectRootTextBox = new TextBox
-            {
-                Location = new Point(25, 352),
-                Size = new Size(415, 28),
-                ReadOnly = true,
-                Text = rejectRootFolder
-            };
+            // ==========================================================
+            // VERHALTEN
+            // ==========================================================
+            Label rejectTitleLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsRejectTitle",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsRejectTitle",
+                    Location =
+                        new Point(18, 18),
+                    AutoSize = true,
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            12,
+                            FontStyle.Bold)
+                };
 
-            rejectRootBrowseButton = new Button
-            {
-                Text = "...",
-                Location = new Point(450, 351),
-                Size = new Size(45, 29)
-            };
+            Label rejectFolderLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsRejectFolder",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsRejectFolder",
+                    Location =
+                        new Point(18, 58),
+                    Size =
+                        new Size(475, 24)
+                };
+
+            rejectRootTextBox =
+                new TextBox
+                {
+                    Location =
+                        new Point(18, 84),
+                    Size =
+                        new Size(425, 28),
+                    ReadOnly = true,
+                    Text =
+                        rejectRootFolder
+                };
+
+            rejectRootBrowseButton =
+                new Button
+                {
+                    Text = "...",
+                    Location =
+                        new Point(451, 83),
+                    Size =
+                        new Size(42, 29)
+                };
 
             rejectRootBrowseButton.Click +=
                 RejectRootBrowseButton_Click;
 
-            rejectSubfolderCheckBox = new CheckBox
-            {
-                Text = Localization.Get("SettingsRejectSubfolder", previewLanguageCode),
-                Tag = "SettingsRejectSubfolder",
-                Location = new Point(25, 390),
-                AutoSize = true,
-                Checked = rejectUseSubfolder
-            };
+            rejectSubfolderCheckBox =
+                new CheckBox
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsRejectSubfolder",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsRejectSubfolder",
+                    Location =
+                        new Point(18, 124),
+                    AutoSize = true,
+                    Checked =
+                        rejectUseSubfolder
+                };
 
-            Label rejectHintLabel = new Label
-            {
-                Text = Localization.Get("SettingsRejectHint", previewLanguageCode),
-                Tag = "SettingsRejectHint",
-                Location = new Point(25, 418),
-                Size = new Size(470, 38),
-                Font = new Font("Segoe UI", 8.25f)
-            };
+            Label rejectHintLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsRejectHint",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsRejectHint",
+                    Location =
+                        new Point(18, 154),
+                    Size =
+                        new Size(475, 48),
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            8.25f)
+                };
 
-            Controls.Add(rejectTitleLabel);
-            Controls.Add(rejectFolderLabel);
-            Controls.Add(rejectRootTextBox);
-            Controls.Add(rejectRootBrowseButton);
-            Controls.Add(rejectSubfolderCheckBox);
-            Controls.Add(rejectHintLabel);
+            Label generalTitleLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsGeneralTitle",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsGeneralTitle",
+                    Location =
+                        new Point(18, 235),
+                    AutoSize = true,
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            12,
+                            FontStyle.Bold)
+                };
 
-            Label generalTitleLabel = new Label
-            {
-                Text = Localization.Get("SettingsGeneralTitle", previewLanguageCode),
-                Tag = "SettingsGeneralTitle",
-                Location = new Point(25, 460),
-                AutoSize = true,
-                Font = new Font(
-                    "Segoe UI",
-                    12,
-                    FontStyle.Bold)
-            };
+            autostartCheckBox =
+                new CheckBox
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsAutostart",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsAutostart",
+                    Location =
+                        new Point(18, 275),
+                    AutoSize = true,
+                    Checked =
+                        autostartEnabled
+                };
 
-            autostartCheckBox = new CheckBox
-            {
-                Text = Localization.Get("SettingsAutostart", previewLanguageCode),
-                Tag = "SettingsAutostart",
-                Location = new Point(25, 495),
-                AutoSize = true,
-                Checked = autostartEnabled
-            };
+            closeToTrayCheckBox =
+                new CheckBox
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsCloseToTray",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsCloseToTray",
+                    Location =
+                        new Point(18, 307),
+                    AutoSize = true,
+                    Checked =
+                        closeToTrayEnabled
+                };
 
-            closeToTrayCheckBox = new CheckBox
-            {
-                Text = Localization.Get(
-                    "SettingsCloseToTray",
-                    previewLanguageCode),
-                Tag = "SettingsCloseToTray",
-                Location = new Point(25, 523),
-                AutoSize = true,
-                Checked = closeToTrayEnabled
-            };
+            behaviorPage.Controls.Add(
+                rejectTitleLabel);
 
-            Label languageLabel = new Label
-            {
-                Text = Localization.Get("SettingsLanguageLabel", previewLanguageCode),
-                Tag = "SettingsLanguageLabel",
-                Location = new Point(25, 560),
-                Size = new Size(175, 25)
-            };
+            behaviorPage.Controls.Add(
+                rejectFolderLabel);
 
-            languageComboBox = new ComboBox
-            {
-                Location = new Point(205, 555),
-                Size = new Size(290, 28),
-                DropDownStyle =
-                    ComboBoxStyle.DropDownList
-            };
+            behaviorPage.Controls.Add(
+                rejectRootTextBox);
+
+            behaviorPage.Controls.Add(
+                rejectRootBrowseButton);
+
+            behaviorPage.Controls.Add(
+                rejectSubfolderCheckBox);
+
+            behaviorPage.Controls.Add(
+                rejectHintLabel);
+
+            behaviorPage.Controls.Add(
+                generalTitleLabel);
+
+            behaviorPage.Controls.Add(
+                autostartCheckBox);
+
+            behaviorPage.Controls.Add(
+                closeToTrayCheckBox);
+
+            // ==========================================================
+            // DARSTELLUNG
+            // ==========================================================
+            Label appearanceTitleLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsAppearanceTitle",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsAppearanceTitle",
+                    Location =
+                        new Point(18, 18),
+                    AutoSize = true,
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            12,
+                            FontStyle.Bold)
+                };
+
+            Label themeLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsThemeLabel",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsThemeLabel",
+                    Location =
+                        new Point(18, 62),
+                    Size =
+                        new Size(175, 25)
+                };
+
+            themeComboBox =
+                new ComboBox
+                {
+                    Location =
+                        new Point(205, 57),
+                    Size =
+                        new Size(288, 28),
+                    DropDownStyle =
+                        ComboBoxStyle.DropDownList
+                };
+
+            RefreshThemeChoices(
+                previewThemeMode);
+
+            themeComboBox.SelectedIndexChanged +=
+                ThemeComboBox_SelectedIndexChanged;
+
+            Label themeHintLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsThemeHint",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsThemeHint",
+                    Location =
+                        new Point(18, 98),
+                    Size =
+                        new Size(475, 42),
+                    Font =
+                        new Font(
+                            "Segoe UI",
+                            8.25f)
+                };
+
+            Label languageLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsLanguageLabel",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsLanguageLabel",
+                    Location =
+                        new Point(18, 165),
+                    Size =
+                        new Size(175, 25)
+                };
+
+            languageComboBox =
+                new ComboBox
+                {
+                    Location =
+                        new Point(205, 160),
+                    Size =
+                        new Size(288, 28),
+                    DropDownStyle =
+                        ComboBoxStyle.DropDownList
+                };
 
             RefreshLanguageChoices(
                 previewLanguageCode);
 
-SelectLanguage(
+            SelectLanguage(
                 previewLanguageCode);
 
             languageComboBox.SelectedIndexChanged +=
                 LanguageComboBox_SelectedIndexChanged;
 
-            Controls.Add(generalTitleLabel);
-            Controls.Add(autostartCheckBox);
-            Controls.Add(closeToTrayCheckBox);
-            Controls.Add(languageLabel);
-            Controls.Add(languageComboBox);
+            Label opacityLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsWindowOpacity",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsWindowOpacity",
+                    Location =
+                        new Point(18, 217),
+                    Size =
+                        new Size(175, 25)
+                };
 
-            Label opacityLabel = new Label
-            {
-                Text = Localization.Get(
-                    "SettingsWindowOpacity",
-                    previewLanguageCode),
-                Tag = "SettingsWindowOpacity",
-                Location = new Point(25, 600),
-                Size = new Size(175, 25)
-            };
+            opacityTrackBar =
+                new TrackBar
+                {
+                    Location =
+                        new Point(205, 210),
+                    Size =
+                        new Size(235, 30),
+                    Minimum = 92,
+                    Maximum = 100,
+                    SmallChange = 1,
+                    LargeChange = 1,
+                    TickFrequency = 1,
+                    TickStyle =
+                        TickStyle.None,
+                    AutoSize = false,
+                    Value =
+                        Math.Clamp(
+                            windowOpacityPercent,
+                            92,
+                            100)
+                };
 
-            opacityTrackBar = new TrackBar
-            {
-                Location = new Point(205, 593),
-                Size = new Size(235, 30),
-                Minimum = 92,
-                Maximum = 100,
-                SmallChange = 1,
-                LargeChange = 1,
-                TickFrequency = 1,
-                TickStyle = TickStyle.None,
-                AutoSize = false,
-                Value = Math.Clamp(
-                    windowOpacityPercent,
-                    92,
-                    100)
-            };
-
-            opacityValueLabel = new Label
-            {
-                Location = new Point(450, 600),
-                Size = new Size(45, 25),
-                TextAlign = ContentAlignment.TopRight
-            };
+            opacityValueLabel =
+                new Label
+                {
+                    Location =
+                        new Point(448, 217),
+                    Size =
+                        new Size(45, 25),
+                    TextAlign =
+                        ContentAlignment.TopRight
+                };
 
             UpdateOpacityPreview();
 
             opacityTrackBar.ValueChanged +=
-                (_, _) => UpdateOpacityPreview();
+                (_, _) =>
+                    UpdateOpacityPreview();
 
-            Controls.Add(opacityLabel);
-            Controls.Add(opacityTrackBar);
-            Controls.Add(opacityValueLabel);
+            resetAppearanceButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsResetAppearance",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsResetAppearance",
+                    Location =
+                        new Point(293, 275),
+                    Size =
+                        new Size(200, 34)
+                };
 
-            Button defaultsButton = new Button
-            {
-                Text = Localization.Get("SettingsRestoreDefaults", previewLanguageCode),
-                Tag = "SettingsRestoreDefaults",
-                Location = new Point(25, 655),
-                Size = new Size(200, 38)
-            };
+            resetAppearanceButton.Click +=
+                (_, _) =>
+                    ResetAppearanceSettings();
+
+            appearancePage.Controls.Add(
+                appearanceTitleLabel);
+
+            appearancePage.Controls.Add(
+                themeLabel);
+
+            appearancePage.Controls.Add(
+                themeComboBox);
+
+            appearancePage.Controls.Add(
+                themeHintLabel);
+
+            appearancePage.Controls.Add(
+                languageLabel);
+
+            appearancePage.Controls.Add(
+                languageComboBox);
+
+            appearancePage.Controls.Add(
+                opacityLabel);
+
+            appearancePage.Controls.Add(
+                opacityTrackBar);
+
+            appearancePage.Controls.Add(
+                opacityValueLabel);
+
+            appearancePage.Controls.Add(
+                resetAppearanceButton);
+
+            // ==========================================================
+            // FOOTER
+            // ==========================================================
+            Button defaultsButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsRestoreDefaults",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsRestoreDefaults",
+                    Location =
+                        new Point(20, 595),
+                    Size =
+                        new Size(210, 38)
+                };
 
             defaultsButton.Click +=
-                (_, _) => ResetAllSettings();
+                (_, _) =>
+                    ResetAllSettings();
 
-            Button cancelButton = new Button
-            {
-                Text = Localization.Get("SettingsCancel", previewLanguageCode),
-                Tag = "SettingsCancel",
-                Location = new Point(280, 655),
-                Size = new Size(100, 38),
-                DialogResult = DialogResult.Cancel
-            };
+            Button cancelButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsCancel",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsCancel",
+                    Location =
+                        new Point(330, 595),
+                    Size =
+                        new Size(100, 38),
+                    DialogResult =
+                        DialogResult.Cancel
+                };
 
-            Button saveButton = new Button
-            {
-                Text = Localization.Get("SettingsSave", previewLanguageCode),
-                Tag = "SettingsSave",
-                Location = new Point(390, 655),
-                Size = new Size(105, 38)
-            };
+            Button saveButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsSave",
+                            previewLanguageCode),
+                    Tag =
+                        "SettingsSave",
+                    Location =
+                        new Point(440, 595),
+                    Size =
+                        new Size(110, 38)
+                };
 
             saveButton.Click +=
-                (_, _) => SaveAndClose();
+                (_, _) =>
+                    SaveAndClose();
 
-            Controls.Add(titleLabel);
-            Controls.Add(hintLabel);
-            Controls.Add(defaultsButton);
-            Controls.Add(cancelButton);
-            Controls.Add(saveButton);
+            Controls.Add(
+                tabControl);
 
-            AcceptButton = saveButton;
-            CancelButton = cancelButton;
+            Controls.Add(
+                defaultsButton);
+
+            Controls.Add(
+                cancelButton);
+
+            Controls.Add(
+                saveButton);
+
+            AcceptButton =
+                saveButton;
+
+            CancelButton =
+                cancelButton;
+
+            SystemEvents.UserPreferenceChanged +=
+                SystemEvents_UserPreferenceChanged;
 
             ApplyTheme(
-                darkMode,
-                titleLabel,
-                hintLabel,
-                defaultsButton,
-                cancelButton,
-                saveButton,
-                rejectRootBrowseButton,
-                resetHotkeysButton);
+                ResolvePreviewDarkMode());
+
+            UpdateHotkeyValidation();
         }
 
         private void RejectRootBrowseButton_Click(
@@ -444,6 +833,7 @@ SelectLanguage(
         }
 
         private void CreateHotkeyRow(
+            Control parent,
             string labelResourceKey,
             int y,
             out ComboBox modifierCombo,
@@ -503,9 +893,9 @@ SelectLanguage(
                         choice.Value != 0;
                 };
 
-            Controls.Add(label);
-            Controls.Add(modifierCombo);
-            Controls.Add(keyCombo);
+            parent.Controls.Add(label);
+            parent.Controls.Add(modifierCombo);
+            parent.Controls.Add(keyCombo);
         }
 
         private Choice[] GetModifierChoices() =>
@@ -638,6 +1028,154 @@ SelectLanguage(
             }
         }
 
+        private void ThemeComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            if (updatingThemePreview ||
+                themeComboBox.SelectedItem
+                    is not ThemeChoice choice)
+            {
+                return;
+            }
+
+            previewThemeMode =
+                choice.Mode;
+
+            ApplyTheme(
+                ResolvePreviewDarkMode());
+        }
+
+        private void SystemEvents_UserPreferenceChanged(
+            object sender,
+            UserPreferenceChangedEventArgs e)
+        {
+            if (IsDisposed ||
+                !string.Equals(
+                    previewThemeMode,
+                    "system",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            try
+            {
+                BeginInvoke(() =>
+                {
+                    if (!IsDisposed)
+                    {
+                        ApplyTheme(
+                            ResolvePreviewDarkMode());
+                    }
+                });
+            }
+            catch
+            {
+            }
+        }
+
+        private bool ResolvePreviewDarkMode()
+        {
+            return NormalizeThemeMode(
+                previewThemeMode) switch
+                {
+                    "dark" => true,
+                    "light" => false,
+                    _ => IsWindowsDarkMode()
+                };
+        }
+
+        private static bool IsWindowsDarkMode()
+        {
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+
+                object? value =
+                    key?.GetValue(
+                        "AppsUseLightTheme");
+
+                return value != null &&
+                       Convert.ToInt32(value) == 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string NormalizeThemeMode(
+            string? value)
+        {
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                "dark" => "dark",
+                "light" => "light",
+                _ => "system"
+            };
+        }
+
+        private void RefreshThemeChoices(
+            string selectedMode)
+        {
+            string normalized =
+                NormalizeThemeMode(
+                    selectedMode);
+
+            updatingThemePreview = true;
+
+            try
+            {
+                themeComboBox.Items.Clear();
+
+                themeComboBox.Items.Add(
+                    new ThemeChoice(
+                        Localization.Get(
+                            "SettingsThemeSystem",
+                            previewLanguageCode),
+                        "system"));
+
+                themeComboBox.Items.Add(
+                    new ThemeChoice(
+                        Localization.Get(
+                            "SettingsThemeDark",
+                            previewLanguageCode),
+                        "dark"));
+
+                themeComboBox.Items.Add(
+                    new ThemeChoice(
+                        Localization.Get(
+                            "SettingsThemeLight",
+                            previewLanguageCode),
+                        "light"));
+
+                for (int i = 0;
+                     i < themeComboBox.Items.Count;
+                     i++)
+                {
+                    if (themeComboBox.Items[i]
+                            is ThemeChoice choice &&
+                        string.Equals(
+                            choice.Mode,
+                            normalized,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        themeComboBox.SelectedIndex = i;
+                        return;
+                    }
+                }
+
+                themeComboBox.SelectedIndex = 0;
+            }
+            finally
+            {
+                updatingThemePreview = false;
+            }
+        }
+
         private void LanguageComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -721,6 +1259,9 @@ SelectLanguage(
 
                 RefreshLanguageChoices(
                     previewLanguageCode);
+
+                RefreshThemeChoices(
+                    previewThemeMode);
 
                 SetComboValues(
                     nextModifierCombo,
@@ -845,6 +1386,103 @@ SelectLanguage(
             languageComboBox.SelectedIndex = 0;
         }
 
+        private void HookHotkeyValidation()
+        {
+            ComboBox[] combos =
+            {
+                nextModifierCombo,
+                nextKeyCombo,
+                pauseModifierCombo,
+                pauseKeyCombo,
+                explorerModifierCombo,
+                explorerKeyCombo,
+                rejectModifierCombo,
+                rejectKeyCombo
+            };
+
+            foreach (ComboBox combo
+                in combos)
+            {
+                combo.SelectedIndexChanged +=
+                    (_, _) =>
+                        UpdateHotkeyValidation();
+            }
+        }
+
+        private void UpdateHotkeyValidation()
+        {
+            if (hotkeyWarningLabel == null)
+            {
+                return;
+            }
+
+            GetComboValues(
+                nextModifierCombo,
+                nextKeyCombo,
+                out uint nextModifiers,
+                out uint nextKey);
+
+            GetComboValues(
+                pauseModifierCombo,
+                pauseKeyCombo,
+                out uint pauseModifiers,
+                out uint pauseKey);
+
+            GetComboValues(
+                explorerModifierCombo,
+                explorerKeyCombo,
+                out uint explorerModifiers,
+                out uint explorerKey);
+
+            GetComboValues(
+                rejectModifierCombo,
+                rejectKeyCombo,
+                out uint rejectModifiers,
+                out uint rejectKey);
+
+            (uint modifiers, uint key)[] values =
+            {
+                (nextModifiers, nextKey),
+                (pauseModifiers, pauseKey),
+                (explorerModifiers, explorerKey),
+                (rejectModifiers, rejectKey)
+            };
+
+            bool duplicateFound = false;
+
+            for (int i = 0;
+                 i < values.Length &&
+                 !duplicateFound;
+                 i++)
+            {
+                for (int j = i + 1;
+                     j < values.Length;
+                     j++)
+                {
+                    if (IsDuplicate(
+                        values[i].modifiers,
+                        values[i].key,
+                        values[j].modifiers,
+                        values[j].key))
+                    {
+                        duplicateFound = true;
+                        break;
+                    }
+                }
+            }
+
+            hotkeyWarningLabel.Visible =
+                duplicateFound;
+
+            hotkeyWarningLabel.ForeColor =
+                ResolvePreviewDarkMode()
+                    ? Color.FromArgb(
+                        255,
+                        175,
+                        90)
+                    : Color.DarkOrange;
+        }
+
         private void SetDefaultHotkeys()
         {
             SetComboValues(
@@ -868,7 +1506,7 @@ SelectLanguage(
             SetComboValues(
                 rejectModifierCombo,
                 rejectKeyCombo,
-                MOD_CONTROL | MOD_ALT,
+                MOD_CONTROL | MOD_ALT | MOD_SHIFT,
                 0x52);
         }
 
@@ -884,6 +1522,20 @@ SelectLanguage(
                 value / 100.0;
         }
 
+        private void ResetAppearanceSettings()
+        {
+            previewThemeMode =
+                "system";
+
+            RefreshThemeChoices(
+                previewThemeMode);
+
+            opacityTrackBar.Value = 92;
+
+            ApplyTheme(
+                ResolvePreviewDarkMode());
+        }
+
         private void ResetAllSettings()
         {
             SetDefaultHotkeys();
@@ -893,7 +1545,7 @@ SelectLanguage(
             autostartCheckBox.Checked = false;
             closeToTrayCheckBox.Checked = true;
 
-            opacityTrackBar.Value = 92;
+            ResetAppearanceSettings();
 
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
@@ -990,6 +1642,10 @@ SelectLanguage(
             WindowOpacityPercent =
                 opacityTrackBar.Value;
 
+            ThemeMode =
+                NormalizeThemeMode(
+                    previewThemeMode);
+
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))
             {
@@ -1051,78 +1707,191 @@ SelectLanguage(
         }
 
         private void ApplyTheme(
-            bool darkMode,
-            Label titleLabel,
-            Label hintLabel,
-            params Button[] buttons)
+            bool darkMode)
         {
             Color background =
                 darkMode
-                ? Color.FromArgb(32, 32, 32)
-                : SystemColors.Control;
+                    ? Color.FromArgb(32, 32, 32)
+                    : SystemColors.Control;
 
             Color foreground =
                 darkMode
-                ? Color.FromArgb(235, 235, 235)
-                : SystemColors.ControlText;
+                    ? Color.FromArgb(235, 235, 235)
+                    : SystemColors.ControlText;
 
             Color inputBackground =
                 darkMode
-                ? Color.FromArgb(48, 48, 48)
-                : SystemColors.Window;
+                    ? Color.FromArgb(48, 48, 48)
+                    : SystemColors.Window;
+
+            Color buttonBackground =
+                darkMode
+                    ? Color.FromArgb(50, 50, 50)
+                    : SystemColors.Control;
 
             BackColor = background;
             ForeColor = foreground;
 
-            titleLabel.ForeColor = foreground;
-            hintLabel.ForeColor = foreground;
+            ApplyThemeToControls(
+                Controls,
+                darkMode,
+                background,
+                foreground,
+                inputBackground,
+                buttonBackground);
 
-            foreach (Control control in Controls)
+            UpdateHotkeyValidation();
+            ApplyTitleBarTheme(
+                darkMode);
+
+            Invalidate(
+                true);
+        }
+
+        private static void ApplyThemeToControls(
+            Control.ControlCollection controls,
+            bool darkMode,
+            Color background,
+            Color foreground,
+            Color inputBackground,
+            Color buttonBackground)
+        {
+            foreach (Control control
+                in controls)
             {
-                if (control is Label label)
+                if (control is TabControl tabControl)
                 {
-                    label.ForeColor = foreground;
+                    tabControl.BackColor =
+                        background;
+
+                    tabControl.ForeColor =
+                        foreground;
+                }
+                else if (control is TabPage tabPage)
+                {
+                    tabPage.BackColor =
+                        background;
+
+                    tabPage.ForeColor =
+                        foreground;
+                }
+                else if (control is Label label)
+                {
+                    label.BackColor =
+                        Color.Transparent;
+
+                    label.ForeColor =
+                        foreground;
+                }
+                else if (control is CheckBox checkBox)
+                {
+                    checkBox.BackColor =
+                        background;
+
+                    checkBox.ForeColor =
+                        foreground;
+                }
+                else if (control is TextBox textBox)
+                {
+                    textBox.BackColor =
+                        inputBackground;
+
+                    textBox.ForeColor =
+                        foreground;
                 }
                 else if (control is ComboBox combo)
                 {
-                    combo.BackColor = inputBackground;
-                    combo.ForeColor = foreground;
+                    combo.BackColor =
+                        inputBackground;
+
+                    combo.ForeColor =
+                        foreground;
                 }
                 else if (control is TrackBar trackBar)
                 {
-                    trackBar.BackColor = background;
-                    trackBar.ForeColor = foreground;
+                    trackBar.BackColor =
+                        background;
+
+                    trackBar.ForeColor =
+                        foreground;
+                }
+                else if (control is Button button)
+                {
+                    button.UseVisualStyleBackColor =
+                        false;
+
+                    button.BackColor =
+                        buttonBackground;
+
+                    button.ForeColor =
+                        foreground;
+
+                    button.FlatStyle =
+                        FlatStyle.Flat;
+
+                    button.FlatAppearance.BorderColor =
+                        darkMode
+                            ? Color.FromArgb(
+                                85,
+                                85,
+                                85)
+                            : Color.FromArgb(
+                                180,
+                                180,
+                                180);
+                }
+
+                if (control.HasChildren)
+                {
+                    ApplyThemeToControls(
+                        control.Controls,
+                        darkMode,
+                        background,
+                        foreground,
+                        inputBackground,
+                        buttonBackground);
                 }
             }
+        }
 
-            foreach (Button button in buttons)
+        protected override void OnHandleCreated(
+            EventArgs e)
+        {
+            base.OnHandleCreated(e);
+
+            ApplyTitleBarTheme(
+                ResolvePreviewDarkMode());
+        }
+
+        protected override void Dispose(
+            bool disposing)
+        {
+            if (disposing)
             {
-                button.UseVisualStyleBackColor = false;
-                button.BackColor =
-                    darkMode
-                    ? Color.FromArgb(50, 50, 50)
-                    : SystemColors.Control;
+                SystemEvents.UserPreferenceChanged -=
+                    SystemEvents_UserPreferenceChanged;
+            }
 
-                button.ForeColor = foreground;
-                button.FlatStyle = FlatStyle.Flat;
+            base.Dispose(
+                disposing);
+        }
 
-                button.FlatAppearance.BorderColor =
-                    darkMode
-                    ? Color.FromArgb(85, 85, 85)
-                    : Color.FromArgb(180, 180, 180);
+        private void ApplyTitleBarTheme(
+            bool darkMode)
+        {
+            if (!IsHandleCreated)
+            {
+                return;
             }
 
             int darkValue =
                 darkMode ? 1 : 0;
 
-            if (IsHandleCreated)
-            {
-                DwmSetWindowAttribute(
-                    Handle,
-                    20,
-                    ref darkValue,
-                    sizeof(int));
-            }
+            DwmSetWindowAttribute(
+                Handle,
+                20,
+                ref darkValue,
+                sizeof(int));
         }
 
         [DllImport("dwmapi.dll")]

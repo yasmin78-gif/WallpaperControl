@@ -71,6 +71,24 @@ namespace WallpaperControl
             wallpaperLastShown =
                 new(StringComparer.OrdinalIgnoreCase);
 
+        private readonly Dictionary<string, Dictionary<string, int>>
+            wallpaperDailyViewCounts =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        private DateTime dailyStatisticsStartedAt =
+            DateTime.Now;
+
+        private readonly Dictionary<string, int>
+            wallpaperRecurrenceCounts =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        private readonly Dictionary<string, double>
+            wallpaperRecurrenceSeconds =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        private DateTime recurrenceStatisticsStartedAt =
+            DateTime.Now;
+
         private string? lastCountedWallpaperPath;
 
         private string? lastRejectedSourcePath;
@@ -110,7 +128,8 @@ namespace WallpaperControl
         private uint hotkeyExplorerModifiers = MOD_CONTROL | MOD_ALT;
         private uint hotkeyExplorerKey = VK_E;
 
-        private uint hotkeyRejectModifiers = MOD_CONTROL | MOD_ALT;
+        private uint hotkeyRejectModifiers =
+            MOD_CONTROL | MOD_ALT | MOD_SHIFT;
         private uint hotkeyRejectKey = VK_R;
 
         private string rejectRootFolder = "";
@@ -118,6 +137,7 @@ namespace WallpaperControl
 
         private bool loading = true;
         private bool darkMode;
+        private string themeMode = "system";
         private bool slideshowPaused = false;
         private bool closingAfterPauseResume = false;
         private bool restoringFromTray = false;
@@ -165,6 +185,9 @@ namespace WallpaperControl
 
             windowOpacityPercent =
                 LoadWindowOpacityPercent();
+
+            themeMode =
+                LoadThemeMode();
 
             Opacity =
                 windowOpacityPercent / 100.0;
@@ -743,7 +766,8 @@ namespace WallpaperControl
             base.OnHandleCreated(e);
 
             ApplyTitleBarTheme();
-            RegisterHotKeys();
+            RegisterHotKeys(
+                showErrors: false);
         }
 
         // ============================================================
@@ -756,6 +780,14 @@ namespace WallpaperControl
         {
             if (IsDisposed)
                 return;
+
+            if (!string.Equals(
+                    themeMode,
+                    "system",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
 
             BeginInvoke(() =>
             {
@@ -788,7 +820,13 @@ namespace WallpaperControl
 
         private void ApplyWindowsTheme()
         {
-            darkMode = IsWindowsDarkMode();
+            darkMode =
+                themeMode.ToLowerInvariant() switch
+                {
+                    "dark" => true,
+                    "light" => false,
+                    _ => IsWindowsDarkMode()
+                };
 
             Color background =
                 darkMode
@@ -2740,8 +2778,21 @@ namespace WallpaperControl
                     ? null
                     : data.LastCountedWallpaperPath;
 
+            dailyStatisticsStartedAt =
+                data.DailyTrackingStartedAt == default
+                    ? DateTime.Now
+                    : data.DailyTrackingStartedAt;
+
+            recurrenceStatisticsStartedAt =
+                data.RecurrenceTrackingStartedAt == default
+                    ? DateTime.Now
+                    : data.RecurrenceTrackingStartedAt;
+
             wallpaperViewCounts.Clear();
             wallpaperLastShown.Clear();
+            wallpaperDailyViewCounts.Clear();
+            wallpaperRecurrenceCounts.Clear();
+            wallpaperRecurrenceSeconds.Clear();
 
             foreach (PersistentWallpaperStatistics item
                 in data.Wallpapers)
@@ -2760,6 +2811,34 @@ namespace WallpaperControl
                     wallpaperLastShown[item.Path] =
                         item.LastShown;
                 }
+
+                Dictionary<string, int> validDailyCounts =
+                    item.DailyViews
+                        .Where(
+                            entry =>
+                                !string.IsNullOrWhiteSpace(
+                                    entry.Key) &&
+                                entry.Value > 0)
+                        .ToDictionary(
+                            entry => entry.Key,
+                            entry => entry.Value,
+                            StringComparer.Ordinal);
+
+                if (validDailyCounts.Count > 0)
+                {
+                    wallpaperDailyViewCounts[item.Path] =
+                        validDailyCounts;
+                }
+
+                if (item.RecurrenceCount > 0 &&
+                    item.TotalRecurrenceSeconds > 0)
+                {
+                    wallpaperRecurrenceCounts[item.Path] =
+                        item.RecurrenceCount;
+
+                    wallpaperRecurrenceSeconds[item.Path] =
+                        item.TotalRecurrenceSeconds;
+                }
             }
         }
 
@@ -2767,8 +2846,13 @@ namespace WallpaperControl
         {
             StatisticsStorage.Save(
                 statisticsStartedAt,
+                dailyStatisticsStartedAt,
                 wallpaperViewCounts,
                 wallpaperLastShown,
+                wallpaperDailyViewCounts,
+                wallpaperRecurrenceCounts,
+                wallpaperRecurrenceSeconds,
+                recurrenceStatisticsStartedAt,
                 lastCountedWallpaperPath);
         }
 
@@ -2777,6 +2861,9 @@ namespace WallpaperControl
         {
             wallpaperViewCounts.Remove(path);
             wallpaperLastShown.Remove(path);
+            wallpaperDailyViewCounts.Remove(path);
+            wallpaperRecurrenceCounts.Remove(path);
+            wallpaperRecurrenceSeconds.Remove(path);
 
             if (string.Equals(
                 path,
@@ -2785,6 +2872,119 @@ namespace WallpaperControl
             {
                 lastCountedWallpaperPath = null;
             }
+
+            SavePersistentStatistics();
+        }
+
+        private async void SetWallpaperFromStatistics(
+            string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) ||
+                !File.Exists(path))
+            {
+                return;
+            }
+
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                bool slideshowWasActive =
+                    IsSlideshowCurrentlyActive();
+
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                wallpaper.SetWallpaper(
+                    null,
+                    path);
+
+                // Eine gezielte Auswahl aus der Statistik soll sichtbar
+                // bleiben. War vorher eine Diashow aktiv, behandeln wir
+                // die Auswahl daher wie eine Sitzungspause.
+                slideshowPaused =
+                    slideshowWasActive;
+
+                await Task.Delay(250);
+
+                CheckSlideshowStatus();
+
+                // Nur ein echter Wechsel darf die Statistik erhöhen.
+                // Deshalb NICHT lastDisplayedWallpaperPath künstlich
+                // zurücksetzen.
+                UpdateCurrentWallpaperDisplay();
+
+                // Falls Windows denselben Pfad bereits angezeigt hat,
+                // bleibt die Statistik unverändert.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Localization.Get(
+                        "StatisticsSetWallpaperError") +
+                    ex.Message,
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private bool IsSlideshowCurrentlyActive()
+        {
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                wallpaper.GetStatus(
+                    out DesktopSlideshowState state);
+
+                return
+                    (state &
+                     DesktopSlideshowState.Enabled) != 0 &&
+                    (state &
+                     DesktopSlideshowState.Slideshow) != 0;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private void ResetPersistentStatistics()
+        {
+            wallpaperViewCounts.Clear();
+            wallpaperLastShown.Clear();
+            wallpaperDailyViewCounts.Clear();
+            wallpaperRecurrenceCounts.Clear();
+            wallpaperRecurrenceSeconds.Clear();
+
+            statisticsStartedAt =
+                DateTime.Now;
+
+            dailyStatisticsStartedAt =
+                statisticsStartedAt;
+
+            recurrenceStatisticsStartedAt =
+                statisticsStartedAt;
+
+            // Nach einem Reset soll die Anzeige wirklich bei 0 beginnen.
+            // Das aktuell sichtbare Wallpaper gilt als bereits vorhanden
+            // und wird erst nach einem echten Wechsel wieder gezählt.
+            lastCountedWallpaperPath =
+                GetCurrentWallpaperPath();
 
             SavePersistentStatistics();
         }
@@ -2800,11 +3000,49 @@ namespace WallpaperControl
                 return;
             }
 
+            DateTime now =
+                DateTime.Now;
+
+            if (wallpaperLastShown.TryGetValue(
+                    path,
+                    out DateTime previousShown) &&
+                previousShown >= recurrenceStatisticsStartedAt &&
+                now > previousShown)
+            {
+                double recurrenceSeconds =
+                    (now - previousShown).TotalSeconds;
+
+                if (wallpaperRecurrenceCounts.TryGetValue(
+                    path,
+                    out int recurrenceCount))
+                {
+                    wallpaperRecurrenceCounts[path] =
+                        recurrenceCount + 1;
+                }
+                else
+                {
+                    wallpaperRecurrenceCounts[path] = 1;
+                }
+
+                if (wallpaperRecurrenceSeconds.TryGetValue(
+                    path,
+                    out double totalSeconds))
+                {
+                    wallpaperRecurrenceSeconds[path] =
+                        totalSeconds + recurrenceSeconds;
+                }
+                else
+                {
+                    wallpaperRecurrenceSeconds[path] =
+                        recurrenceSeconds;
+                }
+            }
+
             lastCountedWallpaperPath =
                 path;
 
             wallpaperLastShown[path] =
-                DateTime.Now;
+                now;
 
             if (wallpaperViewCounts.TryGetValue(
                 path,
@@ -2816,6 +3054,35 @@ namespace WallpaperControl
             else
             {
                 wallpaperViewCounts[path] = 1;
+            }
+
+            string todayKey =
+                now.ToString(
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture);
+
+            if (!wallpaperDailyViewCounts.TryGetValue(
+                path,
+                out Dictionary<string, int>? dailyCounts))
+            {
+                dailyCounts =
+                    new Dictionary<string, int>(
+                        StringComparer.Ordinal);
+
+                wallpaperDailyViewCounts[path] =
+                    dailyCounts;
+            }
+
+            if (dailyCounts.TryGetValue(
+                todayKey,
+                out int dailyCount))
+            {
+                dailyCounts[todayKey] =
+                    dailyCount + 1;
+            }
+            else
+            {
+                dailyCounts[todayKey] = 1;
             }
 
             SavePersistentStatistics();
@@ -3755,6 +4022,58 @@ namespace WallpaperControl
             }
         }
 
+        private string LoadThemeMode()
+        {
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        AppRegistryPath);
+
+                string? value =
+                    key?.GetValue(
+                        "ThemeMode")
+                    as string;
+
+                return NormalizeThemeMode(
+                    value);
+            }
+            catch
+            {
+                return "system";
+            }
+        }
+
+        private void SaveThemeMode(
+            string value)
+        {
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "ThemeMode",
+                    NormalizeThemeMode(value),
+                    RegistryValueKind.String);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string NormalizeThemeMode(
+            string? value)
+        {
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                "dark" => "dark",
+                "light" => "light",
+                _ => "system"
+            };
+        }
+
         private int LoadWindowOpacityPercent()
         {
             try
@@ -3882,8 +4201,16 @@ namespace WallpaperControl
                     windowOpacityPercent,
                     wallpaperViewCounts,
                     wallpaperLastShown,
+                    wallpaperDailyViewCounts,
+                    wallpaperRecurrenceCounts,
+                    wallpaperRecurrenceSeconds,
+                    folderTextBox.Text,
                     statisticsStartedAt,
-                    RemoveWallpaperFromStatistics);
+                    dailyStatisticsStartedAt,
+                    recurrenceStatisticsStartedAt,
+                    RemoveWallpaperFromStatistics,
+                    SetWallpaperFromStatistics,
+                    ResetPersistentStatistics);
 
             dialog.ShowDialog(this);
         }
@@ -3907,6 +4234,7 @@ namespace WallpaperControl
             using SettingsForm dialog =
                 new SettingsForm(
                     darkMode,
+                    themeMode,
                     hotkeyNextModifiers,
                     hotkeyNextKey,
                     hotkeyPauseModifiers,
@@ -3975,6 +4303,10 @@ namespace WallpaperControl
             int newWindowOpacityPercent =
                 dialog.WindowOpacityPercent;
 
+            string newThemeMode =
+                NormalizeThemeMode(
+                    dialog.ThemeMode);
+
             SaveHotkeySettings();
             SaveRejectSettings();
 
@@ -4011,10 +4343,25 @@ namespace WallpaperControl
                     windowOpacityPercent);
             }
 
+            if (!string.Equals(
+                    newThemeMode,
+                    themeMode,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                themeMode =
+                    newThemeMode;
+
+                SaveThemeMode(
+                    themeMode);
+
+                ApplyWindowsTheme();
+            }
+
             if (IsHandleCreated)
             {
                 UnregisterHotKeys();
-                RegisterHotKeys();
+                RegisterHotKeys(
+                    showErrors: true);
             }
 
             if (languageChanged)
@@ -4330,7 +4677,7 @@ namespace WallpaperControl
                     ReadRegistryUInt(
                         key,
                         "HotkeyRejectModifiers",
-                        MOD_CONTROL | MOD_ALT);
+                        MOD_CONTROL | MOD_ALT | MOD_SHIFT);
 
                 hotkeyRejectKey =
                     ReadRegistryUInt(
@@ -4423,47 +4770,124 @@ namespace WallpaperControl
         // GLOBALE HOTKEYS
         // ============================================================
 
-        private void RegisterHotKeys()
+        private void RegisterHotKeys(
+            bool showErrors)
         {
-            if (hotkeyNextModifiers != 0 &&
-                hotkeyNextKey != 0)
+            List<string> failedHotkeys =
+                new();
+
+            TryRegisterHotKey(
+                HOTKEY_NEXT,
+                hotkeyNextModifiers,
+                hotkeyNextKey,
+                Localization.Get(
+                    "SettingsHotkeyNext"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_PAUSE,
+                hotkeyPauseModifiers,
+                hotkeyPauseKey,
+                Localization.Get(
+                    "SettingsHotkeyPause"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_EXPLORER,
+                hotkeyExplorerModifiers,
+                hotkeyExplorerKey,
+                Localization.Get(
+                    "SettingsHotkeyExplorer"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_REJECT,
+                hotkeyRejectModifiers,
+                hotkeyRejectKey,
+                Localization.Get(
+                    "SettingsHotkeyReject"),
+                failedHotkeys);
+
+            if (showErrors &&
+                failedHotkeys.Count > 0)
             {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_NEXT,
-                    hotkeyNextModifiers,
-                    hotkeyNextKey);
+                MessageBox.Show(
+                    this,
+                    string.Format(
+                        Localization.CurrentCulture,
+                        Localization.Get(
+                            "SettingsHotkeyRegistrationFailed"),
+                        string.Join(
+                            Environment.NewLine,
+                            failedHotkeys.Select(
+                                item => "• " + item))),
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        private void TryRegisterHotKey(
+            int id,
+            uint modifiers,
+            uint key,
+            string displayName,
+            List<string> failedHotkeys)
+        {
+            if (modifiers == 0 ||
+                key == 0)
+            {
+                return;
             }
 
-            if (hotkeyPauseModifiers != 0 &&
-                hotkeyPauseKey != 0)
-            {
-                RegisterHotKey(
+            if (!RegisterHotKey(
                     Handle,
-                    HOTKEY_PAUSE,
-                    hotkeyPauseModifiers,
-                    hotkeyPauseKey);
+                    id,
+                    modifiers,
+                    key))
+            {
+                failedHotkeys.Add(
+                    $"{displayName} ({FormatHotkey(modifiers, key)})");
             }
+        }
 
-            if (hotkeyExplorerModifiers != 0 &&
-                hotkeyExplorerKey != 0)
-            {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_EXPLORER,
-                    hotkeyExplorerModifiers,
-                    hotkeyExplorerKey);
-            }
+        private static string FormatHotkey(
+            uint modifiers,
+            uint key)
+        {
+            List<string> parts =
+                new();
 
-            if (hotkeyRejectModifiers != 0 &&
-                hotkeyRejectKey != 0)
-            {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_REJECT,
-                    hotkeyRejectModifiers,
-                    hotkeyRejectKey);
-            }
+            if ((modifiers & MOD_CONTROL) != 0)
+                parts.Add("Ctrl");
+
+            if ((modifiers & MOD_ALT) != 0)
+                parts.Add("Alt");
+
+            if ((modifiers & MOD_SHIFT) != 0)
+                parts.Add("Shift");
+
+            if ((modifiers & MOD_WIN) != 0)
+                parts.Add("Win");
+
+            string keyText =
+                key switch
+                {
+                    0x25 => "←",
+                    0x26 => "↑",
+                    0x27 => "→",
+                    0x28 => "↓",
+                    >= 0x70 and <= 0x7B =>
+                        "F" + (key - 0x6F),
+                    _ => ((char)key).ToString()
+                };
+
+            parts.Add(
+                keyText);
+
+            return string.Join(
+                "+",
+                parts);
         }
 
         private void UnregisterHotKeys()

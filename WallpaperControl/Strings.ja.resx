@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -452,5 +452,177 @@
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Xをクリックしたとき通知領域に最小化する</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>トップ25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>壁紙を検索...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>割合</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>壁紙に設定</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>フォルダーを開く</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>パスをコピー</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>統計から削除</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>統計をリセット...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>統計をリセット</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>集計開始: {0:G}   •   表示回数: {1:N0}   •   壁紙: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>壁紙1枚あたり平均 {0:0.00} 回</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>見つかりません</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>「{0}」を統計から削除しますか？
+
+これまでの表示履歴は失われます。</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>壁紙の統計をすべてリセットしますか？
+
+これまでの表示回数、日時、ランキングは完全に削除されます。現在表示中の壁紙は、次の実際の壁紙変更後に再びカウントされます。</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>壁紙を設定できませんでした:
+</value>
+  </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>最多表示</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>最少表示</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>平均</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>均等度</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} 回表示</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>壁紙1枚あたりの表示回数</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>記録された表示回数の分布</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>まだデータがありません</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100% は記録されたすべての壁紙が同じ回数表示されたことを意味します。0% はすべての表示が1枚の壁紙に集中している状態です。まだ一度も記録されていない壁紙は計算に含められません。</value>
+  </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>期間:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>今日</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>昨日</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>期間: {0}   •   表示回数: {1:N0}   •   壁紙: {2:N0}   •   時間データ開始: {3:G}</value>
+  </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>壁紙トップ10</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>壁紙トップ10 • {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>平均再表示: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>まだデータなし</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>同じ壁紙が再び表示されるまでの平均時間です。{0:G} から計測し、これまでに {1:N0} 回の再表示間隔を記録しています。</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} 日</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} 時間</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} 分</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} 秒</value>
+  </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>未表示・長期間未表示</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>未表示</value>
+  </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>カラーテーマ:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>「システム」は Windows のアプリモードに自動追従し、Wallpaper Control の実行中の変更にも反応します。</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>外観をリセット</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ 2つの有効な機能が同じホットキーを使用しています。</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>次のグローバルホットキーを Windows に登録できませんでした。別のアプリですでに使用されている可能性があります:
+
+{0}</value>
   </data>
 </root>
