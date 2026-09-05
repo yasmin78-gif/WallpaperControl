@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -91,6 +92,8 @@ namespace WallpaperControl
             private bool darkMode;
             private string emptyText = string.Empty;
 
+            [DesignerSerializationVisibility(
+                DesignerSerializationVisibility.Hidden)]
             public string Title { get; set; } = string.Empty;
 
             public TopWallpaperChart()
