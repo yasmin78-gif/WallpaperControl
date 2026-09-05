@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -480,5 +480,58 @@ Contado hasta ahora: {1} vistas • {2} fondos</value>
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Minimizar al área de notificación al hacer clic en X</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>Top 25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>Buscar fondos...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>Proporción</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>Establecer como fondo</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>Abrir carpeta</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>Copiar ruta</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>Quitar de las estadísticas</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>Restablecer estadísticas...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>Restablecer estadísticas</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>Contando desde: {0:G}   •   Vistas: {1:N0}   •   Fondos: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>Ø {0:0.00} vistas por fondo</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>No encontrado</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>¿Quitar «{0}» de las estadísticas?
+
+Se perderá su historial de visualizaciones.</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>¿Restablecer todas las estadísticas de fondos?
+
+Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteriores. El fondo visible actualmente solo volverá a contarse después del próximo cambio real.</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>No se pudo establecer el fondo:
+</value>
   </data>
 </root>

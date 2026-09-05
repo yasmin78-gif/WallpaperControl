@@ -2789,6 +2789,110 @@ namespace WallpaperControl
             SavePersistentStatistics();
         }
 
+        private async void SetWallpaperFromStatistics(
+            string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) ||
+                !File.Exists(path))
+            {
+                return;
+            }
+
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                bool slideshowWasActive =
+                    IsSlideshowCurrentlyActive();
+
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                wallpaper.SetWallpaper(
+                    null,
+                    path);
+
+                // Eine gezielte Auswahl aus der Statistik soll sichtbar
+                // bleiben. War vorher eine Diashow aktiv, behandeln wir
+                // die Auswahl daher wie eine Sitzungspause.
+                slideshowPaused =
+                    slideshowWasActive;
+
+                await Task.Delay(250);
+
+                CheckSlideshowStatus();
+
+                // Nur ein echter Wechsel darf die Statistik erhöhen.
+                // Deshalb NICHT lastDisplayedWallpaperPath künstlich
+                // zurücksetzen.
+                UpdateCurrentWallpaperDisplay();
+
+                // Falls Windows denselben Pfad bereits angezeigt hat,
+                // bleibt die Statistik unverändert.
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Localization.Get(
+                        "StatisticsSetWallpaperError") +
+                    ex.Message,
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private bool IsSlideshowCurrentlyActive()
+        {
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                wallpaper.GetStatus(
+                    out DesktopSlideshowState state);
+
+                return
+                    (state &
+                     DesktopSlideshowState.Enabled) != 0 &&
+                    (state &
+                     DesktopSlideshowState.Slideshow) != 0;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private void ResetPersistentStatistics()
+        {
+            wallpaperViewCounts.Clear();
+            wallpaperLastShown.Clear();
+
+            statisticsStartedAt =
+                DateTime.Now;
+
+            // Nach einem Reset soll die Anzeige wirklich bei 0 beginnen.
+            // Das aktuell sichtbare Wallpaper gilt als bereits vorhanden
+            // und wird erst nach einem echten Wechsel wieder gezählt.
+            lastCountedWallpaperPath =
+                GetCurrentWallpaperPath();
+
+            SavePersistentStatistics();
+        }
+
         private void RecordWallpaperView(
             string path)
         {
@@ -3883,7 +3987,9 @@ namespace WallpaperControl
                     wallpaperViewCounts,
                     wallpaperLastShown,
                     statisticsStartedAt,
-                    RemoveWallpaperFromStatistics);
+                    RemoveWallpaperFromStatistics,
+                    SetWallpaperFromStatistics,
+                    ResetPersistentStatistics);
 
             dialog.ShowDialog(this);
         }

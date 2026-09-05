@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -480,5 +480,58 @@ Bisher gezählt: {1} Anzeigen • {2} Wallpaper</value>
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Beim Klick auf X in den Infobereich minimieren</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>Top 25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>Wallpaper suchen...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>Anteil</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>Als Wallpaper setzen</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>Ordner öffnen</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>Pfad kopieren</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>Aus Statistik entfernen</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>Statistik zurücksetzen...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>Statistik zurücksetzen</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>Gezählt seit: {0:G}   •   Anzeigen: {1:N0}   •   Wallpaper: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>Ø {0:0.00} Anzeigen pro Wallpaper</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>Nicht gefunden</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>Soll „{0}“ wirklich aus der Statistik entfernt werden?
+
+Die bisherige Anzeigehistorie dieses Wallpapers geht dabei verloren.</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>Soll die komplette Wallpaper-Statistik wirklich zurückgesetzt werden?
+
+Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. Das aktuell sichtbare Wallpaper wird erst nach dem nächsten echten Wallpaperwechsel wieder gezählt.</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>Das Wallpaper konnte nicht gesetzt werden:
+</value>
   </data>
 </root>

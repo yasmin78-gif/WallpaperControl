@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -480,5 +480,58 @@ Comptabilisé jusqu’ici : {1} affichages • {2} fonds d’écran</value>
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Réduire dans la zone de notification lors d’un clic sur X</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>Top 25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>Rechercher un fond d’écran...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>Part</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>Définir comme fond d’écran</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>Ouvrir le dossier</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>Copier le chemin</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>Retirer des statistiques</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>Réinitialiser les statistiques...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>Réinitialiser les statistiques</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>Comptage depuis : {0:G}   •   Affichages : {1:N0}   •   Fonds : {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>Ø {0:0.00} affichages par fond</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>Introuvable</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>Retirer « {0} » des statistiques ?
+
+Son historique d’affichage sera perdu.</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>Réinitialiser toutes les statistiques des fonds d’écran ?
+
+Tous les affichages, horodatages et classements précédents seront définitivement supprimés. Le fond actuellement visible ne sera recompté qu’après le prochain vrai changement.</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>Le fond d’écran n’a pas pu être appliqué :
+</value>
   </data>
 </root>

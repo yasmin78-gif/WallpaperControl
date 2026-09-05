@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -452,5 +452,58 @@
   </data>
   <data name="SettingsCloseToTray" xml:space="preserve">
     <value>Xをクリックしたとき通知領域に最小化する</value>
+  </data>
+  <data name="StatisticsFilterTop25" xml:space="preserve">
+    <value>トップ25</value>
+  </data>
+  <data name="StatisticsSearchPlaceholder" xml:space="preserve">
+    <value>壁紙を検索...</value>
+  </data>
+  <data name="StatisticsShare" xml:space="preserve">
+    <value>割合</value>
+  </data>
+  <data name="StatisticsSetWallpaper" xml:space="preserve">
+    <value>壁紙に設定</value>
+  </data>
+  <data name="StatisticsOpen" xml:space="preserve">
+    <value>開く</value>
+  </data>
+  <data name="StatisticsOpenFolder" xml:space="preserve">
+    <value>フォルダーを開く</value>
+  </data>
+  <data name="StatisticsCopyPath" xml:space="preserve">
+    <value>パスをコピー</value>
+  </data>
+  <data name="StatisticsRemove" xml:space="preserve">
+    <value>統計から削除</value>
+  </data>
+  <data name="StatisticsResetButton" xml:space="preserve">
+    <value>統計をリセット...</value>
+  </data>
+  <data name="StatisticsResetTitle" xml:space="preserve">
+    <value>統計をリセット</value>
+  </data>
+  <data name="StatisticsSummaryCompact" xml:space="preserve">
+    <value>集計開始: {0:G}   •   表示回数: {1:N0}   •   壁紙: {2:N0}</value>
+  </data>
+  <data name="StatisticsAverage" xml:space="preserve">
+    <value>壁紙1枚あたり平均 {0:0.00} 回</value>
+  </data>
+  <data name="StatisticsNotFound" xml:space="preserve">
+    <value>見つかりません</value>
+  </data>
+  <data name="StatisticsRemoveConfirm" xml:space="preserve">
+    <value>「{0}」を統計から削除しますか？
+
+これまでの表示履歴は失われます。</value>
+  </data>
+  <data name="StatisticsResetConfirm" xml:space="preserve">
+    <value>壁紙の統計をすべてリセットしますか？
+
+これまでの表示回数、日時、ランキングは完全に削除されます。現在表示中の壁紙は、次の実際の壁紙変更後に再びカウントされます。</value>
+  </data>
+  <data name="StatisticsSetWallpaperError" xml:space="preserve">
+    <value>壁紙を設定できませんでした:
+</value>
   </data>
 </root>

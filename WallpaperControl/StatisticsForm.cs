@@ -19,14 +19,17 @@ namespace WallpaperControl
 
         private readonly IReadOnlyDictionary<string, int> wallpaperViewCounts;
         private readonly IReadOnlyDictionary<string, DateTime> wallpaperLastShown;
-        private readonly DateTime statisticsStartedAt;
+        private DateTime statisticsStartedAt;
         private readonly Action<string>? removeFromStatistics;
+        private readonly Action<string>? setWallpaper;
+        private readonly Action? resetStatistics;
 
         private readonly Label summaryLabel;
         private readonly Label averageLabel;
         private readonly ComboBox filterComboBox;
         private readonly TextBox searchTextBox;
         private readonly DoubleBufferedListView statisticsList;
+        private readonly Button resetButton;
         private readonly Button closeButton;
 
         private readonly Form wallpaperPreviewForm;
@@ -34,6 +37,7 @@ namespace WallpaperControl
         private readonly Label wallpaperPreviewInfoLabel;
 
         private readonly ContextMenuStrip rowContextMenu;
+        private readonly ToolStripMenuItem setWallpaperMenuItem;
         private readonly ToolStripMenuItem openMenuItem;
         private readonly ToolStripMenuItem openFolderMenuItem;
         private readonly ToolStripMenuItem copyPathMenuItem;
@@ -111,19 +115,88 @@ namespace WallpaperControl
             }
         }
 
+        private sealed class StatisticsMenuColorTable :
+            ProfessionalColorTable
+        {
+            private readonly bool dark;
+
+            public StatisticsMenuColorTable(
+                bool dark)
+            {
+                this.dark = dark;
+                UseSystemColors = false;
+            }
+
+            public override Color ToolStripDropDownBackground =>
+                dark
+                    ? Color.FromArgb(36, 36, 36)
+                    : Color.White;
+
+            public override Color ImageMarginGradientBegin =>
+                ToolStripDropDownBackground;
+
+            public override Color ImageMarginGradientMiddle =>
+                ToolStripDropDownBackground;
+
+            public override Color ImageMarginGradientEnd =>
+                ToolStripDropDownBackground;
+
+            public override Color MenuItemSelected =>
+                dark
+                    ? Color.FromArgb(58, 58, 58)
+                    : Color.FromArgb(232, 240, 248);
+
+            public override Color MenuItemBorder =>
+                dark
+                    ? Color.FromArgb(80, 80, 80)
+                    : Color.FromArgb(190, 205, 220);
+
+            public override Color MenuBorder =>
+                dark
+                    ? Color.FromArgb(92, 92, 92)
+                    : Color.FromArgb(175, 175, 175);
+
+            public override Color SeparatorDark =>
+                dark
+                    ? Color.FromArgb(74, 74, 74)
+                    : Color.FromArgb(205, 205, 205);
+
+            public override Color SeparatorLight =>
+                SeparatorDark;
+
+            public override Color MenuItemPressedGradientBegin =>
+                MenuItemSelected;
+
+            public override Color MenuItemPressedGradientMiddle =>
+                MenuItemSelected;
+
+            public override Color MenuItemPressedGradientEnd =>
+                MenuItemSelected;
+
+            public override Color MenuItemSelectedGradientBegin =>
+                MenuItemSelected;
+
+            public override Color MenuItemSelectedGradientEnd =>
+                MenuItemSelected;
+        }
+
         public StatisticsForm(
             bool darkMode,
             int windowOpacityPercent,
             IReadOnlyDictionary<string, int> wallpaperViewCounts,
             IReadOnlyDictionary<string, DateTime> wallpaperLastShown,
             DateTime statisticsStartedAt,
-            Action<string>? removeFromStatistics = null)
+            Action<string>? removeFromStatistics = null,
+            Action<string>? setWallpaper = null,
+            Action? resetStatistics = null)
         {
             this.darkMode = darkMode;
             this.wallpaperViewCounts = wallpaperViewCounts;
             this.wallpaperLastShown = wallpaperLastShown;
             this.statisticsStartedAt = statisticsStartedAt;
             this.removeFromStatistics = removeFromStatistics;
+            this.setWallpaper = setWallpaper;
+            this.resetStatistics = resetStatistics;
 
             Text = Localization.Get("StatisticsTitle");
 
@@ -195,7 +268,8 @@ namespace WallpaperControl
 
             filterComboBox.Items.Add(
                 new FilterChoice(
-                    "Top 25",
+                    Localization.Get(
+                        "StatisticsFilterTop25"),
                     25));
 
             filterComboBox.Items.Add(
@@ -213,12 +287,9 @@ namespace WallpaperControl
             {
                 Location = new Point(590, 111),
                 Size = new Size(305, 27),
-                PlaceholderText = LocalText(
-                    "Wallpaper suchen...",
-                    "Search wallpapers...",
-                    "Rechercher un fond d’écran...",
-                    "Buscar fondos...",
-                    "壁紙を検索...")
+                PlaceholderText =
+                    Localization.Get(
+                        "StatisticsSearchPlaceholder")
             };
 
             searchTextBox.TextChanged +=
@@ -260,12 +331,8 @@ namespace WallpaperControl
                 HorizontalAlignment.Right);
 
             statisticsList.Columns.Add(
-                LocalText(
-                    "Anteil",
-                    "Share",
-                    "Part",
-                    "Proporción",
-                    "割合"),
+                Localization.Get(
+                    "StatisticsShare"),
                 85,
                 HorizontalAlignment.Right);
 
@@ -304,43 +371,49 @@ namespace WallpaperControl
             statisticsList.MouseDown +=
                 StatisticsList_MouseDown;
 
-            statisticsList.MouseClick +=
-                StatisticsList_MouseClick;
+            statisticsList.MouseDoubleClick +=
+                StatisticsList_MouseDoubleClick;
 
-            rowContextMenu = new ContextMenuStrip();
+            rowContextMenu = new ContextMenuStrip
+            {
+                ShowImageMargin = false,
+                ShowCheckMargin = false,
+                AutoSize = true,
+                Padding = new Padding(2),
+                Font = new Font(
+                    "Segoe UI",
+                    9.5f,
+                    FontStyle.Regular),
+                Renderer =
+                    new ToolStripProfessionalRenderer(
+                        new StatisticsMenuColorTable(
+                            darkMode))
+            };
+
+            setWallpaperMenuItem =
+                new ToolStripMenuItem(
+                    Localization.Get(
+                        "StatisticsSetWallpaper"));
 
             openMenuItem = new ToolStripMenuItem(
-                LocalText(
-                    "Öffnen",
-                    "Open",
-                    "Ouvrir",
-                    "Abrir",
-                    "開く"));
+                Localization.Get(
+                    "StatisticsOpen"));
 
             openFolderMenuItem = new ToolStripMenuItem(
-                LocalText(
-                    "Ordner öffnen",
-                    "Open folder",
-                    "Ouvrir le dossier",
-                    "Abrir carpeta",
-                    "フォルダーを開く"));
+                Localization.Get(
+                    "StatisticsOpenFolder"));
 
             copyPathMenuItem = new ToolStripMenuItem(
-                LocalText(
-                    "Pfad kopieren",
-                    "Copy path",
-                    "Copier le chemin",
-                    "Copiar ruta",
-                    "パスをコピー"));
+                Localization.Get(
+                    "StatisticsCopyPath"));
 
             removeStatisticsMenuItem =
                 new ToolStripMenuItem(
-                    LocalText(
-                        "Aus Statistik entfernen",
-                        "Remove from statistics",
-                        "Retirer des statistiques",
-                        "Quitar de las estadísticas",
-                        "統計から削除"));
+                    Localization.Get(
+                        "StatisticsRemove"));
+
+            setWallpaperMenuItem.Click +=
+                (_, _) => SetSelectedWallpaper();
 
             openMenuItem.Click +=
                 (_, _) => OpenSelectedWallpaper();
@@ -357,6 +430,8 @@ namespace WallpaperControl
             rowContextMenu.Items.AddRange(
                 new ToolStripItem[]
                 {
+                    setWallpaperMenuItem,
+                    new ToolStripSeparator(),
                     openMenuItem,
                     openFolderMenuItem,
                     new ToolStripSeparator(),
@@ -364,6 +439,34 @@ namespace WallpaperControl
                     new ToolStripSeparator(),
                     removeStatisticsMenuItem
                 });
+
+            foreach (ToolStripItem item in
+                rowContextMenu.Items)
+            {
+                if (item is ToolStripMenuItem menuItem)
+                {
+                    menuItem.AutoSize = true;
+                    menuItem.Padding =
+                        new Padding(10, 5, 12, 5);
+                    menuItem.Margin =
+                        new Padding(0);
+                }
+                else if (item is ToolStripSeparator separator)
+                {
+                    separator.Margin =
+                        new Padding(6, 2, 6, 2);
+                }
+            }
+
+            setWallpaperMenuItem.Font =
+                new Font(
+                    rowContextMenu.Font,
+                    FontStyle.Bold);
+
+            removeStatisticsMenuItem.ForeColor =
+                darkMode
+                    ? Color.FromArgb(235, 150, 150)
+                    : Color.FromArgb(165, 45, 45);
 
             rowContextMenu.Opening +=
                 (_, e) =>
@@ -375,6 +478,10 @@ namespace WallpaperControl
                         e.Cancel = true;
                         return;
                     }
+
+                    setWallpaperMenuItem.Enabled =
+                        row.Exists &&
+                        setWallpaper != null;
 
                     openMenuItem.Enabled = row.Exists;
 
@@ -392,6 +499,18 @@ namespace WallpaperControl
 
             statisticsList.ContextMenuStrip =
                 rowContextMenu;
+
+            resetButton = new Button
+            {
+                Text =
+                    Localization.Get(
+                        "StatisticsResetButton"),
+                Location = new Point(25, 555),
+                Size = new Size(190, 34)
+            };
+
+            resetButton.Click +=
+                ResetButton_Click;
 
             closeButton = new Button
             {
@@ -441,6 +560,7 @@ namespace WallpaperControl
             Controls.Add(filterComboBox);
             Controls.Add(searchTextBox);
             Controls.Add(statisticsList);
+            Controls.Add(resetButton);
             Controls.Add(closeButton);
 
             AcceptButton = closeButton;
@@ -496,20 +616,20 @@ namespace WallpaperControl
                       wallpaperViewCounts.Count;
 
             summaryLabel.Text =
-                LocalText(
-                    $"Gezählt seit: {statisticsStartedAt:G}   •   Anzeigen: {totalViews:N0}   •   Wallpaper: {wallpaperViewCounts.Count:N0}",
-                    $"Counting since: {statisticsStartedAt:G}   •   Views: {totalViews:N0}   •   Wallpapers: {wallpaperViewCounts.Count:N0}",
-                    $"Comptage depuis : {statisticsStartedAt:G}   •   Affichages : {totalViews:N0}   •   Fonds : {wallpaperViewCounts.Count:N0}",
-                    $"Contando desde: {statisticsStartedAt:G}   •   Vistas: {totalViews:N0}   •   Fondos: {wallpaperViewCounts.Count:N0}",
-                    $"集計開始: {statisticsStartedAt:G}   •   表示回数: {totalViews:N0}   •   壁紙: {wallpaperViewCounts.Count:N0}");
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsSummaryCompact"),
+                    statisticsStartedAt,
+                    totalViews,
+                    wallpaperViewCounts.Count);
 
             averageLabel.Text =
-                LocalText(
-                    $"Ø {average:0.00} Anzeigen pro Wallpaper",
-                    $"Ø {average:0.00} views per wallpaper",
-                    $"Ø {average:0.00} affichages par fond",
-                    $"Ø {average:0.00} vistas por fondo",
-                    $"壁紙1枚あたり平均 {average:0.00} 回");
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsAverage"),
+                    average);
 
             List<RowData> popularityOrder =
                 wallpaperViewCounts
@@ -596,12 +716,8 @@ namespace WallpaperControl
                             "⚠ " +
                             fileName +
                             "  [" +
-                            LocalText(
-                                "Nicht gefunden",
-                                "Not found",
-                                "Introuvable",
-                                "No encontrado",
-                                "見つかりません") +
+                            Localization.Get(
+                                "StatisticsNotFound") +
                             "]";
                     }
 
@@ -774,12 +890,8 @@ namespace WallpaperControl
 
             statisticsList.Columns[4].Text =
                 BuildSortableHeader(
-                    LocalText(
-                        "Anteil",
-                        "Share",
-                        "Part",
-                        "Proporción",
-                        "割合"),
+                    Localization.Get(
+                        "StatisticsShare"),
                     SortColumn.Share);
 
             statisticsList.Columns[5].Text =
@@ -1402,32 +1514,25 @@ namespace WallpaperControl
             }
         }
 
-        private void StatisticsList_MouseClick(
+        private void StatisticsList_MouseDoubleClick(
             object? sender,
             MouseEventArgs e)
         {
-            ListViewHitTestInfo hit =
-                statisticsList.HitTest(e.Location);
-
-            if (hit.Item?.Tag is RowData row)
-            {
-                hit.Item.Selected = true;
-            }
-
             if (e.Button != MouseButtons.Left)
                 return;
 
-            if (hit.Item == null ||
-                hit.SubItem == null ||
-                hit.Item.SubItems.IndexOf(
-                    hit.SubItem) != 2 ||
-                hit.Item.Tag is not RowData clickedRow ||
-                !clickedRow.Exists)
+            ListViewHitTestInfo hit =
+                statisticsList.HitTest(e.Location);
+
+            if (hit.Item?.Tag is not RowData row ||
+                !row.Exists ||
+                setWallpaper == null)
             {
                 return;
             }
 
-            OpenWallpaper(clickedRow.Path);
+            hit.Item.Selected = true;
+            SetSelectedWallpaper();
         }
 
         private RowData? GetSelectedRow()
@@ -1438,6 +1543,20 @@ namespace WallpaperControl
             return statisticsList
                 .SelectedItems[0]
                 .Tag as RowData;
+        }
+
+        private void SetSelectedWallpaper()
+        {
+            RowData? row =
+                GetSelectedRow();
+
+            if (row?.Exists != true ||
+                setWallpaper == null)
+            {
+                return;
+            }
+
+            setWallpaper(row.Path);
         }
 
         private void OpenSelectedWallpaper()
@@ -1529,23 +1648,19 @@ namespace WallpaperControl
             }
 
             string message =
-                LocalText(
-                    $"Soll „{Path.GetFileName(row.Path)}“ wirklich aus der Statistik entfernt werden?\n\nDie bisherige Anzeigehistorie dieses Wallpapers geht dabei verloren.",
-                    $"Remove “{Path.GetFileName(row.Path)}” from the statistics?\n\nIts previous view history will be lost.",
-                    $"Retirer « {Path.GetFileName(row.Path)} » des statistiques ?\n\nSon historique d’affichage sera perdu.",
-                    $"¿Quitar «{Path.GetFileName(row.Path)}» de las estadísticas?\n\nSe perderá su historial de visualizaciones.",
-                    $"「{Path.GetFileName(row.Path)}」を統計から削除しますか？\n\nこれまでの表示履歴は失われます。");
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRemoveConfirm"),
+                    Path.GetFileName(
+                        row.Path));
 
             DialogResult result =
                 MessageBox.Show(
                     this,
                     message,
-                    LocalText(
-                        "Aus Statistik entfernen",
-                        "Remove from statistics",
-                        "Retirer des statistiques",
-                        "Quitar de las estadísticas",
-                        "統計から削除"),
+                    Localization.Get(
+                        "StatisticsRemove"),
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning,
                     MessageBoxDefaultButton.Button2);
@@ -1563,6 +1678,48 @@ namespace WallpaperControl
             }
 
             removeFromStatistics(row.Path);
+            RefreshStatistics();
+        }
+
+        private void ResetButton_Click(
+            object? sender,
+            EventArgs e)
+        {
+            if (resetStatistics == null)
+                return;
+
+            string message =
+                Localization.Get(
+                    "StatisticsResetConfirm");
+
+            DialogResult result =
+                MessageBox.Show(
+                    this,
+                    message,
+                    Localization.Get(
+                        "StatisticsResetTitle"),
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            HideWallpaperPreview();
+            resetStatistics();
+
+            statisticsStartedAt =
+                DateTime.Now;
+
+            foreach (Image image in
+                thumbnailCache.Values)
+            {
+                image.Dispose();
+            }
+
+            thumbnailCache.Clear();
+            thumbnailLoading.Clear();
+
             RefreshStatistics();
         }
 
@@ -1730,6 +1887,11 @@ namespace WallpaperControl
             rowContextMenu.ForeColor =
                 foreground;
 
+            removeStatisticsMenuItem.ForeColor =
+                darkMode
+                    ? Color.FromArgb(235, 150, 150)
+                    : Color.FromArgb(165, 45, 45);
+
             wallpaperPreviewForm.BackColor =
                 darkMode
                     ? Color.FromArgb(
@@ -1744,6 +1906,28 @@ namespace WallpaperControl
 
             wallpaperPreviewInfoLabel.ForeColor =
                 foreground;
+
+            resetButton.UseVisualStyleBackColor =
+                false;
+
+            resetButton.BackColor =
+                darkMode
+                    ? Color.FromArgb(
+                        50, 50, 50)
+                    : SystemColors.Control;
+
+            resetButton.ForeColor =
+                foreground;
+
+            resetButton.FlatStyle =
+                FlatStyle.Flat;
+
+            resetButton.FlatAppearance.BorderColor =
+                darkMode
+                    ? Color.FromArgb(
+                        85, 85, 85)
+                    : Color.FromArgb(
+                        180, 180, 180);
 
             closeButton.UseVisualStyleBackColor =
                 false;
@@ -1783,25 +1967,6 @@ namespace WallpaperControl
                 DWMWA_USE_IMMERSIVE_DARK_MODE,
                 ref value,
                 sizeof(int));
-        }
-
-        private static string LocalText(
-            string de,
-            string en,
-            string fr,
-            string es,
-            string ja)
-        {
-            return Localization.CurrentCulture
-                .TwoLetterISOLanguageName
-                .ToLowerInvariant() switch
-            {
-                "en" => en,
-                "fr" => fr,
-                "es" => es,
-                "ja" => ja,
-                _ => de
-            };
         }
 
         [DllImport("dwmapi.dll")]
