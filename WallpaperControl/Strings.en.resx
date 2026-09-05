@@ -561,4 +561,25 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="StatisticsFairnessToolTip" xml:space="preserve">
     <value>100% means all recorded wallpapers were shown equally often. 0% means all views belong to only one wallpaper. Wallpapers with no recorded view cannot yet be included in this calculation.</value>
   </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>All time</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Yesterday</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>Last 7 days</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>Last 30 days</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Period: {0}   •   Views: {1:N0}   •   Wallpapers: {2:N0}   •   Time data since: {3:G}</value>
+  </data>
 </root>

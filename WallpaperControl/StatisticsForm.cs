@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -19,7 +20,10 @@ namespace WallpaperControl
 
         private readonly IReadOnlyDictionary<string, int> wallpaperViewCounts;
         private readonly IReadOnlyDictionary<string, DateTime> wallpaperLastShown;
+        private readonly IReadOnlyDictionary<string, Dictionary<string, int>>
+            wallpaperDailyViewCounts;
         private DateTime statisticsStartedAt;
+        private DateTime dailyStatisticsStartedAt;
         private readonly Action<string>? removeFromStatistics;
         private readonly Action<string>? setWallpaper;
         private readonly Action? resetStatistics;
@@ -31,6 +35,7 @@ namespace WallpaperControl
         private readonly MetricCard fairnessCard;
         private readonly ToolTip dashboardToolTip;
         private readonly ComboBox filterComboBox;
+        private readonly ComboBox periodComboBox;
         private readonly TextBox searchTextBox;
         private readonly DoubleBufferedListView statisticsList;
         private readonly Button resetButton;
@@ -134,6 +139,31 @@ namespace WallpaperControl
                 ValueLabel.ForeColor = foreground;
                 DetailLabel.ForeColor = muted;
             }
+        }
+
+        private enum StatisticsPeriod
+        {
+            All,
+            Today,
+            Yesterday,
+            Last7Days,
+            Last30Days
+        }
+
+        private sealed class PeriodChoice
+        {
+            public string Text { get; }
+            public StatisticsPeriod Period { get; }
+
+            public PeriodChoice(
+                string text,
+                StatisticsPeriod period)
+            {
+                Text = text;
+                Period = period;
+            }
+
+            public override string ToString() => Text;
         }
 
         private sealed class FilterChoice
@@ -257,7 +287,10 @@ namespace WallpaperControl
             int windowOpacityPercent,
             IReadOnlyDictionary<string, int> wallpaperViewCounts,
             IReadOnlyDictionary<string, DateTime> wallpaperLastShown,
+            IReadOnlyDictionary<string, Dictionary<string, int>>
+                wallpaperDailyViewCounts,
             DateTime statisticsStartedAt,
+            DateTime dailyStatisticsStartedAt,
             Action<string>? removeFromStatistics = null,
             Action<string>? setWallpaper = null,
             Action? resetStatistics = null)
@@ -265,7 +298,9 @@ namespace WallpaperControl
             this.darkMode = darkMode;
             this.wallpaperViewCounts = wallpaperViewCounts;
             this.wallpaperLastShown = wallpaperLastShown;
+            this.wallpaperDailyViewCounts = wallpaperDailyViewCounts;
             this.statisticsStartedAt = statisticsStartedAt;
+            this.dailyStatisticsStartedAt = dailyStatisticsStartedAt;
             this.removeFromStatistics = removeFromStatistics;
             this.setWallpaper = setWallpaper;
             this.resetStatistics = resetStatistics;
@@ -407,6 +442,56 @@ namespace WallpaperControl
             filterComboBox.SelectedIndex = 0;
 
             filterComboBox.SelectedIndexChanged +=
+                (_, _) => RefreshStatistics();
+
+            Label periodLabel = new Label
+            {
+                Text = Localization.Get(
+                    "StatisticsPeriodLabel"),
+                Location = new Point(300, 200),
+                Size = new Size(80, 25)
+            };
+
+            periodComboBox = new ComboBox
+            {
+                Location = new Point(380, 195),
+                Size = new Size(170, 28),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            periodComboBox.Items.Add(
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodAll"),
+                    StatisticsPeriod.All));
+
+            periodComboBox.Items.Add(
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodToday"),
+                    StatisticsPeriod.Today));
+
+            periodComboBox.Items.Add(
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodYesterday"),
+                    StatisticsPeriod.Yesterday));
+
+            periodComboBox.Items.Add(
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodLast7Days"),
+                    StatisticsPeriod.Last7Days));
+
+            periodComboBox.Items.Add(
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodLast30Days"),
+                    StatisticsPeriod.Last30Days));
+
+            periodComboBox.SelectedIndex = 0;
+
+            periodComboBox.SelectedIndexChanged +=
                 (_, _) => RefreshStatistics();
 
             searchTextBox = new TextBox
@@ -687,6 +772,8 @@ namespace WallpaperControl
             Controls.Add(fairnessCard);
             Controls.Add(filterLabel);
             Controls.Add(filterComboBox);
+            Controls.Add(periodLabel);
+            Controls.Add(periodComboBox);
             Controls.Add(searchTextBox);
             Controls.Add(statisticsList);
             Controls.Add(resetButton);
@@ -736,30 +823,59 @@ namespace WallpaperControl
 
         private void RefreshStatistics()
         {
+            PeriodChoice periodChoice =
+                periodComboBox.SelectedItem
+                    as PeriodChoice ??
+                new PeriodChoice(
+                    Localization.Get(
+                        "StatisticsPeriodAll"),
+                    StatisticsPeriod.All);
+
+            Dictionary<string, int> activeViewCounts =
+                GetViewCountsForPeriod(
+                    periodChoice.Period);
+
             int totalViews =
-                wallpaperViewCounts.Values.Sum();
+                activeViewCounts.Values.Sum();
 
             double average =
-                wallpaperViewCounts.Count == 0
+                activeViewCounts.Count == 0
                     ? 0
                     : (double)totalViews /
-                      wallpaperViewCounts.Count;
+                      activeViewCounts.Count;
 
-            summaryLabel.Text =
-                string.Format(
-                    Localization.CurrentCulture,
-                    Localization.Get(
-                        "StatisticsSummaryCompact"),
-                    statisticsStartedAt,
-                    totalViews,
-                    wallpaperViewCounts.Count);
+            if (periodChoice.Period ==
+                StatisticsPeriod.All)
+            {
+                summaryLabel.Text =
+                    string.Format(
+                        Localization.CurrentCulture,
+                        Localization.Get(
+                            "StatisticsSummaryCompact"),
+                        statisticsStartedAt,
+                        totalViews,
+                        activeViewCounts.Count);
+            }
+            else
+            {
+                summaryLabel.Text =
+                    string.Format(
+                        Localization.CurrentCulture,
+                        Localization.Get(
+                            "StatisticsPeriodSummary"),
+                        periodChoice.Text,
+                        totalViews,
+                        activeViewCounts.Count,
+                        dailyStatisticsStartedAt);
+            }
 
             UpdateDashboardCards(
+                activeViewCounts,
                 totalViews,
                 average);
 
             List<RowData> popularityOrder =
-                wallpaperViewCounts
+                activeViewCounts
                     .OrderByDescending(
                         item => item.Value)
                     .ThenBy(
@@ -914,11 +1030,109 @@ namespace WallpaperControl
             hoveredItemIndex = -1;
         }
 
+        private Dictionary<string, int> GetViewCountsForPeriod(
+            StatisticsPeriod period)
+        {
+            if (period == StatisticsPeriod.All)
+            {
+                return wallpaperViewCounts
+                    .Where(item => item.Value > 0)
+                    .ToDictionary(
+                        item => item.Key,
+                        item => item.Value,
+                        StringComparer.OrdinalIgnoreCase);
+            }
+
+            DateTime today =
+                DateTime.Today;
+
+            DateTime startDate;
+            DateTime endDate;
+
+            switch (period)
+            {
+                case StatisticsPeriod.Today:
+                    startDate = today;
+                    endDate = today;
+                    break;
+
+                case StatisticsPeriod.Yesterday:
+                    startDate = today.AddDays(-1);
+                    endDate = startDate;
+                    break;
+
+                case StatisticsPeriod.Last7Days:
+                    startDate = today.AddDays(-6);
+                    endDate = today;
+                    break;
+
+                case StatisticsPeriod.Last30Days:
+                    startDate = today.AddDays(-29);
+                    endDate = today;
+                    break;
+
+                default:
+                    return wallpaperViewCounts
+                        .Where(item => item.Value > 0)
+                        .ToDictionary(
+                            item => item.Key,
+                            item => item.Value,
+                            StringComparer.OrdinalIgnoreCase);
+            }
+
+            Dictionary<string, int> result =
+                new(StringComparer.OrdinalIgnoreCase);
+
+            foreach ((string path,
+                Dictionary<string, int> dailyCounts)
+                in wallpaperDailyViewCounts)
+            {
+                int sum = 0;
+
+                foreach ((string dateKey, int count)
+                    in dailyCounts)
+                {
+                    if (count <= 0)
+                    {
+                        continue;
+                    }
+
+                    if (!DateTime.TryParseExact(
+                        dateKey,
+                        "yyyy-MM-dd",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out DateTime date))
+                    {
+                        continue;
+                    }
+
+                    date = date.Date;
+
+                    if (date < startDate ||
+                        date > endDate)
+                    {
+                        continue;
+                    }
+
+                    sum += count;
+                }
+
+                if (sum > 0)
+                {
+                    result[path] = sum;
+                }
+            }
+
+            return result;
+        }
+
         private void UpdateDashboardCards(
+            IReadOnlyDictionary<string, int> activeViewCounts,
             int totalViews,
             double average)
         {
-            if (wallpaperViewCounts.Count == 0 ||
+            if (activeViewCounts.Count == 0 ||
                 totalViews <= 0)
             {
                 string noData =
@@ -951,7 +1165,7 @@ namespace WallpaperControl
             }
 
             KeyValuePair<string, int> mostViewed =
-                wallpaperViewCounts
+                activeViewCounts
                     .OrderByDescending(
                         item => item.Value)
                     .ThenBy(
@@ -963,7 +1177,7 @@ namespace WallpaperControl
                     .First();
 
             KeyValuePair<string, int> leastViewed =
-                wallpaperViewCounts
+                activeViewCounts
                     .OrderBy(
                         item => item.Value)
                     .ThenBy(
@@ -1004,7 +1218,7 @@ namespace WallpaperControl
 
             double fairness =
                 CalculateFairnessScore(
-                    wallpaperViewCounts.Values,
+                    activeViewCounts.Values,
                     totalViews);
 
             SetMetricCard(
@@ -2005,6 +2219,9 @@ namespace WallpaperControl
 
             statisticsStartedAt =
                 DateTime.Now;
+
+            dailyStatisticsStartedAt =
+                statisticsStartedAt;
 
             foreach (Image image in
                 thumbnailCache.Values)

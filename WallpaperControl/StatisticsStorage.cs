@@ -9,6 +9,7 @@ namespace WallpaperControl
     internal sealed class PersistentStatisticsData
     {
         public DateTime StartedAt { get; set; }
+        public DateTime DailyTrackingStartedAt { get; set; }
         public string? LastCountedWallpaperPath { get; set; }
         public List<PersistentWallpaperStatistics> Wallpapers { get; set; } = new();
     }
@@ -18,6 +19,7 @@ namespace WallpaperControl
         public string Path { get; set; } = "";
         public int Views { get; set; }
         public DateTime LastShown { get; set; }
+        public Dictionary<string, int> DailyViews { get; set; } = new();
     }
 
     internal static class StatisticsStorage
@@ -67,7 +69,21 @@ namespace WallpaperControl
                     data.StartedAt = DateTime.Now;
                 }
 
+                if (data.DailyTrackingStartedAt == default)
+                {
+                    // Existing statistics.json files from before Stage 3
+                    // have no historical day buckets. Time-based tracking
+                    // therefore starts when this version first loads them.
+                    data.DailyTrackingStartedAt = DateTime.Now;
+                }
+
                 data.Wallpapers ??= new();
+
+                foreach (PersistentWallpaperStatistics wallpaper
+                    in data.Wallpapers)
+                {
+                    wallpaper.DailyViews ??= new();
+                }
 
                 return data;
             }
@@ -81,8 +97,10 @@ namespace WallpaperControl
 
         public static void Save(
             DateTime startedAt,
+            DateTime dailyTrackingStartedAt,
             IReadOnlyDictionary<string, int> viewCounts,
             IReadOnlyDictionary<string, DateTime> lastShown,
+            IReadOnlyDictionary<string, Dictionary<string, int>> dailyViews,
             string? lastCountedWallpaperPath)
         {
             try
@@ -97,6 +115,10 @@ namespace WallpaperControl
                             startedAt == default
                                 ? DateTime.Now
                                 : startedAt,
+                        DailyTrackingStartedAt =
+                            dailyTrackingStartedAt == default
+                                ? DateTime.Now
+                                : dailyTrackingStartedAt,
                         LastCountedWallpaperPath =
                             lastCountedWallpaperPath,
                         Wallpapers =
@@ -117,7 +139,26 @@ namespace WallpaperControl
                                         {
                                             Path = item.Key,
                                             Views = item.Value,
-                                            LastShown = shown
+                                            LastShown = shown,
+                                            DailyViews =
+                                                dailyViews.TryGetValue(
+                                                    item.Key,
+                                                    out Dictionary<string, int>? days)
+                                                    ? days
+                                                        .Where(
+                                                            entry =>
+                                                                !string.IsNullOrWhiteSpace(
+                                                                    entry.Key) &&
+                                                                entry.Value > 0)
+                                                        .OrderBy(
+                                                            entry => entry.Key,
+                                                            StringComparer.Ordinal)
+                                                        .ToDictionary(
+                                                            entry => entry.Key,
+                                                            entry => entry.Value,
+                                                            StringComparer.Ordinal)
+                                                    : new Dictionary<string, int>(
+                                                        StringComparer.Ordinal)
                                         };
                                     })
                                 .OrderBy(
@@ -154,7 +195,8 @@ namespace WallpaperControl
         {
             return new PersistentStatisticsData
             {
-                StartedAt = DateTime.Now
+                StartedAt = DateTime.Now,
+                DailyTrackingStartedAt = DateTime.Now
             };
         }
     }

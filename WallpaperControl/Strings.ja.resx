@@ -533,4 +533,25 @@
   <data name="StatisticsFairnessToolTip" xml:space="preserve">
     <value>100% は記録されたすべての壁紙が同じ回数表示されたことを意味します。0% はすべての表示が1枚の壁紙に集中している状態です。まだ一度も記録されていない壁紙は計算に含められません。</value>
   </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>期間:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>今日</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>昨日</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>期間: {0}   •   表示回数: {1:N0}   •   壁紙: {2:N0}   •   時間データ開始: {3:G}</value>
+  </data>
 </root>

@@ -71,6 +71,13 @@ namespace WallpaperControl
             wallpaperLastShown =
                 new(StringComparer.OrdinalIgnoreCase);
 
+        private readonly Dictionary<string, Dictionary<string, int>>
+            wallpaperDailyViewCounts =
+                new(StringComparer.OrdinalIgnoreCase);
+
+        private DateTime dailyStatisticsStartedAt =
+            DateTime.Now;
+
         private string? lastCountedWallpaperPath;
 
         private string? lastRejectedSourcePath;
@@ -2740,8 +2747,14 @@ namespace WallpaperControl
                     ? null
                     : data.LastCountedWallpaperPath;
 
+            dailyStatisticsStartedAt =
+                data.DailyTrackingStartedAt == default
+                    ? DateTime.Now
+                    : data.DailyTrackingStartedAt;
+
             wallpaperViewCounts.Clear();
             wallpaperLastShown.Clear();
+            wallpaperDailyViewCounts.Clear();
 
             foreach (PersistentWallpaperStatistics item
                 in data.Wallpapers)
@@ -2760,6 +2773,24 @@ namespace WallpaperControl
                     wallpaperLastShown[item.Path] =
                         item.LastShown;
                 }
+
+                Dictionary<string, int> validDailyCounts =
+                    item.DailyViews
+                        .Where(
+                            entry =>
+                                !string.IsNullOrWhiteSpace(
+                                    entry.Key) &&
+                                entry.Value > 0)
+                        .ToDictionary(
+                            entry => entry.Key,
+                            entry => entry.Value,
+                            StringComparer.Ordinal);
+
+                if (validDailyCounts.Count > 0)
+                {
+                    wallpaperDailyViewCounts[item.Path] =
+                        validDailyCounts;
+                }
             }
         }
 
@@ -2767,8 +2798,10 @@ namespace WallpaperControl
         {
             StatisticsStorage.Save(
                 statisticsStartedAt,
+                dailyStatisticsStartedAt,
                 wallpaperViewCounts,
                 wallpaperLastShown,
+                wallpaperDailyViewCounts,
                 lastCountedWallpaperPath);
         }
 
@@ -2777,6 +2810,7 @@ namespace WallpaperControl
         {
             wallpaperViewCounts.Remove(path);
             wallpaperLastShown.Remove(path);
+            wallpaperDailyViewCounts.Remove(path);
 
             if (string.Equals(
                 path,
@@ -2880,9 +2914,13 @@ namespace WallpaperControl
         {
             wallpaperViewCounts.Clear();
             wallpaperLastShown.Clear();
+            wallpaperDailyViewCounts.Clear();
 
             statisticsStartedAt =
                 DateTime.Now;
+
+            dailyStatisticsStartedAt =
+                statisticsStartedAt;
 
             // Nach einem Reset soll die Anzeige wirklich bei 0 beginnen.
             // Das aktuell sichtbare Wallpaper gilt als bereits vorhanden
@@ -2920,6 +2958,35 @@ namespace WallpaperControl
             else
             {
                 wallpaperViewCounts[path] = 1;
+            }
+
+            string todayKey =
+                DateTime.Now.ToString(
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture);
+
+            if (!wallpaperDailyViewCounts.TryGetValue(
+                path,
+                out Dictionary<string, int>? dailyCounts))
+            {
+                dailyCounts =
+                    new Dictionary<string, int>(
+                        StringComparer.Ordinal);
+
+                wallpaperDailyViewCounts[path] =
+                    dailyCounts;
+            }
+
+            if (dailyCounts.TryGetValue(
+                todayKey,
+                out int dailyCount))
+            {
+                dailyCounts[todayKey] =
+                    dailyCount + 1;
+            }
+            else
+            {
+                dailyCounts[todayKey] = 1;
             }
 
             SavePersistentStatistics();
@@ -3986,7 +4053,9 @@ namespace WallpaperControl
                     windowOpacityPercent,
                     wallpaperViewCounts,
                     wallpaperLastShown,
+                    wallpaperDailyViewCounts,
                     statisticsStartedAt,
+                    dailyStatisticsStartedAt,
                     RemoveWallpaperFromStatistics,
                     SetWallpaperFromStatistics,
                     ResetPersistentStatistics);

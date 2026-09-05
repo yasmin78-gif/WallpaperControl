@@ -561,4 +561,25 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="StatisticsFairnessToolTip" xml:space="preserve">
     <value>100 % significa que todos los fondos registrados se mostraron con la misma frecuencia. 0 % significa que todas las vistas pertenecen a un solo fondo. Los fondos sin vistas registradas aún no pueden incluirse.</value>
   </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Período:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Hoy</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Ayer</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>Últimos 7 días</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Período: {0}   •   Vistas: {1:N0}   •   Fondos: {2:N0}   •   Datos temporales desde: {3:G}</value>
+  </data>
 </root>

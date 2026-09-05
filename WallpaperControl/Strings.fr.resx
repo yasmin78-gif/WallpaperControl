@@ -561,4 +561,25 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="StatisticsFairnessToolTip" xml:space="preserve">
     <value>100 % signifie que tous les fonds enregistrés ont été affichés aussi souvent. 0 % signifie que tous les affichages concernent un seul fond. Les fonds jamais enregistrés ne peuvent pas encore être inclus.</value>
   </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Période :</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Aujourd’hui</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Hier</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>7 derniers jours</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>30 derniers jours</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Période : {0}   •   Affichages : {1:N0}   •   Fonds : {2:N0}   •   Données temporelles depuis : {3:G}</value>
+  </data>
 </root>

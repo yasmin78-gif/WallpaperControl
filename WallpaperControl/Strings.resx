@@ -561,4 +561,25 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="StatisticsFairnessToolTip" xml:space="preserve">
     <value>100 % bedeutet: alle aufgezeichneten Wallpaper wurden gleich oft angezeigt. 0 % bedeutet: alle Anzeigen entfallen auf nur ein Wallpaper. Nicht aufgezeichnete Wallpaper können in diese Berechnung noch nicht einfließen.</value>
   </data>
+  <data name="StatisticsPeriodLabel" xml:space="preserve">
+    <value>Zeitraum:</value>
+  </data>
+  <data name="StatisticsPeriodAll" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="StatisticsPeriodToday" xml:space="preserve">
+    <value>Heute</value>
+  </data>
+  <data name="StatisticsPeriodYesterday" xml:space="preserve">
+    <value>Gestern</value>
+  </data>
+  <data name="StatisticsPeriodLast7Days" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="StatisticsPeriodLast30Days" xml:space="preserve">
+    <value>Letzte 30 Tage</value>
+  </data>
+  <data name="StatisticsPeriodSummary" xml:space="preserve">
+    <value>Zeitraum: {0}   •   Anzeigen: {1:N0}   •   Wallpaper: {2:N0}   •   Zeitdaten seit: {3:G}</value>
+  </data>
 </root>
