@@ -64,7 +64,7 @@ namespace WallpaperControl
             wallpaperViewCounts =
                 new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly DateTime statisticsStartedAt =
+        private DateTime statisticsStartedAt =
             DateTime.Now;
 
         private readonly Dictionary<string, DateTime>
@@ -679,6 +679,7 @@ namespace WallpaperControl
             UpdateToolTips();
             LoadAutostartState();
             LoadCloseToTraySetting();
+            LoadPersistentStatistics();
             UpdateCurrentWallpaperDisplay();
             UpdateWallpaperCount();
             ConfigureWallpaperFolderWatcher();
@@ -1828,6 +1829,8 @@ namespace WallpaperControl
                 return;
             }
 
+            SavePersistentStatistics();
+
             base.OnFormClosing(e);
         }
 
@@ -2721,6 +2724,71 @@ namespace WallpaperControl
                 !slideshowPaused;
         }
 
+        private void LoadPersistentStatistics()
+        {
+            PersistentStatisticsData data =
+                StatisticsStorage.Load();
+
+            statisticsStartedAt =
+                data.StartedAt == default
+                    ? DateTime.Now
+                    : data.StartedAt;
+
+            lastCountedWallpaperPath =
+                string.IsNullOrWhiteSpace(
+                    data.LastCountedWallpaperPath)
+                    ? null
+                    : data.LastCountedWallpaperPath;
+
+            wallpaperViewCounts.Clear();
+            wallpaperLastShown.Clear();
+
+            foreach (PersistentWallpaperStatistics item
+                in data.Wallpapers)
+            {
+                if (string.IsNullOrWhiteSpace(item.Path) ||
+                    item.Views <= 0)
+                {
+                    continue;
+                }
+
+                wallpaperViewCounts[item.Path] =
+                    item.Views;
+
+                if (item.LastShown != default)
+                {
+                    wallpaperLastShown[item.Path] =
+                        item.LastShown;
+                }
+            }
+        }
+
+        private void SavePersistentStatistics()
+        {
+            StatisticsStorage.Save(
+                statisticsStartedAt,
+                wallpaperViewCounts,
+                wallpaperLastShown,
+                lastCountedWallpaperPath);
+        }
+
+        private void RemoveWallpaperFromStatistics(
+            string path)
+        {
+            wallpaperViewCounts.Remove(path);
+            wallpaperLastShown.Remove(path);
+
+            if (string.Equals(
+                path,
+                lastCountedWallpaperPath,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                lastCountedWallpaperPath = null;
+            }
+
+            SavePersistentStatistics();
+        }
+
         private void RecordWallpaperView(
             string path)
         {
@@ -2749,6 +2817,8 @@ namespace WallpaperControl
             {
                 wallpaperViewCounts[path] = 1;
             }
+
+            SavePersistentStatistics();
         }
 
         private void CurrentWallpaperLabel_MouseEnter(
@@ -3812,7 +3882,8 @@ namespace WallpaperControl
                     windowOpacityPercent,
                     wallpaperViewCounts,
                     wallpaperLastShown,
-                    statisticsStartedAt);
+                    statisticsStartedAt,
+                    RemoveWallpaperFromStatistics);
 
             dialog.ShowDialog(this);
         }

@@ -20,6 +20,7 @@ namespace WallpaperControl
         private readonly IReadOnlyDictionary<string, int> wallpaperViewCounts;
         private readonly IReadOnlyDictionary<string, DateTime> wallpaperLastShown;
         private readonly DateTime statisticsStartedAt;
+        private readonly Action<string>? removeFromStatistics;
 
         private readonly Label summaryLabel;
         private readonly Label averageLabel;
@@ -36,6 +37,7 @@ namespace WallpaperControl
         private readonly ToolStripMenuItem openMenuItem;
         private readonly ToolStripMenuItem openFolderMenuItem;
         private readonly ToolStripMenuItem copyPathMenuItem;
+        private readonly ToolStripMenuItem removeStatisticsMenuItem;
 
         private readonly ImageList rowHeightImageList;
         private readonly Dictionary<string, Image> thumbnailCache =
@@ -114,12 +116,14 @@ namespace WallpaperControl
             int windowOpacityPercent,
             IReadOnlyDictionary<string, int> wallpaperViewCounts,
             IReadOnlyDictionary<string, DateTime> wallpaperLastShown,
-            DateTime statisticsStartedAt)
+            DateTime statisticsStartedAt,
+            Action<string>? removeFromStatistics = null)
         {
             this.darkMode = darkMode;
             this.wallpaperViewCounts = wallpaperViewCounts;
             this.wallpaperLastShown = wallpaperLastShown;
             this.statisticsStartedAt = statisticsStartedAt;
+            this.removeFromStatistics = removeFromStatistics;
 
             Text = Localization.Get("StatisticsTitle");
 
@@ -329,6 +333,15 @@ namespace WallpaperControl
                     "Copiar ruta",
                     "パスをコピー"));
 
+            removeStatisticsMenuItem =
+                new ToolStripMenuItem(
+                    LocalText(
+                        "Aus Statistik entfernen",
+                        "Remove from statistics",
+                        "Retirer des statistiques",
+                        "Quitar de las estadísticas",
+                        "統計から削除"));
+
             openMenuItem.Click +=
                 (_, _) => OpenSelectedWallpaper();
 
@@ -338,13 +351,18 @@ namespace WallpaperControl
             copyPathMenuItem.Click +=
                 (_, _) => CopySelectedWallpaperPath();
 
+            removeStatisticsMenuItem.Click +=
+                (_, _) => RemoveSelectedWallpaperFromStatistics();
+
             rowContextMenu.Items.AddRange(
                 new ToolStripItem[]
                 {
                     openMenuItem,
                     openFolderMenuItem,
                     new ToolStripSeparator(),
-                    copyPathMenuItem
+                    copyPathMenuItem,
+                    new ToolStripSeparator(),
+                    removeStatisticsMenuItem
                 });
 
             rowContextMenu.Opening +=
@@ -368,6 +386,8 @@ namespace WallpaperControl
                         Directory.Exists(directory);
 
                     copyPathMenuItem.Enabled = true;
+                    removeStatisticsMenuItem.Enabled =
+                        removeFromStatistics != null;
                 };
 
             statisticsList.ContextMenuStrip =
@@ -572,7 +592,17 @@ namespace WallpaperControl
 
                     if (!item.Exists)
                     {
-                        fileName = "⚠ " + fileName;
+                        fileName =
+                            "⚠ " +
+                            fileName +
+                            "  [" +
+                            LocalText(
+                                "Nicht gefunden",
+                                "Not found",
+                                "Introuvable",
+                                "No encontrado",
+                                "見つかりません") +
+                            "]";
                     }
 
                     string lastShownText =
@@ -993,13 +1023,39 @@ namespace WallpaperControl
                     new(
                         darkMode
                             ? Color.FromArgb(
-                                70, 70, 70)
+                                90, 90, 90)
                             : Color.FromArgb(
-                                190, 190, 190));
+                                175, 175, 175));
 
                 graphics.DrawRectangle(
                     borderPen,
                     imageBounds);
+
+                if (row != null && !row.Exists)
+                {
+                    using Pen crossPen =
+                        new(
+                            darkMode
+                                ? Color.FromArgb(
+                                    150, 150, 150)
+                                : Color.FromArgb(
+                                    115, 115, 115),
+                            2);
+
+                    graphics.DrawLine(
+                        crossPen,
+                        imageBounds.Left + 20,
+                        imageBounds.Top + 10,
+                        imageBounds.Right - 20,
+                        imageBounds.Bottom - 10);
+
+                    graphics.DrawLine(
+                        crossPen,
+                        imageBounds.Right - 20,
+                        imageBounds.Top + 10,
+                        imageBounds.Left + 20,
+                        imageBounds.Bottom - 10);
+                }
 
                 return;
             }
@@ -1459,6 +1515,55 @@ namespace WallpaperControl
             catch
             {
             }
+        }
+
+        private void RemoveSelectedWallpaperFromStatistics()
+        {
+            RowData? row =
+                GetSelectedRow();
+
+            if (row == null ||
+                removeFromStatistics == null)
+            {
+                return;
+            }
+
+            string message =
+                LocalText(
+                    $"Soll „{Path.GetFileName(row.Path)}“ wirklich aus der Statistik entfernt werden?\n\nDie bisherige Anzeigehistorie dieses Wallpapers geht dabei verloren.",
+                    $"Remove “{Path.GetFileName(row.Path)}” from the statistics?\n\nIts previous view history will be lost.",
+                    $"Retirer « {Path.GetFileName(row.Path)} » des statistiques ?\n\nSon historique d’affichage sera perdu.",
+                    $"¿Quitar «{Path.GetFileName(row.Path)}» de las estadísticas?\n\nSe perderá su historial de visualizaciones.",
+                    $"「{Path.GetFileName(row.Path)}」を統計から削除しますか？\n\nこれまでの表示履歴は失われます。");
+
+            DialogResult result =
+                MessageBox.Show(
+                    this,
+                    message,
+                    LocalText(
+                        "Aus Statistik entfernen",
+                        "Remove from statistics",
+                        "Retirer des statistiques",
+                        "Quitar de las estadísticas",
+                        "統計から削除"),
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            HideWallpaperPreview();
+
+            if (thumbnailCache.Remove(
+                row.Path,
+                out Image? thumbnail))
+            {
+                thumbnail.Dispose();
+            }
+
+            removeFromStatistics(row.Path);
+            RefreshStatistics();
         }
 
         private void UpdateWallpaperPreview(
