@@ -615,4 +615,42 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="StatisticsNeverShown" xml:space="preserve">
     <value>Jamais</value>
   </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>Raccourcis</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>Comportement</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>Apparence</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>Apparence</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>Thème de couleur :</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>Sombre</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>Clair</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>« Système » suit automatiquement le mode des applications Windows et réagit aux changements pendant l’exécution de Wallpaper Control.</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>Réinitialiser l’apparence</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ Deux fonctions actives utilisent le même raccourci.</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>Windows n’a pas pu enregistrer les raccourcis globaux suivants. Ils sont probablement déjà utilisés par une autre application :
+
+{0}</value>
+  </data>
 </root>

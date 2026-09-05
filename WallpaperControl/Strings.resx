@@ -615,4 +615,42 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="StatisticsNeverShown" xml:space="preserve">
     <value>Noch nie</value>
   </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>Hotkeys</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>Verhalten</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>Farbschema:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>„System“ folgt automatisch dem Windows-App-Modus und reagiert auch während Wallpaper Control läuft auf Änderungen.</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>Darstellung zurücksetzen</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ Zwei aktive Funktionen verwenden denselben Hotkey.</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>Die folgenden globalen Hotkeys konnten von Windows nicht registriert werden. Wahrscheinlich werden sie bereits von einem anderen Programm verwendet:
+
+{0}</value>
+  </data>
 </root>

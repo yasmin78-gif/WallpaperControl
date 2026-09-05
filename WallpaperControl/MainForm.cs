@@ -128,7 +128,8 @@ namespace WallpaperControl
         private uint hotkeyExplorerModifiers = MOD_CONTROL | MOD_ALT;
         private uint hotkeyExplorerKey = VK_E;
 
-        private uint hotkeyRejectModifiers = MOD_CONTROL | MOD_ALT;
+        private uint hotkeyRejectModifiers =
+            MOD_CONTROL | MOD_ALT | MOD_SHIFT;
         private uint hotkeyRejectKey = VK_R;
 
         private string rejectRootFolder = "";
@@ -136,6 +137,7 @@ namespace WallpaperControl
 
         private bool loading = true;
         private bool darkMode;
+        private string themeMode = "system";
         private bool slideshowPaused = false;
         private bool closingAfterPauseResume = false;
         private bool restoringFromTray = false;
@@ -183,6 +185,9 @@ namespace WallpaperControl
 
             windowOpacityPercent =
                 LoadWindowOpacityPercent();
+
+            themeMode =
+                LoadThemeMode();
 
             Opacity =
                 windowOpacityPercent / 100.0;
@@ -761,7 +766,8 @@ namespace WallpaperControl
             base.OnHandleCreated(e);
 
             ApplyTitleBarTheme();
-            RegisterHotKeys();
+            RegisterHotKeys(
+                showErrors: false);
         }
 
         // ============================================================
@@ -774,6 +780,14 @@ namespace WallpaperControl
         {
             if (IsDisposed)
                 return;
+
+            if (!string.Equals(
+                    themeMode,
+                    "system",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
 
             BeginInvoke(() =>
             {
@@ -806,7 +820,13 @@ namespace WallpaperControl
 
         private void ApplyWindowsTheme()
         {
-            darkMode = IsWindowsDarkMode();
+            darkMode =
+                themeMode.ToLowerInvariant() switch
+                {
+                    "dark" => true,
+                    "light" => false,
+                    _ => IsWindowsDarkMode()
+                };
 
             Color background =
                 darkMode
@@ -4002,6 +4022,58 @@ namespace WallpaperControl
             }
         }
 
+        private string LoadThemeMode()
+        {
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        AppRegistryPath);
+
+                string? value =
+                    key?.GetValue(
+                        "ThemeMode")
+                    as string;
+
+                return NormalizeThemeMode(
+                    value);
+            }
+            catch
+            {
+                return "system";
+            }
+        }
+
+        private void SaveThemeMode(
+            string value)
+        {
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "ThemeMode",
+                    NormalizeThemeMode(value),
+                    RegistryValueKind.String);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string NormalizeThemeMode(
+            string? value)
+        {
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                "dark" => "dark",
+                "light" => "light",
+                _ => "system"
+            };
+        }
+
         private int LoadWindowOpacityPercent()
         {
             try
@@ -4162,6 +4234,7 @@ namespace WallpaperControl
             using SettingsForm dialog =
                 new SettingsForm(
                     darkMode,
+                    themeMode,
                     hotkeyNextModifiers,
                     hotkeyNextKey,
                     hotkeyPauseModifiers,
@@ -4230,6 +4303,10 @@ namespace WallpaperControl
             int newWindowOpacityPercent =
                 dialog.WindowOpacityPercent;
 
+            string newThemeMode =
+                NormalizeThemeMode(
+                    dialog.ThemeMode);
+
             SaveHotkeySettings();
             SaveRejectSettings();
 
@@ -4266,10 +4343,25 @@ namespace WallpaperControl
                     windowOpacityPercent);
             }
 
+            if (!string.Equals(
+                    newThemeMode,
+                    themeMode,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                themeMode =
+                    newThemeMode;
+
+                SaveThemeMode(
+                    themeMode);
+
+                ApplyWindowsTheme();
+            }
+
             if (IsHandleCreated)
             {
                 UnregisterHotKeys();
-                RegisterHotKeys();
+                RegisterHotKeys(
+                    showErrors: true);
             }
 
             if (languageChanged)
@@ -4585,7 +4677,7 @@ namespace WallpaperControl
                     ReadRegistryUInt(
                         key,
                         "HotkeyRejectModifiers",
-                        MOD_CONTROL | MOD_ALT);
+                        MOD_CONTROL | MOD_ALT | MOD_SHIFT);
 
                 hotkeyRejectKey =
                     ReadRegistryUInt(
@@ -4678,47 +4770,124 @@ namespace WallpaperControl
         // GLOBALE HOTKEYS
         // ============================================================
 
-        private void RegisterHotKeys()
+        private void RegisterHotKeys(
+            bool showErrors)
         {
-            if (hotkeyNextModifiers != 0 &&
-                hotkeyNextKey != 0)
+            List<string> failedHotkeys =
+                new();
+
+            TryRegisterHotKey(
+                HOTKEY_NEXT,
+                hotkeyNextModifiers,
+                hotkeyNextKey,
+                Localization.Get(
+                    "SettingsHotkeyNext"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_PAUSE,
+                hotkeyPauseModifiers,
+                hotkeyPauseKey,
+                Localization.Get(
+                    "SettingsHotkeyPause"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_EXPLORER,
+                hotkeyExplorerModifiers,
+                hotkeyExplorerKey,
+                Localization.Get(
+                    "SettingsHotkeyExplorer"),
+                failedHotkeys);
+
+            TryRegisterHotKey(
+                HOTKEY_REJECT,
+                hotkeyRejectModifiers,
+                hotkeyRejectKey,
+                Localization.Get(
+                    "SettingsHotkeyReject"),
+                failedHotkeys);
+
+            if (showErrors &&
+                failedHotkeys.Count > 0)
             {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_NEXT,
-                    hotkeyNextModifiers,
-                    hotkeyNextKey);
+                MessageBox.Show(
+                    this,
+                    string.Format(
+                        Localization.CurrentCulture,
+                        Localization.Get(
+                            "SettingsHotkeyRegistrationFailed"),
+                        string.Join(
+                            Environment.NewLine,
+                            failedHotkeys.Select(
+                                item => "• " + item))),
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        private void TryRegisterHotKey(
+            int id,
+            uint modifiers,
+            uint key,
+            string displayName,
+            List<string> failedHotkeys)
+        {
+            if (modifiers == 0 ||
+                key == 0)
+            {
+                return;
             }
 
-            if (hotkeyPauseModifiers != 0 &&
-                hotkeyPauseKey != 0)
-            {
-                RegisterHotKey(
+            if (!RegisterHotKey(
                     Handle,
-                    HOTKEY_PAUSE,
-                    hotkeyPauseModifiers,
-                    hotkeyPauseKey);
+                    id,
+                    modifiers,
+                    key))
+            {
+                failedHotkeys.Add(
+                    $"{displayName} ({FormatHotkey(modifiers, key)})");
             }
+        }
 
-            if (hotkeyExplorerModifiers != 0 &&
-                hotkeyExplorerKey != 0)
-            {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_EXPLORER,
-                    hotkeyExplorerModifiers,
-                    hotkeyExplorerKey);
-            }
+        private static string FormatHotkey(
+            uint modifiers,
+            uint key)
+        {
+            List<string> parts =
+                new();
 
-            if (hotkeyRejectModifiers != 0 &&
-                hotkeyRejectKey != 0)
-            {
-                RegisterHotKey(
-                    Handle,
-                    HOTKEY_REJECT,
-                    hotkeyRejectModifiers,
-                    hotkeyRejectKey);
-            }
+            if ((modifiers & MOD_CONTROL) != 0)
+                parts.Add("Ctrl");
+
+            if ((modifiers & MOD_ALT) != 0)
+                parts.Add("Alt");
+
+            if ((modifiers & MOD_SHIFT) != 0)
+                parts.Add("Shift");
+
+            if ((modifiers & MOD_WIN) != 0)
+                parts.Add("Win");
+
+            string keyText =
+                key switch
+                {
+                    0x25 => "←",
+                    0x26 => "↑",
+                    0x27 => "→",
+                    0x28 => "↓",
+                    >= 0x70 and <= 0x7B =>
+                        "F" + (key - 0x6F),
+                    _ => ((char)key).ToString()
+                };
+
+            parts.Add(
+                keyText);
+
+            return string.Join(
+                "+",
+                parts);
         }
 
         private void UnregisterHotKeys()

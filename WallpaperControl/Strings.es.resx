@@ -615,4 +615,42 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="StatisticsNeverShown" xml:space="preserve">
     <value>Nunca</value>
   </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>Atajos</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>Comportamiento</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>Apariencia</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>Apariencia</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>Tema de color:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>Oscuro</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>Claro</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>«Sistema» sigue automáticamente el modo de aplicaciones de Windows y reacciona a los cambios mientras Wallpaper Control está abierto.</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>Restablecer apariencia</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ Dos funciones activas usan el mismo atajo.</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>Windows no pudo registrar los siguientes atajos globales. Probablemente ya los utiliza otra aplicación:
+
+{0}</value>
+  </data>
 </root>

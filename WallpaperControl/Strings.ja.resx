@@ -587,4 +587,42 @@
   <data name="StatisticsNeverShown" xml:space="preserve">
     <value>未表示</value>
   </data>
+  <data name="SettingsTabHotkeys" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
+  <data name="SettingsTabBehavior" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="SettingsTabAppearance" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="SettingsAppearanceTitle" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="SettingsThemeLabel" xml:space="preserve">
+    <value>カラーテーマ:</value>
+  </data>
+  <data name="SettingsThemeSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="SettingsThemeDark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="SettingsThemeLight" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="SettingsThemeHint" xml:space="preserve">
+    <value>「システム」は Windows のアプリモードに自動追従し、Wallpaper Control の実行中の変更にも反応します。</value>
+  </data>
+  <data name="SettingsResetAppearance" xml:space="preserve">
+    <value>外観をリセット</value>
+  </data>
+  <data name="SettingsHotkeyConflictInline" xml:space="preserve">
+    <value>⚠ 2つの有効な機能が同じホットキーを使用しています。</value>
+  </data>
+  <data name="SettingsHotkeyRegistrationFailed" xml:space="preserve">
+    <value>次のグローバルホットキーを Windows に登録できませんでした。別のアプリですでに使用されている可能性があります:
+
+{0}</value>
+  </data>
 </root>
