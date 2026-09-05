@@ -25,7 +25,11 @@ namespace WallpaperControl
         private readonly Action? resetStatistics;
 
         private readonly Label summaryLabel;
-        private readonly Label averageLabel;
+        private readonly MetricCard mostViewedCard;
+        private readonly MetricCard leastViewedCard;
+        private readonly MetricCard averageCard;
+        private readonly MetricCard fairnessCard;
+        private readonly ToolTip dashboardToolTip;
         private readonly ComboBox filterComboBox;
         private readonly TextBox searchTextBox;
         private readonly DoubleBufferedListView statisticsList;
@@ -62,6 +66,74 @@ namespace WallpaperControl
             Views,
             Share,
             LastShown
+        }
+
+        private sealed class MetricCard : Panel
+        {
+            public Label TitleLabel { get; }
+            public Label ValueLabel { get; }
+            public Label DetailLabel { get; }
+
+            public MetricCard()
+            {
+                Size = new Size(205, 88);
+                Padding = new Padding(12);
+                BorderStyle = BorderStyle.FixedSingle;
+
+                TitleLabel = new Label
+                {
+                    Location = new Point(12, 9),
+                    Size = new Size(179, 20),
+                    Font = new Font(
+                        "Segoe UI",
+                        8.5f,
+                        FontStyle.Regular),
+                    AutoEllipsis = true
+                };
+
+                ValueLabel = new Label
+                {
+                    Location = new Point(12, 30),
+                    Size = new Size(179, 28),
+                    Font = new Font(
+                        "Segoe UI",
+                        15,
+                        FontStyle.Bold),
+                    AutoEllipsis = true
+                };
+
+                DetailLabel = new Label
+                {
+                    Location = new Point(12, 60),
+                    Size = new Size(179, 18),
+                    Font = new Font(
+                        "Segoe UI",
+                        8,
+                        FontStyle.Regular),
+                    AutoEllipsis = true
+                };
+
+                Controls.Add(TitleLabel);
+                Controls.Add(ValueLabel);
+                Controls.Add(DetailLabel);
+            }
+
+            public void SetColors(
+                Color background,
+                Color foreground,
+                Color muted)
+            {
+                BackColor = background;
+                ForeColor = foreground;
+
+                TitleLabel.BackColor = background;
+                ValueLabel.BackColor = background;
+                DetailLabel.BackColor = background;
+
+                TitleLabel.ForeColor = muted;
+                ValueLabel.ForeColor = foreground;
+                DetailLabel.ForeColor = muted;
+            }
         }
 
         private sealed class FilterChoice
@@ -209,7 +281,7 @@ namespace WallpaperControl
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
 
-            ClientSize = new Size(920, 610);
+            ClientSize = new Size(920, 715);
             Font = new Font("Segoe UI", 10);
 
             Opacity =
@@ -235,27 +307,81 @@ namespace WallpaperControl
                 Size = new Size(870, 24)
             };
 
-            averageLabel = new Label
+            dashboardToolTip = new ToolTip
             {
-                Location = new Point(25, 80),
-                Size = new Size(870, 22),
-                Font = new Font(
-                    "Segoe UI",
-                    9,
-                    FontStyle.Regular)
+                AutoPopDelay = 9000,
+                InitialDelay = 400,
+                ReshowDelay = 100,
+                ShowAlways = true
             };
+
+            mostViewedCard = new MetricCard
+            {
+                Location = new Point(25, 88)
+            };
+
+            mostViewedCard.TitleLabel.Text =
+                Localization.Get(
+                    "StatisticsMetricMostViewed");
+
+            leastViewedCard = new MetricCard
+            {
+                Location = new Point(242, 88)
+            };
+
+            leastViewedCard.TitleLabel.Text =
+                Localization.Get(
+                    "StatisticsMetricLeastViewed");
+
+            averageCard = new MetricCard
+            {
+                Location = new Point(459, 88)
+            };
+
+            averageCard.TitleLabel.Text =
+                Localization.Get(
+                    "StatisticsMetricAverage");
+
+            fairnessCard = new MetricCard
+            {
+                Location = new Point(676, 88)
+            };
+
+            fairnessCard.TitleLabel.Text =
+                Localization.Get(
+                    "StatisticsMetricFairness");
+
+            string fairnessToolTipText =
+                Localization.Get(
+                    "StatisticsFairnessToolTip");
+
+            dashboardToolTip.SetToolTip(
+                fairnessCard,
+                fairnessToolTipText);
+
+            dashboardToolTip.SetToolTip(
+                fairnessCard.TitleLabel,
+                fairnessToolTipText);
+
+            dashboardToolTip.SetToolTip(
+                fairnessCard.ValueLabel,
+                fairnessToolTipText);
+
+            dashboardToolTip.SetToolTip(
+                fairnessCard.DetailLabel,
+                fairnessToolTipText);
 
             Label filterLabel = new Label
             {
                 Text = Localization.Get(
                     "StatisticsFilterLabel"),
-                Location = new Point(25, 116),
+                Location = new Point(25, 200),
                 Size = new Size(105, 25)
             };
 
             filterComboBox = new ComboBox
             {
-                Location = new Point(130, 111),
+                Location = new Point(130, 195),
                 Size = new Size(150, 28),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
@@ -285,7 +411,7 @@ namespace WallpaperControl
 
             searchTextBox = new TextBox
             {
-                Location = new Point(590, 111),
+                Location = new Point(590, 195),
                 Size = new Size(305, 27),
                 PlaceholderText =
                     Localization.Get(
@@ -297,8 +423,8 @@ namespace WallpaperControl
 
             statisticsList = new DoubleBufferedListView
             {
-                Location = new Point(25, 155),
-                Size = new Size(870, 380),
+                Location = new Point(25, 239),
+                Size = new Size(870, 390),
                 View = View.Details,
                 FullRowSelect = true,
                 GridLines = false,
@@ -505,7 +631,7 @@ namespace WallpaperControl
                 Text =
                     Localization.Get(
                         "StatisticsResetButton"),
-                Location = new Point(25, 555),
+                Location = new Point(25, 650),
                 Size = new Size(190, 34)
             };
 
@@ -515,7 +641,7 @@ namespace WallpaperControl
             closeButton = new Button
             {
                 Text = Localization.Get("AboutClose"),
-                Location = new Point(770, 555),
+                Location = new Point(770, 650),
                 Size = new Size(125, 34),
                 DialogResult = DialogResult.OK
             };
@@ -555,7 +681,10 @@ namespace WallpaperControl
 
             Controls.Add(titleLabel);
             Controls.Add(summaryLabel);
-            Controls.Add(averageLabel);
+            Controls.Add(mostViewedCard);
+            Controls.Add(leastViewedCard);
+            Controls.Add(averageCard);
+            Controls.Add(fairnessCard);
             Controls.Add(filterLabel);
             Controls.Add(filterComboBox);
             Controls.Add(searchTextBox);
@@ -599,6 +728,7 @@ namespace WallpaperControl
 
             rowHeightImageList.Dispose();
             rowContextMenu.Dispose();
+            dashboardToolTip.Dispose();
             wallpaperPreviewForm.Dispose();
 
             base.OnFormClosed(e);
@@ -624,12 +754,9 @@ namespace WallpaperControl
                     totalViews,
                     wallpaperViewCounts.Count);
 
-            averageLabel.Text =
-                string.Format(
-                    Localization.CurrentCulture,
-                    Localization.Get(
-                        "StatisticsAverage"),
-                    average);
+            UpdateDashboardCards(
+                totalViews,
+                average);
 
             List<RowData> popularityOrder =
                 wallpaperViewCounts
@@ -785,6 +912,174 @@ namespace WallpaperControl
 
             statisticsList.SelectedItems.Clear();
             hoveredItemIndex = -1;
+        }
+
+        private void UpdateDashboardCards(
+            int totalViews,
+            double average)
+        {
+            if (wallpaperViewCounts.Count == 0 ||
+                totalViews <= 0)
+            {
+                string noData =
+                    Localization.Get(
+                        "StatisticsMetricNoData");
+
+                SetMetricCard(
+                    mostViewedCard,
+                    "–",
+                    noData);
+
+                SetMetricCard(
+                    leastViewedCard,
+                    "–",
+                    noData);
+
+                SetMetricCard(
+                    averageCard,
+                    "0.00",
+                    Localization.Get(
+                        "StatisticsMetricAverageDetail"));
+
+                SetMetricCard(
+                    fairnessCard,
+                    "–",
+                    Localization.Get(
+                        "StatisticsMetricFairnessDetail"));
+
+                return;
+            }
+
+            KeyValuePair<string, int> mostViewed =
+                wallpaperViewCounts
+                    .OrderByDescending(
+                        item => item.Value)
+                    .ThenBy(
+                        item =>
+                            Path.GetFileName(
+                                item.Key),
+                        StringComparer
+                            .CurrentCultureIgnoreCase)
+                    .First();
+
+            KeyValuePair<string, int> leastViewed =
+                wallpaperViewCounts
+                    .OrderBy(
+                        item => item.Value)
+                    .ThenBy(
+                        item =>
+                            Path.GetFileName(
+                                item.Key),
+                        StringComparer
+                            .CurrentCultureIgnoreCase)
+                    .First();
+
+            SetMetricCard(
+                mostViewedCard,
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsMetricViews"),
+                    mostViewed.Value),
+                Path.GetFileName(
+                    mostViewed.Key));
+
+            SetMetricCard(
+                leastViewedCard,
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsMetricViews"),
+                    leastViewed.Value),
+                Path.GetFileName(
+                    leastViewed.Key));
+
+            SetMetricCard(
+                averageCard,
+                average.ToString(
+                    "0.00",
+                    Localization.CurrentCulture),
+                Localization.Get(
+                    "StatisticsMetricAverageDetail"));
+
+            double fairness =
+                CalculateFairnessScore(
+                    wallpaperViewCounts.Values,
+                    totalViews);
+
+            SetMetricCard(
+                fairnessCard,
+                fairness.ToString(
+                    "0.0",
+                    Localization.CurrentCulture) +
+                " %",
+                Localization.Get(
+                    "StatisticsMetricFairnessDetail"));
+        }
+
+        private static void SetMetricCard(
+            MetricCard card,
+            string value,
+            string detail)
+        {
+            card.ValueLabel.Text = value;
+            card.DetailLabel.Text = detail;
+        }
+
+        private static double CalculateFairnessScore(
+            IEnumerable<int> viewCounts,
+            int totalViews)
+        {
+            int[] counts =
+                viewCounts
+                    .Where(count => count > 0)
+                    .ToArray();
+
+            int wallpaperCount =
+                counts.Length;
+
+            if (wallpaperCount <= 1 ||
+                totalViews <= 0)
+            {
+                return 100.0;
+            }
+
+            double expectedShare =
+                1.0 / wallpaperCount;
+
+            double totalVariation = 0.0;
+
+            foreach (int count in counts)
+            {
+                double actualShare =
+                    (double)count / totalViews;
+
+                totalVariation +=
+                    Math.Abs(
+                        actualShare -
+                        expectedShare);
+            }
+
+            totalVariation *= 0.5;
+
+            double maximumVariation =
+                1.0 -
+                expectedShare;
+
+            if (maximumVariation <= 0)
+            {
+                return 100.0;
+            }
+
+            double normalizedDeviation =
+                totalVariation /
+                maximumVariation;
+
+            return Math.Clamp(
+                (1.0 - normalizedDeviation) *
+                100.0,
+                0.0,
+                100.0);
         }
 
         private IEnumerable<RowData> ApplySorting(
@@ -1864,10 +2159,35 @@ namespace WallpaperControl
                 }
             }
 
-            averageLabel.ForeColor =
+            Color cardBackground =
                 darkMode
-                    ? Color.FromArgb(175, 175, 175)
+                    ? Color.FromArgb(38, 38, 38)
+                    : Color.White;
+
+            Color cardMuted =
+                darkMode
+                    ? Color.FromArgb(170, 170, 170)
                     : Color.FromArgb(95, 95, 95);
+
+            mostViewedCard.SetColors(
+                cardBackground,
+                foreground,
+                cardMuted);
+
+            leastViewedCard.SetColors(
+                cardBackground,
+                foreground,
+                cardMuted);
+
+            averageCard.SetColors(
+                cardBackground,
+                foreground,
+                cardMuted);
+
+            fairnessCard.SetColors(
+                cardBackground,
+                foreground,
+                cardMuted);
 
             statisticsList.BackColor =
                 darkMode

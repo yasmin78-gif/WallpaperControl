@@ -534,4 +534,31 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Le fond d’écran n’a pas pu être appliqué :
 </value>
   </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>Le plus affiché</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>Le moins affiché</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>Moyenne</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>Équilibre</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} affichages</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>affichages par fond</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>répartition des affichages enregistrés</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>Pas encore de données</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100 % signifie que tous les fonds enregistrés ont été affichés aussi souvent. 0 % signifie que tous les affichages concernent un seul fond. Les fonds jamais enregistrés ne peuvent pas encore être inclus.</value>
+  </data>
 </root>

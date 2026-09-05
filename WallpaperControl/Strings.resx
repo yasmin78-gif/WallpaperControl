@@ -534,4 +534,31 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
     <value>Das Wallpaper konnte nicht gesetzt werden:
 </value>
   </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>Am häufigsten</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>Am seltensten</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>Durchschnitt</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>Fairness</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} Anzeigen</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>Anzeigen pro Wallpaper</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>Verteilung der aufgezeichneten Anzeigen</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>Noch keine Daten</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100 % bedeutet: alle aufgezeichneten Wallpaper wurden gleich oft angezeigt. 0 % bedeutet: alle Anzeigen entfallen auf nur ein Wallpaper. Nicht aufgezeichnete Wallpaper können in diese Berechnung noch nicht einfließen.</value>
+  </data>
 </root>

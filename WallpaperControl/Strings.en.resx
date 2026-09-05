@@ -534,4 +534,31 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
     <value>The wallpaper could not be set:
 </value>
   </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>Most viewed</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>Least viewed</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>Average</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>Fairness</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} views</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>views per wallpaper</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>distribution of recorded views</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>No data yet</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100% means all recorded wallpapers were shown equally often. 0% means all views belong to only one wallpaper. Wallpapers with no recorded view cannot yet be included in this calculation.</value>
+  </data>
 </root>

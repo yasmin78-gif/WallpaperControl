@@ -506,4 +506,31 @@
     <value>壁紙を設定できませんでした:
 </value>
   </data>
+  <data name="StatisticsMetricMostViewed" xml:space="preserve">
+    <value>最多表示</value>
+  </data>
+  <data name="StatisticsMetricLeastViewed" xml:space="preserve">
+    <value>最少表示</value>
+  </data>
+  <data name="StatisticsMetricAverage" xml:space="preserve">
+    <value>平均</value>
+  </data>
+  <data name="StatisticsMetricFairness" xml:space="preserve">
+    <value>均等度</value>
+  </data>
+  <data name="StatisticsMetricViews" xml:space="preserve">
+    <value>{0:N0} 回表示</value>
+  </data>
+  <data name="StatisticsMetricAverageDetail" xml:space="preserve">
+    <value>壁紙1枚あたりの表示回数</value>
+  </data>
+  <data name="StatisticsMetricFairnessDetail" xml:space="preserve">
+    <value>記録された表示回数の分布</value>
+  </data>
+  <data name="StatisticsMetricNoData" xml:space="preserve">
+    <value>まだデータがありません</value>
+  </data>
+  <data name="StatisticsFairnessToolTip" xml:space="preserve">
+    <value>100% は記録されたすべての壁紙が同じ回数表示されたことを意味します。0% はすべての表示が1枚の壁紙に集中している状態です。まだ一度も記録されていない壁紙は計算に含められません。</value>
+  </data>
 </root>
