@@ -582,4 +582,10 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="StatisticsPeriodSummary" xml:space="preserve">
     <value>Período: {0}   •   Vistas: {1:N0}   •   Fondos: {2:N0}   •   Datos temporales desde: {3:G}</value>
   </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 fondos</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 fondos • {0}</value>
+  </data>
 </root>

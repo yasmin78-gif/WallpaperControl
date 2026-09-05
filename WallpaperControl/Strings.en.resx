@@ -582,4 +582,10 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="StatisticsPeriodSummary" xml:space="preserve">
     <value>Period: {0}   •   Views: {1:N0}   •   Wallpapers: {2:N0}   •   Time data since: {3:G}</value>
   </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 wallpapers</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 wallpapers • {0}</value>
+  </data>
 </root>

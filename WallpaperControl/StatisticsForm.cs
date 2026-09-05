@@ -33,6 +33,7 @@ namespace WallpaperControl
         private readonly MetricCard leastViewedCard;
         private readonly MetricCard averageCard;
         private readonly MetricCard fairnessCard;
+        private readonly TopWallpaperChart topWallpaperChart;
         private readonly ToolTip dashboardToolTip;
         private readonly ComboBox filterComboBox;
         private readonly ComboBox periodComboBox;
@@ -71,6 +72,221 @@ namespace WallpaperControl
             Views,
             Share,
             LastShown
+        }
+
+        private sealed class TopWallpaperChart : Panel
+        {
+            private IReadOnlyList<(string Name, int Views)> data =
+                Array.Empty<(string Name, int Views)>();
+
+            private bool darkMode;
+            private string emptyText = string.Empty;
+            private readonly ToolTip chartToolTip;
+            private int lastHoveredRow = -1;
+
+            public string Title { get; set; } = string.Empty;
+
+            public TopWallpaperChart()
+            {
+                DoubleBuffered = true;
+                BorderStyle = BorderStyle.FixedSingle;
+
+                chartToolTip = new ToolTip
+                {
+                    AutoPopDelay = 9000,
+                    InitialDelay = 350,
+                    ReshowDelay = 100,
+                    ShowAlways = true
+                };
+
+                MouseMove += TopWallpaperChart_MouseMove;
+                MouseLeave += (_, _) =>
+                {
+                    lastHoveredRow = -1;
+                    chartToolTip.SetToolTip(
+                        this,
+                        string.Empty);
+                };
+            }
+
+            public void SetData(
+                IEnumerable<KeyValuePair<string, int>> values,
+                string noDataText)
+            {
+                data = values
+                    .Where(item => item.Value > 0)
+                    .OrderByDescending(item => item.Value)
+                    .ThenBy(
+                        item => Path.GetFileName(item.Key),
+                        StringComparer.CurrentCultureIgnoreCase)
+                    .Take(10)
+                    .Select(item =>
+                        (Path.GetFileName(item.Key), item.Value))
+                    .ToList();
+
+                emptyText = noDataText;
+                Invalidate();
+            }
+
+            public void SetTheme(bool useDarkMode)
+            {
+                darkMode = useDarkMode;
+                BackColor = darkMode
+                    ? Color.FromArgb(38, 38, 38)
+                    : Color.White;
+                ForeColor = darkMode
+                    ? Color.FromArgb(235, 235, 235)
+                    : SystemColors.ControlText;
+                Invalidate();
+            }
+
+            private void TopWallpaperChart_MouseMove(
+                object? sender,
+                MouseEventArgs e)
+            {
+                if (data.Count == 0)
+                {
+                    return;
+                }
+
+                int rows = data.Count;
+                int availableHeight = Height - 38;
+                int rowHeight = Math.Max(
+                    12,
+                    availableHeight / rows);
+
+                int row =
+                    (e.Y - 35) / rowHeight;
+
+                if (e.Y < 35 ||
+                    row < 0 ||
+                    row >= rows)
+                {
+                    row = -1;
+                }
+
+                if (row == lastHoveredRow)
+                {
+                    return;
+                }
+
+                lastHoveredRow = row;
+
+                chartToolTip.SetToolTip(
+                    this,
+                    row >= 0
+                        ? data[row].Name
+                        : string.Empty);
+            }
+
+            protected override void Dispose(
+                bool disposing)
+            {
+                if (disposing)
+                {
+                    chartToolTip.Dispose();
+                }
+
+                base.Dispose(disposing);
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+
+                Graphics g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                using Font titleFont = new Font(
+                    "Segoe UI", 9.5f, FontStyle.Bold);
+                using Font rowFont = new Font(
+                    "Segoe UI", 8.5f, FontStyle.Regular);
+                using Font valueFont = new Font(
+                    "Segoe UI", 8.5f, FontStyle.Bold);
+
+                Color muted = darkMode
+                    ? Color.FromArgb(175, 175, 175)
+                    : Color.FromArgb(95, 95, 95);
+                Color track = darkMode
+                    ? Color.FromArgb(58, 58, 58)
+                    : Color.FromArgb(230, 230, 230);
+                Color bar = darkMode
+                    ? Color.FromArgb(105, 155, 205)
+                    : Color.FromArgb(75, 125, 180);
+
+                TextRenderer.DrawText(
+                    g, Title, titleFont,
+                    new Rectangle(12, 8, Width - 24, 22),
+                    ForeColor,
+                    TextFormatFlags.Left |
+                    TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.EndEllipsis);
+
+                if (data.Count == 0)
+                {
+                    TextRenderer.DrawText(
+                        g, emptyText, rowFont,
+                        new Rectangle(12, 40, Width - 24, Height - 48),
+                        muted,
+                        TextFormatFlags.HorizontalCenter |
+                        TextFormatFlags.VerticalCenter |
+                        TextFormatFlags.EndEllipsis);
+                    return;
+                }
+
+                int maxViews = Math.Max(1, data.Max(item => item.Views));
+                int rows = data.Count;
+                int availableHeight = Height - 38;
+                int rowHeight = Math.Max(12, availableHeight / rows);
+                int labelWidth = Math.Min(
+                    275,
+                    Math.Max(
+                        190,
+                        Width / 3));
+
+                int valueWidth = 55;
+                int barLeft = labelWidth + 20;
+                int barRight = Width - valueWidth - 18;
+                int barWidth = Math.Max(40, barRight - barLeft);
+
+                for (int i = 0; i < rows; i++)
+                {
+                    var item = data[i];
+                    int y = 35 + i * rowHeight;
+                    int h = Math.Max(7, rowHeight - 5);
+
+                    TextRenderer.DrawText(
+                        g, item.Name, rowFont,
+                        new Rectangle(12, y - 2, labelWidth, rowHeight),
+                        ForeColor,
+                        TextFormatFlags.Left |
+                        TextFormatFlags.VerticalCenter |
+                        TextFormatFlags.EndEllipsis |
+                        TextFormatFlags.NoPrefix);
+
+                    Rectangle trackRect = new Rectangle(
+                        barLeft, y + 2, barWidth, h);
+                    using (SolidBrush trackBrush = new(track))
+                        g.FillRectangle(trackBrush, trackRect);
+
+                    int filled = Math.Max(2,
+                        (int)Math.Round(barWidth *
+                        item.Views / (double)maxViews));
+                    Rectangle barRect = new Rectangle(
+                        barLeft, y + 2, Math.Min(barWidth, filled), h);
+                    using (SolidBrush barBrush = new(bar))
+                        g.FillRectangle(barBrush, barRect);
+
+                    TextRenderer.DrawText(
+                        g, item.Views.ToString(
+                            "N0", Localization.CurrentCulture),
+                        valueFont,
+                        new Rectangle(barRight + 5, y - 2, valueWidth, rowHeight),
+                        ForeColor,
+                        TextFormatFlags.Right |
+                        TextFormatFlags.VerticalCenter);
+                }
+            }
         }
 
         private sealed class MetricCard : Panel
@@ -316,7 +532,7 @@ namespace WallpaperControl
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
 
-            ClientSize = new Size(920, 715);
+            ClientSize = new Size(920, 900);
             Font = new Font("Segoe UI", 10);
 
             Opacity =
@@ -406,17 +622,25 @@ namespace WallpaperControl
                 fairnessCard.DetailLabel,
                 fairnessToolTipText);
 
+            topWallpaperChart = new TopWallpaperChart
+            {
+                Location = new Point(25, 190),
+                Size = new Size(870, 175),
+                Title = Localization.Get(
+                    "StatisticsChartTop10")
+            };
+
             Label filterLabel = new Label
             {
                 Text = Localization.Get(
                     "StatisticsFilterLabel"),
-                Location = new Point(25, 200),
+                Location = new Point(25, 389),
                 Size = new Size(105, 25)
             };
 
             filterComboBox = new ComboBox
             {
-                Location = new Point(130, 195),
+                Location = new Point(130, 384),
                 Size = new Size(150, 28),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
@@ -448,13 +672,13 @@ namespace WallpaperControl
             {
                 Text = Localization.Get(
                     "StatisticsPeriodLabel"),
-                Location = new Point(300, 200),
+                Location = new Point(300, 389),
                 Size = new Size(80, 25)
             };
 
             periodComboBox = new ComboBox
             {
-                Location = new Point(380, 195),
+                Location = new Point(380, 384),
                 Size = new Size(170, 28),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
@@ -496,7 +720,7 @@ namespace WallpaperControl
 
             searchTextBox = new TextBox
             {
-                Location = new Point(590, 195),
+                Location = new Point(590, 384),
                 Size = new Size(305, 27),
                 PlaceholderText =
                     Localization.Get(
@@ -508,7 +732,7 @@ namespace WallpaperControl
 
             statisticsList = new DoubleBufferedListView
             {
-                Location = new Point(25, 239),
+                Location = new Point(25, 428),
                 Size = new Size(870, 390),
                 View = View.Details,
                 FullRowSelect = true,
@@ -716,7 +940,7 @@ namespace WallpaperControl
                 Text =
                     Localization.Get(
                         "StatisticsResetButton"),
-                Location = new Point(25, 650),
+                Location = new Point(25, 835),
                 Size = new Size(190, 34)
             };
 
@@ -726,7 +950,7 @@ namespace WallpaperControl
             closeButton = new Button
             {
                 Text = Localization.Get("AboutClose"),
-                Location = new Point(770, 650),
+                Location = new Point(770, 835),
                 Size = new Size(125, 34),
                 DialogResult = DialogResult.OK
             };
@@ -770,6 +994,7 @@ namespace WallpaperControl
             Controls.Add(leastViewedCard);
             Controls.Add(averageCard);
             Controls.Add(fairnessCard);
+            Controls.Add(topWallpaperChart);
             Controls.Add(filterLabel);
             Controls.Add(filterComboBox);
             Controls.Add(periodLabel);
@@ -873,6 +1098,18 @@ namespace WallpaperControl
                 activeViewCounts,
                 totalViews,
                 average);
+
+            topWallpaperChart.Title =
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsChartTop10ForPeriod"),
+                    periodChoice.Text);
+
+            topWallpaperChart.SetData(
+                activeViewCounts,
+                Localization.Get(
+                    "StatisticsMetricNoData"));
 
             List<RowData> popularityOrder =
                 activeViewCounts
@@ -1161,6 +1398,14 @@ namespace WallpaperControl
                     Localization.Get(
                         "StatisticsMetricFairnessDetail"));
 
+                dashboardToolTip.SetToolTip(
+                    mostViewedCard.DetailLabel,
+                    string.Empty);
+
+                dashboardToolTip.SetToolTip(
+                    leastViewedCard.DetailLabel,
+                    string.Empty);
+
                 return;
             }
 
@@ -1205,6 +1450,16 @@ namespace WallpaperControl
                     Localization.Get(
                         "StatisticsMetricViews"),
                     leastViewed.Value),
+                Path.GetFileName(
+                    leastViewed.Key));
+
+            dashboardToolTip.SetToolTip(
+                mostViewedCard.DetailLabel,
+                Path.GetFileName(
+                    mostViewed.Key));
+
+            dashboardToolTip.SetToolTip(
+                leastViewedCard.DetailLabel,
                 Path.GetFileName(
                     leastViewed.Key));
 
@@ -2405,6 +2660,9 @@ namespace WallpaperControl
                 cardBackground,
                 foreground,
                 cardMuted);
+
+            topWallpaperChart.SetTheme(
+                darkMode);
 
             statisticsList.BackColor =
                 darkMode

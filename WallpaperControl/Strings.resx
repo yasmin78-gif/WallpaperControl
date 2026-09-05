@@ -582,4 +582,10 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="StatisticsPeriodSummary" xml:space="preserve">
     <value>Zeitraum: {0}   •   Anzeigen: {1:N0}   •   Wallpaper: {2:N0}   •   Zeitdaten seit: {3:G}</value>
   </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 Wallpaper</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 Wallpaper • {0}</value>
+  </data>
 </root>

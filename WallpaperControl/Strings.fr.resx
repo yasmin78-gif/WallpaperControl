@@ -582,4 +582,10 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="StatisticsPeriodSummary" xml:space="preserve">
     <value>Période : {0}   •   Affichages : {1:N0}   •   Fonds : {2:N0}   •   Données temporelles depuis : {3:G}</value>
   </data>
+  <data name="StatisticsChartTop10" xml:space="preserve">
+    <value>Top 10 des fonds</value>
+  </data>
+  <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
+    <value>Top 10 des fonds • {0}</value>
+  </data>
 </root>
