@@ -81,6 +81,8 @@ namespace WallpaperControl
         private readonly ToolStripMenuItem trayPauseItem;
 
         private readonly System.Windows.Forms.Timer wallpaperRefreshTimer;
+        private FileSystemWatcher? wallpaperFolderWatcher;
+        private readonly System.Windows.Forms.Timer wallpaperCountDebounceTimer;
         private string? lastDisplayedWallpaperPath;
 
         private const int WM_HOTKEY = 0x0312;
@@ -627,6 +629,21 @@ namespace WallpaperControl
 
             wallpaperRefreshTimer.Start();
 
+            // Mehrere Datei-Ereignisse beim Kopieren werden zu einer
+            // einzigen Neuzählung gebündelt.
+            wallpaperCountDebounceTimer =
+                new System.Windows.Forms.Timer
+                {
+                    Interval = 300
+                };
+
+            wallpaperCountDebounceTimer.Tick +=
+                (_, _) =>
+                {
+                    wallpaperCountDebounceTimer.Stop();
+                    UpdateWallpaperCount();
+                };
+
             Controls.Add(statusLabel);
             Controls.Add(activateButton);
             Controls.Add(settingsButton);
@@ -664,6 +681,7 @@ namespace WallpaperControl
             LoadCloseToTraySetting();
             UpdateCurrentWallpaperDisplay();
             UpdateWallpaperCount();
+            ConfigureWallpaperFolderWatcher();
 
             loading = false;
 
@@ -688,6 +706,16 @@ namespace WallpaperControl
 
                 wallpaperRefreshTimer.Stop();
                 wallpaperRefreshTimer.Dispose();
+
+                wallpaperCountDebounceTimer.Stop();
+                wallpaperCountDebounceTimer.Dispose();
+
+                if (wallpaperFolderWatcher != null)
+                {
+                    wallpaperFolderWatcher.EnableRaisingEvents = false;
+                    wallpaperFolderWatcher.Dispose();
+                    wallpaperFolderWatcher = null;
+                }
 
                 if (wallpaperPreviewPictureBox.Image != null)
                 {
@@ -1392,6 +1420,122 @@ namespace WallpaperControl
             }
         }
 
+        private void ConfigureWallpaperFolderWatcher()
+        {
+            if (wallpaperFolderWatcher != null)
+            {
+                wallpaperFolderWatcher.EnableRaisingEvents = false;
+                wallpaperFolderWatcher.Dispose();
+                wallpaperFolderWatcher = null;
+            }
+
+            string folder = folderTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(folder) ||
+                !Directory.Exists(folder))
+            {
+                return;
+            }
+
+            try
+            {
+                wallpaperFolderWatcher =
+                    new FileSystemWatcher(folder)
+                    {
+                        Filter = "*.*",
+                        IncludeSubdirectories = false,
+                        NotifyFilter =
+                            NotifyFilters.FileName |
+                            NotifyFilters.CreationTime |
+                            NotifyFilters.LastWrite
+                    };
+
+                wallpaperFolderWatcher.Created +=
+                    WallpaperFolderWatcher_Changed;
+
+                wallpaperFolderWatcher.Deleted +=
+                    WallpaperFolderWatcher_Changed;
+
+                wallpaperFolderWatcher.Renamed +=
+                    WallpaperFolderWatcher_Renamed;
+
+                wallpaperFolderWatcher.EnableRaisingEvents = true;
+            }
+            catch
+            {
+                wallpaperFolderWatcher?.Dispose();
+                wallpaperFolderWatcher = null;
+            }
+        }
+
+        private void WallpaperFolderWatcher_Changed(
+            object sender,
+            FileSystemEventArgs e)
+        {
+            if (!IsSupportedWallpaperExtension(e.FullPath))
+                return;
+
+            ScheduleWallpaperCountUpdate();
+        }
+
+        private void WallpaperFolderWatcher_Renamed(
+            object sender,
+            RenamedEventArgs e)
+        {
+            if (!IsSupportedWallpaperExtension(e.OldFullPath) &&
+                !IsSupportedWallpaperExtension(e.FullPath))
+            {
+                return;
+            }
+
+            ScheduleWallpaperCountUpdate();
+        }
+
+        private static bool IsSupportedWallpaperExtension(
+            string path)
+        {
+            string extension = Path.GetExtension(path);
+
+            return extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".bmp", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".gif", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".tif", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".tiff", StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ScheduleWallpaperCountUpdate()
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            void RestartTimer()
+            {
+                if (IsDisposed || Disposing)
+                    return;
+
+                wallpaperCountDebounceTimer.Stop();
+                wallpaperCountDebounceTimer.Start();
+            }
+
+            if (InvokeRequired)
+            {
+                try
+                {
+                    BeginInvoke((Action)RestartTimer);
+                }
+                catch
+                {
+                }
+
+                return;
+            }
+
+            RestartTimer();
+        }
+
         // ============================================================
         // OPTIONEN LADEN
         // ============================================================
@@ -1924,6 +2068,7 @@ namespace WallpaperControl
                     path);
 
                 UpdateWallpaperCount();
+                ConfigureWallpaperFolderWatcher();
                 ApplySlideshowOptions();
             }
             catch (Exception ex)
