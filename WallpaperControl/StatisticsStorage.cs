@@ -10,6 +10,7 @@ namespace WallpaperControl
     {
         public DateTime StartedAt { get; set; }
         public DateTime DailyTrackingStartedAt { get; set; }
+        public DateTime RecurrenceTrackingStartedAt { get; set; }
         public string? LastCountedWallpaperPath { get; set; }
         public List<PersistentWallpaperStatistics> Wallpapers { get; set; } = new();
     }
@@ -20,6 +21,8 @@ namespace WallpaperControl
         public int Views { get; set; }
         public DateTime LastShown { get; set; }
         public Dictionary<string, int> DailyViews { get; set; } = new();
+        public int RecurrenceCount { get; set; }
+        public double TotalRecurrenceSeconds { get; set; }
     }
 
     internal static class StatisticsStorage
@@ -77,6 +80,14 @@ namespace WallpaperControl
                     data.DailyTrackingStartedAt = DateTime.Now;
                 }
 
+                if (data.RecurrenceTrackingStartedAt == default)
+                {
+                    // Existing statistics cannot tell us historical
+                    // recurrence intervals reliably. Stage 5 therefore
+                    // starts measuring them from this first load.
+                    data.RecurrenceTrackingStartedAt = DateTime.Now;
+                }
+
                 data.Wallpapers ??= new();
 
                 foreach (PersistentWallpaperStatistics wallpaper
@@ -101,6 +112,9 @@ namespace WallpaperControl
             IReadOnlyDictionary<string, int> viewCounts,
             IReadOnlyDictionary<string, DateTime> lastShown,
             IReadOnlyDictionary<string, Dictionary<string, int>> dailyViews,
+            IReadOnlyDictionary<string, int> recurrenceCounts,
+            IReadOnlyDictionary<string, double> recurrenceSeconds,
+            DateTime recurrenceTrackingStartedAt,
             string? lastCountedWallpaperPath)
         {
             try
@@ -119,6 +133,10 @@ namespace WallpaperControl
                             dailyTrackingStartedAt == default
                                 ? DateTime.Now
                                 : dailyTrackingStartedAt,
+                        RecurrenceTrackingStartedAt =
+                            recurrenceTrackingStartedAt == default
+                                ? DateTime.Now
+                                : recurrenceTrackingStartedAt,
                         LastCountedWallpaperPath =
                             lastCountedWallpaperPath,
                         Wallpapers =
@@ -158,7 +176,19 @@ namespace WallpaperControl
                                                             entry => entry.Value,
                                                             StringComparer.Ordinal)
                                                     : new Dictionary<string, int>(
-                                                        StringComparer.Ordinal)
+                                                        StringComparer.Ordinal),
+                                            RecurrenceCount =
+                                                recurrenceCounts.TryGetValue(
+                                                    item.Key,
+                                                    out int recurrenceCount)
+                                                    ? Math.Max(0, recurrenceCount)
+                                                    : 0,
+                                            TotalRecurrenceSeconds =
+                                                recurrenceSeconds.TryGetValue(
+                                                    item.Key,
+                                                    out double totalSeconds)
+                                                    ? Math.Max(0, totalSeconds)
+                                                    : 0
                                         };
                                     })
                                 .OrderBy(
@@ -196,7 +226,8 @@ namespace WallpaperControl
             return new PersistentStatisticsData
             {
                 StartedAt = DateTime.Now,
-                DailyTrackingStartedAt = DateTime.Now
+                DailyTrackingStartedAt = DateTime.Now,
+                RecurrenceTrackingStartedAt = DateTime.Now
             };
         }
     }

@@ -588,4 +588,25 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
     <value>Top 10 wallpapers • {0}</value>
   </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Avg. recurrence: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>no data yet</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Average time between two displays of the same wallpaper. Measured since {0:G}. {1:N0} recurrence intervals have been recorded so far.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} days</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} h</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} min</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} sec</value>
+  </data>
 </root>

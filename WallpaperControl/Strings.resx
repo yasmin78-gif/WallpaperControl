@@ -588,4 +588,25 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
     <value>Top 10 Wallpaper • {0}</value>
   </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Ø Wiederkehr: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>noch keine Daten</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Durchschnittliche Zeit zwischen zwei Anzeigen desselben Wallpapers. Gemessen seit {0:G}. Bisher wurden {1:N0} Wiederkehr-Intervalle erfasst.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} Tage</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} Std.</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} Min.</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} Sek.</value>
+  </data>
 </root>

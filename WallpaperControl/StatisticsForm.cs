@@ -22,8 +22,13 @@ namespace WallpaperControl
         private readonly IReadOnlyDictionary<string, DateTime> wallpaperLastShown;
         private readonly IReadOnlyDictionary<string, Dictionary<string, int>>
             wallpaperDailyViewCounts;
+        private readonly IReadOnlyDictionary<string, int>
+            wallpaperRecurrenceCounts;
+        private readonly IReadOnlyDictionary<string, double>
+            wallpaperRecurrenceSeconds;
         private DateTime statisticsStartedAt;
         private DateTime dailyStatisticsStartedAt;
+        private DateTime recurrenceStatisticsStartedAt;
         private readonly Action<string>? removeFromStatistics;
         private readonly Action<string>? setWallpaper;
         private readonly Action? resetStatistics;
@@ -81,8 +86,6 @@ namespace WallpaperControl
 
             private bool darkMode;
             private string emptyText = string.Empty;
-            private readonly ToolTip chartToolTip;
-            private int lastHoveredRow = -1;
 
             public string Title { get; set; } = string.Empty;
 
@@ -90,23 +93,6 @@ namespace WallpaperControl
             {
                 DoubleBuffered = true;
                 BorderStyle = BorderStyle.FixedSingle;
-
-                chartToolTip = new ToolTip
-                {
-                    AutoPopDelay = 9000,
-                    InitialDelay = 350,
-                    ReshowDelay = 100,
-                    ShowAlways = true
-                };
-
-                MouseMove += TopWallpaperChart_MouseMove;
-                MouseLeave += (_, _) =>
-                {
-                    lastHoveredRow = -1;
-                    chartToolTip.SetToolTip(
-                        this,
-                        string.Empty);
-                };
             }
 
             public void SetData(
@@ -138,56 +124,6 @@ namespace WallpaperControl
                     ? Color.FromArgb(235, 235, 235)
                     : SystemColors.ControlText;
                 Invalidate();
-            }
-
-            private void TopWallpaperChart_MouseMove(
-                object? sender,
-                MouseEventArgs e)
-            {
-                if (data.Count == 0)
-                {
-                    return;
-                }
-
-                int rows = data.Count;
-                int availableHeight = Height - 38;
-                int rowHeight = Math.Max(
-                    12,
-                    availableHeight / rows);
-
-                int row =
-                    (e.Y - 35) / rowHeight;
-
-                if (e.Y < 35 ||
-                    row < 0 ||
-                    row >= rows)
-                {
-                    row = -1;
-                }
-
-                if (row == lastHoveredRow)
-                {
-                    return;
-                }
-
-                lastHoveredRow = row;
-
-                chartToolTip.SetToolTip(
-                    this,
-                    row >= 0
-                        ? data[row].Name
-                        : string.Empty);
-            }
-
-            protected override void Dispose(
-                bool disposing)
-            {
-                if (disposing)
-                {
-                    chartToolTip.Dispose();
-                }
-
-                base.Dispose(disposing);
             }
 
             protected override void OnPaint(PaintEventArgs e)
@@ -238,12 +174,7 @@ namespace WallpaperControl
                 int rows = data.Count;
                 int availableHeight = Height - 38;
                 int rowHeight = Math.Max(12, availableHeight / rows);
-                int labelWidth = Math.Min(
-                    275,
-                    Math.Max(
-                        190,
-                        Width / 3));
-
+                int labelWidth = Math.Min(255, Math.Max(170, Width / 3));
                 int valueWidth = 55;
                 int barLeft = labelWidth + 20;
                 int barRight = Width - valueWidth - 18;
@@ -505,8 +436,13 @@ namespace WallpaperControl
             IReadOnlyDictionary<string, DateTime> wallpaperLastShown,
             IReadOnlyDictionary<string, Dictionary<string, int>>
                 wallpaperDailyViewCounts,
+            IReadOnlyDictionary<string, int>
+                wallpaperRecurrenceCounts,
+            IReadOnlyDictionary<string, double>
+                wallpaperRecurrenceSeconds,
             DateTime statisticsStartedAt,
             DateTime dailyStatisticsStartedAt,
+            DateTime recurrenceStatisticsStartedAt,
             Action<string>? removeFromStatistics = null,
             Action<string>? setWallpaper = null,
             Action? resetStatistics = null)
@@ -515,8 +451,11 @@ namespace WallpaperControl
             this.wallpaperViewCounts = wallpaperViewCounts;
             this.wallpaperLastShown = wallpaperLastShown;
             this.wallpaperDailyViewCounts = wallpaperDailyViewCounts;
+            this.wallpaperRecurrenceCounts = wallpaperRecurrenceCounts;
+            this.wallpaperRecurrenceSeconds = wallpaperRecurrenceSeconds;
             this.statisticsStartedAt = statisticsStartedAt;
             this.dailyStatisticsStartedAt = dailyStatisticsStartedAt;
+            this.recurrenceStatisticsStartedAt = recurrenceStatisticsStartedAt;
             this.removeFromStatistics = removeFromStatistics;
             this.setWallpaper = setWallpaper;
             this.resetStatistics = resetStatistics;
@@ -1094,6 +1033,39 @@ namespace WallpaperControl
                         dailyStatisticsStartedAt);
             }
 
+            int recurrenceEvents =
+                wallpaperRecurrenceCounts.Values.Sum();
+
+            double recurrenceTotalSeconds =
+                wallpaperRecurrenceSeconds.Values.Sum();
+
+            string recurrenceText =
+                recurrenceEvents > 0 &&
+                recurrenceTotalSeconds > 0
+                    ? FormatRecurrenceDuration(
+                        TimeSpan.FromSeconds(
+                            recurrenceTotalSeconds /
+                            recurrenceEvents))
+                    : Localization.Get(
+                        "StatisticsRecurrenceNoData");
+
+            summaryLabel.Text +=
+                "   •   " +
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRecurrenceSummary"),
+                    recurrenceText);
+
+            dashboardToolTip.SetToolTip(
+                summaryLabel,
+                string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRecurrenceToolTip"),
+                    recurrenceStatisticsStartedAt,
+                    recurrenceEvents));
+
             UpdateDashboardCards(
                 activeViewCounts,
                 totalViews,
@@ -1364,6 +1336,45 @@ namespace WallpaperControl
             return result;
         }
 
+        private static string FormatRecurrenceDuration(
+            TimeSpan duration)
+        {
+            if (duration.TotalDays >= 1)
+            {
+                return string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRecurrenceDays"),
+                    duration.TotalDays);
+            }
+
+            if (duration.TotalHours >= 1)
+            {
+                return string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRecurrenceHours"),
+                    duration.TotalHours);
+            }
+
+            if (duration.TotalMinutes >= 1)
+            {
+                return string.Format(
+                    Localization.CurrentCulture,
+                    Localization.Get(
+                        "StatisticsRecurrenceMinutes"),
+                    duration.TotalMinutes);
+            }
+
+            return string.Format(
+                Localization.CurrentCulture,
+                Localization.Get(
+                    "StatisticsRecurrenceSeconds"),
+                Math.Max(
+                    0,
+                    duration.TotalSeconds));
+        }
+
         private void UpdateDashboardCards(
             IReadOnlyDictionary<string, int> activeViewCounts,
             int totalViews,
@@ -1397,14 +1408,6 @@ namespace WallpaperControl
                     "–",
                     Localization.Get(
                         "StatisticsMetricFairnessDetail"));
-
-                dashboardToolTip.SetToolTip(
-                    mostViewedCard.DetailLabel,
-                    string.Empty);
-
-                dashboardToolTip.SetToolTip(
-                    leastViewedCard.DetailLabel,
-                    string.Empty);
 
                 return;
             }
@@ -1450,16 +1453,6 @@ namespace WallpaperControl
                     Localization.Get(
                         "StatisticsMetricViews"),
                     leastViewed.Value),
-                Path.GetFileName(
-                    leastViewed.Key));
-
-            dashboardToolTip.SetToolTip(
-                mostViewedCard.DetailLabel,
-                Path.GetFileName(
-                    mostViewed.Key));
-
-            dashboardToolTip.SetToolTip(
-                leastViewedCard.DetailLabel,
                 Path.GetFileName(
                     leastViewed.Key));
 

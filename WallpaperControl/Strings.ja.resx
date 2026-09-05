@@ -560,4 +560,25 @@
   <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
     <value>壁紙トップ10 • {0}</value>
   </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>平均再表示: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>まだデータなし</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>同じ壁紙が再び表示されるまでの平均時間です。{0:G} から計測し、これまでに {1:N0} 回の再表示間隔を記録しています。</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} 日</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} 時間</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} 分</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} 秒</value>
+  </data>
 </root>

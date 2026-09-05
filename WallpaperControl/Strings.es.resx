@@ -588,4 +588,25 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
     <value>Top 10 fondos • {0}</value>
   </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Reaparición media: {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>aún sin datos</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Tiempo medio entre dos apariciones del mismo fondo. Medido desde {0:G}. Hasta ahora se han registrado {1:N0} intervalos de reaparición.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} días</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} h</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} min</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} s</value>
+  </data>
 </root>

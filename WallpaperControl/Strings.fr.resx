@@ -588,4 +588,25 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="StatisticsChartTop10ForPeriod" xml:space="preserve">
     <value>Top 10 des fonds • {0}</value>
   </data>
+  <data name="StatisticsRecurrenceSummary" xml:space="preserve">
+    <value>Retour moy. : {0}</value>
+  </data>
+  <data name="StatisticsRecurrenceNoData" xml:space="preserve">
+    <value>pas encore de données</value>
+  </data>
+  <data name="StatisticsRecurrenceToolTip" xml:space="preserve">
+    <value>Temps moyen entre deux affichages du même fond. Mesuré depuis le {0:G}. {1:N0} intervalles de retour ont été enregistrés.</value>
+  </data>
+  <data name="StatisticsRecurrenceDays" xml:space="preserve">
+    <value>{0:0.0} jours</value>
+  </data>
+  <data name="StatisticsRecurrenceHours" xml:space="preserve">
+    <value>{0:0.0} h</value>
+  </data>
+  <data name="StatisticsRecurrenceMinutes" xml:space="preserve">
+    <value>{0:0.0} min</value>
+  </data>
+  <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
+    <value>{0:0} s</value>
+  </data>
 </root>
