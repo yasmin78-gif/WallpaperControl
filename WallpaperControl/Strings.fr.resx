@@ -609,4 +609,10 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
     <value>{0:0} s</value>
   </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>Négligés</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>Jamais</value>
+  </data>
 </root>

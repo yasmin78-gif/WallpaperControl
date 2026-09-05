@@ -609,4 +609,10 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
     <value>{0:0} s</value>
   </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>Desatendidos</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>Nunca</value>
+  </data>
 </root>

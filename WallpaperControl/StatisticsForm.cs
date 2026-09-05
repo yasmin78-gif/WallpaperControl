@@ -26,6 +26,7 @@ namespace WallpaperControl
             wallpaperRecurrenceCounts;
         private readonly IReadOnlyDictionary<string, double>
             wallpaperRecurrenceSeconds;
+        private readonly string wallpaperFolder;
         private DateTime statisticsStartedAt;
         private DateTime dailyStatisticsStartedAt;
         private DateTime recurrenceStatisticsStartedAt;
@@ -70,6 +71,9 @@ namespace WallpaperControl
         private int hoveredItemIndex = -1;
         private SortColumn sortColumn = SortColumn.Views;
         private bool sortAscending = false;
+        private SortColumn sortColumnBeforeNeglected = SortColumn.Views;
+        private bool sortAscendingBeforeNeglected = false;
+        private bool neglectedModeActive = false;
 
         private enum SortColumn
         {
@@ -317,11 +321,16 @@ namespace WallpaperControl
         {
             public string Text { get; }
             public int? MaxItems { get; }
+            public bool NeglectedOnly { get; }
 
-            public FilterChoice(string text, int? maxItems)
+            public FilterChoice(
+                string text,
+                int? maxItems,
+                bool neglectedOnly = false)
             {
                 Text = text;
                 MaxItems = maxItems;
+                NeglectedOnly = neglectedOnly;
             }
 
             public override string ToString() => Text;
@@ -440,6 +449,7 @@ namespace WallpaperControl
                 wallpaperRecurrenceCounts,
             IReadOnlyDictionary<string, double>
                 wallpaperRecurrenceSeconds,
+            string wallpaperFolder,
             DateTime statisticsStartedAt,
             DateTime dailyStatisticsStartedAt,
             DateTime recurrenceStatisticsStartedAt,
@@ -453,6 +463,7 @@ namespace WallpaperControl
             this.wallpaperDailyViewCounts = wallpaperDailyViewCounts;
             this.wallpaperRecurrenceCounts = wallpaperRecurrenceCounts;
             this.wallpaperRecurrenceSeconds = wallpaperRecurrenceSeconds;
+            this.wallpaperFolder = wallpaperFolder ?? string.Empty;
             this.statisticsStartedAt = statisticsStartedAt;
             this.dailyStatisticsStartedAt = dailyStatisticsStartedAt;
             this.recurrenceStatisticsStartedAt = recurrenceStatisticsStartedAt;
@@ -602,10 +613,17 @@ namespace WallpaperControl
                         "StatisticsFilterAll"),
                     null));
 
+            filterComboBox.Items.Add(
+                new FilterChoice(
+                    Localization.Get(
+                        "StatisticsFilterNeglected"),
+                    null,
+                    neglectedOnly: true));
+
             filterComboBox.SelectedIndex = 0;
 
             filterComboBox.SelectedIndexChanged +=
-                (_, _) => RefreshStatistics();
+                FilterComboBox_SelectedIndexChanged;
 
             Label periodLabel = new Label
             {
@@ -985,6 +1003,46 @@ namespace WallpaperControl
             base.OnFormClosed(e);
         }
 
+        private void FilterComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            bool neglected =
+                filterComboBox.SelectedItem
+                    is FilterChoice choice &&
+                choice.NeglectedOnly;
+
+            if (neglected &&
+                !neglectedModeActive)
+            {
+                neglectedModeActive = true;
+                sortColumnBeforeNeglected = sortColumn;
+                sortAscendingBeforeNeglected = sortAscending;
+
+                sortColumn = SortColumn.LastShown;
+                sortAscending = true;
+
+                if (periodComboBox.SelectedIndex != 0)
+                {
+                    periodComboBox.SelectedIndex = 0;
+                }
+
+                periodComboBox.Enabled = false;
+                UpdateColumnHeaders();
+            }
+            else if (!neglected &&
+                     neglectedModeActive)
+            {
+                neglectedModeActive = false;
+                sortColumn = sortColumnBeforeNeglected;
+                sortAscending = sortAscendingBeforeNeglected;
+                periodComboBox.Enabled = true;
+                UpdateColumnHeaders();
+            }
+
+            RefreshStatistics();
+        }
+
         private void RefreshStatistics()
         {
             PeriodChoice periodChoice =
@@ -994,6 +1052,18 @@ namespace WallpaperControl
                     Localization.Get(
                         "StatisticsPeriodAll"),
                     StatisticsPeriod.All);
+
+            bool neglectedMode =
+                filterComboBox.SelectedItem
+                    is FilterChoice selectedFilter &&
+                selectedFilter.NeglectedOnly;
+
+            if (neglectedMode &&
+                periodChoice.Period != StatisticsPeriod.All)
+            {
+                periodComboBox.SelectedIndex = 0;
+                return;
+            }
 
             Dictionary<string, int> activeViewCounts =
                 GetViewCountsForPeriod(
@@ -1083,37 +1153,95 @@ namespace WallpaperControl
                 Localization.Get(
                     "StatisticsMetricNoData"));
 
-            List<RowData> popularityOrder =
-                activeViewCounts
-                    .OrderByDescending(
-                        item => item.Value)
-                    .ThenBy(
-                        item =>
-                            Path.GetFileName(
-                                item.Key),
-                        StringComparer
-                            .CurrentCultureIgnoreCase)
-                    .Select(
-                        (item, index) =>
-                        {
-                            wallpaperLastShown.TryGetValue(
-                                item.Key,
-                                out DateTime lastShown);
+            List<RowData> popularityOrder;
 
-                            double share =
-                                totalViews <= 0
-                                    ? 0
-                                    : item.Value * 100.0 /
-                                      totalViews;
+            if (neglectedMode)
+            {
+                int allTimeTotalViews =
+                    wallpaperViewCounts.Values.Sum();
 
-                            return new RowData(
-                                item.Key,
-                                item.Value,
-                                lastShown,
-                                share,
-                                index + 1);
-                        })
-                    .ToList();
+                popularityOrder =
+                    GetCurrentFolderWallpapers()
+                        .Select(
+                            path =>
+                            {
+                                wallpaperViewCounts.TryGetValue(
+                                    path,
+                                    out int views);
+
+                                wallpaperLastShown.TryGetValue(
+                                    path,
+                                    out DateTime lastShown);
+
+                                double share =
+                                    allTimeTotalViews <= 0
+                                        ? 0
+                                        : views * 100.0 /
+                                          allTimeTotalViews;
+
+                                return new
+                                {
+                                    Path = path,
+                                    Views = views,
+                                    LastShown = lastShown,
+                                    Share = share
+                                };
+                            })
+                        .OrderBy(
+                            item =>
+                                item.LastShown == default
+                                    ? DateTime.MinValue
+                                    : item.LastShown)
+                        .ThenBy(
+                            item =>
+                                Path.GetFileName(
+                                    item.Path),
+                            StringComparer
+                                .CurrentCultureIgnoreCase)
+                        .Select(
+                            (item, index) =>
+                                new RowData(
+                                    item.Path,
+                                    item.Views,
+                                    item.LastShown,
+                                    item.Share,
+                                    index + 1))
+                        .ToList();
+            }
+            else
+            {
+                popularityOrder =
+                    activeViewCounts
+                        .OrderByDescending(
+                            item => item.Value)
+                        .ThenBy(
+                            item =>
+                                Path.GetFileName(
+                                    item.Key),
+                            StringComparer
+                                .CurrentCultureIgnoreCase)
+                        .Select(
+                            (item, index) =>
+                            {
+                                wallpaperLastShown.TryGetValue(
+                                    item.Key,
+                                    out DateTime lastShown);
+
+                                double share =
+                                    totalViews <= 0
+                                        ? 0
+                                        : item.Value * 100.0 /
+                                          totalViews;
+
+                                return new RowData(
+                                    item.Key,
+                                    item.Value,
+                                    lastShown,
+                                    share,
+                                    index + 1);
+                            })
+                        .ToList();
+            }
 
             IEnumerable<RowData> items =
                 popularityOrder;
@@ -1136,8 +1264,9 @@ namespace WallpaperControl
                                 .CurrentCultureIgnoreCase));
             }
 
-            if (filterComboBox.SelectedItem
-                is FilterChoice choice &&
+            if (!neglectedMode &&
+                filterComboBox.SelectedItem
+                    is FilterChoice choice &&
                 choice.MaxItems.HasValue)
             {
                 int maxRank =
@@ -1175,7 +1304,10 @@ namespace WallpaperControl
 
                     string lastShownText =
                         item.LastShown == default
-                            ? ""
+                            ? neglectedMode
+                                ? Localization.Get(
+                                    "StatisticsNeverShown")
+                                : ""
                             : item.LastShown.ToString(
                                 "g",
                                 Localization.CurrentCulture);
@@ -1237,6 +1369,70 @@ namespace WallpaperControl
 
             statisticsList.SelectedItems.Clear();
             hoveredItemIndex = -1;
+        }
+
+        private List<string> GetCurrentFolderWallpapers()
+        {
+            if (string.IsNullOrWhiteSpace(
+                    wallpaperFolder) ||
+                !Directory.Exists(
+                    wallpaperFolder))
+            {
+                return new List<string>();
+            }
+
+            try
+            {
+                return Directory
+                    .EnumerateFiles(
+                        wallpaperFolder,
+                        "*",
+                        SearchOption.TopDirectoryOnly)
+                    .Where(
+                        IsSupportedWallpaperExtension)
+                    .OrderBy(
+                        path =>
+                            Path.GetFileName(path),
+                        StringComparer
+                            .CurrentCultureIgnoreCase)
+                    .ToList();
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
+
+        private static bool IsSupportedWallpaperExtension(
+            string path)
+        {
+            string extension =
+                Path.GetExtension(path);
+
+            return extension.Equals(
+                       ".jpg",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".jpeg",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".png",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".bmp",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".gif",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".tif",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".tiff",
+                       StringComparison.OrdinalIgnoreCase) ||
+                   extension.Equals(
+                       ".webp",
+                       StringComparison.OrdinalIgnoreCase);
         }
 
         private Dictionary<string, int> GetViewCountsForPeriod(

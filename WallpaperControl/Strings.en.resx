@@ -609,4 +609,10 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
     <value>{0:0} sec</value>
   </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>Neglected</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>Never</value>
+  </data>
 </root>

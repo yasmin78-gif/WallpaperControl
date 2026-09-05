@@ -4132,6 +4132,7 @@ namespace WallpaperControl
                     wallpaperDailyViewCounts,
                     wallpaperRecurrenceCounts,
                     wallpaperRecurrenceSeconds,
+                    folderTextBox.Text,
                     statisticsStartedAt,
                     dailyStatisticsStartedAt,
                     recurrenceStatisticsStartedAt,

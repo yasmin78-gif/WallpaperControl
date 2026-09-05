@@ -581,4 +581,10 @@
   <data name="StatisticsRecurrenceSeconds" xml:space="preserve">
     <value>{0:0} 秒</value>
   </data>
+  <data name="StatisticsFilterNeglected" xml:space="preserve">
+    <value>未表示・長期間未表示</value>
+  </data>
+  <data name="StatisticsNeverShown" xml:space="preserve">
+    <value>未表示</value>
+  </data>
 </root>
