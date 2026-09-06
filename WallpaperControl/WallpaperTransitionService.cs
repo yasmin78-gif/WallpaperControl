@@ -16,6 +16,10 @@
                     {
                         WallpaperTransitionKind.Direct,
                         new DirectWallpaperTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopWipe,
+                        new DesktopWipeTransition()
                     }
                 };
         }

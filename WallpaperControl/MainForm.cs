@@ -229,6 +229,9 @@ namespace WallpaperControl
             DragDrop +=
                 MainForm_DragDrop;
 
+            Shown +=
+                MainForm_Shown;
+
             // ========================================================
             // STATUS
             // ========================================================
@@ -736,6 +739,37 @@ namespace WallpaperControl
 
             SystemEvents.UserPreferenceChanged +=
                 SystemEvents_UserPreferenceChanged;
+        }
+
+        private async void MainForm_Shown(
+            object? sender,
+            EventArgs e)
+        {
+            // Initialize the persistent desktop renderer before the first
+            // wallpaper transition, so Explorer/DWM's one-time taskbar refresh
+            // happens during startup instead of inside the first wipe.
+            nextWallpaperButton.Enabled = false;
+
+            try
+            {
+                string? current =
+                    GetCurrentWallpaperPath();
+
+                await DesktopWipeTransition.InitializeHostAsync(
+                    current);
+            }
+            catch
+            {
+                // Prototype: a failed warm-up must not prevent normal startup.
+                // ApplyAsync can still retry the initialization later.
+            }
+            finally
+            {
+                if (!IsDisposed)
+                {
+                    CheckSlideshowStatus();
+                }
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -1897,15 +1931,20 @@ namespace WallpaperControl
                 return;
             }
 
-            // Beim echten Beenden geben wir die Zeitsteuerung wieder an
-            // Windows zurück. Beim Minimieren in den Tray bleibt unsere Engine aktiv.
+            // Beim echten Beenden übernimmt Windows wieder seine native
+            // Diashow. Das zuletzt von Windows selbst angezeigte Bild darf dabei
+            // sichtbar werden; auf einen künstlichen Exit-Handoff verzichten wir
+            // bewusst, weil dieser auf Windows 11 nicht zuverlässig funktioniert.
             if (customSlideshowEngineActive)
             {
                 string? folder = LoadLastWallpaperFolder();
 
-                if (!string.IsNullOrWhiteSpace(folder) && Directory.Exists(folder))
+                customSlideshowEngineActive = false;
+                DesktopWipeTransition.Shutdown();
+
+                if (!string.IsNullOrWhiteSpace(folder) &&
+                    Directory.Exists(folder))
                 {
-                    customSlideshowEngineActive = false;
                     SetWallpaperFolder(folder);
                 }
             }
@@ -2181,6 +2220,15 @@ namespace WallpaperControl
 
         private string? GetCurrentWallpaperPath()
         {
+            string? hostedWallpaper =
+                DesktopWipeTransition.GetDisplayedWallpaperPath();
+
+            if (!string.IsNullOrWhiteSpace(hostedWallpaper) &&
+                File.Exists(hostedWallpaper))
+            {
+                return hostedWallpaper;
+            }
+
             IDesktopWallpaper? wallpaper = null;
 
             try
@@ -3047,7 +3095,7 @@ namespace WallpaperControl
                 await wallpaperTransitionService.ApplyAsync(
                     current,
                     next,
-                    WallpaperTransitionKind.Direct);
+                    WallpaperTransitionKind.DesktopWipe);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
             }
