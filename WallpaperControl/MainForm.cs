@@ -147,6 +147,8 @@ namespace WallpaperControl
         private DateTime customSlideshowNextChange = DateTime.MaxValue;
         private readonly System.Threading.Timer customSlideshowPreciseTimer;
         private readonly Random customSlideshowRandom = new Random();
+        private readonly WallpaperTransitionService wallpaperTransitionService =
+            new WallpaperTransitionService();
         private bool closingAfterPauseResume = false;
         private bool restoringFromTray = false;
         private bool autostartEnabled = false;
@@ -2972,7 +2974,7 @@ namespace WallpaperControl
                    intervals.TryGetValue(selected, out milliseconds);
         }
 
-        private void AdvanceCustomWallpaper(
+        private async void AdvanceCustomWallpaper(
             DesktopSlideshowDirection direction)
         {
             if (customSlideshowChangeRunning)
@@ -3042,20 +3044,10 @@ namespace WallpaperControl
                     }
                 }
 
-                IDesktopWallpaper? wallpaper = null;
-
-                try
-                {
-                    wallpaper =
-                        (IDesktopWallpaper)
-                        new DesktopWallpaper();
-
-                    wallpaper.SetWallpaper(null, next);
-                }
-                finally
-                {
-                    ReleaseComObject(wallpaper);
-                }
+                await wallpaperTransitionService.ApplyAsync(
+                    current,
+                    next,
+                    WallpaperTransitionKind.Direct);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
             }
