@@ -7,6 +7,7 @@ namespace WallpaperControl
         public Task ApplyAsync(
             string? currentWallpaperPath,
             string nextWallpaperPath,
+            int durationMilliseconds,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

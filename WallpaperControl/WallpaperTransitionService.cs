@@ -28,6 +28,7 @@
             string? currentWallpaperPath,
             string nextWallpaperPath,
             WallpaperTransitionKind transitionKind,
+            int durationMilliseconds,
             CancellationToken cancellationToken = default)
         {
             if (!transitions.TryGetValue(
@@ -41,6 +42,7 @@
             return transition.ApplyAsync(
                 currentWallpaperPath,
                 nextWallpaperPath,
+                durationMilliseconds,
                 cancellationToken);
         }
     }

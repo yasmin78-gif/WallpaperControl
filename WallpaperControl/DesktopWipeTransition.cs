@@ -46,6 +46,7 @@ namespace WallpaperControl
         public async Task ApplyAsync(
             string? currentWallpaperPath,
             string nextWallpaperPath,
+            int durationMilliseconds,
             CancellationToken cancellationToken = default)
         {
             if (!File.Exists(nextWallpaperPath))
@@ -64,7 +65,7 @@ namespace WallpaperControl
 
             await persistentHost.WipeToAsync(
                 nextWallpaperPath,
-                2000,
+                Math.Clamp(durationMilliseconds, 100, 10000),
                 cancellationToken);
 
             persistentHost.CommitCurrentPath(

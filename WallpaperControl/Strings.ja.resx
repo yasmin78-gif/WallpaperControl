@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -624,5 +624,14 @@
     <value>次のグローバルホットキーを Windows に登録できませんでした。別のアプリですでに使用されている可能性があります:
 
 {0}</value>
+  </data>
+  <data name="Transition" xml:space="preserve">
+    <value>切り替え効果</value>
+  </data>
+  <data name="TransitionWipe" xml:space="preserve">
+    <value>ワイプ</value>
+  </data>
+  <data name="TransitionDuration" xml:space="preserve">
+    <value>時間</value>
   </data>
 </root>

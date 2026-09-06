@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -652,5 +652,14 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
     <value>Windows could not register the following global hotkeys. They are probably already being used by another application:
 
 {0}</value>
+  </data>
+  <data name="Transition" xml:space="preserve">
+    <value>Transition</value>
+  </data>
+  <data name="TransitionWipe" xml:space="preserve">
+    <value>Wipe</value>
+  </data>
+  <data name="TransitionDuration" xml:space="preserve">
+    <value>Duration</value>
   </data>
 </root>

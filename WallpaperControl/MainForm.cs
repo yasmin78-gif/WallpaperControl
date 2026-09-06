@@ -40,6 +40,16 @@ namespace WallpaperControl
         private readonly ComboBox positionComboBox;
         private DesktopWallpaperPosition? lastWallpaperPosition;
 
+        private readonly Label transitionLabel;
+        private readonly ComboBox transitionComboBox;
+        private readonly Label transitionDurationLabel;
+        private readonly ComboBox transitionDurationComboBox;
+
+        private WallpaperTransitionKind selectedTransitionKind =
+            WallpaperTransitionKind.DesktopWipe;
+
+        private int selectedTransitionDurationMilliseconds = 2000;
+
         private readonly Button pauseButton;
         private readonly Button pinButton;
         private readonly Button nextWallpaperButton;
@@ -187,7 +197,7 @@ namespace WallpaperControl
             Icon = Icon.ExtractAssociatedIcon(
                 Application.ExecutablePath);
 
-            ClientSize = new Size(425, 615);
+            ClientSize = new Size(425, 690);
 
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -422,13 +432,80 @@ namespace WallpaperControl
                 PositionComboBox_SelectedIndexChanged;
 
             // ========================================================
+            // ÜBERGANG
+            // ========================================================
+
+            transitionLabel = new Label
+            {
+                Text = Localization.Get("Transition"),
+                AutoSize = true,
+                Location = new Point(25, 310),
+                Font = new Font(
+                    "Segoe UI",
+                    11,
+                    FontStyle.Bold)
+            };
+
+            transitionComboBox = new ComboBox
+            {
+                Location = new Point(25, 345),
+                Width = 180,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            // Weitere Effekte können später hier ergänzt werden.
+            transitionComboBox.Items.Add(
+                Localization.Get("TransitionWipe"));
+
+            transitionComboBox.SelectedIndex = 0;
+
+            transitionComboBox.SelectedIndexChanged +=
+                TransitionComboBox_SelectedIndexChanged;
+
+            transitionDurationLabel = new Label
+            {
+                Text = Localization.Get("TransitionDuration"),
+                AutoSize = true,
+                Location = new Point(220, 310),
+                Font = new Font(
+                    "Segoe UI",
+                    11,
+                    FontStyle.Bold)
+            };
+
+            transitionDurationComboBox = new ComboBox
+            {
+                Location = new Point(220, 345),
+                Width = 180,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            transitionDurationComboBox.Items.AddRange(
+                new object[]
+                {
+                    "0,5 s",
+                    "1,0 s",
+                    "1,5 s",
+                    "2,0 s",
+                    "3,0 s",
+                    "5,0 s"
+                });
+
+            transitionDurationComboBox.SelectedIndexChanged +=
+                TransitionDurationComboBox_SelectedIndexChanged;
+
+            LoadTransitionSettings();
+
+            // ========================================================
             // PAUSE + FESTLEGEN
             // ========================================================
 
             pauseButton = new Button
             {
                 Text = Localization.Get("PauseSlideshow"),
-                Location = new Point(25, 320),
+                Location = new Point(25, 395),
                 Size = new Size(180, 38)
             };
 
@@ -438,7 +515,7 @@ namespace WallpaperControl
             pinButton = new Button
             {
                 Text = Localization.Get("PinImage"),
-                Location = new Point(220, 320),
+                Location = new Point(220, 395),
                 Size = new Size(180, 38)
             };
 
@@ -452,7 +529,7 @@ namespace WallpaperControl
             nextWallpaperButton = new Button
             {
                 Text = Localization.Get("NextWallpaper"),
-                Location = new Point(25, 375),
+                Location = new Point(25, 450),
                 Size = new Size(375, 38)
             };
 
@@ -467,7 +544,7 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("CurrentWallpaperEmpty"),
                 AutoEllipsis = true,
-                Location = new Point(25, 430),
+                Location = new Point(25, 505),
                 Size = new Size(375, 24)
             };
 
@@ -517,7 +594,7 @@ namespace WallpaperControl
             explorerButton = new Button
             {
                 Text = Localization.Get("ShowInExplorer"),
-                Location = new Point(25, 465),
+                Location = new Point(25, 540),
                 Size = new Size(180, 38)
             };
 
@@ -527,7 +604,7 @@ namespace WallpaperControl
             rejectButton = new Button
             {
                 Text = Localization.Get("RejectWallpaper"),
-                Location = new Point(220, 465),
+                Location = new Point(220, 540),
                 Size = new Size(180, 38)
             };
 
@@ -551,7 +628,7 @@ namespace WallpaperControl
             undoRejectButton = new Button
             {
                 Text = Localization.Get("Undo"),
-                Location = new Point(25, 513),
+                Location = new Point(25, 588),
                 Size = new Size(375, 34),
                 Enabled = false
             };
@@ -562,7 +639,7 @@ namespace WallpaperControl
             historyButton = new Button
             {
                 Text = Localization.Get("History"),
-                Location = new Point(25, 555),
+                Location = new Point(25, 630),
                 Size = new Size(180, 34),
                 Enabled = false
             };
@@ -570,7 +647,7 @@ namespace WallpaperControl
             statisticsButton = new Button
             {
                 Text = Localization.Get("Statistics"),
-                Location = new Point(220, 555),
+                Location = new Point(220, 630),
                 Size = new Size(180, 34)
             };
 
@@ -704,6 +781,11 @@ namespace WallpaperControl
             Controls.Add(shuffleCheckBox);
             Controls.Add(positionLabel);
             Controls.Add(positionComboBox);
+
+            Controls.Add(transitionLabel);
+            Controls.Add(transitionComboBox);
+            Controls.Add(transitionDurationLabel);
+            Controls.Add(transitionDurationComboBox);
 
             Controls.Add(pauseButton);
             Controls.Add(pinButton);
@@ -1290,35 +1372,47 @@ namespace WallpaperControl
             positionComboBox.Location =
                 new Point(25, 270);
 
+            transitionLabel.Location =
+                new Point(25, 310);
+
+            transitionComboBox.Location =
+                new Point(25, 345);
+
+            transitionDurationLabel.Location =
+                new Point(220, 310);
+
+            transitionDurationComboBox.Location =
+                new Point(220, 345);
+
             pauseButton.Location =
-                new Point(25, 320);
+                new Point(25, 395);
 
             pinButton.Location =
-                new Point(220, 320);
+                new Point(220, 395);
 
             nextWallpaperButton.Location =
-                new Point(25, 375);
+                new Point(25, 450);
 
             currentWallpaperLabel.Location =
-                new Point(25, 430);
+                new Point(25, 505);
 
             explorerButton.Location =
-                new Point(25, 465);
+                new Point(25, 540);
 
             rejectButton.Location =
-                new Point(220, 465);
+                new Point(220, 540);
 
             undoRejectButton.Location =
-                new Point(25, 513);
+                new Point(25, 588);
 
             historyButton.Location =
-                new Point(25, 555);
+                new Point(25, 630);
 
             statisticsButton.Location =
-                new Point(220, 555);
+                new Point(220, 630);
 
             ClientSize =
-                new Size(425, 615);
+                new Size(425, 690);
         }
 
         private void SetWarningLayout(
@@ -1357,37 +1451,49 @@ namespace WallpaperControl
             positionComboBox.Location =
                 new Point(25, 270 + offset);
 
+            transitionLabel.Location =
+                new Point(25, 310 + offset);
+
+            transitionComboBox.Location =
+                new Point(25, 345 + offset);
+
+            transitionDurationLabel.Location =
+                new Point(220, 310 + offset);
+
+            transitionDurationComboBox.Location =
+                new Point(220, 345 + offset);
+
             pauseButton.Location =
-                new Point(25, 320 + offset);
+                new Point(25, 395 + offset);
 
             pinButton.Location =
-                new Point(220, 320 + offset);
+                new Point(220, 395 + offset);
 
             nextWallpaperButton.Location =
-                new Point(25, 375 + offset);
+                new Point(25, 450 + offset);
 
             currentWallpaperLabel.Location =
-                new Point(25, 430 + offset);
+                new Point(25, 505 + offset);
 
             explorerButton.Location =
-                new Point(25, 465 + offset);
+                new Point(25, 540 + offset);
 
             rejectButton.Location =
-                new Point(220, 465 + offset);
+                new Point(220, 540 + offset);
 
             undoRejectButton.Location =
-                new Point(25, 513 + offset);
+                new Point(25, 588 + offset);
 
             historyButton.Location =
-                new Point(25, 555 + offset);
+                new Point(25, 630 + offset);
 
             statisticsButton.Location =
-                new Point(220, 555 + offset);
+                new Point(220, 630 + offset);
 
             ClientSize =
                 new Size(
                     425,
-                    615 + offset);
+                    690 + offset);
         }
 
         // ============================================================
@@ -3095,7 +3201,8 @@ namespace WallpaperControl
                 await wallpaperTransitionService.ApplyAsync(
                     current,
                     next,
-                    WallpaperTransitionKind.DesktopWipe);
+                    selectedTransitionKind,
+                    selectedTransitionDurationMilliseconds);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
             }
@@ -5170,6 +5277,99 @@ namespace WallpaperControl
                 key.SetValue(
                     "HotkeyRejectKey",
                     hotkeyRejectKey,
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
+        private void LoadTransitionSettings()
+        {
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        AppRegistryPath);
+
+                object? durationValue =
+                    key?.GetValue(
+                        "TransitionDurationMilliseconds");
+
+                if (durationValue != null)
+                {
+                    selectedTransitionDurationMilliseconds =
+                        Math.Clamp(
+                            Convert.ToInt32(durationValue),
+                            500,
+                            5000);
+                }
+            }
+            catch
+            {
+                selectedTransitionDurationMilliseconds = 2000;
+            }
+
+            selectedTransitionKind =
+                WallpaperTransitionKind.DesktopWipe;
+
+            transitionComboBox.SelectedIndex = 0;
+
+            int[] durations =
+                { 500, 1000, 1500, 2000, 3000, 5000 };
+
+            int index =
+                Array.IndexOf(
+                    durations,
+                    selectedTransitionDurationMilliseconds);
+
+            if (index < 0)
+            {
+                index = 3;
+                selectedTransitionDurationMilliseconds = 2000;
+            }
+
+            transitionDurationComboBox.SelectedIndex = index;
+        }
+
+        private void TransitionComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            // Aktuell existiert nur der Wipe. Das Feld ist bereits so
+            // vorbereitet, dass weitere TransitionKinds folgen können.
+            selectedTransitionKind =
+                WallpaperTransitionKind.DesktopWipe;
+        }
+
+        private void TransitionDurationComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            int[] durations =
+                { 500, 1000, 1500, 2000, 3000, 5000 };
+
+            int index =
+                transitionDurationComboBox.SelectedIndex;
+
+            if (index < 0 ||
+                index >= durations.Length)
+            {
+                return;
+            }
+
+            selectedTransitionDurationMilliseconds =
+                durations[index];
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionDurationMilliseconds",
+                    selectedTransitionDurationMilliseconds,
                     RegistryValueKind.DWord);
             }
             catch

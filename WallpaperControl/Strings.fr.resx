@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -652,5 +652,14 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Windows n’a pas pu enregistrer les raccourcis globaux suivants. Ils sont probablement déjà utilisés par une autre application :
 
 {0}</value>
+  </data>
+  <data name="Transition" xml:space="preserve">
+    <value>Transition</value>
+  </data>
+  <data name="TransitionWipe" xml:space="preserve">
+    <value>Balayage</value>
+  </data>
+  <data name="TransitionDuration" xml:space="preserve">
+    <value>Durée</value>
   </data>
 </root>
