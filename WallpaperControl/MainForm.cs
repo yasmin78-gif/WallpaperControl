@@ -139,6 +139,14 @@ namespace WallpaperControl
         private bool darkMode;
         private string themeMode = "system";
         private bool slideshowPaused = false;
+        // Phase 1: Wallpaper Control übernimmt die zeitliche Steuerung selbst.
+        // Windows bleibt nur noch für die eigentliche Wallpaper-Darstellung zuständig.
+        private bool customSlideshowEngineActive = false;
+        private bool customSlideshowChangeRunning = false;
+        private uint customSlideshowLastInterval = 0;
+        private DateTime customSlideshowNextChange = DateTime.MaxValue;
+        private readonly System.Threading.Timer customSlideshowPreciseTimer;
+        private readonly Random customSlideshowRandom = new Random();
         private bool closingAfterPauseResume = false;
         private bool restoringFromTray = false;
         private bool autostartEnabled = false;
@@ -199,6 +207,13 @@ namespace WallpaperControl
                 ReshowDelay = 100,
                 ShowAlways = true
             };
+
+            customSlideshowPreciseTimer =
+                new System.Threading.Timer(
+                    CustomSlideshowPreciseTimerCallback,
+                    null,
+                    Timeout.Infinite,
+                    Timeout.Infinite);
 
             RestoreWindowPosition();
 
@@ -710,6 +725,11 @@ namespace WallpaperControl
             loading = false;
 
             ApplyWindowsTheme();
+
+            // Ab diesem Entwicklungszweig übernimmt Wallpaper Control
+            // den Wechselzeitpunkt selbst. Der erste automatische Wechsel
+            // erfolgt am nächsten zur Uhr passenden Intervallpunkt.
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
 
             SystemEvents.UserPreferenceChanged +=
@@ -1064,6 +1084,14 @@ namespace WallpaperControl
 
         private void CheckSlideshowStatus()
         {
+            // Die eigene Engine ist absichtlich kein Windows-Slideshow-Status.
+            // Für die Oberfläche gilt sie trotzdem als aktive Diashow.
+            if (customSlideshowEngineActive && !slideshowPaused)
+            {
+                ShowActiveStatus();
+                return;
+            }
+
             // Nur für die aktuelle Programmsitzung pausiert?
             if (slideshowPaused)
             {
@@ -1867,6 +1895,21 @@ namespace WallpaperControl
                 return;
             }
 
+            // Beim echten Beenden geben wir die Zeitsteuerung wieder an
+            // Windows zurück. Beim Minimieren in den Tray bleibt unsere Engine aktiv.
+            if (customSlideshowEngineActive)
+            {
+                string? folder = LoadLastWallpaperFolder();
+
+                if (!string.IsNullOrWhiteSpace(folder) && Directory.Exists(folder))
+                {
+                    customSlideshowEngineActive = false;
+                    SetWallpaperFolder(folder);
+                }
+            }
+
+            customSlideshowPreciseTimer.Dispose();
+
             SavePersistentStatistics();
 
             base.OnFormClosing(e);
@@ -2020,6 +2063,7 @@ namespace WallpaperControl
             SetWallpaperFolder(
                 folder);
 
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
         }
 
@@ -2188,6 +2232,16 @@ namespace WallpaperControl
 
         private void PauseSlideshow()
         {
+            if (customSlideshowEngineActive)
+            {
+                slideshowPaused = true;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                CheckSlideshowStatus();
+                return;
+            }
+
             string? wallpaperPath =
                 GetCurrentWallpaperPath();
 
@@ -2239,6 +2293,15 @@ namespace WallpaperControl
         private async Task<bool> ResumeSlideshowAsync(
             bool showError)
         {
+            if (customSlideshowEngineActive)
+            {
+                slideshowPaused = false;
+                RecalculateCustomSlideshowSchedule();
+                CheckSlideshowStatus();
+                await Task.CompletedTask;
+                return true;
+            }
+
             string? folder =
                 LoadLastWallpaperFolder();
 
@@ -2263,6 +2326,7 @@ namespace WallpaperControl
                 await Task.Delay(300);
 
                 slideshowPaused = false;
+                StartCustomSlideshowEngine();
 
                 CheckSlideshowStatus();
 
@@ -2315,6 +2379,10 @@ namespace WallpaperControl
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
+                customSlideshowEngineActive = false;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
                 slideshowPaused = false;
 
                 wallpaper.SetWallpaper(
@@ -2371,6 +2439,7 @@ namespace WallpaperControl
             // synchron. Erst nach kurzer Verzögerung die UI aktualisieren.
             await Task.Delay(300);
 
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
         }
 
@@ -2550,6 +2619,11 @@ namespace WallpaperControl
                 return;
 
             ApplySlideshowOptions();
+
+            if (customSlideshowEngineActive)
+            {
+                RecalculateCustomSlideshowSchedule();
+            }
         }
 
         private void ShuffleCheckBox_CheckedChanged(
@@ -2674,6 +2748,12 @@ namespace WallpaperControl
             if (slideshowPaused)
                 return;
 
+            if (customSlideshowEngineActive)
+            {
+                AdvanceCustomWallpaper(direction);
+                return;
+            }
+
             IDesktopWallpaper? wallpaper = null;
 
             try
@@ -2700,6 +2780,297 @@ namespace WallpaperControl
             finally
             {
                 ReleaseComObject(wallpaper);
+            }
+        }
+
+        // ============================================================
+        // EIGENE SLIDESHOW-ENGINE - PHASE 1
+        // ============================================================
+
+        private void StartCustomSlideshowEngine()
+        {
+            string folder = folderTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(folder) ||
+                !Directory.Exists(folder))
+            {
+                customSlideshowEngineActive = false;
+                return;
+            }
+
+            string? current = GetCurrentWallpaperPath();
+
+            if (string.IsNullOrWhiteSpace(current) ||
+                !File.Exists(current))
+            {
+                customSlideshowEngineActive = false;
+                return;
+            }
+
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                // SetWallpaper beendet die native Windows-Zeitsteuerung.
+                // Das sichtbare Bild bleibt dabei unverändert.
+                wallpaper.SetWallpaper(null, current);
+
+                customSlideshowEngineActive = true;
+                slideshowPaused = false;
+                RecalculateCustomSlideshowSchedule();
+            }
+            catch
+            {
+                customSlideshowEngineActive = false;
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private void RecalculateCustomSlideshowSchedule()
+        {
+            if (!TryGetSelectedInterval(out uint milliseconds))
+            {
+                customSlideshowNextChange = DateTime.MaxValue;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                return;
+            }
+
+            customSlideshowLastInterval = milliseconds;
+            customSlideshowNextChange =
+                GetNextAlignedChange(DateTime.Now, milliseconds);
+
+            ArmCustomSlideshowPreciseTimer();
+        }
+
+        private void ArmCustomSlideshowPreciseTimer()
+        {
+            if (!customSlideshowEngineActive ||
+                slideshowPaused ||
+                customSlideshowNextChange == DateTime.MaxValue)
+            {
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                return;
+            }
+
+            TimeSpan remaining =
+                customSlideshowNextChange - DateTime.Now;
+
+            if (remaining < TimeSpan.Zero)
+            {
+                remaining =
+                    TimeSpan.Zero;
+            }
+
+            // Einmaliger Timer direkt auf den berechneten Rasterpunkt.
+            // Nach jedem Wechsel wird er für den nächsten Rasterpunkt neu gesetzt.
+            customSlideshowPreciseTimer.Change(
+                remaining,
+                Timeout.InfiniteTimeSpan);
+        }
+
+        private void CustomSlideshowPreciseTimerCallback(
+            object? state)
+        {
+            if (IsDisposed ||
+                Disposing)
+            {
+                return;
+            }
+
+            try
+            {
+                BeginInvoke(
+                    new Action(
+                        ProcessPreciseCustomSlideshowTick));
+            }
+            catch
+            {
+                // Das Fenster wird möglicherweise gerade beendet.
+            }
+        }
+
+        private void ProcessPreciseCustomSlideshowTick()
+        {
+            if (!customSlideshowEngineActive ||
+                slideshowPaused ||
+                customSlideshowChangeRunning)
+            {
+                ArmCustomSlideshowPreciseTimer();
+                return;
+            }
+
+            if (!TryGetSelectedInterval(out uint milliseconds))
+                return;
+
+            if (milliseconds != customSlideshowLastInterval)
+            {
+                RecalculateCustomSlideshowSchedule();
+                return;
+            }
+
+            DateTime target =
+                customSlideshowNextChange;
+
+            DateTime invoked =
+                DateTime.Now;
+
+            if (invoked < target)
+            {
+                ArmCustomSlideshowPreciseTimer();
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Custom slideshow target: {target:HH:mm:ss.fff}; " +
+                $"callback: {invoked:HH:mm:ss.fff}; " +
+                $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
+
+            AdvanceCustomWallpaper(
+                DesktopSlideshowDirection.Forward);
+
+            // Der nächste Termin wird vom Soll-Raster abgeleitet, nicht vom
+            // tatsächlichen Ausführungszeitpunkt. Dadurch kann kein Drift entstehen.
+            customSlideshowNextChange =
+                GetNextAlignedChange(
+                    target.AddMilliseconds(1),
+                    milliseconds);
+
+            ArmCustomSlideshowPreciseTimer();
+        }
+
+        private static DateTime GetNextAlignedChange(
+            DateTime now,
+            uint intervalMilliseconds)
+        {
+            long intervalTicks =
+                TimeSpan.FromMilliseconds(intervalMilliseconds).Ticks;
+
+            DateTime dayStart = now.Date;
+            long elapsedTicks = (now - dayStart).Ticks;
+            long completedIntervals = elapsedTicks / intervalTicks;
+            long nextTicks = (completedIntervals + 1) * intervalTicks;
+
+            return dayStart.AddTicks(nextTicks);
+        }
+
+        private bool TryGetSelectedInterval(out uint milliseconds)
+        {
+            milliseconds = 0;
+
+            return intervalComboBox.SelectedItem is string selected &&
+                   intervals.TryGetValue(selected, out milliseconds);
+        }
+
+        private void AdvanceCustomWallpaper(
+            DesktopSlideshowDirection direction)
+        {
+            if (customSlideshowChangeRunning)
+                return;
+
+            string folder = folderTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(folder) ||
+                !Directory.Exists(folder))
+            {
+                return;
+            }
+
+            try
+            {
+                customSlideshowChangeRunning = true;
+
+                string[] files = Directory.EnumerateFiles(
+                        folder,
+                        "*",
+                        SearchOption.TopDirectoryOnly)
+                    .Where(IsSupportedWallpaperExtension)
+                    .OrderBy(path => path, StringComparer.CurrentCultureIgnoreCase)
+                    .ToArray();
+
+                if (files.Length == 0)
+                    return;
+
+                string? current = GetCurrentWallpaperPath();
+                string next;
+
+                if (shuffleCheckBox.Checked && files.Length > 1)
+                {
+                    string[] candidates = files
+                        .Where(path => !string.Equals(
+                            path,
+                            current,
+                            StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+
+                    next = candidates[customSlideshowRandom.Next(candidates.Length)];
+                }
+                else
+                {
+                    int currentIndex = Array.FindIndex(
+                        files,
+                        path => string.Equals(
+                            path,
+                            current,
+                            StringComparison.OrdinalIgnoreCase));
+
+                    if (direction == DesktopSlideshowDirection.Backward)
+                    {
+                        int previousIndex = currentIndex <= 0
+                            ? files.Length - 1
+                            : currentIndex - 1;
+
+                        next = files[previousIndex];
+                    }
+                    else
+                    {
+                        int nextIndex = currentIndex < 0
+                            ? 0
+                            : (currentIndex + 1) % files.Length;
+
+                        next = files[nextIndex];
+                    }
+                }
+
+                IDesktopWallpaper? wallpaper = null;
+
+                try
+                {
+                    wallpaper =
+                        (IDesktopWallpaper)
+                        new DesktopWallpaper();
+
+                    wallpaper.SetWallpaper(null, next);
+                }
+                finally
+                {
+                    ReleaseComObject(wallpaper);
+                }
+
+                _ = RefreshCurrentWallpaperSoonAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Localization.Get("MsgAdvanceFailed") +
+                    ex.Message,
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                customSlideshowChangeRunning = false;
             }
         }
 
