@@ -49,6 +49,8 @@ namespace WallpaperControl
             string nextWallpaperPath,
             WallpaperTransitionKind transitionKind,
             int durationMilliseconds,
+            WallpaperTransitionDirection direction,
+            WallpaperZoomMode zoomMode,
             CancellationToken cancellationToken = default)
         {
             if (!File.Exists(nextWallpaperPath))
@@ -72,6 +74,8 @@ namespace WallpaperControl
                     durationMilliseconds,
                     100,
                     10000),
+                direction,
+                zoomMode,
                 cancellationToken);
 
             persistentHost.CommitCurrentPath(

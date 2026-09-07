@@ -6,6 +6,8 @@
             string? currentWallpaperPath,
             string nextWallpaperPath,
             int durationMilliseconds,
+            WallpaperTransitionDirection direction,
+            WallpaperZoomMode zoomMode,
             CancellationToken cancellationToken = default);
     }
 }

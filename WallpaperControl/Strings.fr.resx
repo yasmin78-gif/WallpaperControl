@@ -675,6 +675,42 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Glissement aléatoire</value>
   </data>
   <data name="TransitionZoomFade" xml:space="preserve">
-    <value>Fondu zoom</value>
+    <value>Zoom</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>Séparation</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>Rideau</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>Fondu zoom arrière</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>Gauche</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>Droite</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>Haut</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>Bas</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>Aléatoire</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Avant</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Arrière</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>Aléatoire</value>
   </data>
 </root>

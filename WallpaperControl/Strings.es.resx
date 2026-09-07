@@ -675,6 +675,42 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
     <value>Deslizamiento aleatorio</value>
   </data>
   <data name="TransitionZoomFade" xml:space="preserve">
-    <value>Fundido con zoom</value>
+    <value>Zoom</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>División</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>Cortina</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>Fundido con alejamiento</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>Izquierda</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>Derecha</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>Arriba</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>Abajo</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>Aleatorio</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Acercar</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Alejar</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>Aleatorio</value>
   </data>
 </root>

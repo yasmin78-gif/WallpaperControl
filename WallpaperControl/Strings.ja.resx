@@ -647,6 +647,42 @@
     <value>ランダムスライド</value>
   </data>
   <data name="TransitionZoomFade" xml:space="preserve">
-    <value>ズームフェード</value>
+    <value>ズーム</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>スプリット</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>カーテン</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>ズームアウトフェード</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>上</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>下</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>ランダム</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>イン</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>アウト</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>ランダム</value>
   </data>
 </root>

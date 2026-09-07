@@ -675,6 +675,42 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
     <value>Schieben zufällig</value>
   </data>
   <data name="TransitionZoomFade" xml:space="preserve">
-    <value>Zoom-Überblendung</value>
+    <value>Zoom</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>Vorhang</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>Zoom-Out-Überblendung</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>Rechts</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>Hoch</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>Runter</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>Zufällig</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>In</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Out</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>Zufall</value>
   </data>
 </root>

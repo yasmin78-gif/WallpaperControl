@@ -6,8 +6,10 @@
         DesktopWipe,
         DesktopSlide,
         DesktopFade,
-        DesktopWipeRight,
-        DesktopSlideRandom,
-        DesktopZoomFade
+        DesktopZoomFade,
+        DesktopSplit,
+        DesktopCurtain,
+        DesktopZoomOutFade,
+        DesktopRandom
     }
 }

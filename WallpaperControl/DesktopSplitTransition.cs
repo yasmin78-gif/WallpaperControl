@@ -1,6 +1,6 @@
 ﻿namespace WallpaperControl
 {
-    internal sealed class DesktopWipeTransition : IWallpaperTransition
+    internal sealed class DesktopSplitTransition : IWallpaperTransition
     {
         public Task ApplyAsync(
             string? currentWallpaperPath,
@@ -13,7 +13,7 @@
             return PersistentDesktopTransitionManager.ApplyAsync(
                 currentWallpaperPath,
                 nextWallpaperPath,
-                WallpaperTransitionKind.DesktopWipe,
+                WallpaperTransitionKind.DesktopSplit,
                 durationMilliseconds,
                 direction,
                 zoomMode,

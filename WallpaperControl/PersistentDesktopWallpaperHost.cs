@@ -28,7 +28,10 @@ namespace WallpaperControl
         private double progress = 1.0;
         private WallpaperTransitionKind transitionKind =
             WallpaperTransitionKind.DesktopWipe;
-        private bool transitionMovesLeft = true;
+        private WallpaperTransitionDirection transitionDirection =
+            WallpaperTransitionDirection.Left;
+        private WallpaperZoomMode zoomMode =
+            WallpaperZoomMode.In;
 
         public string? CurrentWallpaperPath { get; private set; }
 
@@ -141,6 +144,8 @@ namespace WallpaperControl
             string nextWallpaperPath,
             WallpaperTransitionKind kind,
             int milliseconds,
+            WallpaperTransitionDirection direction,
+            WallpaperZoomMode requestedZoomMode,
             CancellationToken cancellationToken = default)
         {
             if (!File.Exists(nextWallpaperPath))
@@ -155,10 +160,9 @@ namespace WallpaperControl
                 LoadFrame(nextWallpaperPath));
 
             transitionKind = kind;
-
-            transitionMovesLeft =
-                kind != WallpaperTransitionKind.DesktopSlideRandom ||
-                Random.Shared.Next(2) == 0;
+            transitionDirection =
+                ResolveDirection(direction);
+            zoomMode = requestedZoomMode;
 
             durationMilliseconds = Math.Max(1, milliseconds);
             progress = 0.0;
@@ -247,15 +251,7 @@ namespace WallpaperControl
             switch (transitionKind)
             {
                 case WallpaperTransitionKind.DesktopSlide:
-                    DrawSlideTransition(
-                        e.Graphics,
-                        true);
-                    break;
-
-                case WallpaperTransitionKind.DesktopSlideRandom:
-                    DrawSlideTransition(
-                        e.Graphics,
-                        transitionMovesLeft);
+                    DrawSlideTransition(e.Graphics, transitionDirection);
                     break;
 
                 case WallpaperTransitionKind.DesktopFade:
@@ -263,146 +259,166 @@ namespace WallpaperControl
                     break;
 
                 case WallpaperTransitionKind.DesktopZoomFade:
-                    DrawZoomFadeTransition(e.Graphics);
+                    if (zoomMode == WallpaperZoomMode.Out)
+                    {
+                        DrawZoomOutFadeTransition(e.Graphics);
+                    }
+                    else
+                    {
+                        DrawZoomFadeTransition(e.Graphics);
+                    }
                     break;
 
-                case WallpaperTransitionKind.DesktopWipeRight:
-                    DrawWipeRightTransition(e.Graphics);
+                case WallpaperTransitionKind.DesktopSplit:
+                    DrawSplitTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopCurtain:
+                    DrawCurtainTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopZoomOutFade:
+                    DrawZoomOutFadeTransition(e.Graphics);
                     break;
 
                 case WallpaperTransitionKind.DesktopWipe:
                 default:
-                    DrawWipeTransition(e.Graphics);
+                    DrawWipeTransition(e.Graphics, transitionDirection);
                     break;
             }
         }
 
-        private void DrawWipeTransition(Graphics graphics)
+        private WallpaperTransitionDirection ResolveDirection(
+            WallpaperTransitionDirection direction)
         {
-            if (currentFrame == null)
+            if (direction != WallpaperTransitionDirection.Random)
             {
-                return;
+                return direction;
             }
 
-            graphics.DrawImageUnscaled(
-                currentFrame,
-                0,
-                0);
-
-            if (nextFrame == null)
+            return Random.Shared.Next(4) switch
             {
-                return;
-            }
-
-            int width =
-                Math.Min(
-                    ClientSize.Width,
-                    (int)Math.Round(
-                        ClientSize.Width * progress));
-
-            if (width <= 0)
-            {
-                return;
-            }
-
-            Rectangle reveal =
-                new Rectangle(
-                    0,
-                    0,
-                    width,
-                    ClientSize.Height);
-
-            graphics.DrawImage(
-                nextFrame,
-                reveal,
-                reveal,
-                GraphicsUnit.Pixel);
+                0 => WallpaperTransitionDirection.Left,
+                1 => WallpaperTransitionDirection.Right,
+                2 => WallpaperTransitionDirection.Up,
+                _ => WallpaperTransitionDirection.Down
+            };
         }
 
-        private void DrawWipeRightTransition(Graphics graphics)
+        private void DrawWipeTransition(
+            Graphics graphics,
+            WallpaperTransitionDirection direction)
         {
             if (currentFrame == null)
             {
                 return;
             }
 
-            graphics.DrawImageUnscaled(
-                currentFrame,
-                0,
-                0);
+            graphics.DrawImageUnscaled(currentFrame, 0, 0);
 
             if (nextFrame == null)
             {
                 return;
             }
 
-            int width =
-                Math.Min(
-                    ClientSize.Width,
-                    (int)Math.Round(
-                        ClientSize.Width * progress));
+            int width = ClientSize.Width;
+            int height = ClientSize.Height;
+            Rectangle reveal;
 
-            if (width <= 0)
+            switch (direction)
+            {
+                case WallpaperTransitionDirection.Right:
+                {
+                    int visible = Math.Min(width, (int)Math.Round(width * progress));
+                    reveal = new Rectangle(0, 0, visible, height);
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Up:
+                {
+                    int visible = Math.Min(height, (int)Math.Round(height * progress));
+                    reveal = new Rectangle(0, height - visible, width, visible);
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Down:
+                {
+                    int visible = Math.Min(height, (int)Math.Round(height * progress));
+                    reveal = new Rectangle(0, 0, width, visible);
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Left:
+                default:
+                {
+                    int visible = Math.Min(width, (int)Math.Round(width * progress));
+                    reveal = new Rectangle(width - visible, 0, visible, height);
+                    break;
+                }
+            }
+
+            if (reveal.Width <= 0 || reveal.Height <= 0)
             {
                 return;
             }
 
-            int x =
-                ClientSize.Width - width;
-
-            Rectangle reveal =
-                new Rectangle(
-                    x,
-                    0,
-                    width,
-                    ClientSize.Height);
-
-            graphics.DrawImage(
-                nextFrame,
-                reveal,
-                reveal,
-                GraphicsUnit.Pixel);
+            graphics.DrawImage(nextFrame, reveal, reveal, GraphicsUnit.Pixel);
         }
 
         private void DrawSlideTransition(
             Graphics graphics,
-            bool moveLeft)
+            WallpaperTransitionDirection direction)
         {
-            if (currentFrame == null ||
-                nextFrame == null)
+            if (currentFrame == null || nextFrame == null)
             {
                 return;
             }
 
-            int offset =
-                (int)Math.Round(
-                    ClientSize.Width * progress);
+            int width = ClientSize.Width;
+            int height = ClientSize.Height;
+            int currentX = 0;
+            int currentY = 0;
+            int nextX = 0;
+            int nextY = 0;
 
-            int currentX;
-            int nextX;
-
-            if (moveLeft)
+            switch (direction)
             {
-                currentX = -offset;
-                nextX =
-                    ClientSize.Width - offset;
-            }
-            else
-            {
-                currentX = offset;
-                nextX =
-                    -ClientSize.Width + offset;
+                case WallpaperTransitionDirection.Right:
+                {
+                    int offset = (int)Math.Round(width * progress);
+                    currentX = offset;
+                    nextX = -width + offset;
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Up:
+                {
+                    int offset = (int)Math.Round(height * progress);
+                    currentY = -offset;
+                    nextY = height - offset;
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Down:
+                {
+                    int offset = (int)Math.Round(height * progress);
+                    currentY = offset;
+                    nextY = -height + offset;
+                    break;
+                }
+
+                case WallpaperTransitionDirection.Left:
+                default:
+                {
+                    int offset = (int)Math.Round(width * progress);
+                    currentX = -offset;
+                    nextX = width - offset;
+                    break;
+                }
             }
 
-            graphics.DrawImageUnscaled(
-                currentFrame,
-                currentX,
-                0);
-
-            graphics.DrawImageUnscaled(
-                nextFrame,
-                nextX,
-                0);
+            graphics.DrawImageUnscaled(currentFrame, currentX, currentY);
+            graphics.DrawImageUnscaled(nextFrame, nextX, nextY);
         }
 
         private void DrawFadeTransition(Graphics graphics)
@@ -530,6 +546,155 @@ namespace WallpaperControl
                     y,
                     width,
                     height);
+
+            graphics.DrawImage(
+                nextFrame,
+                destination,
+                0,
+                0,
+                nextFrame.Width,
+                nextFrame.Height,
+                GraphicsUnit.Pixel,
+                attributes);
+        }
+
+        private void DrawSplitTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(currentFrame, 0, 0);
+
+            if (nextFrame == null)
+            {
+                return;
+            }
+
+            int halfWidth =
+                (int)Math.Round((ClientSize.Width / 2.0) * progress);
+
+            if (halfWidth <= 0)
+            {
+                return;
+            }
+
+            int center = ClientSize.Width / 2;
+
+            Rectangle left =
+                new Rectangle(center - halfWidth, 0, halfWidth, ClientSize.Height);
+            Rectangle right =
+                new Rectangle(center, 0, halfWidth, ClientSize.Height);
+
+            graphics.DrawImage(nextFrame, left, left, GraphicsUnit.Pixel);
+            graphics.DrawImage(nextFrame, right, right, GraphicsUnit.Pixel);
+        }
+
+        private void DrawCurtainTransition(Graphics graphics)
+        {
+            if (currentFrame == null || nextFrame == null)
+            {
+                return;
+            }
+
+            // Das neue Bild liegt bereits vollständig dahinter.
+            graphics.DrawImageUnscaled(nextFrame, 0, 0);
+
+            int halfWidth =
+                ClientSize.Width / 2;
+
+            int offset =
+                (int)Math.Round(
+                    halfWidth * progress);
+
+            Rectangle leftSource =
+                new Rectangle(
+                    0,
+                    0,
+                    halfWidth,
+                    ClientSize.Height);
+
+            Rectangle rightSource =
+                new Rectangle(
+                    halfWidth,
+                    0,
+                    ClientSize.Width - halfWidth,
+                    ClientSize.Height);
+
+            Rectangle leftDestination =
+                new Rectangle(
+                    -offset,
+                    0,
+                    halfWidth,
+                    ClientSize.Height);
+
+            Rectangle rightDestination =
+                new Rectangle(
+                    halfWidth + offset,
+                    0,
+                    ClientSize.Width - halfWidth,
+                    ClientSize.Height);
+
+            // Anders als beim Split werden die beiden Hälften des alten
+            // Wallpapers tatsächlich nach außen geschoben. Dadurch bleibt
+            // ihr Bildinhalt sichtbar in Bewegung, statt nur abgeschnitten
+            // zu werden.
+            graphics.DrawImage(
+                currentFrame,
+                leftDestination,
+                leftSource,
+                GraphicsUnit.Pixel);
+
+            graphics.DrawImage(
+                currentFrame,
+                rightDestination,
+                rightSource,
+                GraphicsUnit.Pixel);
+        }
+
+        private void DrawZoomOutFadeTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(currentFrame, 0, 0);
+
+            if (nextFrame == null)
+            {
+                return;
+            }
+
+            float alpha = (float)Math.Clamp(progress, 0.0, 1.0);
+            double startScale = 0.85;
+            double scale = startScale + ((1.0 - startScale) * progress);
+
+            int width = (int)Math.Round(ClientSize.Width * scale);
+            int height = (int)Math.Round(ClientSize.Height * scale);
+            int x = (ClientSize.Width - width) / 2;
+            int y = (ClientSize.Height - height) / 2;
+
+            using System.Drawing.Imaging.ImageAttributes attributes =
+                new System.Drawing.Imaging.ImageAttributes();
+
+            System.Drawing.Imaging.ColorMatrix matrix =
+                new System.Drawing.Imaging.ColorMatrix
+                {
+                    Matrix00 = 1.0f,
+                    Matrix11 = 1.0f,
+                    Matrix22 = 1.0f,
+                    Matrix33 = alpha,
+                    Matrix44 = 1.0f
+                };
+
+            attributes.SetColorMatrix(
+                matrix,
+                System.Drawing.Imaging.ColorMatrixFlag.Default,
+                System.Drawing.Imaging.ColorAdjustType.Bitmap);
+
+            Rectangle destination = new Rectangle(x, y, width, height);
 
             graphics.DrawImage(
                 nextFrame,

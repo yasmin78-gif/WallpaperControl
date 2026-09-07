@@ -42,11 +42,18 @@ namespace WallpaperControl
 
         private readonly Label transitionLabel;
         private readonly ComboBox transitionComboBox;
+        private readonly ComboBox transitionDirectionComboBox;
         private readonly Label transitionDurationLabel;
         private readonly ComboBox transitionDurationComboBox;
 
         private WallpaperTransitionKind selectedTransitionKind =
             WallpaperTransitionKind.DesktopWipe;
+
+        private WallpaperTransitionDirection selectedTransitionDirection =
+            WallpaperTransitionDirection.Left;
+
+        private WallpaperZoomMode selectedZoomMode =
+            WallpaperZoomMode.In;
 
         private int selectedTransitionDurationMilliseconds = 2000;
 
@@ -449,7 +456,7 @@ namespace WallpaperControl
             transitionComboBox = new ComboBox
             {
                 Location = new Point(25, 345),
-                Width = 180,
+                Width = 125,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -460,9 +467,10 @@ namespace WallpaperControl
                     Localization.Get("TransitionWipe"),
                     Localization.Get("TransitionSlide"),
                     Localization.Get("TransitionFade"),
-                    Localization.Get("TransitionWipeRight"),
-                    Localization.Get("TransitionSlideRandom"),
-                    Localization.Get("TransitionZoomFade")
+                    Localization.Get("TransitionZoomFade"),
+                    Localization.Get("TransitionSplit"),
+                    Localization.Get("TransitionCurtain"),
+                    Localization.Get("TransitionRandom")
                 });
 
             transitionComboBox.SelectedIndex = 0;
@@ -470,11 +478,34 @@ namespace WallpaperControl
             transitionComboBox.SelectedIndexChanged +=
                 TransitionComboBox_SelectedIndexChanged;
 
+            transitionDirectionComboBox = new ComboBox
+            {
+                Location = new Point(160, 345),
+                Width = 115,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            transitionDirectionComboBox.Items.AddRange(
+                new object[]
+                {
+                    Localization.Get("DirectionLeft"),
+                    Localization.Get("DirectionRight"),
+                    Localization.Get("DirectionUp"),
+                    Localization.Get("DirectionDown"),
+                    Localization.Get("DirectionRandom")
+                });
+
+            transitionDirectionComboBox.SelectedIndex = 0;
+
+            transitionDirectionComboBox.SelectedIndexChanged +=
+                TransitionDirectionComboBox_SelectedIndexChanged;
+
             transitionDurationLabel = new Label
             {
                 Text = Localization.Get("TransitionDuration"),
                 AutoSize = true,
-                Location = new Point(220, 310),
+                Location = new Point(285, 310),
                 Font = new Font(
                     "Segoe UI",
                     11,
@@ -483,8 +514,8 @@ namespace WallpaperControl
 
             transitionDurationComboBox = new ComboBox
             {
-                Location = new Point(220, 345),
-                Width = 180,
+                Location = new Point(285, 345),
+                Width = 115,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -791,6 +822,7 @@ namespace WallpaperControl
 
             Controls.Add(transitionLabel);
             Controls.Add(transitionComboBox);
+            Controls.Add(transitionDirectionComboBox);
             Controls.Add(transitionDurationLabel);
             Controls.Add(transitionDurationComboBox);
 
@@ -1385,11 +1417,14 @@ namespace WallpaperControl
             transitionComboBox.Location =
                 new Point(25, 345);
 
+            transitionDirectionComboBox.Location =
+                new Point(160, 345);
+
             transitionDurationLabel.Location =
-                new Point(220, 310);
+                new Point(285, 310);
 
             transitionDurationComboBox.Location =
-                new Point(220, 345);
+                new Point(285, 345);
 
             pauseButton.Location =
                 new Point(25, 395);
@@ -1464,11 +1499,14 @@ namespace WallpaperControl
             transitionComboBox.Location =
                 new Point(25, 345 + offset);
 
+            transitionDirectionComboBox.Location =
+                new Point(160, 345 + offset);
+
             transitionDurationLabel.Location =
-                new Point(220, 310 + offset);
+                new Point(285, 310 + offset);
 
             transitionDurationComboBox.Location =
-                new Point(220, 345 + offset);
+                new Point(285, 345 + offset);
 
             pauseButton.Location =
                 new Point(25, 395 + offset);
@@ -3209,7 +3247,9 @@ namespace WallpaperControl
                     current,
                     next,
                     selectedTransitionKind,
-                    selectedTransitionDurationMilliseconds);
+                    selectedTransitionDurationMilliseconds,
+                    selectedTransitionDirection,
+                    selectedZoomMode);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
             }
@@ -5312,7 +5352,7 @@ namespace WallpaperControl
                             Convert.ToInt32(
                                 transitionValue),
                             0,
-                            5);
+                            6);
                 }
 
                 object? durationValue =
@@ -5342,11 +5382,69 @@ namespace WallpaperControl
                 {
                     1 => WallpaperTransitionKind.DesktopSlide,
                     2 => WallpaperTransitionKind.DesktopFade,
-                    3 => WallpaperTransitionKind.DesktopWipeRight,
-                    4 => WallpaperTransitionKind.DesktopSlideRandom,
-                    5 => WallpaperTransitionKind.DesktopZoomFade,
+                    3 => WallpaperTransitionKind.DesktopZoomFade,
+                    4 => WallpaperTransitionKind.DesktopSplit,
+                    5 => WallpaperTransitionKind.DesktopCurtain,
+                    6 => WallpaperTransitionKind.DesktopRandom,
                     _ => WallpaperTransitionKind.DesktopWipe
                 };
+
+            int directionIndex = 0;
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
+
+                object? directionValue =
+                    key?.GetValue("TransitionDirection");
+
+                if (directionValue != null)
+                {
+                    directionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(directionValue),
+                            0,
+                            4);
+                }
+            }
+            catch
+            {
+                directionIndex = 0;
+            }
+
+            // Nur den gespeicherten Wert übernehmen.
+            // Das Dropdown selbst wird erst in UpdateTransitionDirectionState()
+            // passend zum aktuell gewählten Effekt befüllt. Sonst kann z.B.
+            // bei Split/Vorhang nur "Nicht verfügbar" enthalten sein und ein
+            // gespeicherter Richtungsindex wie 4 einen OutOfRange-Fehler auslösen.
+            selectedTransitionDirection =
+                DirectionFromIndex(directionIndex);
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
+
+                object? zoomModeValue =
+                    key?.GetValue("TransitionZoomMode");
+
+                if (zoomModeValue != null &&
+                    Convert.ToInt32(zoomModeValue) == 1)
+                {
+                    selectedZoomMode = WallpaperZoomMode.Out;
+                }
+                else
+                {
+                    selectedZoomMode = WallpaperZoomMode.In;
+                }
+            }
+            catch
+            {
+                selectedZoomMode = WallpaperZoomMode.In;
+            }
+
+            UpdateTransitionDirectionState();
 
             int[] durations =
                 { 500, 1000, 1500, 2000, 3000, 5000 };
@@ -5377,11 +5475,14 @@ namespace WallpaperControl
                 {
                     1 => WallpaperTransitionKind.DesktopSlide,
                     2 => WallpaperTransitionKind.DesktopFade,
-                    3 => WallpaperTransitionKind.DesktopWipeRight,
-                    4 => WallpaperTransitionKind.DesktopSlideRandom,
-                    5 => WallpaperTransitionKind.DesktopZoomFade,
+                    3 => WallpaperTransitionKind.DesktopZoomFade,
+                    4 => WallpaperTransitionKind.DesktopSplit,
+                    5 => WallpaperTransitionKind.DesktopCurtain,
+                    6 => WallpaperTransitionKind.DesktopRandom,
                     _ => WallpaperTransitionKind.DesktopWipe
                 };
+
+            UpdateTransitionDirectionState();
 
             if (index < 0)
             {
@@ -5396,7 +5497,147 @@ namespace WallpaperControl
 
                 key.SetValue(
                     "TransitionKind",
-                    Math.Clamp(index, 0, 5),
+                    Math.Clamp(index, 0, 6),
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
+        private WallpaperTransitionDirection DirectionFromIndex(int index)
+        {
+            return index switch
+            {
+                1 => WallpaperTransitionDirection.Right,
+                2 => WallpaperTransitionDirection.Up,
+                3 => WallpaperTransitionDirection.Down,
+                4 => WallpaperTransitionDirection.Random,
+                _ => WallpaperTransitionDirection.Left
+            };
+        }
+
+        private void PopulateDirectionOptions()
+        {
+            transitionDirectionComboBox.BeginUpdate();
+
+            try
+            {
+                transitionDirectionComboBox.Items.Clear();
+
+                if (selectedTransitionKind == WallpaperTransitionKind.DesktopWipe ||
+                    selectedTransitionKind == WallpaperTransitionKind.DesktopSlide)
+                {
+                    transitionDirectionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("DirectionLeft"),
+                            Localization.Get("DirectionRight"),
+                            Localization.Get("DirectionUp"),
+                            Localization.Get("DirectionDown"),
+                            Localization.Get("DirectionRandom")
+                        });
+
+                    transitionDirectionComboBox.Enabled = true;
+
+                    int directionIndex =
+                        selectedTransitionDirection switch
+                        {
+                            WallpaperTransitionDirection.Right => 1,
+                            WallpaperTransitionDirection.Up => 2,
+                            WallpaperTransitionDirection.Down => 3,
+                            WallpaperTransitionDirection.Random => 4,
+                            _ => 0
+                        };
+
+                    transitionDirectionComboBox.SelectedIndex =
+                        Math.Clamp(directionIndex, 0, 4);
+                }
+                else if (selectedTransitionKind == WallpaperTransitionKind.DesktopZoomFade)
+                {
+                    transitionDirectionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("ZoomIn"),
+                            Localization.Get("ZoomOut")
+                        });
+
+                    transitionDirectionComboBox.Enabled = true;
+                    transitionDirectionComboBox.SelectedIndex =
+                        selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0;
+                }
+                else
+                {
+                    transitionDirectionComboBox.Items.Add(
+                        Localization.Get("NotApplicable"));
+
+                    transitionDirectionComboBox.SelectedIndex = 0;
+                    transitionDirectionComboBox.Enabled = false;
+                }
+            }
+            finally
+            {
+                transitionDirectionComboBox.EndUpdate();
+            }
+        }
+
+        private void UpdateTransitionDirectionState()
+        {
+            PopulateDirectionOptions();
+        }
+
+        private void TransitionDirectionComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            int index = transitionDirectionComboBox.SelectedIndex;
+
+            if (index < 0)
+            {
+                return;
+            }
+
+            if (selectedTransitionKind == WallpaperTransitionKind.DesktopZoomFade)
+            {
+                selectedZoomMode =
+                    index == 1
+                    ? WallpaperZoomMode.Out
+                    : WallpaperZoomMode.In;
+
+                try
+                {
+                    using RegistryKey key =
+                        Registry.CurrentUser.CreateSubKey(AppRegistryPath);
+
+                    key.SetValue(
+                        "TransitionZoomMode",
+                        selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0,
+                        RegistryValueKind.DWord);
+                }
+                catch
+                {
+                }
+
+                return;
+            }
+
+            if (selectedTransitionKind != WallpaperTransitionKind.DesktopWipe &&
+                selectedTransitionKind != WallpaperTransitionKind.DesktopSlide)
+            {
+                return;
+            }
+
+            selectedTransitionDirection =
+                DirectionFromIndex(index);
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionDirection",
+                    Math.Clamp(index, 0, 4),
                     RegistryValueKind.DWord);
             }
             catch

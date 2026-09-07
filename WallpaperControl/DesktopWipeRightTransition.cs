@@ -6,13 +6,17 @@
             string? currentWallpaperPath,
             string nextWallpaperPath,
             int durationMilliseconds,
+            WallpaperTransitionDirection direction,
+            WallpaperZoomMode zoomMode,
             CancellationToken cancellationToken = default)
         {
             return PersistentDesktopTransitionManager.ApplyAsync(
                 currentWallpaperPath,
                 nextWallpaperPath,
-                WallpaperTransitionKind.DesktopWipeRight,
+                WallpaperTransitionKind.DesktopWipe,
                 durationMilliseconds,
+                WallpaperTransitionDirection.Right,
+                zoomMode,
                 cancellationToken);
         }
     }
