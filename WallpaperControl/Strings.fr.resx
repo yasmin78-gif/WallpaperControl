@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -652,5 +652,65 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Windows n’a pas pu enregistrer les raccourcis globaux suivants. Ils sont probablement déjà utilisés par une autre application :
 
 {0}</value>
+  </data>
+  <data name="Transition" xml:space="preserve">
+    <value>Transition</value>
+  </data>
+  <data name="TransitionWipe" xml:space="preserve">
+    <value>Balayage</value>
+  </data>
+  <data name="TransitionDuration" xml:space="preserve">
+    <value>Durée</value>
+  </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>Glissement</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>Fondu</value>
+  </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>Balayage depuis la droite</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>Glissement aléatoire</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>Zoom</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>Séparation</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>Rideau</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>Fondu zoom arrière</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>Gauche</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>Droite</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>Haut</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>Bas</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>Aléatoire</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Avant</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Arrière</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>Aléatoire</value>
   </data>
 </root>

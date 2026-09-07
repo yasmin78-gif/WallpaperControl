@@ -40,6 +40,23 @@ namespace WallpaperControl
         private readonly ComboBox positionComboBox;
         private DesktopWallpaperPosition? lastWallpaperPosition;
 
+        private readonly Label transitionLabel;
+        private readonly ComboBox transitionComboBox;
+        private readonly ComboBox transitionDirectionComboBox;
+        private readonly Label transitionDurationLabel;
+        private readonly ComboBox transitionDurationComboBox;
+
+        private WallpaperTransitionKind selectedTransitionKind =
+            WallpaperTransitionKind.DesktopWipe;
+
+        private WallpaperTransitionDirection selectedTransitionDirection =
+            WallpaperTransitionDirection.Left;
+
+        private WallpaperZoomMode selectedZoomMode =
+            WallpaperZoomMode.In;
+
+        private int selectedTransitionDurationMilliseconds = 2000;
+
         private readonly Button pauseButton;
         private readonly Button pinButton;
         private readonly Button nextWallpaperButton;
@@ -139,6 +156,16 @@ namespace WallpaperControl
         private bool darkMode;
         private string themeMode = "system";
         private bool slideshowPaused = false;
+        // Phase 1: Wallpaper Control übernimmt die zeitliche Steuerung selbst.
+        // Windows bleibt nur noch für die eigentliche Wallpaper-Darstellung zuständig.
+        private bool customSlideshowEngineActive = false;
+        private bool customSlideshowChangeRunning = false;
+        private uint customSlideshowLastInterval = 0;
+        private DateTime customSlideshowNextChange = DateTime.MaxValue;
+        private readonly System.Threading.Timer customSlideshowPreciseTimer;
+        private readonly Random customSlideshowRandom = new Random();
+        private readonly WallpaperTransitionService wallpaperTransitionService =
+            new WallpaperTransitionService();
         private bool closingAfterPauseResume = false;
         private bool restoringFromTray = false;
         private bool autostartEnabled = false;
@@ -177,7 +204,7 @@ namespace WallpaperControl
             Icon = Icon.ExtractAssociatedIcon(
                 Application.ExecutablePath);
 
-            ClientSize = new Size(425, 615);
+            ClientSize = new Size(425, 690);
 
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -200,6 +227,13 @@ namespace WallpaperControl
                 ShowAlways = true
             };
 
+            customSlideshowPreciseTimer =
+                new System.Threading.Timer(
+                    CustomSlideshowPreciseTimerCallback,
+                    null,
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+
             RestoreWindowPosition();
 
             Font = new Font("Segoe UI", 10);
@@ -211,6 +245,9 @@ namespace WallpaperControl
 
             DragDrop +=
                 MainForm_DragDrop;
+
+            Shown +=
+                MainForm_Shown;
 
             // ========================================================
             // STATUS
@@ -402,13 +439,111 @@ namespace WallpaperControl
                 PositionComboBox_SelectedIndexChanged;
 
             // ========================================================
+            // ÜBERGANG
+            // ========================================================
+
+            transitionLabel = new Label
+            {
+                Text = Localization.Get("Transition"),
+                AutoSize = true,
+                Location = new Point(25, 310),
+                Font = new Font(
+                    "Segoe UI",
+                    11,
+                    FontStyle.Bold)
+            };
+
+            transitionComboBox = new ComboBox
+            {
+                Location = new Point(25, 345),
+                Width = 125,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            transitionComboBox.Items.AddRange(
+                new object[]
+                {
+                    Localization.Get("TransitionWipe"),
+                    Localization.Get("TransitionSlide"),
+                    Localization.Get("TransitionFade"),
+                    Localization.Get("TransitionZoomFade"),
+                    Localization.Get("TransitionSplit"),
+                    Localization.Get("TransitionCurtain"),
+                    Localization.Get("TransitionRandom")
+                });
+
+            transitionComboBox.SelectedIndex = 0;
+
+            transitionComboBox.SelectedIndexChanged +=
+                TransitionComboBox_SelectedIndexChanged;
+
+            transitionDirectionComboBox = new ComboBox
+            {
+                Location = new Point(160, 345),
+                Width = 115,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            transitionDirectionComboBox.Items.AddRange(
+                new object[]
+                {
+                    Localization.Get("DirectionLeft"),
+                    Localization.Get("DirectionRight"),
+                    Localization.Get("DirectionUp"),
+                    Localization.Get("DirectionDown"),
+                    Localization.Get("DirectionRandom")
+                });
+
+            transitionDirectionComboBox.SelectedIndex = 0;
+
+            transitionDirectionComboBox.SelectedIndexChanged +=
+                TransitionDirectionComboBox_SelectedIndexChanged;
+
+            transitionDurationLabel = new Label
+            {
+                Text = Localization.Get("TransitionDuration"),
+                AutoSize = true,
+                Location = new Point(285, 310),
+                Font = new Font(
+                    "Segoe UI",
+                    11,
+                    FontStyle.Bold)
+            };
+
+            transitionDurationComboBox = new ComboBox
+            {
+                Location = new Point(285, 345),
+                Width = 115,
+                DropDownStyle =
+                    ComboBoxStyle.DropDownList
+            };
+
+            transitionDurationComboBox.Items.AddRange(
+                new object[]
+                {
+                    "0,5 s",
+                    "1,0 s",
+                    "1,5 s",
+                    "2,0 s",
+                    "3,0 s",
+                    "5,0 s"
+                });
+
+            transitionDurationComboBox.SelectedIndexChanged +=
+                TransitionDurationComboBox_SelectedIndexChanged;
+
+            LoadTransitionSettings();
+
+            // ========================================================
             // PAUSE + FESTLEGEN
             // ========================================================
 
             pauseButton = new Button
             {
                 Text = Localization.Get("PauseSlideshow"),
-                Location = new Point(25, 320),
+                Location = new Point(25, 395),
                 Size = new Size(180, 38)
             };
 
@@ -418,7 +553,7 @@ namespace WallpaperControl
             pinButton = new Button
             {
                 Text = Localization.Get("PinImage"),
-                Location = new Point(220, 320),
+                Location = new Point(220, 395),
                 Size = new Size(180, 38)
             };
 
@@ -432,7 +567,7 @@ namespace WallpaperControl
             nextWallpaperButton = new Button
             {
                 Text = Localization.Get("NextWallpaper"),
-                Location = new Point(25, 375),
+                Location = new Point(25, 450),
                 Size = new Size(375, 38)
             };
 
@@ -447,7 +582,7 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("CurrentWallpaperEmpty"),
                 AutoEllipsis = true,
-                Location = new Point(25, 430),
+                Location = new Point(25, 505),
                 Size = new Size(375, 24)
             };
 
@@ -497,7 +632,7 @@ namespace WallpaperControl
             explorerButton = new Button
             {
                 Text = Localization.Get("ShowInExplorer"),
-                Location = new Point(25, 465),
+                Location = new Point(25, 540),
                 Size = new Size(180, 38)
             };
 
@@ -507,7 +642,7 @@ namespace WallpaperControl
             rejectButton = new Button
             {
                 Text = Localization.Get("RejectWallpaper"),
-                Location = new Point(220, 465),
+                Location = new Point(220, 540),
                 Size = new Size(180, 38)
             };
 
@@ -531,7 +666,7 @@ namespace WallpaperControl
             undoRejectButton = new Button
             {
                 Text = Localization.Get("Undo"),
-                Location = new Point(25, 513),
+                Location = new Point(25, 588),
                 Size = new Size(375, 34),
                 Enabled = false
             };
@@ -542,7 +677,7 @@ namespace WallpaperControl
             historyButton = new Button
             {
                 Text = Localization.Get("History"),
-                Location = new Point(25, 555),
+                Location = new Point(25, 630),
                 Size = new Size(180, 34),
                 Enabled = false
             };
@@ -550,7 +685,7 @@ namespace WallpaperControl
             statisticsButton = new Button
             {
                 Text = Localization.Get("Statistics"),
-                Location = new Point(220, 555),
+                Location = new Point(220, 630),
                 Size = new Size(180, 34)
             };
 
@@ -685,6 +820,12 @@ namespace WallpaperControl
             Controls.Add(positionLabel);
             Controls.Add(positionComboBox);
 
+            Controls.Add(transitionLabel);
+            Controls.Add(transitionComboBox);
+            Controls.Add(transitionDirectionComboBox);
+            Controls.Add(transitionDurationLabel);
+            Controls.Add(transitionDurationComboBox);
+
             Controls.Add(pauseButton);
             Controls.Add(pinButton);
             Controls.Add(nextWallpaperButton);
@@ -710,10 +851,46 @@ namespace WallpaperControl
             loading = false;
 
             ApplyWindowsTheme();
+
+            // Ab diesem Entwicklungszweig übernimmt Wallpaper Control
+            // den Wechselzeitpunkt selbst. Der erste automatische Wechsel
+            // erfolgt am nächsten zur Uhr passenden Intervallpunkt.
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
 
             SystemEvents.UserPreferenceChanged +=
                 SystemEvents_UserPreferenceChanged;
+        }
+
+        private async void MainForm_Shown(
+            object? sender,
+            EventArgs e)
+        {
+            // Initialize the persistent desktop renderer before the first
+            // wallpaper transition, so Explorer/DWM's one-time taskbar refresh
+            // happens during startup instead of inside the first wipe.
+            nextWallpaperButton.Enabled = false;
+
+            try
+            {
+                string? current =
+                    GetCurrentWallpaperPath();
+
+                await PersistentDesktopTransitionManager.InitializeHostAsync(
+                    current);
+            }
+            catch
+            {
+                // Prototype: a failed warm-up must not prevent normal startup.
+                // ApplyAsync can still retry the initialization later.
+            }
+            finally
+            {
+                if (!IsDisposed)
+                {
+                    CheckSlideshowStatus();
+                }
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -1064,6 +1241,14 @@ namespace WallpaperControl
 
         private void CheckSlideshowStatus()
         {
+            // Die eigene Engine ist absichtlich kein Windows-Slideshow-Status.
+            // Für die Oberfläche gilt sie trotzdem als aktive Diashow.
+            if (customSlideshowEngineActive && !slideshowPaused)
+            {
+                ShowActiveStatus();
+                return;
+            }
+
             // Nur für die aktuelle Programmsitzung pausiert?
             if (slideshowPaused)
             {
@@ -1226,35 +1411,50 @@ namespace WallpaperControl
             positionComboBox.Location =
                 new Point(25, 270);
 
+            transitionLabel.Location =
+                new Point(25, 310);
+
+            transitionComboBox.Location =
+                new Point(25, 345);
+
+            transitionDirectionComboBox.Location =
+                new Point(160, 345);
+
+            transitionDurationLabel.Location =
+                new Point(285, 310);
+
+            transitionDurationComboBox.Location =
+                new Point(285, 345);
+
             pauseButton.Location =
-                new Point(25, 320);
+                new Point(25, 395);
 
             pinButton.Location =
-                new Point(220, 320);
+                new Point(220, 395);
 
             nextWallpaperButton.Location =
-                new Point(25, 375);
+                new Point(25, 450);
 
             currentWallpaperLabel.Location =
-                new Point(25, 430);
+                new Point(25, 505);
 
             explorerButton.Location =
-                new Point(25, 465);
+                new Point(25, 540);
 
             rejectButton.Location =
-                new Point(220, 465);
+                new Point(220, 540);
 
             undoRejectButton.Location =
-                new Point(25, 513);
+                new Point(25, 588);
 
             historyButton.Location =
-                new Point(25, 555);
+                new Point(25, 630);
 
             statisticsButton.Location =
-                new Point(220, 555);
+                new Point(220, 630);
 
             ClientSize =
-                new Size(425, 615);
+                new Size(425, 690);
         }
 
         private void SetWarningLayout(
@@ -1293,37 +1493,52 @@ namespace WallpaperControl
             positionComboBox.Location =
                 new Point(25, 270 + offset);
 
+            transitionLabel.Location =
+                new Point(25, 310 + offset);
+
+            transitionComboBox.Location =
+                new Point(25, 345 + offset);
+
+            transitionDirectionComboBox.Location =
+                new Point(160, 345 + offset);
+
+            transitionDurationLabel.Location =
+                new Point(285, 310 + offset);
+
+            transitionDurationComboBox.Location =
+                new Point(285, 345 + offset);
+
             pauseButton.Location =
-                new Point(25, 320 + offset);
+                new Point(25, 395 + offset);
 
             pinButton.Location =
-                new Point(220, 320 + offset);
+                new Point(220, 395 + offset);
 
             nextWallpaperButton.Location =
-                new Point(25, 375 + offset);
+                new Point(25, 450 + offset);
 
             currentWallpaperLabel.Location =
-                new Point(25, 430 + offset);
+                new Point(25, 505 + offset);
 
             explorerButton.Location =
-                new Point(25, 465 + offset);
+                new Point(25, 540 + offset);
 
             rejectButton.Location =
-                new Point(220, 465 + offset);
+                new Point(220, 540 + offset);
 
             undoRejectButton.Location =
-                new Point(25, 513 + offset);
+                new Point(25, 588 + offset);
 
             historyButton.Location =
-                new Point(25, 555 + offset);
+                new Point(25, 630 + offset);
 
             statisticsButton.Location =
-                new Point(220, 555 + offset);
+                new Point(220, 630 + offset);
 
             ClientSize =
                 new Size(
                     425,
-                    615 + offset);
+                    690 + offset);
         }
 
         // ============================================================
@@ -1867,6 +2082,26 @@ namespace WallpaperControl
                 return;
             }
 
+            // Beim echten Beenden übernimmt Windows wieder seine native
+            // Diashow. Das zuletzt von Windows selbst angezeigte Bild darf dabei
+            // sichtbar werden; auf einen künstlichen Exit-Handoff verzichten wir
+            // bewusst, weil dieser auf Windows 11 nicht zuverlässig funktioniert.
+            if (customSlideshowEngineActive)
+            {
+                string? folder = LoadLastWallpaperFolder();
+
+                customSlideshowEngineActive = false;
+                PersistentDesktopTransitionManager.Shutdown();
+
+                if (!string.IsNullOrWhiteSpace(folder) &&
+                    Directory.Exists(folder))
+                {
+                    SetWallpaperFolder(folder);
+                }
+            }
+
+            customSlideshowPreciseTimer.Dispose();
+
             SavePersistentStatistics();
 
             base.OnFormClosing(e);
@@ -2020,6 +2255,7 @@ namespace WallpaperControl
             SetWallpaperFolder(
                 folder);
 
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
         }
 
@@ -2135,6 +2371,15 @@ namespace WallpaperControl
 
         private string? GetCurrentWallpaperPath()
         {
+            string? hostedWallpaper =
+                PersistentDesktopTransitionManager.GetDisplayedWallpaperPath();
+
+            if (!string.IsNullOrWhiteSpace(hostedWallpaper) &&
+                File.Exists(hostedWallpaper))
+            {
+                return hostedWallpaper;
+            }
+
             IDesktopWallpaper? wallpaper = null;
 
             try
@@ -2188,6 +2433,16 @@ namespace WallpaperControl
 
         private void PauseSlideshow()
         {
+            if (customSlideshowEngineActive)
+            {
+                slideshowPaused = true;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                CheckSlideshowStatus();
+                return;
+            }
+
             string? wallpaperPath =
                 GetCurrentWallpaperPath();
 
@@ -2239,6 +2494,15 @@ namespace WallpaperControl
         private async Task<bool> ResumeSlideshowAsync(
             bool showError)
         {
+            if (customSlideshowEngineActive)
+            {
+                slideshowPaused = false;
+                RecalculateCustomSlideshowSchedule();
+                CheckSlideshowStatus();
+                await Task.CompletedTask;
+                return true;
+            }
+
             string? folder =
                 LoadLastWallpaperFolder();
 
@@ -2263,6 +2527,7 @@ namespace WallpaperControl
                 await Task.Delay(300);
 
                 slideshowPaused = false;
+                StartCustomSlideshowEngine();
 
                 CheckSlideshowStatus();
 
@@ -2315,6 +2580,10 @@ namespace WallpaperControl
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
+                customSlideshowEngineActive = false;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
                 slideshowPaused = false;
 
                 wallpaper.SetWallpaper(
@@ -2371,6 +2640,7 @@ namespace WallpaperControl
             // synchron. Erst nach kurzer Verzögerung die UI aktualisieren.
             await Task.Delay(300);
 
+            StartCustomSlideshowEngine();
             CheckSlideshowStatus();
         }
 
@@ -2550,6 +2820,11 @@ namespace WallpaperControl
                 return;
 
             ApplySlideshowOptions();
+
+            if (customSlideshowEngineActive)
+            {
+                RecalculateCustomSlideshowSchedule();
+            }
         }
 
         private void ShuffleCheckBox_CheckedChanged(
@@ -2674,6 +2949,12 @@ namespace WallpaperControl
             if (slideshowPaused)
                 return;
 
+            if (customSlideshowEngineActive)
+            {
+                AdvanceCustomWallpaper(direction);
+                return;
+            }
+
             IDesktopWallpaper? wallpaper = null;
 
             try
@@ -2700,6 +2981,290 @@ namespace WallpaperControl
             finally
             {
                 ReleaseComObject(wallpaper);
+            }
+        }
+
+        // ============================================================
+        // EIGENE SLIDESHOW-ENGINE - PHASE 1
+        // ============================================================
+
+        private void StartCustomSlideshowEngine()
+        {
+            string folder = folderTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(folder) ||
+                !Directory.Exists(folder))
+            {
+                customSlideshowEngineActive = false;
+                return;
+            }
+
+            string? current = GetCurrentWallpaperPath();
+
+            if (string.IsNullOrWhiteSpace(current) ||
+                !File.Exists(current))
+            {
+                customSlideshowEngineActive = false;
+                return;
+            }
+
+            IDesktopWallpaper? wallpaper = null;
+
+            try
+            {
+                wallpaper =
+                    (IDesktopWallpaper)
+                    new DesktopWallpaper();
+
+                // SetWallpaper beendet die native Windows-Zeitsteuerung.
+                // Das sichtbare Bild bleibt dabei unverändert.
+                wallpaper.SetWallpaper(null, current);
+
+                customSlideshowEngineActive = true;
+                slideshowPaused = false;
+                RecalculateCustomSlideshowSchedule();
+            }
+            catch
+            {
+                customSlideshowEngineActive = false;
+            }
+            finally
+            {
+                ReleaseComObject(wallpaper);
+            }
+        }
+
+        private void RecalculateCustomSlideshowSchedule()
+        {
+            if (!TryGetSelectedInterval(out uint milliseconds))
+            {
+                customSlideshowNextChange = DateTime.MaxValue;
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                return;
+            }
+
+            customSlideshowLastInterval = milliseconds;
+            customSlideshowNextChange =
+                GetNextAlignedChange(DateTime.Now, milliseconds);
+
+            ArmCustomSlideshowPreciseTimer();
+        }
+
+        private void ArmCustomSlideshowPreciseTimer()
+        {
+            if (!customSlideshowEngineActive ||
+                slideshowPaused ||
+                customSlideshowNextChange == DateTime.MaxValue)
+            {
+                customSlideshowPreciseTimer.Change(
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+                return;
+            }
+
+            TimeSpan remaining =
+                customSlideshowNextChange - DateTime.Now;
+
+            if (remaining < TimeSpan.Zero)
+            {
+                remaining =
+                    TimeSpan.Zero;
+            }
+
+            // Einmaliger Timer direkt auf den berechneten Rasterpunkt.
+            // Nach jedem Wechsel wird er für den nächsten Rasterpunkt neu gesetzt.
+            customSlideshowPreciseTimer.Change(
+                remaining,
+                Timeout.InfiniteTimeSpan);
+        }
+
+        private void CustomSlideshowPreciseTimerCallback(
+            object? state)
+        {
+            if (IsDisposed ||
+                Disposing)
+            {
+                return;
+            }
+
+            try
+            {
+                BeginInvoke(
+                    new Action(
+                        ProcessPreciseCustomSlideshowTick));
+            }
+            catch
+            {
+                // Das Fenster wird möglicherweise gerade beendet.
+            }
+        }
+
+        private void ProcessPreciseCustomSlideshowTick()
+        {
+            if (!customSlideshowEngineActive ||
+                slideshowPaused ||
+                customSlideshowChangeRunning)
+            {
+                ArmCustomSlideshowPreciseTimer();
+                return;
+            }
+
+            if (!TryGetSelectedInterval(out uint milliseconds))
+                return;
+
+            if (milliseconds != customSlideshowLastInterval)
+            {
+                RecalculateCustomSlideshowSchedule();
+                return;
+            }
+
+            DateTime target =
+                customSlideshowNextChange;
+
+            DateTime invoked =
+                DateTime.Now;
+
+            if (invoked < target)
+            {
+                ArmCustomSlideshowPreciseTimer();
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Custom slideshow target: {target:HH:mm:ss.fff}; " +
+                $"callback: {invoked:HH:mm:ss.fff}; " +
+                $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
+
+            AdvanceCustomWallpaper(
+                DesktopSlideshowDirection.Forward);
+
+            // Der nächste Termin wird vom Soll-Raster abgeleitet, nicht vom
+            // tatsächlichen Ausführungszeitpunkt. Dadurch kann kein Drift entstehen.
+            customSlideshowNextChange =
+                GetNextAlignedChange(
+                    target.AddMilliseconds(1),
+                    milliseconds);
+
+            ArmCustomSlideshowPreciseTimer();
+        }
+
+        private static DateTime GetNextAlignedChange(
+            DateTime now,
+            uint intervalMilliseconds)
+        {
+            long intervalTicks =
+                TimeSpan.FromMilliseconds(intervalMilliseconds).Ticks;
+
+            DateTime dayStart = now.Date;
+            long elapsedTicks = (now - dayStart).Ticks;
+            long completedIntervals = elapsedTicks / intervalTicks;
+            long nextTicks = (completedIntervals + 1) * intervalTicks;
+
+            return dayStart.AddTicks(nextTicks);
+        }
+
+        private bool TryGetSelectedInterval(out uint milliseconds)
+        {
+            milliseconds = 0;
+
+            return intervalComboBox.SelectedItem is string selected &&
+                   intervals.TryGetValue(selected, out milliseconds);
+        }
+
+        private async void AdvanceCustomWallpaper(
+            DesktopSlideshowDirection direction)
+        {
+            if (customSlideshowChangeRunning)
+                return;
+
+            string folder = folderTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(folder) ||
+                !Directory.Exists(folder))
+            {
+                return;
+            }
+
+            try
+            {
+                customSlideshowChangeRunning = true;
+
+                string[] files = Directory.EnumerateFiles(
+                        folder,
+                        "*",
+                        SearchOption.TopDirectoryOnly)
+                    .Where(IsSupportedWallpaperExtension)
+                    .OrderBy(path => path, StringComparer.CurrentCultureIgnoreCase)
+                    .ToArray();
+
+                if (files.Length == 0)
+                    return;
+
+                string? current = GetCurrentWallpaperPath();
+                string next;
+
+                if (shuffleCheckBox.Checked && files.Length > 1)
+                {
+                    string[] candidates = files
+                        .Where(path => !string.Equals(
+                            path,
+                            current,
+                            StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+
+                    next = candidates[customSlideshowRandom.Next(candidates.Length)];
+                }
+                else
+                {
+                    int currentIndex = Array.FindIndex(
+                        files,
+                        path => string.Equals(
+                            path,
+                            current,
+                            StringComparison.OrdinalIgnoreCase));
+
+                    if (direction == DesktopSlideshowDirection.Backward)
+                    {
+                        int previousIndex = currentIndex <= 0
+                            ? files.Length - 1
+                            : currentIndex - 1;
+
+                        next = files[previousIndex];
+                    }
+                    else
+                    {
+                        int nextIndex = currentIndex < 0
+                            ? 0
+                            : (currentIndex + 1) % files.Length;
+
+                        next = files[nextIndex];
+                    }
+                }
+
+                await wallpaperTransitionService.ApplyAsync(
+                    current,
+                    next,
+                    selectedTransitionKind,
+                    selectedTransitionDurationMilliseconds,
+                    selectedTransitionDirection,
+                    selectedZoomMode);
+
+                _ = RefreshCurrentWallpaperSoonAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    Localization.Get("MsgAdvanceFailed") +
+                    ex.Message,
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                customSlideshowChangeRunning = false;
             }
         }
 
@@ -4454,6 +5019,45 @@ namespace WallpaperControl
                         break;
                     }
                 }
+
+                int transitionIndex =
+                    selectedTransitionKind switch
+                    {
+                        WallpaperTransitionKind.DesktopSlide => 1,
+                        WallpaperTransitionKind.DesktopFade => 2,
+                        WallpaperTransitionKind.DesktopZoomFade => 3,
+                        WallpaperTransitionKind.DesktopSplit => 4,
+                        WallpaperTransitionKind.DesktopCurtain => 5,
+                        WallpaperTransitionKind.DesktopRandom => 6,
+                        _ => 0
+                    };
+
+                transitionComboBox.BeginUpdate();
+
+                try
+                {
+                    transitionComboBox.Items.Clear();
+                    transitionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("TransitionWipe"),
+                            Localization.Get("TransitionSlide"),
+                            Localization.Get("TransitionFade"),
+                            Localization.Get("TransitionZoomFade"),
+                            Localization.Get("TransitionSplit"),
+                            Localization.Get("TransitionCurtain"),
+                            Localization.Get("TransitionRandom")
+                        });
+
+                    transitionComboBox.SelectedIndex =
+                        Math.Clamp(transitionIndex, 0, 6);
+                }
+                finally
+                {
+                    transitionComboBox.EndUpdate();
+                }
+
+                PopulateDirectionOptions();
             }
             finally
             {
@@ -4474,6 +5078,12 @@ namespace WallpaperControl
 
             positionLabel.Text =
                 Localization.Get("WallpaperPosition");
+
+            transitionLabel.Text =
+                Localization.Get("Transition");
+
+            transitionDurationLabel.Text =
+                Localization.Get("TransitionDuration");
 
             pinButton.Text =
                 Localization.Get("PinImage");
@@ -4759,6 +5369,355 @@ namespace WallpaperControl
                 key.SetValue(
                     "HotkeyRejectKey",
                     hotkeyRejectKey,
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
+        private void LoadTransitionSettings()
+        {
+            int transitionIndex = 0;
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        AppRegistryPath);
+
+                object? transitionValue =
+                    key?.GetValue(
+                        "TransitionKind");
+
+                if (transitionValue != null)
+                {
+                    transitionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(
+                                transitionValue),
+                            0,
+                            6);
+                }
+
+                object? durationValue =
+                    key?.GetValue(
+                        "TransitionDurationMilliseconds");
+
+                if (durationValue != null)
+                {
+                    selectedTransitionDurationMilliseconds =
+                        Math.Clamp(
+                            Convert.ToInt32(durationValue),
+                            500,
+                            5000);
+                }
+            }
+            catch
+            {
+                transitionIndex = 0;
+                selectedTransitionDurationMilliseconds = 2000;
+            }
+
+            transitionComboBox.SelectedIndex =
+                transitionIndex;
+
+            selectedTransitionKind =
+                transitionIndex switch
+                {
+                    1 => WallpaperTransitionKind.DesktopSlide,
+                    2 => WallpaperTransitionKind.DesktopFade,
+                    3 => WallpaperTransitionKind.DesktopZoomFade,
+                    4 => WallpaperTransitionKind.DesktopSplit,
+                    5 => WallpaperTransitionKind.DesktopCurtain,
+                    6 => WallpaperTransitionKind.DesktopRandom,
+                    _ => WallpaperTransitionKind.DesktopWipe
+                };
+
+            int directionIndex = 0;
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
+
+                object? directionValue =
+                    key?.GetValue("TransitionDirection");
+
+                if (directionValue != null)
+                {
+                    directionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(directionValue),
+                            0,
+                            4);
+                }
+            }
+            catch
+            {
+                directionIndex = 0;
+            }
+
+            // Nur den gespeicherten Wert übernehmen.
+            // Das Dropdown selbst wird erst in UpdateTransitionDirectionState()
+            // passend zum aktuell gewählten Effekt befüllt. Sonst kann z.B.
+            // bei Split/Vorhang nur "Nicht verfügbar" enthalten sein und ein
+            // gespeicherter Richtungsindex wie 4 einen OutOfRange-Fehler auslösen.
+            selectedTransitionDirection =
+                DirectionFromIndex(directionIndex);
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
+
+                object? zoomModeValue =
+                    key?.GetValue("TransitionZoomMode");
+
+                if (zoomModeValue != null &&
+                    Convert.ToInt32(zoomModeValue) == 1)
+                {
+                    selectedZoomMode = WallpaperZoomMode.Out;
+                }
+                else
+                {
+                    selectedZoomMode = WallpaperZoomMode.In;
+                }
+            }
+            catch
+            {
+                selectedZoomMode = WallpaperZoomMode.In;
+            }
+
+            UpdateTransitionDirectionState();
+
+            int[] durations =
+                { 500, 1000, 1500, 2000, 3000, 5000 };
+
+            int index =
+                Array.IndexOf(
+                    durations,
+                    selectedTransitionDurationMilliseconds);
+
+            if (index < 0)
+            {
+                index = 3;
+                selectedTransitionDurationMilliseconds = 2000;
+            }
+
+            transitionDurationComboBox.SelectedIndex = index;
+        }
+
+        private void TransitionComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            int index =
+                transitionComboBox.SelectedIndex;
+
+            selectedTransitionKind =
+                index switch
+                {
+                    1 => WallpaperTransitionKind.DesktopSlide,
+                    2 => WallpaperTransitionKind.DesktopFade,
+                    3 => WallpaperTransitionKind.DesktopZoomFade,
+                    4 => WallpaperTransitionKind.DesktopSplit,
+                    5 => WallpaperTransitionKind.DesktopCurtain,
+                    6 => WallpaperTransitionKind.DesktopRandom,
+                    _ => WallpaperTransitionKind.DesktopWipe
+                };
+
+            UpdateTransitionDirectionState();
+
+            if (index < 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionKind",
+                    Math.Clamp(index, 0, 6),
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
+        private WallpaperTransitionDirection DirectionFromIndex(int index)
+        {
+            return index switch
+            {
+                1 => WallpaperTransitionDirection.Right,
+                2 => WallpaperTransitionDirection.Up,
+                3 => WallpaperTransitionDirection.Down,
+                4 => WallpaperTransitionDirection.Random,
+                _ => WallpaperTransitionDirection.Left
+            };
+        }
+
+        private void PopulateDirectionOptions()
+        {
+            transitionDirectionComboBox.BeginUpdate();
+
+            try
+            {
+                transitionDirectionComboBox.Items.Clear();
+
+                if (selectedTransitionKind == WallpaperTransitionKind.DesktopWipe ||
+                    selectedTransitionKind == WallpaperTransitionKind.DesktopSlide)
+                {
+                    transitionDirectionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("DirectionLeft"),
+                            Localization.Get("DirectionRight"),
+                            Localization.Get("DirectionUp"),
+                            Localization.Get("DirectionDown"),
+                            Localization.Get("DirectionRandom")
+                        });
+
+                    transitionDirectionComboBox.Enabled = true;
+
+                    int directionIndex =
+                        selectedTransitionDirection switch
+                        {
+                            WallpaperTransitionDirection.Right => 1,
+                            WallpaperTransitionDirection.Up => 2,
+                            WallpaperTransitionDirection.Down => 3,
+                            WallpaperTransitionDirection.Random => 4,
+                            _ => 0
+                        };
+
+                    transitionDirectionComboBox.SelectedIndex =
+                        Math.Clamp(directionIndex, 0, 4);
+                }
+                else if (selectedTransitionKind == WallpaperTransitionKind.DesktopZoomFade)
+                {
+                    transitionDirectionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("ZoomIn"),
+                            Localization.Get("ZoomOut")
+                        });
+
+                    transitionDirectionComboBox.Enabled = true;
+                    transitionDirectionComboBox.SelectedIndex =
+                        selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0;
+                }
+                else
+                {
+                    transitionDirectionComboBox.Items.Add(
+                        Localization.Get("NotApplicable"));
+
+                    transitionDirectionComboBox.SelectedIndex = 0;
+                    transitionDirectionComboBox.Enabled = false;
+                }
+            }
+            finally
+            {
+                transitionDirectionComboBox.EndUpdate();
+            }
+        }
+
+        private void UpdateTransitionDirectionState()
+        {
+            PopulateDirectionOptions();
+        }
+
+        private void TransitionDirectionComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            int index = transitionDirectionComboBox.SelectedIndex;
+
+            if (index < 0)
+            {
+                return;
+            }
+
+            if (selectedTransitionKind == WallpaperTransitionKind.DesktopZoomFade)
+            {
+                selectedZoomMode =
+                    index == 1
+                    ? WallpaperZoomMode.Out
+                    : WallpaperZoomMode.In;
+
+                try
+                {
+                    using RegistryKey key =
+                        Registry.CurrentUser.CreateSubKey(AppRegistryPath);
+
+                    key.SetValue(
+                        "TransitionZoomMode",
+                        selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0,
+                        RegistryValueKind.DWord);
+                }
+                catch
+                {
+                }
+
+                return;
+            }
+
+            if (selectedTransitionKind != WallpaperTransitionKind.DesktopWipe &&
+                selectedTransitionKind != WallpaperTransitionKind.DesktopSlide)
+            {
+                return;
+            }
+
+            selectedTransitionDirection =
+                DirectionFromIndex(index);
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionDirection",
+                    Math.Clamp(index, 0, 4),
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
+        private void TransitionDurationComboBox_SelectedIndexChanged(
+            object? sender,
+            EventArgs e)
+        {
+            int[] durations =
+                { 500, 1000, 1500, 2000, 3000, 5000 };
+
+            int index =
+                transitionDurationComboBox.SelectedIndex;
+
+            if (index < 0 ||
+                index >= durations.Length)
+            {
+                return;
+            }
+
+            selectedTransitionDurationMilliseconds =
+                durations[index];
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionDurationMilliseconds",
+                    selectedTransitionDurationMilliseconds,
                     RegistryValueKind.DWord);
             }
             catch

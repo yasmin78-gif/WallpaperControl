@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -624,5 +624,65 @@
     <value>次のグローバルホットキーを Windows に登録できませんでした。別のアプリですでに使用されている可能性があります:
 
 {0}</value>
+  </data>
+  <data name="Transition" xml:space="preserve">
+    <value>切り替え効果</value>
+  </data>
+  <data name="TransitionWipe" xml:space="preserve">
+    <value>ワイプ</value>
+  </data>
+  <data name="TransitionDuration" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>スライド</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>フェード</value>
+  </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>右からワイプ</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>ランダムスライド</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>ズーム</value>
+  </data>
+  <data name="TransitionSplit" xml:space="preserve">
+    <value>スプリット</value>
+  </data>
+  <data name="TransitionCurtain" xml:space="preserve">
+    <value>カーテン</value>
+  </data>
+  <data name="TransitionZoomOutFade" xml:space="preserve">
+    <value>ズームアウトフェード</value>
+  </data>
+  <data name="DirectionLeft" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="DirectionRight" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="DirectionUp" xml:space="preserve">
+    <value>上</value>
+  </data>
+  <data name="DirectionDown" xml:space="preserve">
+    <value>下</value>
+  </data>
+  <data name="DirectionRandom" xml:space="preserve">
+    <value>ランダム</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>イン</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>アウト</value>
+  </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="TransitionRandom" xml:space="preserve">
+    <value>ランダム</value>
   </data>
 </root>
