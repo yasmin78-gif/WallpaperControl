@@ -5019,6 +5019,45 @@ namespace WallpaperControl
                         break;
                     }
                 }
+
+                int transitionIndex =
+                    selectedTransitionKind switch
+                    {
+                        WallpaperTransitionKind.DesktopSlide => 1,
+                        WallpaperTransitionKind.DesktopFade => 2,
+                        WallpaperTransitionKind.DesktopZoomFade => 3,
+                        WallpaperTransitionKind.DesktopSplit => 4,
+                        WallpaperTransitionKind.DesktopCurtain => 5,
+                        WallpaperTransitionKind.DesktopRandom => 6,
+                        _ => 0
+                    };
+
+                transitionComboBox.BeginUpdate();
+
+                try
+                {
+                    transitionComboBox.Items.Clear();
+                    transitionComboBox.Items.AddRange(
+                        new object[]
+                        {
+                            Localization.Get("TransitionWipe"),
+                            Localization.Get("TransitionSlide"),
+                            Localization.Get("TransitionFade"),
+                            Localization.Get("TransitionZoomFade"),
+                            Localization.Get("TransitionSplit"),
+                            Localization.Get("TransitionCurtain"),
+                            Localization.Get("TransitionRandom")
+                        });
+
+                    transitionComboBox.SelectedIndex =
+                        Math.Clamp(transitionIndex, 0, 6);
+                }
+                finally
+                {
+                    transitionComboBox.EndUpdate();
+                }
+
+                PopulateDirectionOptions();
             }
             finally
             {
@@ -5039,6 +5078,12 @@ namespace WallpaperControl
 
             positionLabel.Text =
                 Localization.Get("WallpaperPosition");
+
+            transitionLabel.Text =
+                Localization.Get("Transition");
+
+            transitionDurationLabel.Text =
+                Localization.Get("TransitionDuration");
 
             pinButton.Text =
                 Localization.Get("PinImage");

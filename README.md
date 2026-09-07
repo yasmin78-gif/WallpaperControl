@@ -4,6 +4,8 @@
 
 It adds the controls and quality-of-life features that are missing from the standard Windows wallpaper settings, while continuing to use the native Windows slideshow system.
 
+**Current release: v1.6.0**
+
 ## ✨ Features
 
 - 🖼️ **Wallpaper slideshow control**
@@ -25,13 +27,22 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Open wallpapers directly in your default image viewer
   - Hover previews for quick identification
 
-- 📊 **Session statistics**
-  - Tracks how often each wallpaper has been displayed
-  - Shows when each wallpaper was last displayed
-  - Top 10 and complete statistics views
-  - Shows when statistics tracking started
-  - Hover over a wallpaper name for a preview
-  - Click a wallpaper name to open it in your default application
+- 📊 **Statistics dashboard**
+  - Persistent wallpaper statistics across application restarts
+  - Tracks views and when each wallpaper was last displayed
+  - Time-based statistics for Today, Yesterday, Last 7 Days and Last 30 Days
+  - Top 10, Top 25 and complete statistics views
+  - Dashboard metrics for most viewed, least viewed and average views
+  - Distribution fairness metric
+  - Top 10 wallpaper chart
+  - Average wallpaper recurrence time
+  - Neglected wallpaper analysis
+  - Detects wallpapers that have never been displayed
+  - Search and sortable columns
+  - Wallpaper thumbnails and hover previews
+  - Set a wallpaper directly from the statistics window
+  - Open wallpapers or their folders from the context menu
+  - Remove individual entries or reset all statistics
 
 - ⌨️ **Global hotkeys**
   - Next wallpaper
@@ -39,6 +50,9 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Show current wallpaper in your file manager
   - Reject current wallpaper
   - Hotkeys can be customized or disabled
+  - Detects duplicate hotkey assignments
+  - Warns when Windows cannot register a selected hotkey
+  - Default Reject hotkey: `Ctrl+Alt+Shift+R`
 
 - 🖥️ **Windows integration**
   - Uses the native Windows wallpaper slideshow
@@ -53,11 +67,14 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Optional **Close to Tray** behavior when clicking the window's X button
   - Exit the application directly from the tray menu
 
-- 🎨 **Interface**
-  - Light and dark mode support
+- 🎨 **Interface & appearance**
+  - System, Dark and Light theme selection
+  - System theme automatically follows the Windows app theme
   - Adjustable window opacity
   - Remembers window position
   - Drag & drop support
+  - Reorganized settings interface
+  - Separate appearance reset
   - Localized interface
 
 ## 🌍 Languages
@@ -80,21 +97,35 @@ The interface language can be changed directly from the application settings.
 
 ## 🚀 Installation
 
-1. Download the latest release.
-2. Extract the archive if necessary.
-3. Start `WallpaperControl.exe`.
-4. Select your wallpaper folder.
-5. Configure the slideshow and optional features to your liking.
+1. Download `WallpaperControl.exe` from the latest release.
+2. Start `WallpaperControl.exe`.
+3. Select your wallpaper folder.
+4. Configure the slideshow and optional features to your liking.
 
-No installer is required.
+No installer or separate .NET installation is required.
 
 ## 📊 Statistics
 
-Statistics are intentionally session-based.
+Wallpaper Control keeps persistent statistics about the wallpapers selected by the Windows slideshow.
 
-Tracking starts when Wallpaper Control is launched and resets when the application is completely closed. Minimizing Wallpaper Control to the system tray does **not** reset the statistics.
+The statistics dashboard can show:
 
-This makes it easy to see which wallpapers Windows actually selected during the current session without creating a permanent usage database.
+- Total views for each wallpaper
+- When a wallpaper was last displayed
+- View share and popularity ranking
+- Statistics for Today, Yesterday, the Last 7 Days and the Last 30 Days
+- Most and least viewed wallpapers
+- Average number of views
+- Distribution fairness
+- Average recurrence time
+- A Top 10 chart
+- Wallpapers that have never been displayed or have not been shown for a long time
+
+Statistics are stored locally and survive application restarts.
+
+Time-based statistics and recurrence tracking begin when the corresponding tracking data is first initialized. Historical daily or recurrence data from before tracking began is not reconstructed.
+
+The recent wallpaper history remains session-based and is cleared when Wallpaper Control is completely closed.
 
 ## 🗑️ Rejecting Wallpapers
 
@@ -111,6 +142,8 @@ Accidentally rejected the wrong image? The last rejection can be undone during t
 Wallpaper Control works locally on your computer.
 
 It does not require an account, cloud service or online connection to manage your wallpapers.
+
+Wallpaper statistics are stored locally in the user's application data folder.
 
 ## 🛠️ Built With
 
