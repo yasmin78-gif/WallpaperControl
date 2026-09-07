@@ -4,7 +4,7 @@
 
 It adds the controls and quality-of-life features that are missing from the standard Windows wallpaper settings, while continuing to use the native Windows slideshow system.
 
-**Current release: v1.6.0**
+**Current release: v1.7.0**
 
 ## ✨ Features
 
@@ -54,12 +54,27 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Warns when Windows cannot register a selected hotkey
   - Default Reject hotkey: `Ctrl+Alt+Shift+R`
 
+- 🎬 **Wallpaper transition effects**
+  - Smooth transitions rendered directly on the Windows desktop
+  - Wipe with selectable direction: Left, Right, Up, Down or Random
+  - Slide with selectable direction: Left, Right, Up, Down or Random
+  - Fade
+  - Zoom with In and Out variants
+  - Split
+  - Curtain
+  - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
+  - Configurable transition duration
+  - Desktop icons and tools such as Rainmeter remain visible above the transition layer
+
 - 🖥️ **Windows integration**
-  - Uses the native Windows wallpaper slideshow
+  - Uses native Windows wallpaper APIs and integrates with the Windows slideshow
+  - Custom clock-aligned slideshow timing for precise wallpaper changes
+  - Manual wallpaper changes do not reset the automatic slideshow schedule
   - Supports different wallpaper display modes
   - Detects external wallpaper changes
   - Opens folders using your configured default file manager
   - Optional automatic startup with Windows
+  - Restores native Windows wallpaper handling when Wallpaper Control exits
 
 - 🔔 **System tray support**
   - Wallpaper Control can continue running in the notification area
@@ -91,7 +106,8 @@ The interface language can be changed directly from the application settings.
 
 ## 💻 Requirements
 
-- Windows 10 or Windows 11
+- **Windows 11:** supported and tested
+- **Windows 10:** expected to be compatible, currently untested
 - 64-bit Windows
 - No separate .NET installation required when using the self-contained release
 
