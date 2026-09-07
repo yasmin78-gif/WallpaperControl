@@ -20,6 +20,14 @@
                     {
                         WallpaperTransitionKind.DesktopWipe,
                         new DesktopWipeTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopSlide,
+                        new DesktopSlideTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopFade,
+                        new DesktopFadeTransition()
                     }
                 };
         }

@@ -634,4 +634,10 @@
   <data name="TransitionDuration" xml:space="preserve">
     <value>時間</value>
   </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>スライド</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>フェード</value>
+  </data>
 </root>

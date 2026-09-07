@@ -662,4 +662,10 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="TransitionDuration" xml:space="preserve">
     <value>Durée</value>
   </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>Glissement</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>Fondu</value>
+  </data>
 </root>

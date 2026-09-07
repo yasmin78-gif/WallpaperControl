@@ -1,6 +1,6 @@
 ﻿namespace WallpaperControl
 {
-    internal sealed class DesktopWipeTransition : IWallpaperTransition
+    internal sealed class DesktopFadeTransition : IWallpaperTransition
     {
         public Task ApplyAsync(
             string? currentWallpaperPath,
@@ -11,7 +11,7 @@
             return PersistentDesktopTransitionManager.ApplyAsync(
                 currentWallpaperPath,
                 nextWallpaperPath,
-                WallpaperTransitionKind.DesktopWipe,
+                WallpaperTransitionKind.DesktopFade,
                 durationMilliseconds,
                 cancellationToken);
         }

@@ -26,6 +26,8 @@ namespace WallpaperControl
         private TaskCompletionSource<bool>? completionSource;
         private int durationMilliseconds;
         private double progress = 1.0;
+        private WallpaperTransitionKind transitionKind =
+            WallpaperTransitionKind.DesktopWipe;
 
         public string? CurrentWallpaperPath { get; private set; }
 
@@ -134,8 +136,9 @@ namespace WallpaperControl
             return true;
         }
 
-        public Task WipeToAsync(
+        public Task TransitionToAsync(
             string nextWallpaperPath,
+            WallpaperTransitionKind kind,
             int milliseconds,
             CancellationToken cancellationToken = default)
         {
@@ -146,7 +149,11 @@ namespace WallpaperControl
                     nextWallpaperPath);
             }
 
-            ReplaceBitmap(ref nextFrame, LoadFrame(nextWallpaperPath));
+            ReplaceBitmap(
+                ref nextFrame,
+                LoadFrame(nextWallpaperPath));
+
+            transitionKind = kind;
             durationMilliseconds = Math.Max(1, milliseconds);
             progress = 0.0;
 
@@ -163,7 +170,8 @@ namespace WallpaperControl
                         BeginInvoke(new Action(() =>
                         {
                             StopAnimation();
-                            completionSource?.TrySetCanceled(cancellationToken);
+                            completionSource?.TrySetCanceled(
+                                cancellationToken);
                         }));
                     }
                 });
@@ -221,16 +229,54 @@ namespace WallpaperControl
                 return;
             }
 
-            e.Graphics.DrawImageUnscaled(currentFrame, 0, 0);
+            if (nextFrame == null)
+            {
+                e.Graphics.DrawImageUnscaled(
+                    currentFrame,
+                    0,
+                    0);
+                return;
+            }
+
+            switch (transitionKind)
+            {
+                case WallpaperTransitionKind.DesktopSlide:
+                    DrawSlideTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopFade:
+                    DrawFadeTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopWipe:
+                default:
+                    DrawWipeTransition(e.Graphics);
+                    break;
+            }
+        }
+
+        private void DrawWipeTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(
+                currentFrame,
+                0,
+                0);
 
             if (nextFrame == null)
             {
                 return;
             }
 
-            int width = Math.Min(
-                ClientSize.Width,
-                (int)Math.Round(ClientSize.Width * progress));
+            int width =
+                Math.Min(
+                    ClientSize.Width,
+                    (int)Math.Round(
+                        ClientSize.Width * progress));
 
             if (width <= 0)
             {
@@ -238,13 +284,103 @@ namespace WallpaperControl
             }
 
             Rectangle reveal =
-                new Rectangle(0, 0, width, ClientSize.Height);
+                new Rectangle(
+                    0,
+                    0,
+                    width,
+                    ClientSize.Height);
 
-            e.Graphics.DrawImage(
+            graphics.DrawImage(
                 nextFrame,
                 reveal,
                 reveal,
                 GraphicsUnit.Pixel);
+        }
+
+        private void DrawSlideTransition(Graphics graphics)
+        {
+            if (currentFrame == null ||
+                nextFrame == null)
+            {
+                return;
+            }
+
+            int offset =
+                (int)Math.Round(
+                    ClientSize.Width * progress);
+
+            int currentX = -offset;
+            int nextX =
+                ClientSize.Width - offset;
+
+            graphics.DrawImageUnscaled(
+                currentFrame,
+                currentX,
+                0);
+
+            graphics.DrawImageUnscaled(
+                nextFrame,
+                nextX,
+                0);
+        }
+
+        private void DrawFadeTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(
+                currentFrame,
+                0,
+                0);
+
+            if (nextFrame == null)
+            {
+                return;
+            }
+
+            float alpha =
+                (float)Math.Clamp(
+                    progress,
+                    0.0,
+                    1.0);
+
+            using System.Drawing.Imaging.ImageAttributes attributes =
+                new System.Drawing.Imaging.ImageAttributes();
+
+            System.Drawing.Imaging.ColorMatrix matrix =
+                new System.Drawing.Imaging.ColorMatrix
+                {
+                    Matrix00 = 1.0f,
+                    Matrix11 = 1.0f,
+                    Matrix22 = 1.0f,
+                    Matrix33 = alpha,
+                    Matrix44 = 1.0f
+                };
+
+            attributes.SetColorMatrix(
+                matrix,
+                System.Drawing.Imaging.ColorMatrixFlag.Default,
+                System.Drawing.Imaging.ColorAdjustType.Bitmap);
+
+            Rectangle destination =
+                new Rectangle(
+                    0,
+                    0,
+                    ClientSize.Width,
+                    ClientSize.Height);
+
+            graphics.DrawImage(
+                nextFrame,
+                destination,
+                0,
+                0,
+                nextFrame.Width,
+                nextFrame.Height,
+                GraphicsUnit.Pixel,
+                attributes);
         }
 
         private Bitmap LoadFrame(string path)

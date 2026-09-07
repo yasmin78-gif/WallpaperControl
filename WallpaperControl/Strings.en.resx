@@ -662,4 +662,10 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="TransitionDuration" xml:space="preserve">
     <value>Duration</value>
   </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>Slide</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>Fade</value>
+  </data>
 </root>

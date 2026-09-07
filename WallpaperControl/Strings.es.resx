@@ -662,4 +662,10 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="TransitionDuration" xml:space="preserve">
     <value>Duración</value>
   </data>
+  <data name="TransitionSlide" xml:space="preserve">
+    <value>Deslizar</value>
+  </data>
+  <data name="TransitionFade" xml:space="preserve">
+    <value>Fundido</value>
+  </data>
 </root>

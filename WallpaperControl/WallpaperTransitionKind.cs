@@ -3,6 +3,8 @@
     internal enum WallpaperTransitionKind
     {
         Direct,
-        DesktopWipe
+        DesktopWipe,
+        DesktopSlide,
+        DesktopFade
     }
 }

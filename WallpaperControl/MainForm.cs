@@ -454,9 +454,13 @@ namespace WallpaperControl
                     ComboBoxStyle.DropDownList
             };
 
-            // Weitere Effekte können später hier ergänzt werden.
-            transitionComboBox.Items.Add(
-                Localization.Get("TransitionWipe"));
+            transitionComboBox.Items.AddRange(
+                new object[]
+                {
+                    Localization.Get("TransitionWipe"),
+                    Localization.Get("TransitionSlide"),
+                    Localization.Get("TransitionFade")
+                });
 
             transitionComboBox.SelectedIndex = 0;
 
@@ -837,7 +841,7 @@ namespace WallpaperControl
                 string? current =
                     GetCurrentWallpaperPath();
 
-                await DesktopWipeTransition.InitializeHostAsync(
+                await PersistentDesktopTransitionManager.InitializeHostAsync(
                     current);
             }
             catch
@@ -2046,7 +2050,7 @@ namespace WallpaperControl
                 string? folder = LoadLastWallpaperFolder();
 
                 customSlideshowEngineActive = false;
-                DesktopWipeTransition.Shutdown();
+                PersistentDesktopTransitionManager.Shutdown();
 
                 if (!string.IsNullOrWhiteSpace(folder) &&
                     Directory.Exists(folder))
@@ -2327,7 +2331,7 @@ namespace WallpaperControl
         private string? GetCurrentWallpaperPath()
         {
             string? hostedWallpaper =
-                DesktopWipeTransition.GetDisplayedWallpaperPath();
+                PersistentDesktopTransitionManager.GetDisplayedWallpaperPath();
 
             if (!string.IsNullOrWhiteSpace(hostedWallpaper) &&
                 File.Exists(hostedWallpaper))
@@ -5286,11 +5290,27 @@ namespace WallpaperControl
 
         private void LoadTransitionSettings()
         {
+            int transitionIndex = 0;
+
             try
             {
                 using RegistryKey? key =
                     Registry.CurrentUser.OpenSubKey(
                         AppRegistryPath);
+
+                object? transitionValue =
+                    key?.GetValue(
+                        "TransitionKind");
+
+                if (transitionValue != null)
+                {
+                    transitionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(
+                                transitionValue),
+                            0,
+                            2);
+                }
 
                 object? durationValue =
                     key?.GetValue(
@@ -5307,13 +5327,20 @@ namespace WallpaperControl
             }
             catch
             {
+                transitionIndex = 0;
                 selectedTransitionDurationMilliseconds = 2000;
             }
 
-            selectedTransitionKind =
-                WallpaperTransitionKind.DesktopWipe;
+            transitionComboBox.SelectedIndex =
+                transitionIndex;
 
-            transitionComboBox.SelectedIndex = 0;
+            selectedTransitionKind =
+                transitionIndex switch
+                {
+                    1 => WallpaperTransitionKind.DesktopSlide,
+                    2 => WallpaperTransitionKind.DesktopFade,
+                    _ => WallpaperTransitionKind.DesktopWipe
+                };
 
             int[] durations =
                 { 500, 1000, 1500, 2000, 3000, 5000 };
@@ -5336,10 +5363,36 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
-            // Aktuell existiert nur der Wipe. Das Feld ist bereits so
-            // vorbereitet, dass weitere TransitionKinds folgen können.
+            int index =
+                transitionComboBox.SelectedIndex;
+
             selectedTransitionKind =
-                WallpaperTransitionKind.DesktopWipe;
+                index switch
+                {
+                    1 => WallpaperTransitionKind.DesktopSlide,
+                    2 => WallpaperTransitionKind.DesktopFade,
+                    _ => WallpaperTransitionKind.DesktopWipe
+                };
+
+            if (index < 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "TransitionKind",
+                    Math.Clamp(index, 0, 2),
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
         }
 
         private void TransitionDurationComboBox_SelectedIndexChanged(
