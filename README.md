@@ -1,8 +1,8 @@
 # 🖼️ Wallpaper Control
 
-**Wallpaper Control** is a lightweight Windows utility for managing and controlling the built-in Windows desktop wallpaper slideshow.
+**Wallpaper Control** is a lightweight Windows utility for managing and displaying desktop wallpaper slideshows with precise scheduling, animated transitions, statistics and additional quality-of-life controls.
 
-It adds the controls and quality-of-life features that are missing from the standard Windows wallpaper settings, while continuing to use the native Windows slideshow system.
+It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine and desktop-rendered transition effects, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
 **Current release: v1.7.0**
 
@@ -16,16 +16,27 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Pause and resume the slideshow
   - Pin the current wallpaper
 
-- 🗑️ **Quick wallpaper rejection**
-  - Move unwanted wallpapers to an `Aussortiert` folder with one click
-  - Optional global rejection folder
-  - Optional subfolders for individual wallpaper collections
-  - Undo the last rejection
+- 🎬 **Wallpaper transition effects**
+  - Smooth transitions rendered directly on the Windows desktop
+  - Wipe with selectable direction: Left, Right, Up, Down or Random
+  - Slide with selectable direction: Left, Right, Up, Down or Random
+  - Fade
+  - Zoom with In and Out variants
+  - Split
+  - Curtain
+  - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
+  - Configurable transition duration
+  - Desktop icons and tools such as Rainmeter remain visible above the transition layer
 
-- 📜 **Wallpaper history**
-  - Keeps track of recently displayed wallpapers during the current session
-  - Open wallpapers directly in your default image viewer
-  - Hover previews for quick identification
+- 🖥️ **Windows integration**
+  - Integrates with native Windows wallpaper APIs while providing its own slideshow timing and transition engine
+  - Custom clock-aligned slideshow timing for precise wallpaper changes
+  - Manual wallpaper changes do not reset the automatic slideshow schedule
+  - Supports different wallpaper display modes
+  - Detects external wallpaper changes
+  - Opens folders using your configured default file manager
+  - Optional automatic startup with Windows
+  - Restores native Windows wallpaper handling when Wallpaper Control exits
 
 - 📊 **Statistics dashboard**
   - Persistent wallpaper statistics across application restarts
@@ -44,6 +55,17 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Open wallpapers or their folders from the context menu
   - Remove individual entries or reset all statistics
 
+- 🗑️ **Quick wallpaper rejection**
+  - Move unwanted wallpapers to an `Aussortiert` folder with one click
+  - Optional global rejection folder
+  - Optional subfolders for individual wallpaper collections
+  - Undo the last rejection
+
+- 📜 **Wallpaper history**
+  - Keeps track of recently displayed wallpapers during the current session
+  - Open wallpapers directly in your default image viewer
+  - Hover previews for quick identification
+
 - ⌨️ **Global hotkeys**
   - Next wallpaper
   - Pause / Resume
@@ -53,28 +75,6 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Detects duplicate hotkey assignments
   - Warns when Windows cannot register a selected hotkey
   - Default Reject hotkey: `Ctrl+Alt+Shift+R`
-
-- 🎬 **Wallpaper transition effects**
-  - Smooth transitions rendered directly on the Windows desktop
-  - Wipe with selectable direction: Left, Right, Up, Down or Random
-  - Slide with selectable direction: Left, Right, Up, Down or Random
-  - Fade
-  - Zoom with In and Out variants
-  - Split
-  - Curtain
-  - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
-  - Configurable transition duration
-  - Desktop icons and tools such as Rainmeter remain visible above the transition layer
-
-- 🖥️ **Windows integration**
-  - Uses native Windows wallpaper APIs and integrates with the Windows slideshow
-  - Custom clock-aligned slideshow timing for precise wallpaper changes
-  - Manual wallpaper changes do not reset the automatic slideshow schedule
-  - Supports different wallpaper display modes
-  - Detects external wallpaper changes
-  - Opens folders using your configured default file manager
-  - Optional automatic startup with Windows
-  - Restores native Windows wallpaper handling when Wallpaper Control exits
 
 - 🔔 **System tray support**
   - Wallpaper Control can continue running in the notification area
@@ -92,37 +92,9 @@ It adds the controls and quality-of-life features that are missing from the stan
   - Separate appearance reset
   - Localized interface
 
-## 🌍 Languages
-
-Wallpaper Control currently includes:
-
-- 🇩🇪 German
-- 🇬🇧 English
-- 🇫🇷 French
-- 🇪🇸 Spanish
-- 🇯🇵 Japanese
-
-The interface language can be changed directly from the application settings.
-
-## 💻 Requirements
-
-- **Windows 11:** supported and tested
-- **Windows 10:** expected to be compatible, currently untested
-- 64-bit Windows
-- No separate .NET installation required when using the self-contained release
-
-## 🚀 Installation
-
-1. Download `WallpaperControl.exe` from the latest release.
-2. Start `WallpaperControl.exe`.
-3. Select your wallpaper folder.
-4. Configure the slideshow and optional features to your liking.
-
-No installer or separate .NET installation is required.
-
 ## 📊 Statistics
 
-Wallpaper Control keeps persistent statistics about the wallpapers selected by the Windows slideshow.
+Wallpaper Control keeps persistent statistics about wallpapers displayed through its slideshow.
 
 The statistics dashboard can show:
 
@@ -153,6 +125,34 @@ The destination can either be located inside the current wallpaper folder or con
 
 Accidentally rejected the wrong image? The last rejection can be undone during the current session.
 
+## 🌍 Languages
+
+Wallpaper Control currently includes:
+
+- 🇩🇪 German
+- 🇬🇧 English
+- 🇫🇷 French
+- 🇪🇸 Spanish
+- 🇯🇵 Japanese
+
+The interface language can be changed directly from the application settings.
+
+## 💻 Requirements
+
+- **Windows 11:** supported and tested
+- **Windows 10:** expected to be compatible, currently untested
+- 64-bit Windows
+- No separate .NET installation required when using the self-contained release
+
+## 🚀 Installation
+
+1. Download `WallpaperControl.exe` from the latest release.
+2. Start `WallpaperControl.exe`.
+3. Select your wallpaper folder.
+4. Configure the slideshow and optional features to your liking.
+
+No installer or separate .NET installation is required.
+
 ## 🔒 Privacy
 
 Wallpaper Control works locally on your computer.
@@ -172,11 +172,9 @@ Wallpaper statistics are stored locally in the user's application data folder.
 
 Copyright (c) 2026 Yasmin Mahr
 
-Wallpaper Control is free and open-source software licensed under the
-**GNU General Public License v3.0 (GPL-3.0)**.
+Wallpaper Control is free and open-source software licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-You are free to use, study, modify and redistribute Wallpaper Control
-under the terms of the GNU General Public License v3.0.
+You are free to use, study, modify and redistribute Wallpaper Control under the terms of the GNU General Public License v3.0.
 
 See the `LICENSE` file for the full license text.
 
