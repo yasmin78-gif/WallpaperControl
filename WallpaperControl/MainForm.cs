@@ -459,7 +459,10 @@ namespace WallpaperControl
                 {
                     Localization.Get("TransitionWipe"),
                     Localization.Get("TransitionSlide"),
-                    Localization.Get("TransitionFade")
+                    Localization.Get("TransitionFade"),
+                    Localization.Get("TransitionWipeRight"),
+                    Localization.Get("TransitionSlideRandom"),
+                    Localization.Get("TransitionZoomFade")
                 });
 
             transitionComboBox.SelectedIndex = 0;
@@ -5309,7 +5312,7 @@ namespace WallpaperControl
                             Convert.ToInt32(
                                 transitionValue),
                             0,
-                            2);
+                            5);
                 }
 
                 object? durationValue =
@@ -5339,6 +5342,9 @@ namespace WallpaperControl
                 {
                     1 => WallpaperTransitionKind.DesktopSlide,
                     2 => WallpaperTransitionKind.DesktopFade,
+                    3 => WallpaperTransitionKind.DesktopWipeRight,
+                    4 => WallpaperTransitionKind.DesktopSlideRandom,
+                    5 => WallpaperTransitionKind.DesktopZoomFade,
                     _ => WallpaperTransitionKind.DesktopWipe
                 };
 
@@ -5371,6 +5377,9 @@ namespace WallpaperControl
                 {
                     1 => WallpaperTransitionKind.DesktopSlide,
                     2 => WallpaperTransitionKind.DesktopFade,
+                    3 => WallpaperTransitionKind.DesktopWipeRight,
+                    4 => WallpaperTransitionKind.DesktopSlideRandom,
+                    5 => WallpaperTransitionKind.DesktopZoomFade,
                     _ => WallpaperTransitionKind.DesktopWipe
                 };
 
@@ -5387,7 +5396,7 @@ namespace WallpaperControl
 
                 key.SetValue(
                     "TransitionKind",
-                    Math.Clamp(index, 0, 2),
+                    Math.Clamp(index, 0, 5),
                     RegistryValueKind.DWord);
             }
             catch

@@ -668,4 +668,13 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="TransitionFade" xml:space="preserve">
     <value>Fade</value>
   </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>Wipe from right</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>Random slide</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>Zoom fade</value>
+  </data>
 </root>

@@ -668,4 +668,13 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="TransitionFade" xml:space="preserve">
     <value>Überblenden</value>
   </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>Wischen von rechts</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>Schieben zufällig</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>Zoom-Überblendung</value>
+  </data>
 </root>

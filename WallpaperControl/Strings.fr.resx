@@ -668,4 +668,13 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="TransitionFade" xml:space="preserve">
     <value>Fondu</value>
   </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>Balayage depuis la droite</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>Glissement aléatoire</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>Fondu zoom</value>
+  </data>
 </root>

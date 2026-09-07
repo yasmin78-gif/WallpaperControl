@@ -640,4 +640,13 @@
   <data name="TransitionFade" xml:space="preserve">
     <value>フェード</value>
   </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>右からワイプ</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>ランダムスライド</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>ズームフェード</value>
+  </data>
 </root>

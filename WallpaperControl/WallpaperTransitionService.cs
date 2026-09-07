@@ -28,6 +28,18 @@
                     {
                         WallpaperTransitionKind.DesktopFade,
                         new DesktopFadeTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopWipeRight,
+                        new DesktopWipeRightTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopSlideRandom,
+                        new DesktopSlideRandomTransition()
+                    },
+                    {
+                        WallpaperTransitionKind.DesktopZoomFade,
+                        new DesktopZoomFadeTransition()
                     }
                 };
         }

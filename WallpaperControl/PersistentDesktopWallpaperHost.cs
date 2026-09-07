@@ -28,6 +28,7 @@ namespace WallpaperControl
         private double progress = 1.0;
         private WallpaperTransitionKind transitionKind =
             WallpaperTransitionKind.DesktopWipe;
+        private bool transitionMovesLeft = true;
 
         public string? CurrentWallpaperPath { get; private set; }
 
@@ -154,6 +155,11 @@ namespace WallpaperControl
                 LoadFrame(nextWallpaperPath));
 
             transitionKind = kind;
+
+            transitionMovesLeft =
+                kind != WallpaperTransitionKind.DesktopSlideRandom ||
+                Random.Shared.Next(2) == 0;
+
             durationMilliseconds = Math.Max(1, milliseconds);
             progress = 0.0;
 
@@ -241,11 +247,27 @@ namespace WallpaperControl
             switch (transitionKind)
             {
                 case WallpaperTransitionKind.DesktopSlide:
-                    DrawSlideTransition(e.Graphics);
+                    DrawSlideTransition(
+                        e.Graphics,
+                        true);
+                    break;
+
+                case WallpaperTransitionKind.DesktopSlideRandom:
+                    DrawSlideTransition(
+                        e.Graphics,
+                        transitionMovesLeft);
                     break;
 
                 case WallpaperTransitionKind.DesktopFade:
                     DrawFadeTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopZoomFade:
+                    DrawZoomFadeTransition(e.Graphics);
+                    break;
+
+                case WallpaperTransitionKind.DesktopWipeRight:
+                    DrawWipeRightTransition(e.Graphics);
                     break;
 
                 case WallpaperTransitionKind.DesktopWipe:
@@ -297,7 +319,54 @@ namespace WallpaperControl
                 GraphicsUnit.Pixel);
         }
 
-        private void DrawSlideTransition(Graphics graphics)
+        private void DrawWipeRightTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(
+                currentFrame,
+                0,
+                0);
+
+            if (nextFrame == null)
+            {
+                return;
+            }
+
+            int width =
+                Math.Min(
+                    ClientSize.Width,
+                    (int)Math.Round(
+                        ClientSize.Width * progress));
+
+            if (width <= 0)
+            {
+                return;
+            }
+
+            int x =
+                ClientSize.Width - width;
+
+            Rectangle reveal =
+                new Rectangle(
+                    x,
+                    0,
+                    width,
+                    ClientSize.Height);
+
+            graphics.DrawImage(
+                nextFrame,
+                reveal,
+                reveal,
+                GraphicsUnit.Pixel);
+        }
+
+        private void DrawSlideTransition(
+            Graphics graphics,
+            bool moveLeft)
         {
             if (currentFrame == null ||
                 nextFrame == null)
@@ -309,9 +378,21 @@ namespace WallpaperControl
                 (int)Math.Round(
                     ClientSize.Width * progress);
 
-            int currentX = -offset;
-            int nextX =
-                ClientSize.Width - offset;
+            int currentX;
+            int nextX;
+
+            if (moveLeft)
+            {
+                currentX = -offset;
+                nextX =
+                    ClientSize.Width - offset;
+            }
+            else
+            {
+                currentX = offset;
+                nextX =
+                    -ClientSize.Width + offset;
+            }
 
             graphics.DrawImageUnscaled(
                 currentFrame,
@@ -371,6 +452,84 @@ namespace WallpaperControl
                     0,
                     ClientSize.Width,
                     ClientSize.Height);
+
+            graphics.DrawImage(
+                nextFrame,
+                destination,
+                0,
+                0,
+                nextFrame.Width,
+                nextFrame.Height,
+                GraphicsUnit.Pixel,
+                attributes);
+        }
+
+        private void DrawZoomFadeTransition(Graphics graphics)
+        {
+            if (currentFrame == null)
+            {
+                return;
+            }
+
+            graphics.DrawImageUnscaled(
+                currentFrame,
+                0,
+                0);
+
+            if (nextFrame == null)
+            {
+                return;
+            }
+
+            float alpha =
+                (float)Math.Clamp(
+                    progress,
+                    0.0,
+                    1.0);
+
+            double startScale = 1.15;
+            double scale =
+                startScale -
+                ((startScale - 1.0) * progress);
+
+            int width =
+                (int)Math.Round(
+                    ClientSize.Width * scale);
+
+            int height =
+                (int)Math.Round(
+                    ClientSize.Height * scale);
+
+            int x =
+                (ClientSize.Width - width) / 2;
+
+            int y =
+                (ClientSize.Height - height) / 2;
+
+            using System.Drawing.Imaging.ImageAttributes attributes =
+                new System.Drawing.Imaging.ImageAttributes();
+
+            System.Drawing.Imaging.ColorMatrix matrix =
+                new System.Drawing.Imaging.ColorMatrix
+                {
+                    Matrix00 = 1.0f,
+                    Matrix11 = 1.0f,
+                    Matrix22 = 1.0f,
+                    Matrix33 = alpha,
+                    Matrix44 = 1.0f
+                };
+
+            attributes.SetColorMatrix(
+                matrix,
+                System.Drawing.Imaging.ColorMatrixFlag.Default,
+                System.Drawing.Imaging.ColorAdjustType.Bitmap);
+
+            Rectangle destination =
+                new Rectangle(
+                    x,
+                    y,
+                    width,
+                    height);
 
             graphics.DrawImage(
                 nextFrame,

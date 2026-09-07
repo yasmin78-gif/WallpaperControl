@@ -668,4 +668,13 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="TransitionFade" xml:space="preserve">
     <value>Fundido</value>
   </data>
+  <data name="TransitionWipeRight" xml:space="preserve">
+    <value>Barrido desde la derecha</value>
+  </data>
+  <data name="TransitionSlideRandom" xml:space="preserve">
+    <value>Deslizamiento aleatorio</value>
+  </data>
+  <data name="TransitionZoomFade" xml:space="preserve">
+    <value>Fundido con zoom</value>
+  </data>
 </root>

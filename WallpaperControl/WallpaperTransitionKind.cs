@@ -5,6 +5,9 @@
         Direct,
         DesktopWipe,
         DesktopSlide,
-        DesktopFade
+        DesktopFade,
+        DesktopWipeRight,
+        DesktopSlideRandom,
+        DesktopZoomFade
     }
 }
