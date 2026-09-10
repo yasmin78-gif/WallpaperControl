@@ -2964,13 +2964,18 @@ namespace WallpaperControl
         private void AdvanceWallpaper(
             DesktopSlideshowDirection direction)
         {
+            _ = AdvanceWallpaperAsync(direction);
+        }
+
+        private async Task<bool> AdvanceWallpaperAsync(
+            DesktopSlideshowDirection direction)
+        {
             if (slideshowPaused)
-                return;
+                return false;
 
             if (customSlideshowEngineActive)
             {
-                AdvanceCustomWallpaper(direction);
-                return;
+                return await AdvanceCustomWallpaperAsync(direction);
             }
 
             IDesktopWallpaper? wallpaper = null;
@@ -2986,6 +2991,7 @@ namespace WallpaperControl
                     direction);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
+                return true;
             }
             catch (Exception ex)
             {
@@ -2995,6 +3001,8 @@ namespace WallpaperControl
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+
+                return false;
             }
             finally
             {
@@ -3155,7 +3163,7 @@ namespace WallpaperControl
                 $"callback: {invoked:HH:mm:ss.fff}; " +
                 $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
 
-            AdvanceCustomWallpaper(
+            _ = AdvanceCustomWallpaperAsync(
                 DesktopSlideshowDirection.Forward);
 
             // Der nächste Termin wird vom Soll-Raster abgeleitet, nicht vom
@@ -3191,23 +3199,24 @@ namespace WallpaperControl
                    intervals.TryGetValue(selected, out milliseconds);
         }
 
-        private async void AdvanceCustomWallpaper(
+        private async Task<bool> AdvanceCustomWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
             if (customSlideshowChangeRunning)
-                return;
+                return false;
 
             string folder = folderTextBox.Text;
 
             if (string.IsNullOrWhiteSpace(folder) ||
                 !Directory.Exists(folder))
             {
-                return;
+                return false;
             }
 
             try
             {
                 customSlideshowChangeRunning = true;
+                rejectButton.Enabled = false;
 
                 string[] files = Directory.EnumerateFiles(
                         folder,
@@ -3218,7 +3227,7 @@ namespace WallpaperControl
                     .ToArray();
 
                 if (files.Length == 0)
-                    return;
+                    return false;
 
                 string? current = GetCurrentWallpaperPath();
                 string next;
@@ -3270,6 +3279,11 @@ namespace WallpaperControl
                     selectedZoomMode);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
+
+                return string.Equals(
+                    GetCurrentWallpaperPath(),
+                    next,
+                    StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)
             {
@@ -3279,10 +3293,13 @@ namespace WallpaperControl
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+
+                return false;
             }
             finally
             {
                 customSlideshowChangeRunning = false;
+                UpdateCurrentWallpaperDisplay();
             }
         }
 
@@ -3342,7 +3359,8 @@ namespace WallpaperControl
 
             rejectButton.Enabled =
                 exists &&
-                !slideshowPaused;
+                !slideshowPaused &&
+                !customSlideshowChangeRunning;
         }
 
         private void LoadPersistentStatistics()
@@ -4278,8 +4296,11 @@ namespace WallpaperControl
 
         private async Task RejectCurrentWallpaperAsync()
         {
-            if (slideshowPaused)
+            if (slideshowPaused ||
+                customSlideshowChangeRunning)
+            {
                 return;
+            }
 
             string? path =
                 GetCurrentWallpaperPath();
@@ -4307,10 +4328,37 @@ namespace WallpaperControl
                     return;
                 }
 
-                AdvanceWallpaper(
-                    DesktopSlideshowDirection.Forward);
+                bool advanced =
+                    await AdvanceWallpaperAsync(
+                        DesktopSlideshowDirection.Forward);
 
-                await Task.Delay(600);
+                if (!advanced)
+                {
+                    return;
+                }
+
+                if (!customSlideshowEngineActive)
+                {
+                    DateTime waitUntil =
+                        DateTime.UtcNow.AddSeconds(2);
+
+                    while (string.Equals(
+                               GetCurrentWallpaperPath(),
+                               path,
+                               StringComparison.OrdinalIgnoreCase) &&
+                           DateTime.UtcNow < waitUntil)
+                    {
+                        await Task.Delay(50);
+                    }
+                }
+
+                if (string.Equals(
+                        GetCurrentWallpaperPath(),
+                        path,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
 
                 string rejectFolder =
                     GetRejectedFolder(
