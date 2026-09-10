@@ -881,10 +881,11 @@ namespace WallpaperControl
                 await PersistentDesktopTransitionManager.InitializeHostAsync(
                     current);
             }
-            catch
+            catch (Exception ex)
             {
-                // Prototype: a failed warm-up must not prevent normal startup.
+                // A failed warm-up must not prevent normal startup.
                 // ApplyAsync can still retry the initialization later.
+                AppLogger.Warning("Persistent desktop host warm-up failed.", ex);
             }
             finally
             {
@@ -1318,9 +1319,11 @@ namespace WallpaperControl
 
                 ShowActiveStatus();
             }
-            catch
+            catch (Exception ex)
             {
-                ShowActiveStatus();
+                // Do not turn an unknown COM state into a false "active" state.
+                // Keep the current UI state and record the diagnostic details.
+                AppLogger.Warning("Could not query Windows slideshow status.", ex);
             }
             finally
             {
@@ -2449,8 +2452,9 @@ namespace WallpaperControl
 
                 return wallpaper.GetWallpaper(null);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not read the current Windows wallpaper path.", ex);
                 return null;
             }
             finally
@@ -3097,9 +3101,10 @@ namespace WallpaperControl
                 slideshowPaused = false;
                 RecalculateCustomSlideshowSchedule();
             }
-            catch
+            catch (Exception ex)
             {
                 customSlideshowEngineActive = false;
+                AppLogger.Error("Could not start the custom slideshow engine.", ex);
             }
             finally
             {
@@ -3168,9 +3173,14 @@ namespace WallpaperControl
                     new Action(
                         ProcessPreciseCustomSlideshowTick));
             }
-            catch
+            catch (Exception ex)
             {
-                // Das Fenster wird möglicherweise gerade beendet.
+                // During shutdown BeginInvoke can legitimately fail. Outside
+                // shutdown, keep the failure for diagnostics.
+                if (!IsDisposed && !Disposing)
+                {
+                    AppLogger.Warning("Could not dispatch the precise slideshow timer callback.", ex);
+                }
             }
         }
 
@@ -3619,8 +3629,9 @@ namespace WallpaperControl
                     (state &
                      DesktopSlideshowState.Slideshow) != 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not determine whether the Windows slideshow is active.", ex);
                 return false;
             }
             finally

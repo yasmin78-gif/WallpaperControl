@@ -98,10 +98,11 @@ namespace WallpaperControl
 
                 return data;
             }
-            catch
+            catch (Exception ex)
             {
                 // A damaged statistics file must never prevent
                 // Wallpaper Control from starting.
+                AppLogger.Warning("Could not load persistent statistics.", ex);
                 return CreateEmpty();
             }
         }
@@ -214,10 +215,11 @@ namespace WallpaperControl
                     StatisticsFilePath,
                     true);
             }
-            catch
+            catch (Exception ex)
             {
                 // Statistics are useful, but they must never be able
                 // to break wallpaper switching or application exit.
+                AppLogger.Warning("Could not save persistent statistics.", ex);
             }
         }
 

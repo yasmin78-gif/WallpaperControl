@@ -79,10 +79,11 @@ namespace WallpaperControl
                 {
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (!cancellation.IsCancellationRequested)
                     {
+                        AppLogger.Warning("Remote command listener failed and will retry.", ex);
                         await Task.Delay(100);
                     }
                 }

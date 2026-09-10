@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 [assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -21,6 +22,19 @@ namespace WallpaperControl
             {
                 return;
             }
+
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                if (e.ExceptionObject is Exception ex)
+                {
+                    AppLogger.Error("Unhandled application exception.", ex);
+                }
+            };
+
+            TaskScheduler.UnobservedTaskException += (_, e) =>
+            {
+                AppLogger.Error("Unobserved task exception.", e.Exception);
+            };
 
             ApplicationConfiguration.Initialize();
             Localization.Initialize();
