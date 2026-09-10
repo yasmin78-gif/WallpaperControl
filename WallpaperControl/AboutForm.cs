@@ -9,10 +9,14 @@ namespace WallpaperControl
 {
     internal sealed class AboutForm : Form
     {
+        private readonly bool darkMode;
+
         public AboutForm(
             bool darkMode,
             int windowOpacityPercent)
         {
+            this.darkMode = darkMode;
+
             Assembly assembly =
                 Assembly.GetExecutingAssembly();
 
@@ -202,19 +206,23 @@ namespace WallpaperControl
                 darkMode,
                 closeButton);
 
+        }
+
+
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+
             int darkValue =
                 darkMode ? 1 : 0;
 
-            if (IsHandleCreated)
-            {
-                DwmSetWindowAttribute(
-                    Handle,
-                    20,
-                    ref darkValue,
-                    sizeof(int));
-            }
+            DwmSetWindowAttribute(
+                Handle,
+                20,
+                ref darkValue,
+                sizeof(int));
         }
-
 
         private static string GetFriendlyWindowsVersion()
         {

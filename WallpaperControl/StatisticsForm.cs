@@ -1872,6 +1872,9 @@ namespace WallpaperControl
             object? sender,
             DrawListViewColumnHeaderEventArgs e)
         {
+            if (e.Header == null)
+                return;
+
             Color backColor =
                 darkMode
                     ? Color.FromArgb(42, 42, 42)
@@ -1939,6 +1942,12 @@ namespace WallpaperControl
             object? sender,
             DrawListViewSubItemEventArgs e)
         {
+            if (e.Item == null ||
+                e.SubItem == null)
+            {
+                return;
+            }
+
             bool isHover =
                 e.ItemIndex == hoveredItemIndex;
 
