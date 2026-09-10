@@ -2943,6 +2943,24 @@ namespace WallpaperControl
                 DesktopSlideshowDirection.Forward);
         }
 
+        internal void ExecuteRemoteCommand(string command)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(() => ExecuteRemoteCommand(command));
+                return;
+            }
+
+            if (string.Equals(
+                command,
+                "next",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                AdvanceWallpaper(
+                    DesktopSlideshowDirection.Forward);
+            }
+        }
+
         private void AdvanceWallpaper(
             DesktopSlideshowDirection direction)
         {
