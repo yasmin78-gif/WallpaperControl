@@ -3274,6 +3274,7 @@ namespace WallpaperControl
             try
             {
                 customSlideshowChangeRunning = true;
+                rejectButton.Enabled = false;
 
                 string[] files = Directory.EnumerateFiles(
                         folder,
@@ -3363,6 +3364,7 @@ namespace WallpaperControl
             finally
             {
                 customSlideshowChangeRunning = false;
+                UpdateCurrentWallpaperDisplay();
             }
         }
 
@@ -3422,7 +3424,8 @@ namespace WallpaperControl
 
             rejectButton.Enabled =
                 exists &&
-                !slideshowPaused;
+                !slideshowPaused &&
+                !customSlideshowChangeRunning;
         }
 
         private void LoadPersistentStatistics()

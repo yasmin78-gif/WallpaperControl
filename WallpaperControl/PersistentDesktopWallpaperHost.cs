@@ -156,6 +156,14 @@ namespace WallpaperControl
                     nextWallpaperPath);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (completionSource != null || animationTimer.Enabled)
+            {
+                throw new InvalidOperationException(
+                    "A wallpaper transition is already in progress.");
+            }
+
             ReplaceBitmap(
                 ref nextFrame,
                 LoadFrame(nextWallpaperPath));
@@ -181,8 +189,15 @@ namespace WallpaperControl
                 cancellationRegistration =
                     cancellationToken.Register(() =>
                     {
-                        if (!IsDisposed && IsHandleCreated)
+                        try
                         {
+                            if (IsDisposed || !IsHandleCreated)
+                            {
+                                source.TrySetCanceled(
+                                    cancellationToken);
+                                return;
+                            }
+
                             BeginInvoke(new Action(() =>
                             {
                                 if (!ReferenceEquals(
@@ -198,6 +213,15 @@ namespace WallpaperControl
                                 source.TrySetCanceled(
                                     cancellationToken);
                             }));
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // ObjectDisposedException derives from
+                            // InvalidOperationException, so this also
+                            // covers a handle/control disposed while
+                            // cancellation is being marshalled.
+                            source.TrySetCanceled(
+                                cancellationToken);
                         }
                     });
             }
