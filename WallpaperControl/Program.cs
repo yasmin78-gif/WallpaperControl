@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
 
 namespace WallpaperControl
 {
