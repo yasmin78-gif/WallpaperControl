@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -9,7 +10,9 @@ namespace WallpaperControl
 {
     internal sealed class AboutForm : Form
     {
+        private readonly List<Font> ownedFonts = new();
         private readonly bool darkMode;
+        private readonly PictureBox iconBox;
 
         public AboutForm(
             bool darkMode,
@@ -84,9 +87,9 @@ namespace WallpaperControl
                 new Size(470, 402);
 
             Font =
-                new Font("Segoe UI", 10);
+                CreateOwnedFont("Segoe UI", 10);
 
-            PictureBox iconBox = new PictureBox
+            iconBox = new PictureBox
             {
                 Location = new Point(25, 22),
                 Size = new Size(80, 80),
@@ -99,7 +102,7 @@ namespace WallpaperControl
                 Text = product,
                 Location = new Point(125, 30),
                 AutoSize = true,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     16,
                     FontStyle.Bold)
@@ -153,7 +156,7 @@ namespace WallpaperControl
                         "AboutTechnicalInformation"),
                 Location = new Point(25, 227),
                 AutoSize = true,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -173,7 +176,7 @@ namespace WallpaperControl
                         build),
                 Location = new Point(25, 259),
                 Size = new Size(420, 100),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Consolas",
                     9)
             };
@@ -250,6 +253,31 @@ namespace WallpaperControl
 
             // Do not guess the marketing name of future Windows versions.
             return $"Microsoft Windows {version.Major}.{version.Minor} (Build {build})";
+        }
+
+        private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Font font = new Font(familyName, emSize, style);
+            ownedFonts.Add(font);
+            return font;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Image? image = iconBox.Image;
+                iconBox.Image = null;
+                image?.Dispose();
+
+                foreach (Font font in ownedFonts)
+                {
+                    font.Dispose();
+                }
+                ownedFonts.Clear();
+            }
+
+            base.Dispose(disposing);
         }
 
         private static Bitmap? LoadApplicationLogo()

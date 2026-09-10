@@ -10,6 +10,8 @@ namespace WallpaperControl
 {
     internal sealed class SettingsForm : Form
     {
+        private readonly List<Font> ownedFonts = new();
+
         private const uint MOD_ALT = 0x0001;
         private const uint MOD_CONTROL = 0x0002;
         private const uint MOD_SHIFT = 0x0004;
@@ -149,7 +151,7 @@ namespace WallpaperControl
                 new Size(570, 650);
 
             Font =
-                new Font("Segoe UI", 10);
+                CreateOwnedFont("Segoe UI", 10);
 
             TabControl tabControl =
                 new TabControl
@@ -205,7 +207,7 @@ namespace WallpaperControl
                 Tag = "SettingsHotkeysTitle",
                 Location = new Point(18, 18),
                 AutoSize = true,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     12,
                     FontStyle.Bold)
@@ -293,7 +295,7 @@ namespace WallpaperControl
                     Size =
                         new Size(475, 42),
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             8.5f,
                             FontStyle.Bold),
@@ -346,7 +348,7 @@ namespace WallpaperControl
                         new Point(18, 18),
                     AutoSize = true,
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             12,
                             FontStyle.Bold)
@@ -422,7 +424,7 @@ namespace WallpaperControl
                     Size =
                         new Size(475, 48),
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             8.25f)
                 };
@@ -440,7 +442,7 @@ namespace WallpaperControl
                         new Point(18, 235),
                     AutoSize = true,
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             12,
                             FontStyle.Bold)
@@ -521,7 +523,7 @@ namespace WallpaperControl
                         new Point(18, 18),
                     AutoSize = true,
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             12,
                             FontStyle.Bold)
@@ -573,7 +575,7 @@ namespace WallpaperControl
                     Size =
                         new Size(475, 42),
                     Font =
-                        new Font(
+                        CreateOwnedFont(
                             "Segoe UI",
                             8.25f)
                 };
@@ -1863,6 +1865,13 @@ namespace WallpaperControl
                 ResolvePreviewDarkMode());
         }
 
+        private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Font font = new Font(familyName, emSize, style);
+            ownedFonts.Add(font);
+            return font;
+        }
+
         protected override void Dispose(
             bool disposing)
         {
@@ -1870,6 +1879,12 @@ namespace WallpaperControl
             {
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
+
+                foreach (Font font in ownedFonts)
+                {
+                    font.Dispose();
+                }
+                ownedFonts.Clear();
             }
 
             base.Dispose(

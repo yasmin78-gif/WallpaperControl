@@ -14,6 +14,8 @@ namespace WallpaperControl
 {
     public class MainForm : Form
     {
+        private readonly List<Font> ownedFonts = new();
+
         private const string WindowsSlideshowRegistryPath =
             @"Control Panel\Personalization\Desktop Slideshow";
 
@@ -236,7 +238,7 @@ namespace WallpaperControl
 
             RestoreWindowPosition();
 
-            Font = new Font("Segoe UI", 10);
+            Font = CreateOwnedFont("Segoe UI", 10);
 
             AllowDrop = true;
 
@@ -258,7 +260,7 @@ namespace WallpaperControl
                 AutoSize = false,
                 Location = new Point(48, 18),
                 Size = new Size(329, 25),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     9,
                     FontStyle.Bold),
@@ -281,7 +283,7 @@ namespace WallpaperControl
                 Text = "⚙",
                 Location = new Point(387, 10),
                 Size = new Size(28, 28),
-                Font = new Font("Segoe UI Symbol", 12),
+                Font = CreateOwnedFont("Segoe UI Symbol", 12),
                 FlatStyle = FlatStyle.Flat,
                 TabStop = false,
                 Cursor = Cursors.Hand
@@ -297,7 +299,7 @@ namespace WallpaperControl
                 Text = "ⓘ",
                 Location = new Point(10, 10),
                 Size = new Size(28, 28),
-                Font = new Font("Segoe UI Symbol", 11),
+                Font = CreateOwnedFont("Segoe UI Symbol", 11),
                 FlatStyle = FlatStyle.Flat,
                 TabStop = false,
                 Cursor = Cursors.Hand
@@ -319,7 +321,7 @@ namespace WallpaperControl
                 Location = new Point(48, 18),
                 Size = new Size(329, 25),
                 TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -347,7 +349,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperCountZero"),
                 AutoSize = true,
                 Location = new Point(25, 88),
-                Font = new Font("Segoe UI", 8)
+                Font = CreateOwnedFont("Segoe UI", 8)
             };
 
             // ========================================================
@@ -359,7 +361,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperInterval"),
                 AutoSize = true,
                 Location = new Point(25, 110),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -387,7 +389,7 @@ namespace WallpaperControl
                 AutoSize = false,
                 Location = new Point(25, 176),
                 Size = new Size(375, 20),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     8.25f,
                     FontStyle.Regular)
@@ -416,7 +418,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperPosition"),
                 AutoSize = true,
                 Location = new Point(25, 235),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -447,7 +449,7 @@ namespace WallpaperControl
                 Text = Localization.Get("Transition"),
                 AutoSize = true,
                 Location = new Point(25, 310),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -506,7 +508,7 @@ namespace WallpaperControl
                 Text = Localization.Get("TransitionDuration"),
                 AutoSize = true,
                 Location = new Point(285, 310),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -620,7 +622,7 @@ namespace WallpaperControl
                 Location = new Point(8, 242),
                 Size = new Size(404, 50),
                 AutoEllipsis = true,
-                Font = new Font("Segoe UI", 8.25f)
+                Font = CreateOwnedFont("Segoe UI", 8.25f)
             };
 
             wallpaperPreviewForm.Controls.Add(
@@ -893,6 +895,13 @@ namespace WallpaperControl
             }
         }
 
+        private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Font font = new Font(familyName, emSize, style);
+            ownedFonts.Add(font);
+            return font;
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -935,6 +944,12 @@ namespace WallpaperControl
                 trayIcon.Visible = false;
                 trayIcon.Dispose();
                 trayMenu.Dispose();
+
+                foreach (Font font in ownedFonts)
+                {
+                    font.Dispose();
+                }
+                ownedFonts.Clear();
             }
 
             base.Dispose(disposing);
