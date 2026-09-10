@@ -297,9 +297,6 @@ namespace WallpaperControl
                     DrawCurtainTransition(e.Graphics);
                     break;
 
-                case WallpaperTransitionKind.DesktopZoomOutFade:
-                    DrawZoomOutFadeTransition(e.Graphics);
-                    break;
 
                 case WallpaperTransitionKind.DesktopWipe:
                 default:
