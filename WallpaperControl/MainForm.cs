@@ -908,6 +908,9 @@ namespace WallpaperControl
                 wallpaperRefreshTimer.Stop();
                 wallpaperRefreshTimer.Dispose();
 
+                customSlideshowPreciseTimer.Dispose();
+                toolTip.Dispose();
+
                 wallpaperCountDebounceTimer.Stop();
                 wallpaperCountDebounceTimer.Dispose();
 
@@ -2044,7 +2047,7 @@ namespace WallpaperControl
             }
         }
 
-        protected override async void OnFormClosing(
+        protected override void OnFormClosing(
             FormClosingEventArgs e)
         {
             SaveWindowPosition();
@@ -2059,6 +2062,7 @@ namespace WallpaperControl
                 Hide();
                 ShowInTaskbar = false;
 
+                base.OnFormClosing(e);
                 return;
             }
 
@@ -2066,19 +2070,9 @@ namespace WallpaperControl
                 !closingAfterPauseResume)
             {
                 e.Cancel = true;
-                closingAfterPauseResume = true;
+                base.OnFormClosing(e);
 
-                bool resumed =
-                    await ResumeSlideshowAsync(
-                        showError: true);
-
-                closingAfterPauseResume = false;
-
-                if (resumed)
-                {
-                    Close();
-                }
-
+                _ = ResumeSlideshowAndCloseAsync();
                 return;
             }
 
@@ -2100,11 +2094,49 @@ namespace WallpaperControl
                 }
             }
 
-            customSlideshowPreciseTimer.Dispose();
-
             SavePersistentStatistics();
 
             base.OnFormClosing(e);
+        }
+
+        private async Task ResumeSlideshowAndCloseAsync()
+        {
+            if (closingAfterPauseResume)
+            {
+                return;
+            }
+
+            closingAfterPauseResume = true;
+
+            try
+            {
+                bool resumed =
+                    await ResumeSlideshowAsync(
+                        showError: true);
+
+                if (resumed &&
+                    !IsDisposed &&
+                    !Disposing)
+                {
+                    Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed &&
+                    !Disposing)
+                {
+                    MessageBox.Show(
+                        ex.Message,
+                        "Wallpaper Control",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                closingAfterPauseResume = false;
+            }
         }
 
         // ============================================================
@@ -3297,6 +3329,13 @@ namespace WallpaperControl
             }
             catch (Exception ex)
             {
+                if (exitRequested ||
+                    IsDisposed ||
+                    Disposing)
+                {
+                    return false;
+                }
+
                 MessageBox.Show(
                     Localization.Get("MsgAdvanceFailed") +
                     ex.Message,

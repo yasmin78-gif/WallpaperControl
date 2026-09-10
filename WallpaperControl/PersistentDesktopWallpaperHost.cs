@@ -24,6 +24,7 @@ namespace WallpaperControl
         private readonly System.Windows.Forms.Timer animationTimer;
         private readonly System.Diagnostics.Stopwatch stopwatch = new();
         private TaskCompletionSource<bool>? completionSource;
+        private CancellationTokenRegistration cancellationRegistration;
         private int durationMilliseconds;
         private double progress = 1.0;
         private WallpaperTransitionKind transitionKind =
@@ -167,31 +168,45 @@ namespace WallpaperControl
             durationMilliseconds = Math.Max(1, milliseconds);
             progress = 0.0;
 
-            completionSource =
+            cancellationRegistration.Dispose();
+
+            TaskCompletionSource<bool> source =
                 new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
 
+            completionSource = source;
+
             if (cancellationToken.CanBeCanceled)
             {
-                cancellationToken.Register(() =>
-                {
-                    if (!IsDisposed && IsHandleCreated)
+                cancellationRegistration =
+                    cancellationToken.Register(() =>
                     {
-                        BeginInvoke(new Action(() =>
+                        if (!IsDisposed && IsHandleCreated)
                         {
-                            StopAnimation();
-                            completionSource?.TrySetCanceled(
-                                cancellationToken);
-                        }));
-                    }
-                });
+                            BeginInvoke(new Action(() =>
+                            {
+                                if (!ReferenceEquals(
+                                        completionSource,
+                                        source))
+                                {
+                                    return;
+                                }
+
+                                StopAnimation();
+                                completionSource = null;
+                                cancellationRegistration.Dispose();
+                                source.TrySetCanceled(
+                                    cancellationToken);
+                            }));
+                        }
+                    });
             }
 
             stopwatch.Restart();
             animationTimer.Start();
             Invalidate();
 
-            return completionSource.Task;
+            return source.Task;
         }
 
         private void AnimationTimer_Tick(object? sender, EventArgs e)
@@ -215,7 +230,12 @@ namespace WallpaperControl
                 progress = 1.0;
                 Invalidate();
 
-                completionSource?.TrySetResult(true);
+                TaskCompletionSource<bool>? source =
+                    completionSource;
+
+                completionSource = null;
+                cancellationRegistration.Dispose();
+                source?.TrySetResult(true);
             }
         }
 
@@ -926,9 +946,23 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                StopAnimation();
                 animationTimer.Dispose();
+                cancellationRegistration.Dispose();
+
+                TaskCompletionSource<bool>? pending =
+                    completionSource;
+
+                completionSource = null;
+                pending?.TrySetException(
+                    new ObjectDisposedException(
+                        nameof(PersistentDesktopWallpaperHost)));
+
                 currentFrame?.Dispose();
+                currentFrame = null;
+
                 nextFrame?.Dispose();
+                nextFrame = null;
             }
 
             base.Dispose(disposing);
