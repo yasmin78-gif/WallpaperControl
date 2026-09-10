@@ -3138,7 +3138,18 @@ namespace WallpaperControl
             }
 
             if (!TryGetSelectedInterval(out uint milliseconds))
+            {
+                // Die ComboBox kann während einer UI-Aktualisierung kurzzeitig
+                // keinen gültigen Eintrag besitzen. Da der präzise Timer ein
+                // One-Shot-Timer ist, würde ein einfaches return die Slideshow
+                // für den Rest der Sitzung nicht mehr aufwecken.
+                // Deshalb nach kurzer Zeit erneut prüfen, statt den Timer sterben
+                // zu lassen oder in einer engen Sofort-Schleife zu landen.
+                customSlideshowPreciseTimer.Change(
+                    TimeSpan.FromMilliseconds(250),
+                    Timeout.InfiniteTimeSpan);
                 return;
+            }
 
             if (milliseconds != customSlideshowLastInterval)
             {
@@ -3216,7 +3227,6 @@ namespace WallpaperControl
             try
             {
                 customSlideshowChangeRunning = true;
-                rejectButton.Enabled = false;
 
                 string[] files = Directory.EnumerateFiles(
                         folder,
@@ -3299,7 +3309,6 @@ namespace WallpaperControl
             finally
             {
                 customSlideshowChangeRunning = false;
-                UpdateCurrentWallpaperDisplay();
             }
         }
 
@@ -3359,8 +3368,7 @@ namespace WallpaperControl
 
             rejectButton.Enabled =
                 exists &&
-                !slideshowPaused &&
-                !customSlideshowChangeRunning;
+                !slideshowPaused;
         }
 
         private void LoadPersistentStatistics()
@@ -4296,11 +4304,8 @@ namespace WallpaperControl
 
         private async Task RejectCurrentWallpaperAsync()
         {
-            if (slideshowPaused ||
-                customSlideshowChangeRunning)
-            {
+            if (slideshowPaused)
                 return;
-            }
 
             string? path =
                 GetCurrentWallpaperPath();
