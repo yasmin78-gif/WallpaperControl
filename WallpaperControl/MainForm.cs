@@ -3291,7 +3291,7 @@ namespace WallpaperControl
                         "*",
                         SearchOption.TopDirectoryOnly)
                     .Where(IsSupportedWallpaperExtension)
-                    .OrderBy(path => path, StringComparer.CurrentCultureIgnoreCase)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
                 if (files.Length == 0)
@@ -3976,12 +3976,7 @@ namespace WallpaperControl
                 Directory.CreateDirectory(
                     rejectedFolder);
 
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = rejectedFolder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenFolder(rejectedFolder);
             }
             catch (Exception ex)
             {
@@ -4253,12 +4248,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch (Exception ex)
             {
@@ -4306,12 +4296,7 @@ namespace WallpaperControl
                     return;
                 }
 
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = folder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.RevealInExplorer(path);
             }
             catch (Exception ex)
             {
@@ -4341,12 +4326,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch (Exception ex)
             {
@@ -5329,10 +5309,13 @@ namespace WallpaperControl
                     return;
                 }
 
-                rejectRootFolder =
+                string storedRejectRoot =
                     key.GetValue(
                         "RejectRootFolder")
                     as string ?? "";
+
+                rejectRootFolder =
+                    NormalizeRejectRootFolder(storedRejectRoot);
 
                 object? subfolderValue =
                     key.GetValue(
@@ -5347,6 +5330,31 @@ namespace WallpaperControl
             }
             catch
             {
+            }
+        }
+
+        private static string NormalizeRejectRootFolder(
+            string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                string trimmed = path.Trim();
+
+                return Path.IsPathFullyQualified(trimmed)
+                    ? Path.GetFullPath(trimmed)
+                    : string.Empty;
+            }
+            catch (Exception ex) when (
+                ex is ArgumentException or
+                NotSupportedException or
+                PathTooLongException)
+            {
+                return string.Empty;
             }
         }
 
@@ -5529,8 +5537,20 @@ namespace WallpaperControl
                     key?.GetValue(
                         "TransitionKind");
 
-                if (transitionValue != null)
+                if (transitionValue is string transitionName &&
+                    Enum.TryParse(
+                        transitionName,
+                        ignoreCase: true,
+                        out WallpaperTransitionKind storedKind) &&
+                    Enum.IsDefined(storedKind))
                 {
+                    transitionIndex =
+                        TransitionKindToIndex(storedKind);
+                }
+                else if (transitionValue != null)
+                {
+                    // Backward compatibility with v1.7.1 and older,
+                    // which stored the ComboBox index as a DWORD.
                     transitionIndex =
                         Math.Clamp(
                             Convert.ToInt32(
@@ -5681,12 +5701,27 @@ namespace WallpaperControl
 
                 key.SetValue(
                     "TransitionKind",
-                    Math.Clamp(index, 0, 6),
-                    RegistryValueKind.DWord);
+                    selectedTransitionKind.ToString(),
+                    RegistryValueKind.String);
             }
             catch
             {
             }
+        }
+
+        private static int TransitionKindToIndex(
+            WallpaperTransitionKind kind)
+        {
+            return kind switch
+            {
+                WallpaperTransitionKind.DesktopSlide => 1,
+                WallpaperTransitionKind.DesktopFade => 2,
+                WallpaperTransitionKind.DesktopZoomFade => 3,
+                WallpaperTransitionKind.DesktopSplit => 4,
+                WallpaperTransitionKind.DesktopCurtain => 5,
+                WallpaperTransitionKind.DesktopRandom => 6,
+                _ => 0
+            };
         }
 
         private WallpaperTransitionDirection DirectionFromIndex(int index)

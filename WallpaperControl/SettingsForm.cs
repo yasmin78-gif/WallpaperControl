@@ -1630,8 +1630,42 @@ namespace WallpaperControl
             ExplorerKey = explorerKey;
             RejectModifiers = rejectModifiers;
             RejectKey = rejectKey;
-            RejectRootFolder =
+
+            string rejectRoot =
                 rejectRootTextBox.Text.Trim();
+
+            if (!string.IsNullOrWhiteSpace(rejectRoot))
+            {
+                try
+                {
+                    if (!Path.IsPathFullyQualified(rejectRoot))
+                    {
+                        throw new ArgumentException();
+                    }
+
+                    rejectRoot = Path.GetFullPath(rejectRoot);
+                }
+                catch (Exception ex) when (
+                    ex is ArgumentException or
+                    NotSupportedException or
+                    PathTooLongException)
+                {
+                    MessageBox.Show(
+                        this,
+                        Localization.Get(
+                            "SettingsRejectRootInvalid",
+                            previewLanguageCode),
+                        "Wallpaper Control",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    rejectRootTextBox.Focus();
+                    rejectRootTextBox.SelectAll();
+                    return;
+                }
+            }
+
+            RejectRootFolder = rejectRoot;
             RejectUseSubfolder =
                 rejectSubfolderCheckBox.Checked;
 

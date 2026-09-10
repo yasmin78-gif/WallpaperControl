@@ -2573,12 +2573,7 @@ namespace WallpaperControl
         {
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch
             {
@@ -2605,12 +2600,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = folder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.RevealInExplorer(row.Path);
             }
             catch
             {
