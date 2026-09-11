@@ -14,6 +14,8 @@ namespace WallpaperControl
 {
     public class MainForm : Form
     {
+        private readonly List<Font> ownedFonts = new();
+
         private const string WindowsSlideshowRegistryPath =
             @"Control Panel\Personalization\Desktop Slideshow";
 
@@ -173,29 +175,34 @@ namespace WallpaperControl
         private bool exitRequested = false;
         private int windowOpacityPercent = 92;
 
-        private readonly Dictionary<string, uint> intervals = new()
+        private sealed record DisplayOption<T>(T Value, string Text)
         {
-            { Localization.Get("Interval1Minute"), 60000 },
-            { Localization.Get("Interval2Minutes"), 120000 },
-            { Localization.Get("Interval3Minutes"), 180000 },
-            { Localization.Get("Interval5Minutes"), 300000 },
-            { Localization.Get("Interval10Minutes"), 600000 },
-            { Localization.Get("Interval15Minutes"), 900000 },
-            { Localization.Get("Interval30Minutes"), 1800000 },
-            { Localization.Get("Interval1Hour"), 3600000 },
-            { Localization.Get("Interval6Hours"), 21600000 },
-            { Localization.Get("Interval1Day"), 86400000 }
-        };
+            public override string ToString() => Text;
+        }
 
-        private readonly Dictionary<string, DesktopWallpaperPosition> positions = new()
-        {
-            { Localization.Get("PositionFill"), DesktopWallpaperPosition.Fill },
-            { Localization.Get("PositionFit"), DesktopWallpaperPosition.Fit },
-            { Localization.Get("PositionStretch"), DesktopWallpaperPosition.Stretch },
-            { Localization.Get("PositionTile"), DesktopWallpaperPosition.Tile },
-            { Localization.Get("PositionCenter"), DesktopWallpaperPosition.Center },
-            { Localization.Get("PositionSpan"), DesktopWallpaperPosition.Span }
-        };
+        private readonly List<DisplayOption<uint>> intervals =
+        [
+            new(60000, Localization.Get("Interval1Minute")),
+            new(120000, Localization.Get("Interval2Minutes")),
+            new(180000, Localization.Get("Interval3Minutes")),
+            new(300000, Localization.Get("Interval5Minutes")),
+            new(600000, Localization.Get("Interval10Minutes")),
+            new(900000, Localization.Get("Interval15Minutes")),
+            new(1800000, Localization.Get("Interval30Minutes")),
+            new(3600000, Localization.Get("Interval1Hour")),
+            new(21600000, Localization.Get("Interval6Hours")),
+            new(86400000, Localization.Get("Interval1Day"))
+        ];
+
+        private readonly List<DisplayOption<DesktopWallpaperPosition>> positions =
+        [
+            new(DesktopWallpaperPosition.Fill, Localization.Get("PositionFill")),
+            new(DesktopWallpaperPosition.Fit, Localization.Get("PositionFit")),
+            new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")),
+            new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")),
+            new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")),
+            new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan"))
+        ];
 
         public MainForm()
         {
@@ -236,7 +243,7 @@ namespace WallpaperControl
 
             RestoreWindowPosition();
 
-            Font = new Font("Segoe UI", 10);
+            Font = CreateOwnedFont("Segoe UI", 10);
 
             AllowDrop = true;
 
@@ -258,7 +265,7 @@ namespace WallpaperControl
                 AutoSize = false,
                 Location = new Point(48, 18),
                 Size = new Size(329, 25),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     9,
                     FontStyle.Bold),
@@ -281,7 +288,7 @@ namespace WallpaperControl
                 Text = "⚙",
                 Location = new Point(387, 10),
                 Size = new Size(28, 28),
-                Font = new Font("Segoe UI Symbol", 12),
+                Font = CreateOwnedFont("Segoe UI Symbol", 12),
                 FlatStyle = FlatStyle.Flat,
                 TabStop = false,
                 Cursor = Cursors.Hand
@@ -297,7 +304,7 @@ namespace WallpaperControl
                 Text = "ⓘ",
                 Location = new Point(10, 10),
                 Size = new Size(28, 28),
-                Font = new Font("Segoe UI Symbol", 11),
+                Font = CreateOwnedFont("Segoe UI Symbol", 11),
                 FlatStyle = FlatStyle.Flat,
                 TabStop = false,
                 Cursor = Cursors.Hand
@@ -319,7 +326,7 @@ namespace WallpaperControl
                 Location = new Point(48, 18),
                 Size = new Size(329, 25),
                 TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -347,7 +354,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperCountZero"),
                 AutoSize = true,
                 Location = new Point(25, 88),
-                Font = new Font("Segoe UI", 8)
+                Font = CreateOwnedFont("Segoe UI", 8)
             };
 
             // ========================================================
@@ -359,7 +366,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperInterval"),
                 AutoSize = true,
                 Location = new Point(25, 110),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -373,7 +380,7 @@ namespace WallpaperControl
                     ComboBoxStyle.DropDownList
             };
 
-            foreach (var item in intervals.Keys)
+            foreach (var item in intervals)
             {
                 intervalComboBox.Items.Add(item);
             }
@@ -387,7 +394,7 @@ namespace WallpaperControl
                 AutoSize = false,
                 Location = new Point(25, 176),
                 Size = new Size(375, 20),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     8.25f,
                     FontStyle.Regular)
@@ -416,7 +423,7 @@ namespace WallpaperControl
                 Text = Localization.Get("WallpaperPosition"),
                 AutoSize = true,
                 Location = new Point(25, 235),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -430,7 +437,7 @@ namespace WallpaperControl
                     ComboBoxStyle.DropDownList
             };
 
-            foreach (var item in positions.Keys)
+            foreach (var item in positions)
             {
                 positionComboBox.Items.Add(item);
             }
@@ -447,7 +454,7 @@ namespace WallpaperControl
                 Text = Localization.Get("Transition"),
                 AutoSize = true,
                 Location = new Point(25, 310),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -506,7 +513,7 @@ namespace WallpaperControl
                 Text = Localization.Get("TransitionDuration"),
                 AutoSize = true,
                 Location = new Point(285, 310),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     11,
                     FontStyle.Bold)
@@ -620,7 +627,7 @@ namespace WallpaperControl
                 Location = new Point(8, 242),
                 Size = new Size(404, 50),
                 AutoEllipsis = true,
-                Font = new Font("Segoe UI", 8.25f)
+                Font = CreateOwnedFont("Segoe UI", 8.25f)
             };
 
             wallpaperPreviewForm.Controls.Add(
@@ -879,10 +886,11 @@ namespace WallpaperControl
                 await PersistentDesktopTransitionManager.InitializeHostAsync(
                     current);
             }
-            catch
+            catch (Exception ex)
             {
-                // Prototype: a failed warm-up must not prevent normal startup.
+                // A failed warm-up must not prevent normal startup.
                 // ApplyAsync can still retry the initialization later.
+                AppLogger.Warning("Persistent desktop host warm-up failed.", ex);
             }
             finally
             {
@@ -891,6 +899,13 @@ namespace WallpaperControl
                     CheckSlideshowStatus();
                 }
             }
+        }
+
+        private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Font font = new Font(familyName, emSize, style);
+            ownedFonts.Add(font);
+            return font;
         }
 
         protected override void Dispose(bool disposing)
@@ -907,6 +922,9 @@ namespace WallpaperControl
 
                 wallpaperRefreshTimer.Stop();
                 wallpaperRefreshTimer.Dispose();
+
+                customSlideshowPreciseTimer.Dispose();
+                toolTip.Dispose();
 
                 wallpaperCountDebounceTimer.Stop();
                 wallpaperCountDebounceTimer.Dispose();
@@ -932,6 +950,12 @@ namespace WallpaperControl
                 trayIcon.Visible = false;
                 trayIcon.Dispose();
                 trayMenu.Dispose();
+
+                foreach (Font font in ownedFonts)
+                {
+                    font.Dispose();
+                }
+                ownedFonts.Clear();
             }
 
             base.Dispose(disposing);
@@ -1300,9 +1324,11 @@ namespace WallpaperControl
 
                 ShowActiveStatus();
             }
-            catch
+            catch (Exception ex)
             {
-                ShowActiveStatus();
+                // Do not turn an unknown COM state into a false "active" state.
+                // Keep the current UI state and record the diagnostic details.
+                AppLogger.Warning("Could not query Windows slideshow status.", ex);
             }
             finally
             {
@@ -1817,7 +1843,7 @@ namespace WallpaperControl
                     if (item.Value == interval)
                     {
                         intervalComboBox.SelectedItem =
-                            item.Key;
+                            item;
 
                         found = true;
                         break;
@@ -1849,7 +1875,7 @@ namespace WallpaperControl
             if (intervalComboBox.SelectedIndex < 0)
             {
                 intervalComboBox.SelectedItem =
-                    Localization.Get("Interval5Minutes");
+                    intervals.First(item => item.Value == 300000);
             }
         }
 
@@ -1879,7 +1905,7 @@ namespace WallpaperControl
                             currentInterval)
                         {
                             intervalComboBox.SelectedItem =
-                                item.Key;
+                                item;
 
                             break;
                         }
@@ -2044,7 +2070,7 @@ namespace WallpaperControl
             }
         }
 
-        protected override async void OnFormClosing(
+        protected override void OnFormClosing(
             FormClosingEventArgs e)
         {
             SaveWindowPosition();
@@ -2059,6 +2085,7 @@ namespace WallpaperControl
                 Hide();
                 ShowInTaskbar = false;
 
+                base.OnFormClosing(e);
                 return;
             }
 
@@ -2066,19 +2093,9 @@ namespace WallpaperControl
                 !closingAfterPauseResume)
             {
                 e.Cancel = true;
-                closingAfterPauseResume = true;
+                base.OnFormClosing(e);
 
-                bool resumed =
-                    await ResumeSlideshowAsync(
-                        showError: true);
-
-                closingAfterPauseResume = false;
-
-                if (resumed)
-                {
-                    Close();
-                }
-
+                _ = ResumeSlideshowAndCloseAsync();
                 return;
             }
 
@@ -2100,11 +2117,49 @@ namespace WallpaperControl
                 }
             }
 
-            customSlideshowPreciseTimer.Dispose();
-
             SavePersistentStatistics();
 
             base.OnFormClosing(e);
+        }
+
+        private async Task ResumeSlideshowAndCloseAsync()
+        {
+            if (closingAfterPauseResume)
+            {
+                return;
+            }
+
+            closingAfterPauseResume = true;
+
+            try
+            {
+                bool resumed =
+                    await ResumeSlideshowAsync(
+                        showError: true);
+
+                if (resumed &&
+                    !IsDisposed &&
+                    !Disposing)
+                {
+                    Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed &&
+                    !Disposing)
+                {
+                    MessageBox.Show(
+                        ex.Message,
+                        "Wallpaper Control",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                closingAfterPauseResume = false;
+            }
         }
 
         // ============================================================
@@ -2256,6 +2311,19 @@ namespace WallpaperControl
                 folder);
 
             StartCustomSlideshowEngine();
+
+            // Beim Wechsel des Quellordners darf das Wallpaper aus dem
+            // vorherigen Ordner nicht sichtbar bleiben. Die eigene Engine
+            // kennt den neuen Ordner bereits; befindet sich das aktuelle
+            // Bild nicht darin, wählt AdvanceCustomWallpaperAsync bei
+            // normaler Reihenfolge das erste Bild bzw. bei Zufallswiedergabe
+            // ein zufälliges Bild aus dem neuen Ordner.
+            if (customSlideshowEngineActive)
+            {
+                _ = AdvanceCustomWallpaperAsync(
+                    DesktopSlideshowDirection.Forward);
+            }
+
             CheckSlideshowStatus();
         }
 
@@ -2402,8 +2470,9 @@ namespace WallpaperControl
 
                 return wallpaper.GetWallpaper(null);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not read the current Windows wallpaper path.", ex);
                 return null;
             }
             finally
@@ -2668,7 +2737,7 @@ namespace WallpaperControl
                     if (item.Value == current)
                     {
                         positionComboBox.SelectedItem =
-                            item.Key;
+                            item;
                         return;
                     }
                 }
@@ -2708,14 +2777,14 @@ namespace WallpaperControl
 
                     if (!Equals(
                         positionComboBox.SelectedItem,
-                        item.Key))
+                        item))
                     {
                         loading = true;
 
                         try
                         {
                             positionComboBox.SelectedItem =
-                                item.Key;
+                                item;
                         }
                         finally
                         {
@@ -2745,13 +2814,12 @@ namespace WallpaperControl
                 return;
 
             if (positionComboBox.SelectedItem
-                is not string selected ||
-                !positions.TryGetValue(
-                    selected,
-                    out DesktopWallpaperPosition position))
+                is not DisplayOption<DesktopWallpaperPosition> selected)
             {
                 return;
             }
+
+            DesktopWallpaperPosition position = selected.Value;
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -2767,6 +2835,7 @@ namespace WallpaperControl
                     wallpaper.GetPosition();
 
                 lastWallpaperPosition = actual;
+                PersistentDesktopTransitionManager.SetWallpaperPosition(actual);
 
                 foreach (var item in positions)
                 {
@@ -2774,11 +2843,11 @@ namespace WallpaperControl
                     {
                         if (!Equals(
                             positionComboBox.SelectedItem,
-                            item.Key))
+                            item))
                         {
                             loading = true;
                             positionComboBox.SelectedItem =
-                                item.Key;
+                                item;
                             loading = false;
                         }
 
@@ -2843,17 +2912,12 @@ namespace WallpaperControl
         private void ApplySlideshowOptions()
         {
             if (intervalComboBox.SelectedItem
-                is not string selected)
+                is not DisplayOption<uint> selected)
             {
                 return;
             }
 
-            if (!intervals.TryGetValue(
-                selected,
-                out uint milliseconds))
-            {
-                return;
-            }
+            uint milliseconds = selected.Value;
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -2964,13 +3028,18 @@ namespace WallpaperControl
         private void AdvanceWallpaper(
             DesktopSlideshowDirection direction)
         {
+            _ = AdvanceWallpaperAsync(direction);
+        }
+
+        private async Task<bool> AdvanceWallpaperAsync(
+            DesktopSlideshowDirection direction)
+        {
             if (slideshowPaused)
-                return;
+                return false;
 
             if (customSlideshowEngineActive)
             {
-                AdvanceCustomWallpaper(direction);
-                return;
+                return await AdvanceCustomWallpaperAsync(direction);
             }
 
             IDesktopWallpaper? wallpaper = null;
@@ -2986,6 +3055,7 @@ namespace WallpaperControl
                     direction);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
+                return true;
             }
             catch (Exception ex)
             {
@@ -2995,6 +3065,8 @@ namespace WallpaperControl
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+
+                return false;
             }
             finally
             {
@@ -3042,9 +3114,10 @@ namespace WallpaperControl
                 slideshowPaused = false;
                 RecalculateCustomSlideshowSchedule();
             }
-            catch
+            catch (Exception ex)
             {
                 customSlideshowEngineActive = false;
+                AppLogger.Error("Could not start the custom slideshow engine.", ex);
             }
             finally
             {
@@ -3113,9 +3186,14 @@ namespace WallpaperControl
                     new Action(
                         ProcessPreciseCustomSlideshowTick));
             }
-            catch
+            catch (Exception ex)
             {
-                // Das Fenster wird möglicherweise gerade beendet.
+                // During shutdown BeginInvoke can legitimately fail. Outside
+                // shutdown, keep the failure for diagnostics.
+                if (!IsDisposed && !Disposing)
+                {
+                    AppLogger.Warning("Could not dispatch the precise slideshow timer callback.", ex);
+                }
             }
         }
 
@@ -3130,7 +3208,18 @@ namespace WallpaperControl
             }
 
             if (!TryGetSelectedInterval(out uint milliseconds))
+            {
+                // Die ComboBox kann während einer UI-Aktualisierung kurzzeitig
+                // keinen gültigen Eintrag besitzen. Da der präzise Timer ein
+                // One-Shot-Timer ist, würde ein einfaches return die Slideshow
+                // für den Rest der Sitzung nicht mehr aufwecken.
+                // Deshalb nach kurzer Zeit erneut prüfen, statt den Timer sterben
+                // zu lassen oder in einer engen Sofort-Schleife zu landen.
+                customSlideshowPreciseTimer.Change(
+                    TimeSpan.FromMilliseconds(250),
+                    Timeout.InfiniteTimeSpan);
                 return;
+            }
 
             if (milliseconds != customSlideshowLastInterval)
             {
@@ -3155,7 +3244,7 @@ namespace WallpaperControl
                 $"callback: {invoked:HH:mm:ss.fff}; " +
                 $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
 
-            AdvanceCustomWallpaper(
+            _ = AdvanceCustomWallpaperAsync(
                 DesktopSlideshowDirection.Forward);
 
             // Der nächste Termin wird vom Soll-Raster abgeleitet, nicht vom
@@ -3187,38 +3276,42 @@ namespace WallpaperControl
         {
             milliseconds = 0;
 
-            return intervalComboBox.SelectedItem is string selected &&
-                   intervals.TryGetValue(selected, out milliseconds);
+            if (intervalComboBox.SelectedItem is not DisplayOption<uint> selected)
+                return false;
+
+            milliseconds = selected.Value;
+            return true;
         }
 
-        private async void AdvanceCustomWallpaper(
+        private async Task<bool> AdvanceCustomWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
             if (customSlideshowChangeRunning)
-                return;
+                return false;
 
             string folder = folderTextBox.Text;
 
             if (string.IsNullOrWhiteSpace(folder) ||
                 !Directory.Exists(folder))
             {
-                return;
+                return false;
             }
 
             try
             {
                 customSlideshowChangeRunning = true;
+                rejectButton.Enabled = false;
 
                 string[] files = Directory.EnumerateFiles(
                         folder,
                         "*",
                         SearchOption.TopDirectoryOnly)
                     .Where(IsSupportedWallpaperExtension)
-                    .OrderBy(path => path, StringComparer.CurrentCultureIgnoreCase)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
                 if (files.Length == 0)
-                    return;
+                    return false;
 
                 string? current = GetCurrentWallpaperPath();
                 string next;
@@ -3270,19 +3363,34 @@ namespace WallpaperControl
                     selectedZoomMode);
 
                 _ = RefreshCurrentWallpaperSoonAsync();
+
+                return string.Equals(
+                    GetCurrentWallpaperPath(),
+                    next,
+                    StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)
             {
+                if (exitRequested ||
+                    IsDisposed ||
+                    Disposing)
+                {
+                    return false;
+                }
+
                 MessageBox.Show(
                     Localization.Get("MsgAdvanceFailed") +
                     ex.Message,
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+
+                return false;
             }
             finally
             {
                 customSlideshowChangeRunning = false;
+                UpdateCurrentWallpaperDisplay();
             }
         }
 
@@ -3342,7 +3450,8 @@ namespace WallpaperControl
 
             rejectButton.Enabled =
                 exists &&
-                !slideshowPaused;
+                !slideshowPaused &&
+                !customSlideshowChangeRunning;
         }
 
         private void LoadPersistentStatistics()
@@ -3536,8 +3645,9 @@ namespace WallpaperControl
                     (state &
                      DesktopSlideshowState.Slideshow) != 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not determine whether the Windows slideshow is active.", ex);
                 return false;
             }
             finally
@@ -3882,12 +3992,7 @@ namespace WallpaperControl
                 Directory.CreateDirectory(
                     rejectedFolder);
 
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = rejectedFolder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenFolder(rejectedFolder);
             }
             catch (Exception ex)
             {
@@ -4159,12 +4264,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch (Exception ex)
             {
@@ -4212,12 +4312,7 @@ namespace WallpaperControl
                     return;
                 }
 
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = folder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.RevealInExplorer(path);
             }
             catch (Exception ex)
             {
@@ -4247,12 +4342,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch (Exception ex)
             {
@@ -4307,10 +4397,37 @@ namespace WallpaperControl
                     return;
                 }
 
-                AdvanceWallpaper(
-                    DesktopSlideshowDirection.Forward);
+                bool advanced =
+                    await AdvanceWallpaperAsync(
+                        DesktopSlideshowDirection.Forward);
 
-                await Task.Delay(600);
+                if (!advanced)
+                {
+                    return;
+                }
+
+                if (!customSlideshowEngineActive)
+                {
+                    DateTime waitUntil =
+                        DateTime.UtcNow.AddSeconds(2);
+
+                    while (string.Equals(
+                               GetCurrentWallpaperPath(),
+                               path,
+                               StringComparison.OrdinalIgnoreCase) &&
+                           DateTime.UtcNow < waitUntil)
+                    {
+                        await Task.Delay(50);
+                    }
+                }
+
+                if (string.Equals(
+                        GetCurrentWallpaperPath(),
+                        path,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
 
                 string rejectFolder =
                     GetRejectedFolder(
@@ -4958,12 +5075,9 @@ namespace WallpaperControl
             uint selectedInterval = 300000;
 
             if (intervalComboBox.SelectedItem
-                is string selectedIntervalText &&
-                intervals.TryGetValue(
-                    selectedIntervalText,
-                    out uint intervalValue))
+                is DisplayOption<uint> selectedIntervalOption)
             {
-                selectedInterval = intervalValue;
+                selectedInterval = selectedIntervalOption.Value;
             }
 
             DesktopWallpaperPosition selectedPosition =
@@ -4971,12 +5085,9 @@ namespace WallpaperControl
                 DesktopWallpaperPosition.Fill;
 
             if (positionComboBox.SelectedItem
-                is string selectedPositionText &&
-                positions.TryGetValue(
-                    selectedPositionText,
-                    out DesktopWallpaperPosition positionValue))
+                is DisplayOption<DesktopWallpaperPosition> selectedPositionOption)
             {
-                selectedPosition = positionValue;
+                selectedPosition = selectedPositionOption.Value;
             }
 
             bool previousLoading = loading;
@@ -4985,58 +5096,38 @@ namespace WallpaperControl
             try
             {
                 intervals.Clear();
-                intervals.Add(Localization.Get("Interval1Minute"), 60000);
-                intervals.Add(Localization.Get("Interval2Minutes"), 120000);
-                intervals.Add(Localization.Get("Interval3Minutes"), 180000);
-                intervals.Add(Localization.Get("Interval5Minutes"), 300000);
-                intervals.Add(Localization.Get("Interval10Minutes"), 600000);
-                intervals.Add(Localization.Get("Interval15Minutes"), 900000);
-                intervals.Add(Localization.Get("Interval30Minutes"), 1800000);
-                intervals.Add(Localization.Get("Interval1Hour"), 3600000);
-                intervals.Add(Localization.Get("Interval6Hours"), 21600000);
-                intervals.Add(Localization.Get("Interval1Day"), 86400000);
+                intervals.Add(new(60000, Localization.Get("Interval1Minute")));
+                intervals.Add(new(120000, Localization.Get("Interval2Minutes")));
+                intervals.Add(new(180000, Localization.Get("Interval3Minutes")));
+                intervals.Add(new(300000, Localization.Get("Interval5Minutes")));
+                intervals.Add(new(600000, Localization.Get("Interval10Minutes")));
+                intervals.Add(new(900000, Localization.Get("Interval15Minutes")));
+                intervals.Add(new(1800000, Localization.Get("Interval30Minutes")));
+                intervals.Add(new(3600000, Localization.Get("Interval1Hour")));
+                intervals.Add(new(21600000, Localization.Get("Interval6Hours")));
+                intervals.Add(new(86400000, Localization.Get("Interval1Day")));
 
                 intervalComboBox.Items.Clear();
-
-                foreach (string item in intervals.Keys)
-                {
-                    intervalComboBox.Items.Add(item);
-                }
-
                 foreach (var item in intervals)
-                {
-                    if (item.Value == selectedInterval)
-                    {
-                        intervalComboBox.SelectedItem =
-                            item.Key;
-                        break;
-                    }
-                }
+                    intervalComboBox.Items.Add(item);
+
+                intervalComboBox.SelectedItem =
+                    intervals.FirstOrDefault(item => item.Value == selectedInterval);
 
                 positions.Clear();
-                positions.Add(Localization.Get("PositionFill"), DesktopWallpaperPosition.Fill);
-                positions.Add(Localization.Get("PositionFit"), DesktopWallpaperPosition.Fit);
-                positions.Add(Localization.Get("PositionStretch"), DesktopWallpaperPosition.Stretch);
-                positions.Add(Localization.Get("PositionTile"), DesktopWallpaperPosition.Tile);
-                positions.Add(Localization.Get("PositionCenter"), DesktopWallpaperPosition.Center);
-                positions.Add(Localization.Get("PositionSpan"), DesktopWallpaperPosition.Span);
+                positions.Add(new(DesktopWallpaperPosition.Fill, Localization.Get("PositionFill")));
+                positions.Add(new(DesktopWallpaperPosition.Fit, Localization.Get("PositionFit")));
+                positions.Add(new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")));
+                positions.Add(new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")));
+                positions.Add(new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")));
+                positions.Add(new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan")));
 
                 positionComboBox.Items.Clear();
-
-                foreach (string item in positions.Keys)
-                {
-                    positionComboBox.Items.Add(item);
-                }
-
                 foreach (var item in positions)
-                {
-                    if (item.Value == selectedPosition)
-                    {
-                        positionComboBox.SelectedItem =
-                            item.Key;
-                        break;
-                    }
-                }
+                    positionComboBox.Items.Add(item);
+
+                positionComboBox.SelectedItem =
+                    positions.FirstOrDefault(item => item.Value == selectedPosition);
 
                 int transitionIndex =
                     selectedTransitionKind switch
@@ -5208,10 +5299,13 @@ namespace WallpaperControl
                     return;
                 }
 
-                rejectRootFolder =
+                string storedRejectRoot =
                     key.GetValue(
                         "RejectRootFolder")
                     as string ?? "";
+
+                rejectRootFolder =
+                    NormalizeRejectRootFolder(storedRejectRoot);
 
                 object? subfolderValue =
                     key.GetValue(
@@ -5226,6 +5320,31 @@ namespace WallpaperControl
             }
             catch
             {
+            }
+        }
+
+        private static string NormalizeRejectRootFolder(
+            string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                string trimmed = path.Trim();
+
+                return Path.IsPathFullyQualified(trimmed)
+                    ? Path.GetFullPath(trimmed)
+                    : string.Empty;
+            }
+            catch (Exception ex) when (
+                ex is ArgumentException or
+                NotSupportedException or
+                PathTooLongException)
+            {
+                return string.Empty;
             }
         }
 
@@ -5408,8 +5527,20 @@ namespace WallpaperControl
                     key?.GetValue(
                         "TransitionKind");
 
-                if (transitionValue != null)
+                if (transitionValue is string transitionName &&
+                    Enum.TryParse(
+                        transitionName,
+                        ignoreCase: true,
+                        out WallpaperTransitionKind storedKind) &&
+                    Enum.IsDefined(storedKind))
                 {
+                    transitionIndex =
+                        TransitionKindToIndex(storedKind);
+                }
+                else if (transitionValue != null)
+                {
+                    // Backward compatibility with v1.7.1 and older,
+                    // which stored the ComboBox index as a DWORD.
                     transitionIndex =
                         Math.Clamp(
                             Convert.ToInt32(
@@ -5560,12 +5691,27 @@ namespace WallpaperControl
 
                 key.SetValue(
                     "TransitionKind",
-                    Math.Clamp(index, 0, 6),
-                    RegistryValueKind.DWord);
+                    selectedTransitionKind.ToString(),
+                    RegistryValueKind.String);
             }
             catch
             {
             }
+        }
+
+        private static int TransitionKindToIndex(
+            WallpaperTransitionKind kind)
+        {
+            return kind switch
+            {
+                WallpaperTransitionKind.DesktopSlide => 1,
+                WallpaperTransitionKind.DesktopFade => 2,
+                WallpaperTransitionKind.DesktopZoomFade => 3,
+                WallpaperTransitionKind.DesktopSplit => 4,
+                WallpaperTransitionKind.DesktopCurtain => 5,
+                WallpaperTransitionKind.DesktopRandom => 6,
+                _ => 0
+            };
         }
 
         private WallpaperTransitionDirection DirectionFromIndex(int index)

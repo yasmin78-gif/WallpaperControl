@@ -15,6 +15,8 @@ namespace WallpaperControl
 {
     internal sealed class StatisticsForm : Form
     {
+        private readonly List<Font> ownedFonts = new();
+
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
         private const int SW_SHOWNOACTIVATE = 4;
         private const int SW_HIDE = 0;
@@ -229,6 +231,10 @@ namespace WallpaperControl
 
         private sealed class MetricCard : Panel
         {
+            private readonly Font titleFont;
+            private readonly Font valueFont;
+            private readonly Font detailFont;
+
             public Label TitleLabel { get; }
             public Label ValueLabel { get; }
             public Label DetailLabel { get; }
@@ -239,14 +245,15 @@ namespace WallpaperControl
                 Padding = new Padding(12);
                 BorderStyle = BorderStyle.FixedSingle;
 
+                titleFont = new Font("Segoe UI", 8.5f, FontStyle.Regular);
+                valueFont = new Font("Segoe UI", 15, FontStyle.Bold);
+                detailFont = new Font("Segoe UI", 8, FontStyle.Regular);
+
                 TitleLabel = new Label
                 {
                     Location = new Point(12, 9),
                     Size = new Size(179, 20),
-                    Font = new Font(
-                        "Segoe UI",
-                        8.5f,
-                        FontStyle.Regular),
+                    Font = titleFont,
                     AutoEllipsis = true
                 };
 
@@ -254,10 +261,7 @@ namespace WallpaperControl
                 {
                     Location = new Point(12, 30),
                     Size = new Size(179, 28),
-                    Font = new Font(
-                        "Segoe UI",
-                        15,
-                        FontStyle.Bold),
+                    Font = valueFont,
                     AutoEllipsis = true
                 };
 
@@ -265,16 +269,25 @@ namespace WallpaperControl
                 {
                     Location = new Point(12, 60),
                     Size = new Size(179, 18),
-                    Font = new Font(
-                        "Segoe UI",
-                        8,
-                        FontStyle.Regular),
+                    Font = detailFont,
                     AutoEllipsis = true
                 };
 
                 Controls.Add(TitleLabel);
                 Controls.Add(ValueLabel);
                 Controls.Add(DetailLabel);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    titleFont.Dispose();
+                    valueFont.Dispose();
+                    detailFont.Dispose();
+                }
+
+                base.Dispose(disposing);
             }
 
             public void SetColors(
@@ -486,7 +499,7 @@ namespace WallpaperControl
             StartPosition = FormStartPosition.CenterParent;
 
             ClientSize = new Size(920, 900);
-            Font = new Font("Segoe UI", 10);
+            Font = CreateOwnedFont("Segoe UI", 10);
 
             Opacity =
                 Math.Clamp(
@@ -499,7 +512,7 @@ namespace WallpaperControl
                 Text = Localization.Get("StatisticsTitle"),
                 Location = new Point(25, 18),
                 AutoSize = true,
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     15,
                     FontStyle.Bold)
@@ -775,7 +788,7 @@ namespace WallpaperControl
                 ShowCheckMargin = false,
                 AutoSize = true,
                 Padding = new Padding(2),
-                Font = new Font(
+                Font = CreateOwnedFont(
                     "Segoe UI",
                     9.5f,
                     FontStyle.Regular),
@@ -854,7 +867,7 @@ namespace WallpaperControl
             }
 
             setWallpaperMenuItem.Font =
-                new Font(
+                CreateOwnedFont(
                     rowContextMenu.Font,
                     FontStyle.Bold);
 
@@ -972,6 +985,20 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
+        {
+            Font font = new Font(familyName, emSize, style);
+            ownedFonts.Add(font);
+            return font;
+        }
+
+        private Font CreateOwnedFont(Font prototype, FontStyle style)
+        {
+            Font font = new Font(prototype, style);
+            ownedFonts.Add(font);
+            return font;
+        }
+
         protected override void OnHandleCreated(
             EventArgs e)
         {
@@ -1002,6 +1029,12 @@ namespace WallpaperControl
             rowContextMenu.Dispose();
             dashboardToolTip.Dispose();
             wallpaperPreviewForm.Dispose();
+
+            foreach (Font font in ownedFonts)
+            {
+                font.Dispose();
+            }
+            ownedFonts.Clear();
 
             base.OnFormClosed(e);
         }
@@ -1872,6 +1905,9 @@ namespace WallpaperControl
             object? sender,
             DrawListViewColumnHeaderEventArgs e)
         {
+            if (e.Header == null)
+                return;
+
             Color backColor =
                 darkMode
                     ? Color.FromArgb(42, 42, 42)
@@ -1939,6 +1975,12 @@ namespace WallpaperControl
             object? sender,
             DrawListViewSubItemEventArgs e)
         {
+            if (e.Item == null ||
+                e.SubItem == null)
+            {
+                return;
+            }
+
             bool isHover =
                 e.ItemIndex == hoveredItemIndex;
 
@@ -2531,12 +2573,7 @@ namespace WallpaperControl
         {
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.OpenImage(path);
             }
             catch
             {
@@ -2563,12 +2600,7 @@ namespace WallpaperControl
 
             try
             {
-                Process.Start(
-                    new ProcessStartInfo
-                    {
-                        FileName = folder,
-                        UseShellExecute = true
-                    });
+                WallpaperFileActions.RevealInExplorer(row.Path);
             }
             catch
             {

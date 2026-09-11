@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -712,5 +712,8 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   </data>
   <data name="TransitionRandom" xml:space="preserve">
     <value>Aleatorio</value>
+  </data>
+  <data name="SettingsRejectRootInvalid" xml:space="preserve">
+    <value>La carpeta de descartados debe usar una ruta completa, por ejemplo C:\Wallpaper\Descartados.</value>
   </data>
 </root>

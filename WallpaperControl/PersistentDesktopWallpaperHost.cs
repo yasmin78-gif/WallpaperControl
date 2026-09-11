@@ -24,6 +24,7 @@ namespace WallpaperControl
         private readonly System.Windows.Forms.Timer animationTimer;
         private readonly System.Diagnostics.Stopwatch stopwatch = new();
         private TaskCompletionSource<bool>? completionSource;
+        private CancellationTokenRegistration cancellationRegistration;
         private int durationMilliseconds;
         private double progress = 1.0;
         private WallpaperTransitionKind transitionKind =
@@ -32,6 +33,8 @@ namespace WallpaperControl
             WallpaperTransitionDirection.Left;
         private WallpaperZoomMode zoomMode =
             WallpaperZoomMode.In;
+        private DesktopWallpaperPosition wallpaperPosition =
+            DesktopWallpaperPosition.Fill;
 
         public string? CurrentWallpaperPath { get; private set; }
 
@@ -127,7 +130,8 @@ namespace WallpaperControl
                     wallpaperPath,
                     new Size(
                         finalBounds.Width,
-                        finalBounds.Height)));
+                        finalBounds.Height),
+                    wallpaperPosition));
 
             CurrentWallpaperPath =
                 wallpaperPath;
@@ -138,6 +142,23 @@ namespace WallpaperControl
             Update();
 
             return true;
+        }
+
+        public void SetWallpaperPosition(DesktopWallpaperPosition position)
+        {
+            wallpaperPosition = position;
+
+            if (!string.IsNullOrWhiteSpace(CurrentWallpaperPath) &&
+                File.Exists(CurrentWallpaperPath) &&
+                ClientSize.Width > 0 &&
+                ClientSize.Height > 0)
+            {
+                ReplaceBitmap(
+                    ref currentFrame,
+                    LoadFrame(CurrentWallpaperPath, ClientSize, wallpaperPosition));
+                Invalidate();
+                Update();
+            }
         }
 
         public Task TransitionToAsync(
@@ -155,9 +176,17 @@ namespace WallpaperControl
                     nextWallpaperPath);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (completionSource != null || animationTimer.Enabled)
+            {
+                throw new InvalidOperationException(
+                    "A wallpaper transition is already in progress.");
+            }
+
             ReplaceBitmap(
                 ref nextFrame,
-                LoadFrame(nextWallpaperPath));
+                LoadFrame(nextWallpaperPath, ClientSize, wallpaperPosition));
 
             transitionKind = kind;
             transitionDirection =
@@ -167,31 +196,61 @@ namespace WallpaperControl
             durationMilliseconds = Math.Max(1, milliseconds);
             progress = 0.0;
 
-            completionSource =
+            cancellationRegistration.Dispose();
+
+            TaskCompletionSource<bool> source =
                 new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
 
+            completionSource = source;
+
             if (cancellationToken.CanBeCanceled)
             {
-                cancellationToken.Register(() =>
-                {
-                    if (!IsDisposed && IsHandleCreated)
+                cancellationRegistration =
+                    cancellationToken.Register(() =>
                     {
-                        BeginInvoke(new Action(() =>
+                        try
                         {
-                            StopAnimation();
-                            completionSource?.TrySetCanceled(
+                            if (IsDisposed || !IsHandleCreated)
+                            {
+                                source.TrySetCanceled(
+                                    cancellationToken);
+                                return;
+                            }
+
+                            BeginInvoke(new Action(() =>
+                            {
+                                if (!ReferenceEquals(
+                                        completionSource,
+                                        source))
+                                {
+                                    return;
+                                }
+
+                                StopAnimation();
+                                completionSource = null;
+                                cancellationRegistration.Dispose();
+                                source.TrySetCanceled(
+                                    cancellationToken);
+                            }));
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // ObjectDisposedException derives from
+                            // InvalidOperationException, so this also
+                            // covers a handle/control disposed while
+                            // cancellation is being marshalled.
+                            source.TrySetCanceled(
                                 cancellationToken);
-                        }));
-                    }
-                });
+                        }
+                    });
             }
 
             stopwatch.Restart();
             animationTimer.Start();
             Invalidate();
 
-            return completionSource.Task;
+            return source.Task;
         }
 
         private void AnimationTimer_Tick(object? sender, EventArgs e)
@@ -215,7 +274,12 @@ namespace WallpaperControl
                 progress = 1.0;
                 Invalidate();
 
-                completionSource?.TrySetResult(true);
+                TaskCompletionSource<bool>? source =
+                    completionSource;
+
+                completionSource = null;
+                cancellationRegistration.Dispose();
+                source?.TrySetResult(true);
             }
         }
 
@@ -277,9 +341,6 @@ namespace WallpaperControl
                     DrawCurtainTransition(e.Graphics);
                     break;
 
-                case WallpaperTransitionKind.DesktopZoomOutFade:
-                    DrawZoomOutFadeTransition(e.Graphics);
-                    break;
 
                 case WallpaperTransitionKind.DesktopWipe:
                 default:
@@ -715,12 +776,14 @@ namespace WallpaperControl
 
             return LoadFrame(
                 path,
-                screen.Bounds.Size);
+                screen.Bounds.Size,
+                wallpaperPosition);
         }
 
         private static Bitmap LoadFrame(
             string path,
-            Size targetSize)
+            Size targetSize,
+            DesktopWallpaperPosition position)
         {
             using Image source =
                 Image.FromFile(path);
@@ -737,15 +800,60 @@ namespace WallpaperControl
             g.InterpolationMode =
                 System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
-            g.DrawImage(
-                source,
-                new Rectangle(
-                    0,
-                    0,
-                    targetSize.Width,
-                    targetSize.Height));
+            g.Clear(Color.Black);
+
+            Rectangle targetRectangle = position switch
+            {
+                DesktopWallpaperPosition.Stretch =>
+                    new Rectangle(0, 0, targetSize.Width, targetSize.Height),
+                DesktopWallpaperPosition.Center =>
+                    new Rectangle(
+                        (targetSize.Width - source.Width) / 2,
+                        (targetSize.Height - source.Height) / 2,
+                        source.Width,
+                        source.Height),
+                DesktopWallpaperPosition.Fit =>
+                    GetAspectRectangle(source.Size, targetSize, fill: false),
+                DesktopWallpaperPosition.Fill =>
+                    GetAspectRectangle(source.Size, targetSize, fill: true),
+                DesktopWallpaperPosition.Span =>
+                    GetAspectRectangle(source.Size, targetSize, fill: true),
+                _ => Rectangle.Empty
+            };
+
+            if (position == DesktopWallpaperPosition.Tile)
+            {
+                using TextureBrush brush = new TextureBrush(source);
+                g.FillRectangle(brush, new Rectangle(Point.Empty, targetSize));
+            }
+            else
+            {
+                g.DrawImage(source, targetRectangle);
+            }
 
             return result;
+        }
+
+
+        private static Rectangle GetAspectRectangle(
+            Size sourceSize,
+            Size targetSize,
+            bool fill)
+        {
+            double scaleX = (double)targetSize.Width / sourceSize.Width;
+            double scaleY = (double)targetSize.Height / sourceSize.Height;
+            double scale = fill
+                ? Math.Max(scaleX, scaleY)
+                : Math.Min(scaleX, scaleY);
+
+            int width = Math.Max(1, (int)Math.Round(sourceSize.Width * scale));
+            int height = Math.Max(1, (int)Math.Round(sourceSize.Height * scale));
+
+            return new Rectangle(
+                (targetSize.Width - width) / 2,
+                (targetSize.Height - height) / 2,
+                width,
+                height);
         }
 
         private static void ReplaceBitmap(
@@ -926,9 +1034,23 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                StopAnimation();
                 animationTimer.Dispose();
+                cancellationRegistration.Dispose();
+
+                TaskCompletionSource<bool>? pending =
+                    completionSource;
+
+                completionSource = null;
+                pending?.TrySetException(
+                    new ObjectDisposedException(
+                        nameof(PersistentDesktopWallpaperHost)));
+
                 currentFrame?.Dispose();
+                currentFrame = null;
+
                 nextFrame?.Dispose();
+                nextFrame = null;
             }
 
             base.Dispose(disposing);

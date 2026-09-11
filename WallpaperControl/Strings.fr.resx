@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -712,5 +712,8 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   </data>
   <data name="TransitionRandom" xml:space="preserve">
     <value>Aléatoire</value>
+  </data>
+  <data name="SettingsRejectRootInvalid" xml:space="preserve">
+    <value>Le dossier de rejet doit utiliser un chemin complet, par exemple C:\Wallpaper\Rejetes.</value>
   </data>
 </root>

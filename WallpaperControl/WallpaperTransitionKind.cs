@@ -9,7 +9,6 @@
         DesktopZoomFade,
         DesktopSplit,
         DesktopCurtain,
-        DesktopZoomOutFade,
         DesktopRandom
     }
 }
