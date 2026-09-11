@@ -175,29 +175,34 @@ namespace WallpaperControl
         private bool exitRequested = false;
         private int windowOpacityPercent = 92;
 
-        private readonly Dictionary<string, uint> intervals = new()
+        private sealed record DisplayOption<T>(T Value, string Text)
         {
-            { Localization.Get("Interval1Minute"), 60000 },
-            { Localization.Get("Interval2Minutes"), 120000 },
-            { Localization.Get("Interval3Minutes"), 180000 },
-            { Localization.Get("Interval5Minutes"), 300000 },
-            { Localization.Get("Interval10Minutes"), 600000 },
-            { Localization.Get("Interval15Minutes"), 900000 },
-            { Localization.Get("Interval30Minutes"), 1800000 },
-            { Localization.Get("Interval1Hour"), 3600000 },
-            { Localization.Get("Interval6Hours"), 21600000 },
-            { Localization.Get("Interval1Day"), 86400000 }
-        };
+            public override string ToString() => Text;
+        }
 
-        private readonly Dictionary<string, DesktopWallpaperPosition> positions = new()
-        {
-            { Localization.Get("PositionFill"), DesktopWallpaperPosition.Fill },
-            { Localization.Get("PositionFit"), DesktopWallpaperPosition.Fit },
-            { Localization.Get("PositionStretch"), DesktopWallpaperPosition.Stretch },
-            { Localization.Get("PositionTile"), DesktopWallpaperPosition.Tile },
-            { Localization.Get("PositionCenter"), DesktopWallpaperPosition.Center },
-            { Localization.Get("PositionSpan"), DesktopWallpaperPosition.Span }
-        };
+        private readonly List<DisplayOption<uint>> intervals =
+        [
+            new(60000, Localization.Get("Interval1Minute")),
+            new(120000, Localization.Get("Interval2Minutes")),
+            new(180000, Localization.Get("Interval3Minutes")),
+            new(300000, Localization.Get("Interval5Minutes")),
+            new(600000, Localization.Get("Interval10Minutes")),
+            new(900000, Localization.Get("Interval15Minutes")),
+            new(1800000, Localization.Get("Interval30Minutes")),
+            new(3600000, Localization.Get("Interval1Hour")),
+            new(21600000, Localization.Get("Interval6Hours")),
+            new(86400000, Localization.Get("Interval1Day"))
+        ];
+
+        private readonly List<DisplayOption<DesktopWallpaperPosition>> positions =
+        [
+            new(DesktopWallpaperPosition.Fill, Localization.Get("PositionFill")),
+            new(DesktopWallpaperPosition.Fit, Localization.Get("PositionFit")),
+            new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")),
+            new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")),
+            new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")),
+            new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan"))
+        ];
 
         public MainForm()
         {
@@ -375,7 +380,7 @@ namespace WallpaperControl
                     ComboBoxStyle.DropDownList
             };
 
-            foreach (var item in intervals.Keys)
+            foreach (var item in intervals)
             {
                 intervalComboBox.Items.Add(item);
             }
@@ -432,7 +437,7 @@ namespace WallpaperControl
                     ComboBoxStyle.DropDownList
             };
 
-            foreach (var item in positions.Keys)
+            foreach (var item in positions)
             {
                 positionComboBox.Items.Add(item);
             }
@@ -1838,7 +1843,7 @@ namespace WallpaperControl
                     if (item.Value == interval)
                     {
                         intervalComboBox.SelectedItem =
-                            item.Key;
+                            item;
 
                         found = true;
                         break;
@@ -1870,7 +1875,7 @@ namespace WallpaperControl
             if (intervalComboBox.SelectedIndex < 0)
             {
                 intervalComboBox.SelectedItem =
-                    Localization.Get("Interval5Minutes");
+                    intervals.First(item => item.Value == 300000);
             }
         }
 
@@ -1900,7 +1905,7 @@ namespace WallpaperControl
                             currentInterval)
                         {
                             intervalComboBox.SelectedItem =
-                                item.Key;
+                                item;
 
                             break;
                         }
@@ -2306,6 +2311,19 @@ namespace WallpaperControl
                 folder);
 
             StartCustomSlideshowEngine();
+
+            // Beim Wechsel des Quellordners darf das Wallpaper aus dem
+            // vorherigen Ordner nicht sichtbar bleiben. Die eigene Engine
+            // kennt den neuen Ordner bereits; befindet sich das aktuelle
+            // Bild nicht darin, wählt AdvanceCustomWallpaperAsync bei
+            // normaler Reihenfolge das erste Bild bzw. bei Zufallswiedergabe
+            // ein zufälliges Bild aus dem neuen Ordner.
+            if (customSlideshowEngineActive)
+            {
+                _ = AdvanceCustomWallpaperAsync(
+                    DesktopSlideshowDirection.Forward);
+            }
+
             CheckSlideshowStatus();
         }
 
@@ -2719,7 +2737,7 @@ namespace WallpaperControl
                     if (item.Value == current)
                     {
                         positionComboBox.SelectedItem =
-                            item.Key;
+                            item;
                         return;
                     }
                 }
@@ -2759,14 +2777,14 @@ namespace WallpaperControl
 
                     if (!Equals(
                         positionComboBox.SelectedItem,
-                        item.Key))
+                        item))
                     {
                         loading = true;
 
                         try
                         {
                             positionComboBox.SelectedItem =
-                                item.Key;
+                                item;
                         }
                         finally
                         {
@@ -2796,13 +2814,12 @@ namespace WallpaperControl
                 return;
 
             if (positionComboBox.SelectedItem
-                is not string selected ||
-                !positions.TryGetValue(
-                    selected,
-                    out DesktopWallpaperPosition position))
+                is not DisplayOption<DesktopWallpaperPosition> selected)
             {
                 return;
             }
+
+            DesktopWallpaperPosition position = selected.Value;
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -2818,6 +2835,7 @@ namespace WallpaperControl
                     wallpaper.GetPosition();
 
                 lastWallpaperPosition = actual;
+                PersistentDesktopTransitionManager.SetWallpaperPosition(actual);
 
                 foreach (var item in positions)
                 {
@@ -2825,11 +2843,11 @@ namespace WallpaperControl
                     {
                         if (!Equals(
                             positionComboBox.SelectedItem,
-                            item.Key))
+                            item))
                         {
                             loading = true;
                             positionComboBox.SelectedItem =
-                                item.Key;
+                                item;
                             loading = false;
                         }
 
@@ -2894,17 +2912,12 @@ namespace WallpaperControl
         private void ApplySlideshowOptions()
         {
             if (intervalComboBox.SelectedItem
-                is not string selected)
+                is not DisplayOption<uint> selected)
             {
                 return;
             }
 
-            if (!intervals.TryGetValue(
-                selected,
-                out uint milliseconds))
-            {
-                return;
-            }
+            uint milliseconds = selected.Value;
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -3263,8 +3276,11 @@ namespace WallpaperControl
         {
             milliseconds = 0;
 
-            return intervalComboBox.SelectedItem is string selected &&
-                   intervals.TryGetValue(selected, out milliseconds);
+            if (intervalComboBox.SelectedItem is not DisplayOption<uint> selected)
+                return false;
+
+            milliseconds = selected.Value;
+            return true;
         }
 
         private async Task<bool> AdvanceCustomWallpaperAsync(
@@ -5059,12 +5075,9 @@ namespace WallpaperControl
             uint selectedInterval = 300000;
 
             if (intervalComboBox.SelectedItem
-                is string selectedIntervalText &&
-                intervals.TryGetValue(
-                    selectedIntervalText,
-                    out uint intervalValue))
+                is DisplayOption<uint> selectedIntervalOption)
             {
-                selectedInterval = intervalValue;
+                selectedInterval = selectedIntervalOption.Value;
             }
 
             DesktopWallpaperPosition selectedPosition =
@@ -5072,12 +5085,9 @@ namespace WallpaperControl
                 DesktopWallpaperPosition.Fill;
 
             if (positionComboBox.SelectedItem
-                is string selectedPositionText &&
-                positions.TryGetValue(
-                    selectedPositionText,
-                    out DesktopWallpaperPosition positionValue))
+                is DisplayOption<DesktopWallpaperPosition> selectedPositionOption)
             {
-                selectedPosition = positionValue;
+                selectedPosition = selectedPositionOption.Value;
             }
 
             bool previousLoading = loading;
@@ -5086,58 +5096,38 @@ namespace WallpaperControl
             try
             {
                 intervals.Clear();
-                intervals.Add(Localization.Get("Interval1Minute"), 60000);
-                intervals.Add(Localization.Get("Interval2Minutes"), 120000);
-                intervals.Add(Localization.Get("Interval3Minutes"), 180000);
-                intervals.Add(Localization.Get("Interval5Minutes"), 300000);
-                intervals.Add(Localization.Get("Interval10Minutes"), 600000);
-                intervals.Add(Localization.Get("Interval15Minutes"), 900000);
-                intervals.Add(Localization.Get("Interval30Minutes"), 1800000);
-                intervals.Add(Localization.Get("Interval1Hour"), 3600000);
-                intervals.Add(Localization.Get("Interval6Hours"), 21600000);
-                intervals.Add(Localization.Get("Interval1Day"), 86400000);
+                intervals.Add(new(60000, Localization.Get("Interval1Minute")));
+                intervals.Add(new(120000, Localization.Get("Interval2Minutes")));
+                intervals.Add(new(180000, Localization.Get("Interval3Minutes")));
+                intervals.Add(new(300000, Localization.Get("Interval5Minutes")));
+                intervals.Add(new(600000, Localization.Get("Interval10Minutes")));
+                intervals.Add(new(900000, Localization.Get("Interval15Minutes")));
+                intervals.Add(new(1800000, Localization.Get("Interval30Minutes")));
+                intervals.Add(new(3600000, Localization.Get("Interval1Hour")));
+                intervals.Add(new(21600000, Localization.Get("Interval6Hours")));
+                intervals.Add(new(86400000, Localization.Get("Interval1Day")));
 
                 intervalComboBox.Items.Clear();
-
-                foreach (string item in intervals.Keys)
-                {
-                    intervalComboBox.Items.Add(item);
-                }
-
                 foreach (var item in intervals)
-                {
-                    if (item.Value == selectedInterval)
-                    {
-                        intervalComboBox.SelectedItem =
-                            item.Key;
-                        break;
-                    }
-                }
+                    intervalComboBox.Items.Add(item);
+
+                intervalComboBox.SelectedItem =
+                    intervals.FirstOrDefault(item => item.Value == selectedInterval);
 
                 positions.Clear();
-                positions.Add(Localization.Get("PositionFill"), DesktopWallpaperPosition.Fill);
-                positions.Add(Localization.Get("PositionFit"), DesktopWallpaperPosition.Fit);
-                positions.Add(Localization.Get("PositionStretch"), DesktopWallpaperPosition.Stretch);
-                positions.Add(Localization.Get("PositionTile"), DesktopWallpaperPosition.Tile);
-                positions.Add(Localization.Get("PositionCenter"), DesktopWallpaperPosition.Center);
-                positions.Add(Localization.Get("PositionSpan"), DesktopWallpaperPosition.Span);
+                positions.Add(new(DesktopWallpaperPosition.Fill, Localization.Get("PositionFill")));
+                positions.Add(new(DesktopWallpaperPosition.Fit, Localization.Get("PositionFit")));
+                positions.Add(new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")));
+                positions.Add(new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")));
+                positions.Add(new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")));
+                positions.Add(new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan")));
 
                 positionComboBox.Items.Clear();
-
-                foreach (string item in positions.Keys)
-                {
-                    positionComboBox.Items.Add(item);
-                }
-
                 foreach (var item in positions)
-                {
-                    if (item.Value == selectedPosition)
-                    {
-                        positionComboBox.SelectedItem =
-                            item.Key;
-                        break;
-                    }
-                }
+                    positionComboBox.Items.Add(item);
+
+                positionComboBox.SelectedItem =
+                    positions.FirstOrDefault(item => item.Value == selectedPosition);
 
                 int transitionIndex =
                     selectedTransitionKind switch

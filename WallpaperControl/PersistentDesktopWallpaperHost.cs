@@ -33,6 +33,8 @@ namespace WallpaperControl
             WallpaperTransitionDirection.Left;
         private WallpaperZoomMode zoomMode =
             WallpaperZoomMode.In;
+        private DesktopWallpaperPosition wallpaperPosition =
+            DesktopWallpaperPosition.Fill;
 
         public string? CurrentWallpaperPath { get; private set; }
 
@@ -128,7 +130,8 @@ namespace WallpaperControl
                     wallpaperPath,
                     new Size(
                         finalBounds.Width,
-                        finalBounds.Height)));
+                        finalBounds.Height),
+                    wallpaperPosition));
 
             CurrentWallpaperPath =
                 wallpaperPath;
@@ -139,6 +142,23 @@ namespace WallpaperControl
             Update();
 
             return true;
+        }
+
+        public void SetWallpaperPosition(DesktopWallpaperPosition position)
+        {
+            wallpaperPosition = position;
+
+            if (!string.IsNullOrWhiteSpace(CurrentWallpaperPath) &&
+                File.Exists(CurrentWallpaperPath) &&
+                ClientSize.Width > 0 &&
+                ClientSize.Height > 0)
+            {
+                ReplaceBitmap(
+                    ref currentFrame,
+                    LoadFrame(CurrentWallpaperPath, ClientSize, wallpaperPosition));
+                Invalidate();
+                Update();
+            }
         }
 
         public Task TransitionToAsync(
@@ -166,7 +186,7 @@ namespace WallpaperControl
 
             ReplaceBitmap(
                 ref nextFrame,
-                LoadFrame(nextWallpaperPath));
+                LoadFrame(nextWallpaperPath, ClientSize, wallpaperPosition));
 
             transitionKind = kind;
             transitionDirection =
@@ -756,12 +776,14 @@ namespace WallpaperControl
 
             return LoadFrame(
                 path,
-                screen.Bounds.Size);
+                screen.Bounds.Size,
+                wallpaperPosition);
         }
 
         private static Bitmap LoadFrame(
             string path,
-            Size targetSize)
+            Size targetSize,
+            DesktopWallpaperPosition position)
         {
             using Image source =
                 Image.FromFile(path);
@@ -778,15 +800,60 @@ namespace WallpaperControl
             g.InterpolationMode =
                 System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
-            g.DrawImage(
-                source,
-                new Rectangle(
-                    0,
-                    0,
-                    targetSize.Width,
-                    targetSize.Height));
+            g.Clear(Color.Black);
+
+            Rectangle targetRectangle = position switch
+            {
+                DesktopWallpaperPosition.Stretch =>
+                    new Rectangle(0, 0, targetSize.Width, targetSize.Height),
+                DesktopWallpaperPosition.Center =>
+                    new Rectangle(
+                        (targetSize.Width - source.Width) / 2,
+                        (targetSize.Height - source.Height) / 2,
+                        source.Width,
+                        source.Height),
+                DesktopWallpaperPosition.Fit =>
+                    GetAspectRectangle(source.Size, targetSize, fill: false),
+                DesktopWallpaperPosition.Fill =>
+                    GetAspectRectangle(source.Size, targetSize, fill: true),
+                DesktopWallpaperPosition.Span =>
+                    GetAspectRectangle(source.Size, targetSize, fill: true),
+                _ => Rectangle.Empty
+            };
+
+            if (position == DesktopWallpaperPosition.Tile)
+            {
+                using TextureBrush brush = new TextureBrush(source);
+                g.FillRectangle(brush, new Rectangle(Point.Empty, targetSize));
+            }
+            else
+            {
+                g.DrawImage(source, targetRectangle);
+            }
 
             return result;
+        }
+
+
+        private static Rectangle GetAspectRectangle(
+            Size sourceSize,
+            Size targetSize,
+            bool fill)
+        {
+            double scaleX = (double)targetSize.Width / sourceSize.Width;
+            double scaleY = (double)targetSize.Height / sourceSize.Height;
+            double scale = fill
+                ? Math.Max(scaleX, scaleY)
+                : Math.Min(scaleX, scaleY);
+
+            int width = Math.Max(1, (int)Math.Round(sourceSize.Width * scale));
+            int height = Math.Max(1, (int)Math.Round(sourceSize.Height * scale));
+
+            return new Rectangle(
+                (targetSize.Width - width) / 2,
+                (targetSize.Height - height) / 2,
+                width,
+                height);
         }
 
         private static void ReplaceBitmap(
