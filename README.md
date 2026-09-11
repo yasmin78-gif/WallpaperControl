@@ -4,7 +4,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine and desktop-rendered transition effects, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.7.0**
+**Current release: v1.7.1**
 
 ## ✨ Features
 
@@ -37,6 +37,8 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Opens folders using your configured default file manager
   - Optional automatic startup with Windows
   - Restores native Windows wallpaper handling when Wallpaper Control exits
+  - Supports external wallpaper switching with the `--next` command-line argument
+  - External controls such as Rainmeter can trigger the next wallpaper without opening the main window
 
 - 📊 **Statistics dashboard**
   - Persistent wallpaper statistics across application restarts
@@ -57,6 +59,8 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
 
 - 🗑️ **Quick wallpaper rejection**
   - Move unwanted wallpapers to an `Aussortiert` folder with one click
+  - Wallpaper rejection is temporarily disabled while a wallpaper transition is running
+  - The next wallpaper is fully displayed before the rejected wallpaper is moved
   - Optional global rejection folder
   - Optional subfolders for individual wallpaper collections
   - Undo the last rejection
@@ -119,11 +123,43 @@ The recent wallpaper history remains session-based and is cleared when Wallpaper
 
 Don't like the wallpaper currently on screen?
 
-Wallpaper Control can immediately switch to the next wallpaper and move the unwanted image into an `Aussortiert` folder.
+Wallpaper Control switches to the next wallpaper first and waits until the wallpaper change has completed before moving the unwanted image into an `Aussortiert` folder. Rejection is temporarily disabled while a wallpaper transition is already running, preventing the currently displayed image from being moved before the transition has finished.
 
 The destination can either be located inside the current wallpaper folder or configured as a global rejection folder.
 
 Accidentally rejected the wrong image? The last rejection can be undone during the current session.
+
+## 🕹️ External Control
+
+Wallpaper Control can receive commands from external tools while it is already running.
+
+The following command is currently supported:
+
+```text
+WallpaperControl.exe --next
+```
+
+This switches to the next wallpaper using the running Wallpaper Control instance. It can be used by tools such as Rainmeter, shortcuts, scripts or other desktop controls.
+
+External wallpaper changes use the same slideshow and transition handling as changes triggered directly from Wallpaper Control.
+
+## 🩺 Diagnostics
+
+Wallpaper Control includes lightweight diagnostic logging for unexpected errors and failures.
+
+Logs are created only when needed and are stored in:
+
+```text
+%APPDATA%\WallpaperControl\Logs
+```
+
+The main log file is:
+
+```text
+wallpaper-control.log
+```
+
+Logging is designed for troubleshooting and does not require any additional configuration during normal use.
 
 ## 🌍 Languages
 
@@ -160,6 +196,8 @@ Wallpaper Control works locally on your computer.
 It does not require an account, cloud service or online connection to manage your wallpapers.
 
 Wallpaper statistics are stored locally in the user's application data folder.
+
+Diagnostic logs are also stored locally and are only created when needed for troubleshooting.
 
 ## 🛠️ Built With
 
