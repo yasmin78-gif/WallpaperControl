@@ -716,4 +716,34 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsRejectRootInvalid" xml:space="preserve">
     <value>The rejected-wallpaper folder must be a fully qualified path, for example C:\Wallpaper\Rejected.</value>
   </data>
+  <data name="SettingsTabWidgets" xml:space="preserve">
+    <value>Widgets</value>
+  </data>
+  <data name="SettingsWidgetsTitle" xml:space="preserve">
+    <value>Desktop widgets</value>
+  </data>
+  <data name="SettingsClockEnabled" xml:space="preserve">
+    <value>Show desktop clock</value>
+  </data>
+  <data name="SettingsWidgetLocked" xml:space="preserve">
+    <value>Lock position</value>
+  </data>
+  <data name="SettingsClockSize" xml:space="preserve">
+    <value>Clock size</value>
+  </data>
+  <data name="SettingsNextWidgetTitle" xml:space="preserve">
+    <value>Next button</value>
+  </data>
+  <data name="SettingsNextWidgetEnabled" xml:space="preserve">
+    <value>Show Next button</value>
+  </data>
+  <data name="SettingsWidgetsHint" xml:space="preserve">
+    <value>Unlocked widgets can be freely dragged with the mouse. Positions are saved automatically.</value>
+  </data>
+  <data name="SettingsClockShowSeconds" xml:space="preserve">
+    <value>Show seconds</value>
+  </data>
+  <data name="NextWidgetToolTip" xml:space="preserve">
+    <value>Next wallpaper</value>
+  </data>
 </root>

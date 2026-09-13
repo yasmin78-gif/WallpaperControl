@@ -15,6 +15,7 @@ namespace WallpaperControl
     public class MainForm : Form
     {
         private readonly List<Font> ownedFonts = new();
+        private readonly WidgetManager widgetManager;
 
         private const string WindowsSlideshowRegistryPath =
             @"Control Panel\Personalization\Desktop Slideshow";
@@ -206,6 +207,9 @@ namespace WallpaperControl
 
         public MainForm()
         {
+            widgetManager = new WidgetManager(() =>
+                AdvanceWallpaper(DesktopSlideshowDirection.Forward));
+
             Text = "Wallpaper Control";
 
             Icon = Icon.ExtractAssociatedIcon(
@@ -867,6 +871,7 @@ namespace WallpaperControl
 
             SystemEvents.UserPreferenceChanged +=
                 SystemEvents_UserPreferenceChanged;
+
         }
 
         private async void MainForm_Shown(
@@ -896,6 +901,10 @@ namespace WallpaperControl
             {
                 if (!IsDisposed)
                 {
+                    // Widgets belong to the persistent desktop host. Starting
+                    // them only after the host warm-up prevents the full-screen
+                    // wallpaper surface from being placed in front of them.
+                    widgetManager.Start();
                     CheckSlideshowStatus();
                 }
             }
@@ -925,6 +934,7 @@ namespace WallpaperControl
 
                 customSlideshowPreciseTimer.Dispose();
                 toolTip.Dispose();
+                widgetManager.Dispose();
 
                 wallpaperCountDebounceTimer.Stop();
                 wallpaperCountDebounceTimer.Dispose();
@@ -4931,6 +4941,9 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            WidgetSettings originalWidgetSettings =
+                widgetManager.Settings;
+
             using SettingsForm dialog =
                 new SettingsForm(
                     darkMode,
@@ -4947,7 +4960,10 @@ namespace WallpaperControl
                     rejectUseSubfolder,
                     autostartEnabled,
                     closeToTrayEnabled,
-                    windowOpacityPercent);
+                    windowOpacityPercent,
+                    originalWidgetSettings,
+                    previewSettings =>
+                        widgetManager.Preview(previewSettings));
 
             string languageBefore =
                 Localization.CurrentLanguage;
@@ -4955,6 +4971,8 @@ namespace WallpaperControl
             if (dialog.ShowDialog(this) !=
                 DialogResult.OK)
             {
+                widgetManager.CancelPreview(
+                    originalWidgetSettings);
                 return;
             }
 
@@ -4963,6 +4981,22 @@ namespace WallpaperControl
                     languageBefore,
                     Localization.CurrentLanguage,
                     StringComparison.OrdinalIgnoreCase);
+
+            bool nextHotkeyChanged =
+                hotkeyNextModifiers != dialog.NextModifiers ||
+                hotkeyNextKey != dialog.NextKey;
+
+            bool pauseHotkeyChanged =
+                hotkeyPauseModifiers != dialog.PauseModifiers ||
+                hotkeyPauseKey != dialog.PauseKey;
+
+            bool explorerHotkeyChanged =
+                hotkeyExplorerModifiers != dialog.ExplorerModifiers ||
+                hotkeyExplorerKey != dialog.ExplorerKey;
+
+            bool rejectHotkeyChanged =
+                hotkeyRejectModifiers != dialog.RejectModifiers ||
+                hotkeyRejectKey != dialog.RejectKey;
 
             hotkeyNextModifiers =
                 dialog.NextModifiers;
@@ -5002,6 +5036,9 @@ namespace WallpaperControl
 
             int newWindowOpacityPercent =
                 dialog.WindowOpacityPercent;
+
+            WidgetSettings newWidgetSettings =
+                dialog.WidgetSettings;
 
             string newThemeMode =
                 NormalizeThemeMode(
@@ -5057,10 +5094,15 @@ namespace WallpaperControl
                 ApplyWindowsTheme();
             }
 
+            widgetManager.CommitPreview(newWidgetSettings);
+
             if (IsHandleCreated)
             {
-                UnregisterHotKeys();
-                RegisterHotKeys(
+                ReRegisterChangedHotKeys(
+                    nextHotkeyChanged,
+                    pauseHotkeyChanged,
+                    explorerHotkeyChanged,
+                    rejectHotkeyChanged,
                     showErrors: true);
             }
 
@@ -5930,6 +5972,95 @@ namespace WallpaperControl
                 Localization.Get(
                     "SettingsHotkeyReject"),
                 failedHotkeys);
+
+            if (showErrors &&
+                failedHotkeys.Count > 0)
+            {
+                MessageBox.Show(
+                    this,
+                    string.Format(
+                        Localization.CurrentCulture,
+                        Localization.Get(
+                            "SettingsHotkeyRegistrationFailed"),
+                        string.Join(
+                            Environment.NewLine,
+                            failedHotkeys.Select(
+                                item => "• " + item))),
+                    "Wallpaper Control",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        private void ReRegisterChangedHotKeys(
+            bool nextChanged,
+            bool pauseChanged,
+            bool explorerChanged,
+            bool rejectChanged,
+            bool showErrors)
+        {
+            List<string> failedHotkeys =
+                new();
+
+            if (nextChanged)
+            {
+                UnregisterHotKey(
+                    Handle,
+                    HOTKEY_NEXT);
+
+                TryRegisterHotKey(
+                    HOTKEY_NEXT,
+                    hotkeyNextModifiers,
+                    hotkeyNextKey,
+                    Localization.Get(
+                        "SettingsHotkeyNext"),
+                    failedHotkeys);
+            }
+
+            if (pauseChanged)
+            {
+                UnregisterHotKey(
+                    Handle,
+                    HOTKEY_PAUSE);
+
+                TryRegisterHotKey(
+                    HOTKEY_PAUSE,
+                    hotkeyPauseModifiers,
+                    hotkeyPauseKey,
+                    Localization.Get(
+                        "SettingsHotkeyPause"),
+                    failedHotkeys);
+            }
+
+            if (explorerChanged)
+            {
+                UnregisterHotKey(
+                    Handle,
+                    HOTKEY_EXPLORER);
+
+                TryRegisterHotKey(
+                    HOTKEY_EXPLORER,
+                    hotkeyExplorerModifiers,
+                    hotkeyExplorerKey,
+                    Localization.Get(
+                        "SettingsHotkeyExplorer"),
+                    failedHotkeys);
+            }
+
+            if (rejectChanged)
+            {
+                UnregisterHotKey(
+                    Handle,
+                    HOTKEY_REJECT);
+
+                TryRegisterHotKey(
+                    HOTKEY_REJECT,
+                    hotkeyRejectModifiers,
+                    hotkeyRejectKey,
+                    Localization.Get(
+                        "SettingsHotkeyReject"),
+                    failedHotkeys);
+            }
 
             if (showErrors &&
                 failedHotkeys.Count > 0)

@@ -716,4 +716,34 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="SettingsRejectRootInvalid" xml:space="preserve">
     <value>Le dossier de rejet doit utiliser un chemin complet, par exemple C:\Wallpaper\Rejetes.</value>
   </data>
+  <data name="SettingsTabWidgets" xml:space="preserve">
+    <value>Widgets</value>
+  </data>
+  <data name="SettingsWidgetsTitle" xml:space="preserve">
+    <value>Widgets du bureau</value>
+  </data>
+  <data name="SettingsClockEnabled" xml:space="preserve">
+    <value>Afficher l’horloge du bureau</value>
+  </data>
+  <data name="SettingsWidgetLocked" xml:space="preserve">
+    <value>Verrouiller la position</value>
+  </data>
+  <data name="SettingsClockSize" xml:space="preserve">
+    <value>Taille de l’horloge</value>
+  </data>
+  <data name="SettingsNextWidgetTitle" xml:space="preserve">
+    <value>Bouton Suivant</value>
+  </data>
+  <data name="SettingsNextWidgetEnabled" xml:space="preserve">
+    <value>Afficher le bouton Suivant</value>
+  </data>
+  <data name="SettingsWidgetsHint" xml:space="preserve">
+    <value>Les widgets déverrouillés peuvent être déplacés librement à la souris. Les positions sont enregistrées automatiquement.</value>
+  </data>
+  <data name="SettingsClockShowSeconds" xml:space="preserve">
+    <value>Afficher les secondes</value>
+  </data>
+  <data name="NextWidgetToolTip" xml:space="preserve">
+    <value>Fond d’écran suivant</value>
+  </data>
 </root>

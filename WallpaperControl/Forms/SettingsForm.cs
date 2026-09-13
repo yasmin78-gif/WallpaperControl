@@ -36,6 +36,14 @@ namespace WallpaperControl
         private readonly Label opacityValueLabel;
         private readonly Label hotkeyWarningLabel;
         private readonly Button resetAppearanceButton;
+        private readonly CheckBox clockEnabledCheckBox;
+        private readonly CheckBox clockLockedCheckBox;
+        private readonly NumericUpDown clockSizeNumeric;
+        private readonly CheckBox clockSecondsCheckBox;
+        private readonly CheckBox nextWidgetEnabledCheckBox;
+        private readonly CheckBox nextWidgetLockedCheckBox;
+        private readonly WidgetSettings initialWidgetSettings;
+        private readonly Action<WidgetSettings>? widgetPreviewChanged;
         private string previewLanguageCode;
         private string previewThemeMode;
         private bool updatingLanguagePreview;
@@ -55,6 +63,7 @@ namespace WallpaperControl
         public bool CloseToTrayEnabled { get; private set; } = true;
         public int WindowOpacityPercent { get; private set; } = 80;
         public string ThemeMode { get; private set; } = "system";
+        public WidgetSettings WidgetSettings { get; private set; } = new();
 
         private sealed class Choice
         {
@@ -122,8 +131,12 @@ namespace WallpaperControl
             bool rejectUseSubfolder,
             bool autostartEnabled,
             bool closeToTrayEnabled,
-            int windowOpacityPercent)
+            int windowOpacityPercent,
+            WidgetSettings widgetSettings,
+            Action<WidgetSettings>? widgetPreviewChanged = null)
         {
+            initialWidgetSettings = widgetSettings.Clone();
+            this.widgetPreviewChanged = widgetPreviewChanged;
             previewLanguageCode =
                 Localization.CurrentLanguage;
 
@@ -178,6 +191,13 @@ namespace WallpaperControl
                     Tag = "SettingsTabBehavior"
                 };
 
+            TabPage widgetsPage =
+                new TabPage
+                {
+                    Text = Localization.Get("SettingsTabWidgets", previewLanguageCode),
+                    Tag = "SettingsTabWidgets"
+                };
+
             TabPage appearancePage =
                 new TabPage
                 {
@@ -195,6 +215,9 @@ namespace WallpaperControl
 
             tabControl.TabPages.Add(
                 appearancePage);
+
+            tabControl.TabPages.Add(
+                widgetsPage);
 
             // ==========================================================
             // HOTKEYS
@@ -719,6 +742,128 @@ namespace WallpaperControl
                 resetAppearanceButton);
 
             // ==========================================================
+            // WIDGETS
+            // ==========================================================
+            Label widgetsTitle = new Label
+            {
+                Text = Localization.Get("SettingsWidgetsTitle", previewLanguageCode),
+                Tag = "SettingsWidgetsTitle",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+
+            clockEnabledCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsClockEnabled", previewLanguageCode),
+                Tag = "SettingsClockEnabled",
+                Location = new Point(18, 62),
+                AutoSize = true,
+                Checked = initialWidgetSettings.ClockEnabled
+            };
+
+            clockLockedCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(40, 98),
+                AutoSize = true,
+                Checked = initialWidgetSettings.ClockLocked
+            };
+
+            Label clockSizeLabel = new Label
+            {
+                Text = Localization.Get("SettingsClockSize", previewLanguageCode),
+                Tag = "SettingsClockSize",
+                Location = new Point(40, 137),
+                Size = new Size(220, 25)
+            };
+
+            clockSizeNumeric = new NumericUpDown
+            {
+                Location = new Point(275, 133),
+                Size = new Size(90, 28),
+                Minimum = 70,
+                Maximum = 240,
+                Increment = 5,
+                Value = Math.Clamp(initialWidgetSettings.ClockSize, 70, 240)
+            };
+
+            clockSecondsCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsClockShowSeconds", previewLanguageCode),
+                Tag = "SettingsClockShowSeconds",
+                Location = new Point(40, 172),
+                AutoSize = true,
+                Checked = initialWidgetSettings.ClockShowSeconds
+            };
+
+            Label nextTitle = new Label
+            {
+                Text = Localization.Get("SettingsNextWidgetTitle", previewLanguageCode),
+                Tag = "SettingsNextWidgetTitle",
+                Location = new Point(18, 220),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 11, FontStyle.Bold)
+            };
+
+            nextWidgetEnabledCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsNextWidgetEnabled", previewLanguageCode),
+                Tag = "SettingsNextWidgetEnabled",
+                Location = new Point(18, 257),
+                AutoSize = true,
+                Checked = initialWidgetSettings.NextEnabled
+            };
+
+            nextWidgetLockedCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(40, 293),
+                AutoSize = true,
+                Checked = initialWidgetSettings.NextLocked
+            };
+
+            Label widgetHint = new Label
+            {
+                Text = Localization.Get("SettingsWidgetsHint", previewLanguageCode),
+                Tag = "SettingsWidgetsHint",
+                Location = new Point(18, 350),
+                Size = new Size(475, 70),
+                Font = CreateOwnedFont("Segoe UI", 8.25f)
+            };
+
+            widgetsPage.Controls.Add(widgetsTitle);
+            widgetsPage.Controls.Add(clockEnabledCheckBox);
+            widgetsPage.Controls.Add(clockLockedCheckBox);
+            widgetsPage.Controls.Add(clockSizeLabel);
+            widgetsPage.Controls.Add(clockSizeNumeric);
+            widgetsPage.Controls.Add(clockSecondsCheckBox);
+            widgetsPage.Controls.Add(nextTitle);
+            widgetsPage.Controls.Add(nextWidgetEnabledCheckBox);
+            widgetsPage.Controls.Add(nextWidgetLockedCheckBox);
+            widgetsPage.Controls.Add(widgetHint);
+
+            clockEnabledCheckBox.CheckedChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            clockLockedCheckBox.CheckedChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            clockSizeNumeric.ValueChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            clockSecondsCheckBox.CheckedChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            nextWidgetEnabledCheckBox.CheckedChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            nextWidgetLockedCheckBox.CheckedChanged +=
+                (_, _) => NotifyWidgetPreviewChanged();
+
+            // ==========================================================
             // FOOTER
             // ==========================================================
             Button defaultsButton =
@@ -801,6 +946,12 @@ namespace WallpaperControl
                 ResolvePreviewDarkMode());
 
             UpdateHotkeyValidation();
+
+            // ShowDialog can temporarily disable top-level windows that already
+            // existed before the modal settings dialog was opened. Trigger the
+            // widget preview after the dialog is visible so WidgetManager can
+            // explicitly restore widget interaction for positioning.
+            Shown += (_, _) => NotifyWidgetPreviewChanged();
         }
 
         private void RejectRootBrowseButton_Click(
@@ -1293,6 +1444,8 @@ namespace WallpaperControl
             {
                 updatingLanguagePreview = false;
             }
+
+            NotifyWidgetPreviewChanged();
         }
 
         private void ApplyLocalizedText(
@@ -1549,10 +1702,36 @@ namespace WallpaperControl
 
             ResetAppearanceSettings();
 
+            clockEnabledCheckBox.Checked = false;
+            clockLockedCheckBox.Checked = false;
+            clockSizeNumeric.Value = 150;
+            clockSecondsCheckBox.Checked = false;
+            nextWidgetEnabledCheckBox.Checked = false;
+            nextWidgetLockedCheckBox.Checked = false;
+
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
                 ? "de"
                 : Localization.CurrentLanguage);
+        }
+
+        private void NotifyWidgetPreviewChanged()
+        {
+            if (widgetPreviewChanged == null)
+            {
+                return;
+            }
+
+            WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.ClockEnabled = clockEnabledCheckBox.Checked;
+            preview.ClockLocked = clockLockedCheckBox.Checked;
+            preview.ClockSize = (int)clockSizeNumeric.Value;
+            preview.ClockShowSeconds = clockSecondsCheckBox.Checked;
+            preview.ClockLanguageCode = previewLanguageCode;
+            preview.NextEnabled = nextWidgetEnabledCheckBox.Checked;
+            preview.NextLocked = nextWidgetLockedCheckBox.Checked;
+
+            widgetPreviewChanged(preview);
         }
 
         private void SaveAndClose()
@@ -1681,6 +1860,15 @@ namespace WallpaperControl
             ThemeMode =
                 NormalizeThemeMode(
                     previewThemeMode);
+
+            WidgetSettings = initialWidgetSettings.Clone();
+            WidgetSettings.ClockEnabled = clockEnabledCheckBox.Checked;
+            WidgetSettings.ClockLocked = clockLockedCheckBox.Checked;
+            WidgetSettings.ClockSize = (int)clockSizeNumeric.Value;
+            WidgetSettings.ClockShowSeconds = clockSecondsCheckBox.Checked;
+            WidgetSettings.ClockLanguageCode = previewLanguageCode;
+            WidgetSettings.NextEnabled = nextWidgetEnabledCheckBox.Checked;
+            WidgetSettings.NextLocked = nextWidgetLockedCheckBox.Checked;
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))

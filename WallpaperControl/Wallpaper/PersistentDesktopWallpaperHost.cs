@@ -138,7 +138,7 @@ namespace WallpaperControl
 
             progress = 1.0;
 
-            Invalidate();
+            Invalidate(true);
             Update();
 
             return true;
@@ -156,7 +156,7 @@ namespace WallpaperControl
                 ReplaceBitmap(
                     ref currentFrame,
                     LoadFrame(CurrentWallpaperPath, ClientSize, wallpaperPosition));
-                Invalidate();
+                Invalidate(true);
                 Update();
             }
         }
@@ -248,7 +248,7 @@ namespace WallpaperControl
 
             stopwatch.Restart();
             animationTimer.Start();
-            Invalidate();
+            Invalidate(true);
 
             return source.Task;
         }
@@ -260,7 +260,7 @@ namespace WallpaperControl
                 0.0,
                 1.0);
 
-            Invalidate();
+            Invalidate(true);
 
             if (progress >= 1.0)
             {
@@ -272,7 +272,7 @@ namespace WallpaperControl
                 old?.Dispose();
 
                 progress = 1.0;
-                Invalidate();
+                Invalidate(true);
 
                 TaskCompletionSource<bool>? source =
                     completionSource;
@@ -936,7 +936,7 @@ namespace WallpaperControl
                     SWP_SHOWWINDOW |
                     SWP_FRAMECHANGED);
 
-            Invalidate();
+            Invalidate(true);
             Update();
             return positioned;
         }
@@ -1023,7 +1023,7 @@ namespace WallpaperControl
 
             if (positioned)
             {
-                Invalidate();
+                Invalidate(true);
                 Update();
             }
 

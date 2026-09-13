@@ -688,4 +688,34 @@
   <data name="SettingsRejectRootInvalid" xml:space="preserve">
     <value>除外先フォルダーには、C:\Wallpaper\Rejected のような完全修飾パスを指定してください。</value>
   </data>
+  <data name="SettingsTabWidgets" xml:space="preserve">
+    <value>ウィジェット</value>
+  </data>
+  <data name="SettingsWidgetsTitle" xml:space="preserve">
+    <value>デスクトップ ウィジェット</value>
+  </data>
+  <data name="SettingsClockEnabled" xml:space="preserve">
+    <value>デスクトップ時計を表示</value>
+  </data>
+  <data name="SettingsWidgetLocked" xml:space="preserve">
+    <value>位置を固定</value>
+  </data>
+  <data name="SettingsClockSize" xml:space="preserve">
+    <value>時計のサイズ</value>
+  </data>
+  <data name="SettingsNextWidgetTitle" xml:space="preserve">
+    <value>次へボタン</value>
+  </data>
+  <data name="SettingsNextWidgetEnabled" xml:space="preserve">
+    <value>次へボタンを表示</value>
+  </data>
+  <data name="SettingsWidgetsHint" xml:space="preserve">
+    <value>固定されていないウィジェットはマウスで自由に移動できます。位置は自動的に保存されます。</value>
+  </data>
+  <data name="SettingsClockShowSeconds" xml:space="preserve">
+    <value>秒を表示</value>
+  </data>
+  <data name="NextWidgetToolTip" xml:space="preserve">
+    <value>次の壁紙</value>
+  </data>
 </root>
