@@ -126,12 +126,8 @@ namespace WallpaperControl
             public void SetTheme(bool useDarkMode)
             {
                 darkMode = useDarkMode;
-                BackColor = darkMode
-                    ? Color.FromArgb(38, 38, 38)
-                    : Color.White;
-                ForeColor = darkMode
-                    ? Color.FromArgb(235, 235, 235)
-                    : SystemColors.ControlText;
+                BackColor = AppTheme.PanelBackground(darkMode);
+                ForeColor = AppTheme.TextPrimary(darkMode);
                 Invalidate();
             }
 
@@ -150,13 +146,13 @@ namespace WallpaperControl
                     "Segoe UI", 8.5f, FontStyle.Bold);
 
                 Color muted = darkMode
-                    ? Color.FromArgb(175, 175, 175)
+                    ? AppTheme.DarkTextSecondary
                     : Color.FromArgb(95, 95, 95);
                 Color track = darkMode
-                    ? Color.FromArgb(58, 58, 58)
+                    ? AppTheme.DarkControl
                     : Color.FromArgb(230, 230, 230);
                 Color bar = darkMode
-                    ? Color.FromArgb(105, 155, 205)
+                    ? AppTheme.DarkAccentSoft
                     : Color.FromArgb(75, 125, 180);
 
                 TextRenderer.DrawText(
@@ -403,7 +399,7 @@ namespace WallpaperControl
 
             public override Color ToolStripDropDownBackground =>
                 dark
-                    ? Color.FromArgb(36, 36, 36)
+                    ? AppTheme.DarkPanel
                     : Color.White;
 
             public override Color ImageMarginGradientBegin =>
@@ -417,22 +413,22 @@ namespace WallpaperControl
 
             public override Color MenuItemSelected =>
                 dark
-                    ? Color.FromArgb(58, 58, 58)
+                    ? AppTheme.DarkControlHover
                     : Color.FromArgb(232, 240, 248);
 
             public override Color MenuItemBorder =>
                 dark
-                    ? Color.FromArgb(80, 80, 80)
+                    ? AppTheme.DarkBorder
                     : Color.FromArgb(190, 205, 220);
 
             public override Color MenuBorder =>
                 dark
-                    ? Color.FromArgb(92, 92, 92)
+                    ? AppTheme.DarkBorderStrong
                     : Color.FromArgb(175, 175, 175);
 
             public override Color SeparatorDark =>
                 dark
-                    ? Color.FromArgb(74, 74, 74)
+                    ? AppTheme.DarkBorder
                     : Color.FromArgb(205, 205, 205);
 
             public override Color SeparatorLight =>
@@ -873,7 +869,7 @@ namespace WallpaperControl
 
             removeStatisticsMenuItem.ForeColor =
                 darkMode
-                    ? Color.FromArgb(235, 150, 150)
+                    ? AppTheme.DarkDanger
                     : Color.FromArgb(165, 45, 45);
 
             rowContextMenu.Opening +=
@@ -1910,13 +1906,11 @@ namespace WallpaperControl
 
             Color backColor =
                 darkMode
-                    ? Color.FromArgb(42, 42, 42)
+                    ? AppTheme.DarkControl
                     : Color.FromArgb(240, 240, 240);
 
             Color foreColor =
-                darkMode
-                    ? Color.FromArgb(235, 235, 235)
-                    : SystemColors.ControlText;
+                AppTheme.TextPrimary(darkMode);
 
             using SolidBrush brush =
                 new(backColor);
@@ -1958,8 +1952,7 @@ namespace WallpaperControl
             using Pen linePen =
                 new(
                     darkMode
-                        ? Color.FromArgb(
-                            68, 68, 68)
+                        ? AppTheme.DarkBorder
                         : Color.FromArgb(
                             210, 210, 210));
 
@@ -1990,8 +1983,8 @@ namespace WallpaperControl
             Color background =
                 darkMode
                     ? alternate
-                        ? Color.FromArgb(39, 39, 39)
-                        : Color.FromArgb(34, 34, 34)
+                        ? AppTheme.ListAlternateBackground(true)
+                        : AppTheme.ListBackground(true)
                     : alternate
                         ? Color.FromArgb(248, 248, 248)
                         : Color.White;
@@ -1999,9 +1992,7 @@ namespace WallpaperControl
             if (isHover)
             {
                 background =
-                    darkMode
-                        ? Color.FromArgb(54, 54, 54)
-                        : Color.FromArgb(232, 241, 250);
+                    AppTheme.ListHoverBackground(darkMode);
             }
 
             using SolidBrush backBrush =
@@ -2017,13 +2008,9 @@ namespace WallpaperControl
             Color foreground =
                 row != null && !row.Exists
                     ? darkMode
-                        ? Color.FromArgb(
-                            170, 170, 170)
+                        ? AppTheme.DarkTextSecondary
                         : Color.Gray
-                    : darkMode
-                        ? Color.FromArgb(
-                            235, 235, 235)
-                        : SystemColors.ControlText;
+                    : AppTheme.TextPrimary(darkMode);
 
             if (e.ColumnIndex == 0)
             {
@@ -2086,8 +2073,7 @@ namespace WallpaperControl
             using Pen separatorPen =
                 new(
                     darkMode
-                        ? Color.FromArgb(
-                            50, 50, 50)
+                        ? AppTheme.DarkBorder
                         : Color.FromArgb(
                             235, 235, 235));
 
@@ -2114,8 +2100,7 @@ namespace WallpaperControl
             using SolidBrush placeholder =
                 new(
                     darkMode
-                        ? Color.FromArgb(
-                            24, 24, 24)
+                        ? AppTheme.DarkSidebar
                         : Color.FromArgb(
                             225, 225, 225));
 
@@ -2132,8 +2117,7 @@ namespace WallpaperControl
                 using Pen borderPen =
                     new(
                         darkMode
-                            ? Color.FromArgb(
-                                90, 90, 90)
+                            ? AppTheme.DarkBorderStrong
                             : Color.FromArgb(
                                 175, 175, 175));
 
@@ -2146,8 +2130,7 @@ namespace WallpaperControl
                     using Pen crossPen =
                         new(
                             darkMode
-                                ? Color.FromArgb(
-                                    150, 150, 150)
+                                ? AppTheme.DarkTextSecondary
                                 : Color.FromArgb(
                                     115, 115, 115),
                             2);
@@ -2180,8 +2163,7 @@ namespace WallpaperControl
             using Pen imageBorder =
                 new(
                     darkMode
-                        ? Color.FromArgb(
-                            78, 78, 78)
+                        ? AppTheme.DarkBorder
                         : Color.FromArgb(
                             180, 180, 180));
 
@@ -2819,21 +2801,13 @@ namespace WallpaperControl
         private void ApplyTheme()
         {
             Color background =
-                darkMode
-                    ? Color.FromArgb(32, 32, 32)
-                    : SystemColors.Control;
+                AppTheme.WindowBackground(darkMode);
 
             Color foreground =
-                darkMode
-                    ? Color.FromArgb(
-                        235, 235, 235)
-                    : SystemColors.ControlText;
+                AppTheme.TextPrimary(darkMode);
 
             Color inputBackground =
-                darkMode
-                    ? Color.FromArgb(
-                        48, 48, 48)
-                    : SystemColors.Window;
+                AppTheme.InputBackground(darkMode);
 
             BackColor = background;
             ForeColor = foreground;
@@ -2856,13 +2830,11 @@ namespace WallpaperControl
             }
 
             Color cardBackground =
-                darkMode
-                    ? Color.FromArgb(38, 38, 38)
-                    : Color.White;
+                AppTheme.PanelBackground(darkMode);
 
             Color cardMuted =
                 darkMode
-                    ? Color.FromArgb(170, 170, 170)
+                    ? AppTheme.DarkTextSecondary
                     : Color.FromArgb(95, 95, 95);
 
             mostViewedCard.SetColors(
@@ -2889,33 +2861,24 @@ namespace WallpaperControl
                 darkMode);
 
             statisticsList.BackColor =
-                darkMode
-                    ? Color.FromArgb(
-                        34, 34, 34)
-                    : Color.White;
+                AppTheme.ListBackground(darkMode);
 
             statisticsList.ForeColor =
                 foreground;
 
             rowContextMenu.BackColor =
-                darkMode
-                    ? Color.FromArgb(
-                        40, 40, 40)
-                    : SystemColors.Control;
+                AppTheme.MenuBackground(darkMode);
 
             rowContextMenu.ForeColor =
                 foreground;
 
             removeStatisticsMenuItem.ForeColor =
                 darkMode
-                    ? Color.FromArgb(235, 150, 150)
+                    ? AppTheme.DarkDanger
                     : Color.FromArgb(165, 45, 45);
 
             wallpaperPreviewForm.BackColor =
-                darkMode
-                    ? Color.FromArgb(
-                        28, 28, 28)
-                    : Color.White;
+                AppTheme.PanelBackground(darkMode);
 
             wallpaperPreviewForm.ForeColor =
                 foreground;
@@ -2930,10 +2893,7 @@ namespace WallpaperControl
                 false;
 
             resetButton.BackColor =
-                darkMode
-                    ? Color.FromArgb(
-                        50, 50, 50)
-                    : SystemColors.Control;
+                AppTheme.ControlBackground(darkMode);
 
             resetButton.ForeColor =
                 foreground;
@@ -2942,20 +2902,17 @@ namespace WallpaperControl
                 FlatStyle.Flat;
 
             resetButton.FlatAppearance.BorderColor =
-                darkMode
-                    ? Color.FromArgb(
-                        85, 85, 85)
-                    : Color.FromArgb(
-                        180, 180, 180);
+                AppTheme.Border(darkMode);
+            resetButton.FlatAppearance.MouseOverBackColor =
+                AppTheme.ControlHover(darkMode);
+            resetButton.FlatAppearance.MouseDownBackColor =
+                AppTheme.ControlPressed(darkMode);
 
             closeButton.UseVisualStyleBackColor =
                 false;
 
             closeButton.BackColor =
-                darkMode
-                    ? Color.FromArgb(
-                        50, 50, 50)
-                    : SystemColors.Control;
+                AppTheme.ControlBackground(darkMode);
 
             closeButton.ForeColor =
                 foreground;
@@ -2964,11 +2921,11 @@ namespace WallpaperControl
                 FlatStyle.Flat;
 
             closeButton.FlatAppearance.BorderColor =
-                darkMode
-                    ? Color.FromArgb(
-                        85, 85, 85)
-                    : Color.FromArgb(
-                        180, 180, 180);
+                AppTheme.Border(darkMode);
+            closeButton.FlatAppearance.MouseOverBackColor =
+                AppTheme.ControlHover(darkMode);
+            closeButton.FlatAppearance.MouseDownBackColor =
+                AppTheme.ControlPressed(darkMode);
 
             ApplyTitleBarTheme();
         }

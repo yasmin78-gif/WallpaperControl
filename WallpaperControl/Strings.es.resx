@@ -746,4 +746,40 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="NextWidgetToolTip" xml:space="preserve">
     <value>Siguiente fondo de pantalla</value>
   </data>
+  <data name="SettingsClockStyle" xml:space="preserve">
+    <value>Estilo del reloj</value>
+  </data>
+  <data name="ClockStyleMinimal" xml:space="preserve">
+    <value>Minimal</value>
+  </data>
+  <data name="ClockStyleChrome" xml:space="preserve">
+    <value>Cromado (predeterminado)</value>
+  </data>
+  <data name="ClockStyleClean" xml:space="preserve">
+    <value>Limpio</value>
+  </data>
+  <data name="ClockStyleGlow" xml:space="preserve">
+    <value>Brillo</value>
+  </data>
+  <data name="ClockStyleClassic" xml:space="preserve">
+    <value>Clásico</value>
+  </data>
+  <data name="SettingsNavGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="SettingsNavReject" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="SettingsNavClock" xml:space="preserve">
+    <value>Reloj</value>
+  </data>
+  <data name="SettingsNavNextWallpaper" xml:space="preserve">
+    <value>Siguiente fondo</value>
+  </data>
+  <data name="SettingsNavAppearance" xml:space="preserve">
+    <value>Apariencia</value>
+  </data>
+  <data name="SettingsNavLanguage" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
 </root>

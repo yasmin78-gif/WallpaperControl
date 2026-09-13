@@ -40,6 +40,19 @@ namespace WallpaperControl
         private readonly CheckBox clockLockedCheckBox;
         private readonly NumericUpDown clockSizeNumeric;
         private readonly CheckBox clockSecondsCheckBox;
+        private readonly ComboBox clockStyleComboBox;
+        private readonly ClockSettingsPreview clockSettingsPreview;
+        private readonly List<ClockStyleCard> clockStyleCards = new();
+        private readonly List<Button> settingsNavigationButtons = new();
+        private readonly Dictionary<Button, TabPage> settingsNavigationPages = new();
+        private TabControl? settingsTabControl;
+        private Panel? settingsNavigationPanel;
+        private Button? settingsWidgetsToggleButton;
+        private Button? settingsClockNavigationButton;
+        private Button? settingsNextNavigationButton;
+        private Button? settingsAppearanceNavigationButton;
+        private Button? settingsLanguageNavigationButton;
+        private bool settingsWidgetsExpanded = true;
         private readonly CheckBox nextWidgetEnabledCheckBox;
         private readonly CheckBox nextWidgetLockedCheckBox;
         private readonly WidgetSettings initialWidgetSettings;
@@ -161,17 +174,47 @@ namespace WallpaperControl
                 FormStartPosition.CenterParent;
 
             ClientSize =
-                new Size(570, 650);
+                new Size(1120, 760);
 
             Font =
                 CreateOwnedFont("Segoe UI", 10);
 
+            Panel navigationPanel =
+                new Panel
+                {
+                    Location = new Point(0, 0),
+                    Size = new Size(220, 710),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
+                    Padding = new Padding(14, 18, 14, 18)
+                };
+
+            settingsNavigationPanel = navigationPanel;
+
+            Label navigationTitle =
+                new Label
+                {
+                    Text = "Wallpaper Control",
+                    Location = new Point(18, 18),
+                    Size = new Size(185, 34),
+                    Font = CreateOwnedFont("Segoe UI", 12.5f, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleLeft
+                };
+
+            navigationPanel.Controls.Add(navigationTitle);
+
             TabControl tabControl =
                 new TabControl
                 {
-                    Location = new Point(20, 18),
-                    Size = new Size(530, 555)
+                    Location = new Point(235, 18),
+                    Size = new Size(865, 665),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                    Appearance = TabAppearance.FlatButtons,
+                    SizeMode = TabSizeMode.Fixed,
+                    ItemSize = new Size(0, 1),
+                    Multiline = true
                 };
+
+            settingsTabControl = tabControl;
 
             TabPage hotkeysPage =
                 new TabPage
@@ -182,42 +225,53 @@ namespace WallpaperControl
                     Tag = "SettingsTabHotkeys"
                 };
 
-            TabPage behaviorPage =
-                new TabPage
-                {
-                    Text = Localization.Get(
-                        "SettingsTabBehavior",
-                        previewLanguageCode),
-                    Tag = "SettingsTabBehavior"
-                };
+            TabPage generalPage = CreateSettingsPage("SettingsNavGeneral");
+            TabPage rejectPage = CreateSettingsPage("SettingsNavReject");
+            TabPage clockPage = CreateSettingsPage("SettingsNavClock");
+            TabPage nextWidgetPage = CreateSettingsPage("SettingsNavNextWallpaper");
+            TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
+            TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
 
-            TabPage widgetsPage =
-                new TabPage
-                {
-                    Text = Localization.Get("SettingsTabWidgets", previewLanguageCode),
-                    Tag = "SettingsTabWidgets"
-                };
+            tabControl.TabPages.Add(hotkeysPage);
+            tabControl.TabPages.Add(generalPage);
+            tabControl.TabPages.Add(rejectPage);
+            tabControl.TabPages.Add(clockPage);
+            tabControl.TabPages.Add(nextWidgetPage);
+            tabControl.TabPages.Add(appearancePage);
+            tabControl.TabPages.Add(languagePage);
 
-            TabPage appearancePage =
-                new TabPage
-                {
-                    Text = Localization.Get(
-                        "SettingsTabAppearance",
-                        previewLanguageCode),
-                    Tag = "SettingsTabAppearance"
-                };
+            AddSettingsNavigationButton(navigationPanel, tabControl, generalPage, "⚙", "SettingsNavGeneral", 72);
+            AddSettingsNavigationButton(navigationPanel, tabControl, rejectPage, "▣", "SettingsNavReject", 118);
+            AddSettingsNavigationButton(navigationPanel, tabControl, hotkeysPage, "⌨", "SettingsTabHotkeys", 164);
 
-            tabControl.TabPages.Add(
-                hotkeysPage);
+            settingsWidgetsToggleButton = new Button
+            {
+                Tag = "SettingsTabWidgets",
+                Location = new Point(14, 210),
+                Size = new Size(192, 34),
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(10, 0, 0, 0),
+                Cursor = Cursors.Hand,
+                TabStop = false
+            };
+            settingsWidgetsToggleButton.FlatAppearance.BorderSize = 0;
+            settingsWidgetsToggleButton.Click += (_, _) =>
+            {
+                settingsWidgetsExpanded = !settingsWidgetsExpanded;
+                UpdateWidgetsNavigationLayout();
+            };
+            navigationPanel.Controls.Add(settingsWidgetsToggleButton);
 
-            tabControl.TabPages.Add(
-                behaviorPage);
+            settingsClockNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, clockPage, "◷", "SettingsNavClock", 246, 14);
+            settingsNextNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, nextWidgetPage, "▷", "SettingsNavNextWallpaper", 292, 14);
+            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 352);
+            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 398);
+            UpdateWidgetsNavigationLayout();
 
-            tabControl.TabPages.Add(
-                appearancePage);
-
-            tabControl.TabPages.Add(
-                widgetsPage);
+            tabControl.SelectedTab = hotkeysPage;
+            UpdateSettingsNavigationSelection();
+            tabControl.SelectedIndexChanged += (_, _) => UpdateSettingsNavigationSelection();
 
             // ==========================================================
             // HOTKEYS
@@ -462,7 +516,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsGeneralTitle",
                     Location =
-                        new Point(18, 235),
+                        new Point(18, 18),
                     AutoSize = true,
                     Font =
                         CreateOwnedFont(
@@ -481,7 +535,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsAutostart",
                     Location =
-                        new Point(18, 275),
+                        new Point(18, 62),
                     AutoSize = true,
                     Checked =
                         autostartEnabled
@@ -497,37 +551,37 @@ namespace WallpaperControl
                     Tag =
                         "SettingsCloseToTray",
                     Location =
-                        new Point(18, 307),
+                        new Point(18, 98),
                     AutoSize = true,
                     Checked =
                         closeToTrayEnabled
                 };
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectTitleLabel);
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectFolderLabel);
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectRootTextBox);
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectRootBrowseButton);
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectSubfolderCheckBox);
 
-            behaviorPage.Controls.Add(
+            rejectPage.Controls.Add(
                 rejectHintLabel);
 
-            behaviorPage.Controls.Add(
+            generalPage.Controls.Add(
                 generalTitleLabel);
 
-            behaviorPage.Controls.Add(
+            generalPage.Controls.Add(
                 autostartCheckBox);
 
-            behaviorPage.Controls.Add(
+            generalPage.Controls.Add(
                 closeToTrayCheckBox);
 
             // ==========================================================
@@ -603,6 +657,16 @@ namespace WallpaperControl
                             8.25f)
                 };
 
+            Label languageTitleLabel = new Label
+            {
+                Text = Localization.Get("SettingsNavLanguage", previewLanguageCode),
+                Tag = "SettingsNavLanguage",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+            languagePage.Controls.Add(languageTitleLabel);
+
             Label languageLabel =
                 new Label
                 {
@@ -613,7 +677,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsLanguageLabel",
                     Location =
-                        new Point(18, 165),
+                        new Point(18, 62),
                     Size =
                         new Size(175, 25)
                 };
@@ -622,7 +686,7 @@ namespace WallpaperControl
                 new ComboBox
                 {
                     Location =
-                        new Point(205, 160),
+                        new Point(205, 57),
                     Size =
                         new Size(288, 28),
                     DropDownStyle =
@@ -723,10 +787,10 @@ namespace WallpaperControl
             appearancePage.Controls.Add(
                 themeHintLabel);
 
-            appearancePage.Controls.Add(
+            languagePage.Controls.Add(
                 languageLabel);
 
-            appearancePage.Controls.Add(
+            languagePage.Controls.Add(
                 languageComboBox);
 
             appearancePage.Controls.Add(
@@ -748,40 +812,90 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsWidgetsTitle", previewLanguageCode),
                 Tag = "SettingsWidgetsTitle",
-                Location = new Point(18, 18),
+                Location = new Point(18, 14),
                 AutoSize = true,
                 Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+
+            clockSettingsPreview = new ClockSettingsPreview
+            {
+                Location = new Point(18, 46),
+                Size = new Size(810, 180),
+                Style = initialWidgetSettings.ClockStyle,
+                ShowSeconds = initialWidgetSettings.ClockShowSeconds,
+                LanguageCode = previewLanguageCode
+            };
+
+            Label clockStyleLabel = new Label
+            {
+                Text = Localization.Get("SettingsClockStyle", previewLanguageCode),
+                Tag = "SettingsClockStyle",
+                Location = new Point(18, 238),
+                Size = new Size(220, 24),
+                Font = CreateOwnedFont("Segoe UI", 9.5f, FontStyle.Bold)
+            };
+
+            clockStyleComboBox = new ComboBox
+            {
+                Visible = false,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            RefreshClockStyleChoices(initialWidgetSettings.ClockStyle);
+
+            string[] styleKeys = { "ClockStyleMinimal", "ClockStyleChrome", "ClockStyleClean", "ClockStyleGlow", "ClockStyleClassic" };
+            for (int i = 0; i < styleKeys.Length; i++)
+            {
+                ClockWidgetStyle cardStyle = (ClockWidgetStyle)i;
+                ClockStyleCard card = new ClockStyleCard
+                {
+                    Location = new Point(18 + i * 160, 266),
+                    Size = new Size(148, 92),
+                    Style = cardStyle,
+                    Caption = Localization.Get(styleKeys[i], previewLanguageCode),
+                    Selected = cardStyle == initialWidgetSettings.ClockStyle
+                };
+                card.Click += (_, _) => SelectClockStyle(cardStyle);
+                clockStyleCards.Add(card);
+                clockPage.Controls.Add(card);
+            }
+
+            GroupBox clockOptions = new GroupBox
+            {
+                Text = Localization.Get("SettingsClockEnabled", previewLanguageCode),
+                Tag = "SettingsClockEnabled",
+                Location = new Point(18, 370),
+                Size = new Size(500, 150)
             };
 
             clockEnabledCheckBox = new CheckBox
             {
                 Text = Localization.Get("SettingsClockEnabled", previewLanguageCode),
                 Tag = "SettingsClockEnabled",
-                Location = new Point(18, 62),
+                Location = new Point(18, 28),
                 AutoSize = true,
                 Checked = initialWidgetSettings.ClockEnabled
             };
 
-            clockLockedCheckBox = new CheckBox
+            clockSecondsCheckBox = new CheckBox
             {
-                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
-                Tag = "SettingsWidgetLocked",
-                Location = new Point(40, 98),
+                Text = Localization.Get("SettingsClockShowSeconds", previewLanguageCode),
+                Tag = "SettingsClockShowSeconds",
+                Location = new Point(250, 28),
                 AutoSize = true,
-                Checked = initialWidgetSettings.ClockLocked
+                Checked = initialWidgetSettings.ClockShowSeconds
             };
 
             Label clockSizeLabel = new Label
             {
                 Text = Localization.Get("SettingsClockSize", previewLanguageCode),
                 Tag = "SettingsClockSize",
-                Location = new Point(40, 137),
-                Size = new Size(220, 25)
+                Location = new Point(18, 68),
+                Size = new Size(210, 25)
             };
 
             clockSizeNumeric = new NumericUpDown
             {
-                Location = new Point(275, 133),
+                Location = new Point(250, 64),
                 Size = new Size(90, 28),
                 Minimum = 70,
                 Maximum = 240,
@@ -789,29 +903,44 @@ namespace WallpaperControl
                 Value = Math.Clamp(initialWidgetSettings.ClockSize, 70, 240)
             };
 
-            clockSecondsCheckBox = new CheckBox
+            clockLockedCheckBox = new CheckBox
             {
-                Text = Localization.Get("SettingsClockShowSeconds", previewLanguageCode),
-                Tag = "SettingsClockShowSeconds",
-                Location = new Point(40, 172),
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(18, 108),
                 AutoSize = true,
-                Checked = initialWidgetSettings.ClockShowSeconds
+                Checked = initialWidgetSettings.ClockLocked
             };
 
-            Label nextTitle = new Label
+            clockOptions.Controls.Add(clockEnabledCheckBox);
+            clockOptions.Controls.Add(clockSecondsCheckBox);
+            clockOptions.Controls.Add(clockSizeLabel);
+            clockOptions.Controls.Add(clockSizeNumeric);
+            clockOptions.Controls.Add(clockLockedCheckBox);
+
+            Label nextWidgetPageTitle = new Label
+            {
+                Text = Localization.Get("SettingsNavNextWallpaper", previewLanguageCode),
+                Tag = "SettingsNavNextWallpaper",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+            nextWidgetPage.Controls.Add(nextWidgetPageTitle);
+
+            GroupBox nextOptions = new GroupBox
             {
                 Text = Localization.Get("SettingsNextWidgetTitle", previewLanguageCode),
                 Tag = "SettingsNextWidgetTitle",
-                Location = new Point(18, 220),
-                AutoSize = true,
-                Font = CreateOwnedFont("Segoe UI", 11, FontStyle.Bold)
+                Location = new Point(18, 58),
+                Size = new Size(500, 150)
             };
 
             nextWidgetEnabledCheckBox = new CheckBox
             {
                 Text = Localization.Get("SettingsNextWidgetEnabled", previewLanguageCode),
                 Tag = "SettingsNextWidgetEnabled",
-                Location = new Point(18, 257),
+                Location = new Point(18, 32),
                 AutoSize = true,
                 Checked = initialWidgetSettings.NextEnabled
             };
@@ -820,48 +949,48 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
                 Tag = "SettingsWidgetLocked",
-                Location = new Point(40, 293),
+                Location = new Point(18, 72),
                 AutoSize = true,
                 Checked = initialWidgetSettings.NextLocked
             };
+
+            nextOptions.Controls.Add(nextWidgetEnabledCheckBox);
+            nextOptions.Controls.Add(nextWidgetLockedCheckBox);
 
             Label widgetHint = new Label
             {
                 Text = Localization.Get("SettingsWidgetsHint", previewLanguageCode),
                 Tag = "SettingsWidgetsHint",
-                Location = new Point(18, 350),
-                Size = new Size(475, 70),
+                Location = new Point(18, 535),
+                Size = new Size(810, 45),
                 Font = CreateOwnedFont("Segoe UI", 8.25f)
             };
 
-            widgetsPage.Controls.Add(widgetsTitle);
-            widgetsPage.Controls.Add(clockEnabledCheckBox);
-            widgetsPage.Controls.Add(clockLockedCheckBox);
-            widgetsPage.Controls.Add(clockSizeLabel);
-            widgetsPage.Controls.Add(clockSizeNumeric);
-            widgetsPage.Controls.Add(clockSecondsCheckBox);
-            widgetsPage.Controls.Add(nextTitle);
-            widgetsPage.Controls.Add(nextWidgetEnabledCheckBox);
-            widgetsPage.Controls.Add(nextWidgetLockedCheckBox);
-            widgetsPage.Controls.Add(widgetHint);
+            clockPage.Controls.Add(widgetsTitle);
+            clockPage.Controls.Add(clockSettingsPreview);
+            clockPage.Controls.Add(clockStyleLabel);
+            clockPage.Controls.Add(clockStyleComboBox);
+            clockPage.Controls.Add(clockOptions);
+            nextWidgetPage.Controls.Add(nextOptions);
+            clockPage.Controls.Add(widgetHint);
 
-            clockEnabledCheckBox.CheckedChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
-
-            clockLockedCheckBox.CheckedChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
-
-            clockSizeNumeric.ValueChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
-
-            clockSecondsCheckBox.CheckedChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
-
-            nextWidgetEnabledCheckBox.CheckedChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
-
-            nextWidgetLockedCheckBox.CheckedChanged +=
-                (_, _) => NotifyWidgetPreviewChanged();
+            clockEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            clockLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            clockSizeNumeric.ValueChanged += (_, _) => NotifyWidgetPreviewChanged();
+            clockSecondsCheckBox.CheckedChanged += (_, _) =>
+            {
+                clockSettingsPreview.ShowSeconds = clockSecondsCheckBox.Checked;
+                clockSettingsPreview.Invalidate();
+                foreach (ClockStyleCard card in clockStyleCards) { card.ShowSeconds = clockSecondsCheckBox.Checked; card.Invalidate(); }
+                NotifyWidgetPreviewChanged();
+            };
+            clockStyleComboBox.SelectedIndexChanged += (_, _) =>
+            {
+                UpdateClockStyleSelection();
+                NotifyWidgetPreviewChanged();
+            };
+            nextWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            nextWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
 
             // ==========================================================
             // FOOTER
@@ -876,7 +1005,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsRestoreDefaults",
                     Location =
-                        new Point(20, 595),
+                        new Point(20, 715),
                     Size =
                         new Size(210, 38)
                 };
@@ -895,7 +1024,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsCancel",
                     Location =
-                        new Point(330, 595),
+                        new Point(880, 715),
                     Size =
                         new Size(100, 38),
                     DialogResult =
@@ -912,7 +1041,7 @@ namespace WallpaperControl
                     Tag =
                         "SettingsSave",
                     Location =
-                        new Point(440, 595),
+                        new Point(990, 715),
                     Size =
                         new Size(110, 38)
                 };
@@ -920,6 +1049,9 @@ namespace WallpaperControl
             saveButton.Click +=
                 (_, _) =>
                     SaveAndClose();
+
+            Controls.Add(
+                navigationPanel);
 
             Controls.Add(
                 tabControl);
@@ -952,6 +1084,113 @@ namespace WallpaperControl
             // widget preview after the dialog is visible so WidgetManager can
             // explicitly restore widget interaction for positioning.
             Shown += (_, _) => NotifyWidgetPreviewChanged();
+        }
+
+        private TabPage CreateSettingsPage(string resourceKey)
+        {
+            return new TabPage
+            {
+                Text = Localization.Get(resourceKey, previewLanguageCode),
+                Tag = resourceKey
+            };
+        }
+
+        private Button AddSettingsNavigationButton(
+            Panel navigationPanel,
+            TabControl tabControl,
+            TabPage page,
+            string icon,
+            string resourceKey,
+            int y,
+            int extraLeftPadding = 0)
+        {
+            Button button = new Button
+            {
+                Text = $"{icon}   {Localization.Get(resourceKey, previewLanguageCode)}",
+                Tag = resourceKey,
+                Location = new Point(14 + extraLeftPadding, y),
+                Size = new Size(192 - extraLeftPadding, 42),
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(10, 0, 0, 0),
+                Cursor = Cursors.Hand,
+                TabStop = false
+            };
+
+            button.FlatAppearance.BorderSize = 0;
+            button.Click += (_, _) => tabControl.SelectedTab = page;
+            button.AccessibleDescription = icon;
+            settingsNavigationButtons.Add(button);
+            settingsNavigationPages[button] = page;
+            navigationPanel.Controls.Add(button);
+            return button;
+        }
+
+        private void UpdateWidgetsNavigationLayout()
+        {
+            if (settingsWidgetsToggleButton == null)
+                return;
+
+            settingsWidgetsToggleButton.Text =
+                $"{(settingsWidgetsExpanded ? "▾" : "▸")}   {Localization.Get("SettingsTabWidgets", previewLanguageCode)}";
+
+            if (settingsClockNavigationButton != null)
+                settingsClockNavigationButton.Visible = settingsWidgetsExpanded;
+
+            if (settingsNextNavigationButton != null)
+                settingsNextNavigationButton.Visible = settingsWidgetsExpanded;
+
+            int appearanceY = settingsWidgetsExpanded ? 352 : 252;
+            int languageY = settingsWidgetsExpanded ? 398 : 298;
+
+            if (settingsAppearanceNavigationButton != null)
+                settingsAppearanceNavigationButton.Location = new Point(14, appearanceY);
+
+            if (settingsLanguageNavigationButton != null)
+                settingsLanguageNavigationButton.Location = new Point(14, languageY);
+
+            UpdateSettingsNavigationSelection();
+        }
+
+        private void UpdateSettingsNavigationSelection()
+        {
+            if (settingsTabControl == null)
+                return;
+
+            bool darkMode = ResolvePreviewDarkMode();
+            Color normal = AppTheme.SidebarBackground(darkMode);
+            Color selected = AppTheme.SelectionBackground(darkMode);
+            Color foreground = darkMode ? AppTheme.DarkTextPrimary : Color.FromArgb(35, 35, 35);
+
+            if (settingsWidgetsToggleButton != null)
+            {
+                settingsWidgetsToggleButton.BackColor = normal;
+                settingsWidgetsToggleButton.ForeColor = foreground;
+                settingsWidgetsToggleButton.FlatAppearance.MouseOverBackColor =
+                    darkMode ? AppTheme.DarkControlHover : Color.FromArgb(225, 232, 239);
+                settingsWidgetsToggleButton.FlatAppearance.MouseDownBackColor = selected;
+            }
+
+            for (int i = 0; i < settingsNavigationButtons.Count; i++)
+            {
+                Button button = settingsNavigationButtons[i];
+                button.BackColor = settingsNavigationPages.TryGetValue(button, out TabPage? page) && page == settingsTabControl.SelectedTab ? selected : normal;
+                button.ForeColor = foreground;
+            }
+        }
+
+        private void UpdateSettingsNavigationText()
+        {
+            foreach (Button button in settingsNavigationButtons)
+            {
+                if (button.Tag is not string resourceKey)
+                    continue;
+
+                string icon = button.AccessibleDescription ?? "";
+                button.Text = $"{icon}   {Localization.Get(resourceKey, previewLanguageCode)}";
+            }
+
+            UpdateWidgetsNavigationLayout();
         }
 
         private void RejectRootBrowseButton_Click(
@@ -1416,6 +1655,8 @@ namespace WallpaperControl
                 RefreshThemeChoices(
                     previewThemeMode);
 
+                RefreshClockStyleChoices(GetSelectedClockStyle());
+
                 SetComboValues(
                     nextModifierCombo,
                     nextKeyCombo,
@@ -1706,6 +1947,7 @@ namespace WallpaperControl
             clockLockedCheckBox.Checked = false;
             clockSizeNumeric.Value = 150;
             clockSecondsCheckBox.Checked = false;
+            RefreshClockStyleChoices(ClockWidgetStyle.Chrome);
             nextWidgetEnabledCheckBox.Checked = false;
             nextWidgetLockedCheckBox.Checked = false;
 
@@ -1713,6 +1955,63 @@ namespace WallpaperControl
                 Localization.IsLanguageAvailable("de")
                 ? "de"
                 : Localization.CurrentLanguage);
+        }
+
+        private void SelectClockStyle(ClockWidgetStyle style)
+        {
+            int index = Math.Clamp((int)style, 0, 4);
+            if (clockStyleComboBox.SelectedIndex != index)
+                clockStyleComboBox.SelectedIndex = index;
+            else
+                UpdateClockStyleSelection();
+        }
+
+        private void UpdateClockStyleSelection()
+        {
+            ClockWidgetStyle selected = GetSelectedClockStyle();
+            if (clockSettingsPreview != null)
+            {
+                clockSettingsPreview.Style = selected;
+                clockSettingsPreview.LanguageCode = previewLanguageCode;
+                clockSettingsPreview.Invalidate();
+            }
+            foreach (ClockStyleCard card in clockStyleCards)
+            {
+                card.Selected = card.Style == selected;
+                card.Caption = Localization.Get(card.Style switch
+                {
+                    ClockWidgetStyle.Minimal => "ClockStyleMinimal",
+                    ClockWidgetStyle.Chrome => "ClockStyleChrome",
+                    ClockWidgetStyle.Clean => "ClockStyleClean",
+                    ClockWidgetStyle.Glow => "ClockStyleGlow",
+                    _ => "ClockStyleClassic"
+                }, previewLanguageCode);
+                card.Invalidate();
+            }
+        }
+
+        private void RefreshClockStyleChoices(ClockWidgetStyle selectedStyle)
+        {
+            if (clockStyleComboBox == null) return;
+
+            clockStyleComboBox.BeginUpdate();
+            clockStyleComboBox.Items.Clear();
+            clockStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            clockStyleComboBox.Items.Add(Localization.Get("ClockStyleChrome", previewLanguageCode));
+            clockStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            clockStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            clockStyleComboBox.Items.Add(Localization.Get("ClockStyleClassic", previewLanguageCode));
+            clockStyleComboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 4);
+            clockStyleComboBox.EndUpdate();
+            UpdateClockStyleSelection();
+        }
+
+        private ClockWidgetStyle GetSelectedClockStyle()
+        {
+            int index = clockStyleComboBox?.SelectedIndex ?? (int)ClockWidgetStyle.Chrome;
+            return Enum.IsDefined(typeof(ClockWidgetStyle), index)
+                ? (ClockWidgetStyle)index
+                : ClockWidgetStyle.Chrome;
         }
 
         private void NotifyWidgetPreviewChanged()
@@ -1727,6 +2026,7 @@ namespace WallpaperControl
             preview.ClockLocked = clockLockedCheckBox.Checked;
             preview.ClockSize = (int)clockSizeNumeric.Value;
             preview.ClockShowSeconds = clockSecondsCheckBox.Checked;
+            preview.ClockStyle = GetSelectedClockStyle();
             preview.ClockLanguageCode = previewLanguageCode;
             preview.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             preview.NextLocked = nextWidgetLockedCheckBox.Checked;
@@ -1866,6 +2166,7 @@ namespace WallpaperControl
             WidgetSettings.ClockLocked = clockLockedCheckBox.Checked;
             WidgetSettings.ClockSize = (int)clockSizeNumeric.Value;
             WidgetSettings.ClockShowSeconds = clockSecondsCheckBox.Checked;
+            WidgetSettings.ClockStyle = GetSelectedClockStyle();
             WidgetSettings.ClockLanguageCode = previewLanguageCode;
             WidgetSettings.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             WidgetSettings.NextLocked = nextWidgetLockedCheckBox.Checked;
@@ -1933,25 +2234,19 @@ namespace WallpaperControl
         private void ApplyTheme(
             bool darkMode)
         {
+            // v1.8.1 settings palette: a slightly blue-tinted dark surface
+            // keeps the sidebar, content and controls in the same visual family.
             Color background =
-                darkMode
-                    ? Color.FromArgb(32, 32, 32)
-                    : SystemColors.Control;
+                AppTheme.WindowBackground(darkMode);
 
             Color foreground =
-                darkMode
-                    ? Color.FromArgb(235, 235, 235)
-                    : SystemColors.ControlText;
+                AppTheme.TextPrimary(darkMode);
 
             Color inputBackground =
-                darkMode
-                    ? Color.FromArgb(48, 48, 48)
-                    : SystemColors.Window;
+                AppTheme.InputBackground(darkMode);
 
             Color buttonBackground =
-                darkMode
-                    ? Color.FromArgb(50, 50, 50)
-                    : SystemColors.Control;
+                AppTheme.ControlBackground(darkMode);
 
             BackColor = background;
             ForeColor = foreground;
@@ -1964,6 +2259,14 @@ namespace WallpaperControl
                 inputBackground,
                 buttonBackground);
 
+            if (settingsNavigationPanel != null)
+            {
+                settingsNavigationPanel.BackColor =
+                    AppTheme.SidebarBackground(darkMode);
+            }
+
+            UpdateSettingsNavigationText();
+            UpdateSettingsNavigationSelection();
             UpdateHotkeyValidation();
             ApplyTitleBarTheme(
                 darkMode);
@@ -1998,6 +2301,17 @@ namespace WallpaperControl
 
                     tabPage.ForeColor =
                         foreground;
+                }
+                else if (control is GroupBox groupBox)
+                {
+                    groupBox.BackColor =
+                        background;
+
+                    groupBox.ForeColor =
+                        foreground;
+
+                    groupBox.FlatStyle =
+                        FlatStyle.Flat;
                 }
                 else if (control is Label label)
                 {
@@ -2054,15 +2368,13 @@ namespace WallpaperControl
                         FlatStyle.Flat;
 
                     button.FlatAppearance.BorderColor =
-                        darkMode
-                            ? Color.FromArgb(
-                                85,
-                                85,
-                                85)
-                            : Color.FromArgb(
-                                180,
-                                180,
-                                180);
+                        AppTheme.Border(darkMode);
+
+                    button.FlatAppearance.MouseOverBackColor =
+                        AppTheme.ControlHover(darkMode);
+
+                    button.FlatAppearance.MouseDownBackColor =
+                        AppTheme.ControlPressed(darkMode);
                 }
 
                 if (control.HasChildren)
@@ -2138,5 +2450,103 @@ namespace WallpaperControl
                 int attribute,
                 ref int attributeValue,
                 int attributeSize);
+        private sealed class ClockStyleCard : Control
+        {
+            public ClockWidgetStyle Style { get; set; }
+            public string Caption { get; set; } = "";
+            public bool Selected { get; set; }
+            public bool ShowSeconds { get; set; }
+
+            public ClockStyleCard()
+            {
+                Cursor = Cursors.Hand;
+                DoubleBuffered = true;
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                Graphics g = e.Graphics;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                Color bg = Color.FromArgb(28, 31, 36);
+                Color border = Selected ? Color.FromArgb(55, 145, 255) : Color.FromArgb(75, 80, 88);
+                using SolidBrush b = new(bg);
+                using Pen p = new(border, Selected ? 3f : 1f);
+                Rectangle r = new(1, 1, Width - 3, Height - 3);
+                g.FillRectangle(b, r);
+                g.DrawRectangle(p, r);
+                DrawMiniClock(g, new Rectangle(6, 5, Width - 12, 58), Style, ShowSeconds);
+                using Font f = new("Segoe UI", 8.5f, Selected ? FontStyle.Bold : FontStyle.Regular);
+                using SolidBrush tb = new(Color.FromArgb(235, 235, 235));
+                using StringFormat sf = new() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
+                g.DrawString(Caption, f, tb, new RectangleF(5, 65, Width - 10, 22), sf);
+            }
+        }
+
+        private sealed class ClockSettingsPreview : Control
+        {
+            public ClockWidgetStyle Style { get; set; } = ClockWidgetStyle.Chrome;
+            public bool ShowSeconds { get; set; }
+            public string LanguageCode { get; set; } = "de";
+
+            public ClockSettingsPreview() { DoubleBuffered = true; }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                Graphics g = e.Graphics;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using System.Drawing.Drawing2D.LinearGradientBrush bg = new(ClientRectangle, Color.FromArgb(12, 24, 34), Color.FromArgb(25, 20, 18), 0f);
+                g.FillRectangle(bg, ClientRectangle);
+                using Pen border = new(Color.FromArgb(80, 95, 110));
+                g.DrawRectangle(border, 0, 0, Width - 1, Height - 1);
+                DrawMiniClock(g, new Rectangle(80, 12, Width - 160, Height - 24), Style, ShowSeconds, true);
+            }
+        }
+
+        private static void DrawMiniClock(Graphics g, Rectangle bounds, ClockWidgetStyle style, bool seconds, bool large = false)
+        {
+            string time = DateTime.Now.ToString(seconds ? "HH:mm:ss" : "HH:mm");
+            string font = style == ClockWidgetStyle.Classic ? "Georgia" : "Segoe UI";
+            FontStyle fs = style == ClockWidgetStyle.Clean ? FontStyle.Bold : FontStyle.Regular;
+            float timeSize = large ? 54f : 23f;
+            Color c = style == ClockWidgetStyle.Glow ? Color.FromArgb(205, 245, 255) : Color.FromArgb(238, 240, 243);
+            using Font tf = new(font, timeSize, fs, GraphicsUnit.Pixel);
+            using StringFormat sf = new() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            Rectangle timeRect = new(bounds.X, bounds.Y, bounds.Width, (int)(bounds.Height * .58));
+            if (style == ClockWidgetStyle.Glow)
+            {
+                using SolidBrush glow = new(Color.FromArgb(80, 90, 210, 255));
+                Rectangle gr = timeRect; gr.Offset(1, 1);
+                g.DrawString(time, tf, glow, gr, sf);
+            }
+            else if (style == ClockWidgetStyle.Chrome)
+            {
+                using SolidBrush shadow = new(Color.FromArgb(170, 0, 0, 0));
+                Rectangle sr = timeRect; sr.Offset(2, 3);
+                g.DrawString(time, tf, shadow, sr, sf);
+            }
+            using SolidBrush tb = new(c);
+            g.DrawString(time, tf, tb, timeRect, sf);
+
+            int y = bounds.Y + (int)(bounds.Height * .62);
+            if (style != ClockWidgetStyle.Clean)
+            {
+                using Pen lp = new(style == ClockWidgetStyle.Glow ? Color.FromArgb(160, 225, 255) : Color.FromArgb(210, 215, 220), large ? 2f : 1f);
+                int gap = large ? 14 : 6;
+                g.DrawLine(lp, bounds.X + bounds.Width / 8, y, bounds.X + bounds.Width / 2 - gap, y);
+                g.DrawLine(lp, bounds.X + bounds.Width / 2 + gap, y, bounds.Right - bounds.Width / 8, y);
+                if (style != ClockWidgetStyle.Classic)
+                {
+                    Point[] d = { new(bounds.X + bounds.Width / 2, y - 5), new(bounds.X + bounds.Width / 2 + 5, y), new(bounds.X + bounds.Width / 2, y + 5), new(bounds.X + bounds.Width / 2 - 5, y) };
+                    using SolidBrush db = new(c); g.FillPolygon(db, d);
+                }
+            }
+            using Font df = new(style == ClockWidgetStyle.Classic ? "Georgia" : "Segoe UI", large ? 18f : 8f, FontStyle.Regular, GraphicsUnit.Pixel);
+            Rectangle dateRect = new(bounds.X, y + (large ? 8 : 3), bounds.Width, large ? 28 : 14);
+            using SolidBrush dateBrush = new(c);
+            g.DrawString("13. September 2026", df, dateBrush, dateRect, sf);
+        }
+
     }
 }

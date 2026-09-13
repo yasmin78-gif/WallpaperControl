@@ -13,6 +13,7 @@ namespace WallpaperControl
         public bool ClockLocked { get; set; }
         public int ClockSize { get; set; } = 150;
         public bool ClockShowSeconds { get; set; }
+        public ClockWidgetStyle ClockStyle { get; set; } = ClockWidgetStyle.Chrome;
         public string ClockLanguageCode { get; set; } = Localization.CurrentLanguage;
         public Point ClockLocation { get; set; } = new(40, 40);
         public bool NextEnabled { get; set; }
@@ -31,6 +32,7 @@ namespace WallpaperControl
                 result.ClockLocked = ReadBool(key, "ClockWidgetLocked", false);
                 result.ClockSize = Math.Clamp(ReadInt(key, "ClockWidgetSize", 150), 70, 240);
                 result.ClockShowSeconds = ReadBool(key, "ClockWidgetShowSeconds", false);
+                result.ClockStyle = ReadClockStyle(key, "ClockWidgetStyle", ClockWidgetStyle.Chrome);
                 result.ClockLanguageCode = Localization.CurrentLanguage;
                 result.ClockLocation = new Point(ReadInt(key, "ClockWidgetX", 40), ReadInt(key, "ClockWidgetY", 40));
                 result.NextEnabled = ReadBool(key, "NextWidgetEnabled", false);
@@ -53,6 +55,7 @@ namespace WallpaperControl
                 key.SetValue("ClockWidgetLocked", ClockLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetSize", Math.Clamp(ClockSize, 70, 240), RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetShowSeconds", ClockShowSeconds ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ClockWidgetStyle", (int)ClockStyle, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetX", ClockLocation.X, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetY", ClockLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetEnabled", NextEnabled ? 1 : 0, RegistryValueKind.DWord);
@@ -72,6 +75,7 @@ namespace WallpaperControl
             ClockLocked = ClockLocked,
             ClockSize = ClockSize,
             ClockShowSeconds = ClockShowSeconds,
+            ClockStyle = ClockStyle,
             ClockLanguageCode = ClockLanguageCode,
             ClockLocation = ClockLocation,
             NextEnabled = NextEnabled,
@@ -98,5 +102,13 @@ namespace WallpaperControl
 
         private static int ReadInt(RegistryKey key, string name, int fallback) =>
             key.GetValue(name) is object value ? Convert.ToInt32(value) : fallback;
+
+        private static ClockWidgetStyle ReadClockStyle(RegistryKey key, string name, ClockWidgetStyle fallback)
+        {
+            int value = ReadInt(key, name, (int)fallback);
+            return Enum.IsDefined(typeof(ClockWidgetStyle), value)
+                ? (ClockWidgetStyle)value
+                : fallback;
+        }
     }
 }

@@ -746,4 +746,40 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="NextWidgetToolTip" xml:space="preserve">
     <value>Fond d’écran suivant</value>
   </data>
+  <data name="SettingsClockStyle" xml:space="preserve">
+    <value>Style de l’horloge</value>
+  </data>
+  <data name="ClockStyleMinimal" xml:space="preserve">
+    <value>Minimal</value>
+  </data>
+  <data name="ClockStyleChrome" xml:space="preserve">
+    <value>Chrome (par défaut)</value>
+  </data>
+  <data name="ClockStyleClean" xml:space="preserve">
+    <value>Épuré</value>
+  </data>
+  <data name="ClockStyleGlow" xml:space="preserve">
+    <value>Lumineux</value>
+  </data>
+  <data name="ClockStyleClassic" xml:space="preserve">
+    <value>Classique</value>
+  </data>
+  <data name="SettingsNavGeneral" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="SettingsNavReject" xml:space="preserve">
+    <value>Rejeter</value>
+  </data>
+  <data name="SettingsNavClock" xml:space="preserve">
+    <value>Horloge</value>
+  </data>
+  <data name="SettingsNavNextWallpaper" xml:space="preserve">
+    <value>Fond suivant</value>
+  </data>
+  <data name="SettingsNavAppearance" xml:space="preserve">
+    <value>Apparence</value>
+  </data>
+  <data name="SettingsNavLanguage" xml:space="preserve">
+    <value>Langue</value>
+  </data>
 </root>

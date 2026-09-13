@@ -746,4 +746,40 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="NextWidgetToolTip" xml:space="preserve">
     <value>Nächstes Wallpaper</value>
   </data>
+  <data name="SettingsClockStyle" xml:space="preserve">
+    <value>Uhr-Stil</value>
+  </data>
+  <data name="ClockStyleMinimal" xml:space="preserve">
+    <value>Minimal</value>
+  </data>
+  <data name="ClockStyleChrome" xml:space="preserve">
+    <value>Chrome (Standard)</value>
+  </data>
+  <data name="ClockStyleClean" xml:space="preserve">
+    <value>Clean</value>
+  </data>
+  <data name="ClockStyleGlow" xml:space="preserve">
+    <value>Glow</value>
+  </data>
+  <data name="ClockStyleClassic" xml:space="preserve">
+    <value>Classic</value>
+  </data>
+  <data name="SettingsNavGeneral" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="SettingsNavReject" xml:space="preserve">
+    <value>Aussortieren</value>
+  </data>
+  <data name="SettingsNavClock" xml:space="preserve">
+    <value>Uhr</value>
+  </data>
+  <data name="SettingsNavNextWallpaper" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
+  <data name="SettingsNavAppearance" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="SettingsNavLanguage" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
 </root>
