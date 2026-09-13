@@ -716,4 +716,34 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="SettingsRejectRootInvalid" xml:space="preserve">
     <value>La carpeta de descartados debe usar una ruta completa, por ejemplo C:\Wallpaper\Descartados.</value>
   </data>
+  <data name="SettingsTabWidgets" xml:space="preserve">
+    <value>Widgets</value>
+  </data>
+  <data name="SettingsWidgetsTitle" xml:space="preserve">
+    <value>Widgets de escritorio</value>
+  </data>
+  <data name="SettingsClockEnabled" xml:space="preserve">
+    <value>Mostrar reloj de escritorio</value>
+  </data>
+  <data name="SettingsWidgetLocked" xml:space="preserve">
+    <value>Bloquear posición</value>
+  </data>
+  <data name="SettingsClockSize" xml:space="preserve">
+    <value>Tamaño del reloj</value>
+  </data>
+  <data name="SettingsNextWidgetTitle" xml:space="preserve">
+    <value>Botón Siguiente</value>
+  </data>
+  <data name="SettingsNextWidgetEnabled" xml:space="preserve">
+    <value>Mostrar botón Siguiente</value>
+  </data>
+  <data name="SettingsWidgetsHint" xml:space="preserve">
+    <value>Los widgets desbloqueados se pueden mover libremente con el ratón. Las posiciones se guardan automáticamente.</value>
+  </data>
+  <data name="SettingsClockShowSeconds" xml:space="preserve">
+    <value>Mostrar segundos</value>
+  </data>
+  <data name="NextWidgetToolTip" xml:space="preserve">
+    <value>Siguiente fondo de pantalla</value>
+  </data>
 </root>

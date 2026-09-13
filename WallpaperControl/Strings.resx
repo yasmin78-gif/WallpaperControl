@@ -716,4 +716,34 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="SettingsRejectRootInvalid" xml:space="preserve">
     <value>Der Aussortierordner muss ein vollständiger Pfad sein, z. B. C:\Wallpaper\Aussortiert.</value>
   </data>
+  <data name="SettingsTabWidgets" xml:space="preserve">
+    <value>Widgets</value>
+  </data>
+  <data name="SettingsWidgetsTitle" xml:space="preserve">
+    <value>Desktop-Widgets</value>
+  </data>
+  <data name="SettingsClockEnabled" xml:space="preserve">
+    <value>Desktop-Uhr anzeigen</value>
+  </data>
+  <data name="SettingsWidgetLocked" xml:space="preserve">
+    <value>Position fixieren</value>
+  </data>
+  <data name="SettingsClockSize" xml:space="preserve">
+    <value>Uhrgröße</value>
+  </data>
+  <data name="SettingsNextWidgetTitle" xml:space="preserve">
+    <value>Weiter-Button</value>
+  </data>
+  <data name="SettingsNextWidgetEnabled" xml:space="preserve">
+    <value>Weiter-Button anzeigen</value>
+  </data>
+  <data name="SettingsWidgetsHint" xml:space="preserve">
+    <value>Nicht fixierte Widgets können mit der Maus frei verschoben werden. Positionen werden automatisch gespeichert.</value>
+  </data>
+  <data name="SettingsClockShowSeconds" xml:space="preserve">
+    <value>Sekunden anzeigen</value>
+  </data>
+  <data name="NextWidgetToolTip" xml:space="preserve">
+    <value>Nächstes Wallpaper</value>
+  </data>
 </root>
