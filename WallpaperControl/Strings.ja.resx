@@ -718,4 +718,40 @@
   <data name="NextWidgetToolTip" xml:space="preserve">
     <value>次の壁紙</value>
   </data>
+  <data name="SettingsClockStyle" xml:space="preserve">
+    <value>時計のスタイル</value>
+  </data>
+  <data name="ClockStyleMinimal" xml:space="preserve">
+    <value>ミニマル</value>
+  </data>
+  <data name="ClockStyleChrome" xml:space="preserve">
+    <value>クローム（標準）</value>
+  </data>
+  <data name="ClockStyleClean" xml:space="preserve">
+    <value>クリーン</value>
+  </data>
+  <data name="ClockStyleGlow" xml:space="preserve">
+    <value>グロー</value>
+  </data>
+  <data name="ClockStyleClassic" xml:space="preserve">
+    <value>クラシック</value>
+  </data>
+  <data name="SettingsNavGeneral" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="SettingsNavReject" xml:space="preserve">
+    <value>除外</value>
+  </data>
+  <data name="SettingsNavClock" xml:space="preserve">
+    <value>時計</value>
+  </data>
+  <data name="SettingsNavNextWallpaper" xml:space="preserve">
+    <value>次の壁紙</value>
+  </data>
+  <data name="SettingsNavAppearance" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="SettingsNavLanguage" xml:space="preserve">
+    <value>言語</value>
+  </data>
 </root>

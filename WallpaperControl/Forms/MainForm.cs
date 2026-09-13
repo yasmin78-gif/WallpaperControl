@@ -1040,29 +1040,21 @@ namespace WallpaperControl
                 };
 
             Color background =
-                darkMode
-                ? Color.FromArgb(32, 32, 32)
-                : SystemColors.Control;
+                AppTheme.WindowBackground(darkMode);
 
             Color foreground =
-                darkMode
-                ? Color.FromArgb(235, 235, 235)
-                : SystemColors.ControlText;
+                AppTheme.TextPrimary(darkMode);
 
             Color inputBackground =
-                darkMode
-                ? Color.FromArgb(48, 48, 48)
-                : SystemColors.Window;
+                AppTheme.InputBackground(darkMode);
 
             Color inputForeground =
                 darkMode
-                ? Color.White
+                ? AppTheme.DarkTextPrimary
                 : SystemColors.WindowText;
 
             Color buttonBackground =
-                darkMode
-                ? Color.FromArgb(50, 50, 50)
-                : SystemColors.Control;
+                AppTheme.ControlBackground(darkMode);
 
             BackColor = background;
             ForeColor = foreground;
@@ -1089,9 +1081,7 @@ namespace WallpaperControl
                 inputForeground;
 
             windowsIntervalLabel.ForeColor =
-                darkMode
-                ? Color.FromArgb(180, 180, 180)
-                : Color.DimGray;
+                AppTheme.TextSecondary(darkMode);
 
             shuffleCheckBox.ForeColor =
                 foreground;
@@ -1109,37 +1099,25 @@ namespace WallpaperControl
                 background;
 
             settingsButton.ForeColor =
-                darkMode
-                ? Color.FromArgb(210, 210, 210)
-                : Color.DimGray;
+                AppTheme.TextSecondary(darkMode);
 
             settingsButton.FlatAppearance.MouseOverBackColor =
-                darkMode
-                ? Color.FromArgb(55, 55, 55)
-                : Color.FromArgb(225, 225, 225);
+                AppTheme.ControlHover(darkMode);
 
             settingsButton.FlatAppearance.MouseDownBackColor =
-                darkMode
-                ? Color.FromArgb(70, 70, 70)
-                : Color.FromArgb(210, 210, 210);
+                AppTheme.ControlPressed(darkMode);
 
             aboutButton.BackColor =
                 background;
 
             aboutButton.ForeColor =
-                darkMode
-                ? Color.FromArgb(210, 210, 210)
-                : Color.DimGray;
+                AppTheme.TextSecondary(darkMode);
 
             aboutButton.FlatAppearance.MouseOverBackColor =
-                darkMode
-                ? Color.FromArgb(55, 55, 55)
-                : Color.FromArgb(225, 225, 225);
+                AppTheme.ControlHover(darkMode);
 
             aboutButton.FlatAppearance.MouseDownBackColor =
-                darkMode
-                ? Color.FromArgb(70, 70, 70)
-                : Color.FromArgb(210, 210, 210);
+                AppTheme.ControlPressed(darkMode);
 
             StyleButton(
                 folderButton,
@@ -1191,13 +1169,13 @@ namespace WallpaperControl
                 foreground);
 
             historyMenu.BackColor =
-                background;
+                AppTheme.MenuBackground(darkMode);
 
             historyMenu.ForeColor =
                 foreground;
 
             rejectMenu.BackColor =
-                background;
+                AppTheme.MenuBackground(darkMode);
 
             rejectMenu.ForeColor =
                 foreground;
@@ -1206,9 +1184,7 @@ namespace WallpaperControl
                 foreground;
 
             wallpaperPreviewForm.BackColor =
-                darkMode
-                ? Color.FromArgb(32, 32, 32)
-                : SystemColors.Control;
+                AppTheme.PanelBackground(darkMode);
 
             wallpaperPreviewInfoLabel.ForeColor =
                 foreground;
@@ -1217,7 +1193,7 @@ namespace WallpaperControl
                 Color.Black;
 
             trayMenu.BackColor =
-                background;
+                AppTheme.MenuBackground(darkMode);
 
             trayMenu.ForeColor =
                 foreground;
@@ -1238,9 +1214,13 @@ namespace WallpaperControl
             button.FlatStyle = FlatStyle.Flat;
 
             button.FlatAppearance.BorderColor =
-                darkMode
-                ? Color.FromArgb(85, 85, 85)
-                : Color.FromArgb(180, 180, 180);
+                AppTheme.Border(darkMode);
+
+            button.FlatAppearance.MouseOverBackColor =
+                AppTheme.ControlHover(darkMode);
+
+            button.FlatAppearance.MouseDownBackColor =
+                AppTheme.ControlPressed(darkMode);
         }
 
         private void ApplyTitleBarTheme()

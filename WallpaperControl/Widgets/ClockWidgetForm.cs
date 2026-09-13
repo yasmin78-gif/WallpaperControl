@@ -14,6 +14,7 @@ namespace WallpaperControl
         private int clockSize;
         private bool locked;
         private bool showSeconds;
+        private ClockWidgetStyle style;
         private string languageCode;
         private bool dragging;
         private Point dragMouseStart;
@@ -23,6 +24,7 @@ namespace WallpaperControl
             int clockSize,
             bool locked,
             bool showSeconds,
+            ClockWidgetStyle style,
             string languageCode,
             Point location,
             Action<Point> locationChanged)
@@ -30,6 +32,7 @@ namespace WallpaperControl
             this.clockSize = Math.Clamp(clockSize, 70, 240);
             this.locked = locked;
             this.showSeconds = showSeconds;
+            this.style = style;
             this.languageCode = languageCode;
             this.locationChanged = locationChanged;
 
@@ -87,11 +90,12 @@ namespace WallpaperControl
             }
         }
 
-        public void Apply(int size, bool isLocked, bool secondsVisible, string currentLanguageCode)
+        public void Apply(int size, bool isLocked, bool secondsVisible, ClockWidgetStyle currentStyle, string currentLanguageCode)
         {
             clockSize = Math.Clamp(size, 70, 240);
             locked = isLocked;
             showSeconds = secondsVisible;
+            style = currentStyle;
             languageCode = currentLanguageCode;
             SetSize();
             Location = WidgetSettings.EnsureVisible(Location, Size);
@@ -125,9 +129,26 @@ namespace WallpaperControl
             string time = now.ToString(showSeconds ? "HH:mm:ss" : "HH:mm", culture);
             string date = FormatDate(now, culture);
 
-            DrawTime(g, time, scale, centerX);
-            DrawDivider(g, scale, centerX);
-            DrawDate(g, date, scale, centerX);
+            switch (style)
+            {
+                case ClockWidgetStyle.Minimal:
+                    DrawSimpleStyle(g, time, date, scale, centerX, "Segoe UI Light", FontStyle.Regular, Color.FromArgb(235, 235, 238, 242), true, false, false);
+                    break;
+                case ClockWidgetStyle.Clean:
+                    DrawSimpleStyle(g, time, date, scale, centerX, "Segoe UI", FontStyle.Bold, Color.White, false, false, false);
+                    break;
+                case ClockWidgetStyle.Glow:
+                    DrawSimpleStyle(g, time, date, scale, centerX, "Segoe UI Light", FontStyle.Regular, Color.FromArgb(255, 225, 248, 255), true, true, false);
+                    break;
+                case ClockWidgetStyle.Classic:
+                    DrawSimpleStyle(g, time, date, scale, centerX, "Georgia", FontStyle.Regular, Color.FromArgb(245, 242, 239, 232), true, false, true);
+                    break;
+                default:
+                    DrawTime(g, time, scale, centerX);
+                    DrawDivider(g, scale, centerX);
+                    DrawDate(g, date, scale, centerX);
+                    break;
+            }
         }
 
         private static string FormatDate(DateTime value, CultureInfo culture)
@@ -143,6 +164,78 @@ namespace WallpaperControl
             };
 
             return value.ToString(format, culture);
+        }
+
+
+        private void DrawSimpleStyle(Graphics g, string time, string date, float scale, float centerX, string fontName, FontStyle fontStyle, Color color, bool divider, bool glow, bool classic)
+        {
+            float timeY = -54f * scale;
+            float timeHeight = 190f * scale;
+            float timePixels = clockSize * g.DpiY / 72f;
+            using FontFamily timeFamily = new(fontName);
+            using StringFormat centered = CreateCenteredFormat();
+            using GraphicsPath timePath = new();
+            timePath.AddString(time, timeFamily, (int)fontStyle, timePixels, new RectangleF(0, timeY, ClientSize.Width, timeHeight), centered);
+
+            if (glow)
+            {
+                for (int width = 12; width >= 4; width -= 4)
+                {
+                    using Pen glowPen = new(Color.FromArgb(35, 80, 210, 255), Math.Max(2f, width * scale));
+                    glowPen.LineJoin = LineJoin.Round;
+                    g.DrawPath(glowPen, timePath);
+                }
+            }
+            else if (!classic)
+            {
+                using Matrix shadowMatrix = new();
+                shadowMatrix.Translate(3f * scale, 5f * scale);
+                using GraphicsPath shadowPath = (GraphicsPath)timePath.Clone();
+                shadowPath.Transform(shadowMatrix);
+                using SolidBrush shadowBrush = new(Color.FromArgb(150, 0, 0, 0));
+                g.FillPath(shadowBrush, shadowPath);
+            }
+
+            using SolidBrush timeBrush = new(color);
+            g.FillPath(timeBrush, timePath);
+
+            float dateHeight = 36f * scale;
+            float dateY = ClientSize.Height - dateHeight - 14f * scale;
+            float dividerY = dateY - 16f * scale;
+
+            if (divider)
+            {
+                float lineWidth = (classic ? 480f : 630f) * scale;
+                float gap = (classic ? 26f : 18f) * scale;
+                using Pen linePen = new(glow ? Color.FromArgb(230, 155, 230, 255) : color, Math.Max(1f, 2f * scale));
+                g.DrawLine(linePen, centerX - lineWidth / 2f, dividerY, centerX - gap, dividerY);
+                g.DrawLine(linePen, centerX + gap, dividerY, centerX + lineWidth / 2f, dividerY);
+
+                if (classic)
+                {
+                    using Font ornamentFont = new("Georgia", Math.Max(8f, 15f * scale), FontStyle.Regular, GraphicsUnit.Pixel);
+                    using StringFormat ornamentFormat = new() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                    using SolidBrush ornamentBrush = new(color);
+                    g.DrawString("◇", ornamentFont, ornamentBrush, new RectangleF(centerX - 22f * scale, dividerY - 15f * scale, 44f * scale, 30f * scale), ornamentFormat);
+                }
+                else
+                {
+                    PointF[] diamond = { new(centerX, dividerY - 9f * scale), new(centerX + 9f * scale, dividerY), new(centerX, dividerY + 9f * scale), new(centerX - 9f * scale, dividerY) };
+                    using SolidBrush diamondBrush = new(glow ? Color.FromArgb(245, 190, 240, 255) : color);
+                    g.FillPolygon(diamondBrush, diamond);
+                }
+            }
+
+            float datePixels = (classic ? 25f : 27f) * scale * g.DpiY / 72f;
+            using FontFamily dateFamily = new(classic ? "Georgia" : "Segoe UI");
+            using GraphicsPath datePath = CreateTextPath(date, dateFamily, datePixels, new RectangleF(0, dateY, ClientSize.Width, dateHeight + 10f * scale), centered);
+            if (glow)
+            {
+                using Pen dateGlow = new(Color.FromArgb(55, 80, 210, 255), Math.Max(2f, 4f * scale));
+                g.DrawPath(dateGlow, datePath);
+            }
+            using SolidBrush dateBrush = new(glow ? Color.FromArgb(245, 185, 235, 255) : color);
+            g.FillPath(dateBrush, datePath);
         }
 
         private void DrawTime(

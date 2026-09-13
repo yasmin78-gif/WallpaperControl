@@ -36,6 +36,7 @@ namespace WallpaperControl
             settings.ClockLocked = previewSettings.ClockLocked;
             settings.ClockSize = previewSettings.ClockSize;
             settings.ClockShowSeconds = previewSettings.ClockShowSeconds;
+            settings.ClockStyle = previewSettings.ClockStyle;
             settings.ClockLanguageCode = previewSettings.ClockLanguageCode;
             settings.NextEnabled = previewSettings.NextEnabled;
             settings.NextLocked = previewSettings.NextLocked;
@@ -87,6 +88,7 @@ namespace WallpaperControl
                         target.ClockSize,
                         effectiveClockLocked,
                         target.ClockShowSeconds,
+                        target.ClockStyle,
                         target.ClockLanguageCode,
                         target.ClockLocation,
                         SaveClockLocation);
@@ -111,6 +113,7 @@ namespace WallpaperControl
                         target.ClockSize,
                         effectiveClockLocked,
                         target.ClockShowSeconds,
+                        target.ClockStyle,
                         target.ClockLanguageCode);
 
                     if (restoreLocations)

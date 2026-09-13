@@ -318,14 +318,10 @@ namespace WallpaperControl
             Button closeButton)
         {
             Color background =
-                darkMode
-                ? Color.FromArgb(32, 32, 32)
-                : SystemColors.Control;
+                AppTheme.WindowBackground(darkMode);
 
             Color foreground =
-                darkMode
-                ? Color.FromArgb(235, 235, 235)
-                : SystemColors.ControlText;
+                AppTheme.TextPrimary(darkMode);
 
             BackColor = background;
             ForeColor = foreground;
@@ -341,9 +337,7 @@ namespace WallpaperControl
             closeButton.UseVisualStyleBackColor = false;
 
             closeButton.BackColor =
-                darkMode
-                ? Color.FromArgb(50, 50, 50)
-                : SystemColors.Control;
+                AppTheme.ControlBackground(darkMode);
 
             closeButton.ForeColor =
                 foreground;
@@ -352,9 +346,13 @@ namespace WallpaperControl
                 FlatStyle.Flat;
 
             closeButton.FlatAppearance.BorderColor =
-                darkMode
-                ? Color.FromArgb(85, 85, 85)
-                : Color.FromArgb(180, 180, 180);
+                AppTheme.Border(darkMode);
+
+            closeButton.FlatAppearance.MouseOverBackColor =
+                AppTheme.ControlHover(darkMode);
+
+            closeButton.FlatAppearance.MouseDownBackColor =
+                AppTheme.ControlPressed(darkMode);
         }
 
         [DllImport("dwmapi.dll")]
