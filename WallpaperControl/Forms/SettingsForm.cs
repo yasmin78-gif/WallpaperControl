@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using Microsoft.Win32;
@@ -2452,9 +2453,17 @@ namespace WallpaperControl
                 int attributeSize);
         private sealed class ClockStyleCard : Control
         {
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public ClockWidgetStyle Style { get; set; }
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public string Caption { get; set; } = "";
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public bool Selected { get; set; }
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public bool ShowSeconds { get; set; }
 
             public ClockStyleCard()
@@ -2485,8 +2494,14 @@ namespace WallpaperControl
 
         private sealed class ClockSettingsPreview : Control
         {
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public ClockWidgetStyle Style { get; set; } = ClockWidgetStyle.Chrome;
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public bool ShowSeconds { get; set; }
+            [Browsable(false)]
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public string LanguageCode { get; set; } = "de";
 
             public ClockSettingsPreview() { DoubleBuffered = true; }
