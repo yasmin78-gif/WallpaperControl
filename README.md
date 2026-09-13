@@ -1,10 +1,10 @@
 # 🖼️ Wallpaper Control
 
-**Wallpaper Control** is a lightweight Windows utility for managing and displaying desktop wallpaper slideshows with precise scheduling, animated transitions, statistics and additional quality-of-life controls.
+**Wallpaper Control** is a lightweight Windows utility for managing and displaying desktop wallpaper slideshows with precise scheduling, animated transitions, statistics, native desktop widgets and additional quality-of-life controls.
 
-It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine and desktop-rendered transition effects, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
+It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.7.1**
+**Current release: v1.8.0**
 
 ## ✨ Features
 
@@ -26,7 +26,20 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Curtain
   - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
   - Configurable transition duration
-  - Desktop icons and tools such as Rainmeter remain visible above the transition layer
+  - Desktop icons and desktop tools remain visible above the transition layer
+
+- 🕐 **Native desktop widgets**
+  - Optional Chrome-style desktop clock
+  - Optional seconds display
+  - Localized date formatting
+  - Adjustable clock size
+  - Optional Next Wallpaper button
+  - Widgets can be positioned independently anywhere on the desktop
+  - Independent position locking for each widget
+  - Widget positions and settings are remembered
+  - Live widget preview while changing settings
+  - Widgets remain part of the desktop and do not stay above normal application windows
+  - Next Wallpaper widget includes a localized tooltip
 
 - 🖥️ **Windows integration**
   - Integrates with native Windows wallpaper APIs while providing its own slideshow timing and transition engine
@@ -38,7 +51,7 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Optional automatic startup with Windows
   - Restores native Windows wallpaper handling when Wallpaper Control exits
   - Supports external wallpaper switching with the `--next` command-line argument
-  - External controls such as Rainmeter can trigger the next wallpaper without opening the main window
+  - Exposes the enabled state of the native clock widget for external applications and scripts
 
 - 📊 **Statistics dashboard**
   - Persistent wallpaper statistics across application restarts
@@ -96,6 +109,32 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Separate appearance reset
   - Localized interface
 
+## 🕐 Desktop Widgets
+
+Wallpaper Control 1.8.0 introduces optional native desktop widgets that integrate directly with the Windows desktop.
+
+### Clock
+
+The desktop clock provides:
+
+- Chrome-style rendering
+- Hours and minutes display
+- Optional seconds
+- Localized date formatting
+- Adjustable size
+- Free positioning
+- Optional position locking
+
+The clock automatically follows the language selected in Wallpaper Control.
+
+### Next Wallpaper
+
+The Next Wallpaper widget provides a compact desktop button for immediately advancing to the next wallpaper.
+
+It can be positioned and locked independently from the clock and uses the same wallpaper switching and transition handling as the main application.
+
+Widget changes are previewed immediately in the settings window. They are permanently applied when the settings are saved. Cancelling the settings restores the previous widget state and position.
+
 ## 📊 Statistics
 
 Wallpaper Control keeps persistent statistics about wallpapers displayed through its slideshow.
@@ -131,17 +170,46 @@ Accidentally rejected the wrong image? The last rejection can be undone during t
 
 ## 🕹️ External Control
 
-Wallpaper Control can receive commands from external tools while it is already running.
+Wallpaper Control can receive commands from external applications, scripts, shortcuts or desktop tools while it is already running.
 
-The following command is currently supported:
+### Next Wallpaper
+
+The following command is supported:
 
 ```text
 WallpaperControl.exe --next
 ```
 
-This switches to the next wallpaper using the running Wallpaper Control instance. It can be used by tools such as Rainmeter, shortcuts, scripts or other desktop controls.
+This sends a request to the running Wallpaper Control instance and immediately switches to the next wallpaper.
 
-External wallpaper changes use the same slideshow and transition handling as changes triggered directly from Wallpaper Control.
+External requests use the same slideshow, scheduling and transition handling as wallpaper changes triggered directly from Wallpaper Control.
+
+This makes it possible to integrate Wallpaper Control with custom scripts, launchers, automation tools or other desktop applications without opening the main window.
+
+### Clock Widget State
+
+External applications can determine whether the native Wallpaper Control clock is enabled by reading:
+
+```text
+HKEY_CURRENT_USER\Software\WallpaperControl
+```
+
+Registry value:
+
+```text
+ClockWidgetEnabled
+```
+
+Values:
+
+```text
+0 = Native clock widget disabled
+1 = Native clock widget enabled
+```
+
+This allows external applications or desktop tools to adapt their own behavior depending on whether Wallpaper Control's native clock is enabled.
+
+The registry value represents the saved widget setting. Preview changes made while the settings window is open are not permanently applied until the settings are saved.
 
 ## 🩺 Diagnostics
 
@@ -173,6 +241,8 @@ Wallpaper Control currently includes:
 
 The interface language can be changed directly from the application settings.
 
+Desktop widget text and date formatting follow the selected application language.
+
 ## 💻 Requirements
 
 - **Windows 11:** supported and tested
@@ -185,7 +255,7 @@ The interface language can be changed directly from the application settings.
 1. Download `WallpaperControl.exe` from the latest release.
 2. Start `WallpaperControl.exe`.
 3. Select your wallpaper folder.
-4. Configure the slideshow and optional features to your liking.
+4. Configure the slideshow, desktop widgets and optional features to your liking.
 
 No installer or separate .NET installation is required.
 
@@ -202,7 +272,7 @@ Diagnostic logs are also stored locally and are only created when needed for tro
 ## 🛠️ Built With
 
 - C#
-- .NET 9
+- .NET 10
 - Windows Forms
 - Native Windows APIs / COM integration
 
