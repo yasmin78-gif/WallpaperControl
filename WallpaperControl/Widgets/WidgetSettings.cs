@@ -19,6 +19,17 @@ namespace WallpaperControl
         public bool NextEnabled { get; set; }
         public bool NextLocked { get; set; }
         public Point NextLocation { get; set; } = new(40, 330);
+        public bool SystemEnabled { get; set; }
+        public bool SystemLocked { get; set; }
+        public int SystemRefreshSeconds { get; set; } = 2;
+        public SystemWidgetStyle SystemStyle { get; set; } = SystemWidgetStyle.Glow;
+        public bool SystemShowCpu { get; set; } = true;
+        public bool SystemShowRam { get; set; } = true;
+        public bool SystemShowGpu { get; set; } = true;
+        public bool SystemShowVram { get; set; } = true;
+        public bool SystemShowNetwork { get; set; } = true;
+        public bool SystemShowDrives { get; set; } = true;
+        public Point SystemLocation { get; set; } = new(40, 400);
 
         public static WidgetSettings Load()
         {
@@ -38,6 +49,17 @@ namespace WallpaperControl
                 result.NextEnabled = ReadBool(key, "NextWidgetEnabled", false);
                 result.NextLocked = ReadBool(key, "NextWidgetLocked", false);
                 result.NextLocation = new Point(ReadInt(key, "NextWidgetX", 40), ReadInt(key, "NextWidgetY", 330));
+                result.SystemEnabled = ReadBool(key, "SystemWidgetEnabled", false);
+                result.SystemLocked = ReadBool(key, "SystemWidgetLocked", false);
+                result.SystemRefreshSeconds = Math.Clamp(ReadInt(key, "SystemWidgetRefreshSeconds", 2), 1, 5);
+                result.SystemStyle = ReadSystemStyle(key, "SystemWidgetStyle", SystemWidgetStyle.Glow);
+                result.SystemShowCpu = ReadBool(key, "SystemWidgetShowCpu", true);
+                result.SystemShowRam = ReadBool(key, "SystemWidgetShowRam", true);
+                result.SystemShowGpu = ReadBool(key, "SystemWidgetShowGpu", true);
+                result.SystemShowVram = ReadBool(key, "SystemWidgetShowVram", true);
+                result.SystemShowNetwork = ReadBool(key, "SystemWidgetShowNetwork", true);
+                result.SystemShowDrives = ReadBool(key, "SystemWidgetShowDrives", true);
+                result.SystemLocation = new Point(ReadInt(key, "SystemWidgetX", 40), ReadInt(key, "SystemWidgetY", 400));
             }
             catch (Exception ex)
             {
@@ -62,6 +84,18 @@ namespace WallpaperControl
                 key.SetValue("NextWidgetLocked", NextLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetX", NextLocation.X, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetY", NextLocation.Y, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetEnabled", SystemEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetLocked", SystemLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetRefreshSeconds", Math.Clamp(SystemRefreshSeconds, 1, 5), RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetStyle", (int)SystemStyle, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowCpu", SystemShowCpu ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowRam", SystemShowRam ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowGpu", SystemShowGpu ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowVram", SystemShowVram ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowNetwork", SystemShowNetwork ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetShowDrives", SystemShowDrives ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetX", SystemLocation.X, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetY", SystemLocation.Y, RegistryValueKind.DWord);
             }
             catch (Exception ex)
             {
@@ -80,7 +114,18 @@ namespace WallpaperControl
             ClockLocation = ClockLocation,
             NextEnabled = NextEnabled,
             NextLocked = NextLocked,
-            NextLocation = NextLocation
+            NextLocation = NextLocation,
+            SystemEnabled = SystemEnabled,
+            SystemLocked = SystemLocked,
+            SystemRefreshSeconds = SystemRefreshSeconds,
+            SystemStyle = SystemStyle,
+            SystemShowCpu = SystemShowCpu,
+            SystemShowRam = SystemShowRam,
+            SystemShowGpu = SystemShowGpu,
+            SystemShowVram = SystemShowVram,
+            SystemShowNetwork = SystemShowNetwork,
+            SystemShowDrives = SystemShowDrives,
+            SystemLocation = SystemLocation
         };
 
         public static Point EnsureVisible(Point location, Size size)
@@ -108,6 +153,14 @@ namespace WallpaperControl
             int value = ReadInt(key, name, (int)fallback);
             return Enum.IsDefined(typeof(ClockWidgetStyle), value)
                 ? (ClockWidgetStyle)value
+                : fallback;
+        }
+
+        private static SystemWidgetStyle ReadSystemStyle(RegistryKey key, string name, SystemWidgetStyle fallback)
+        {
+            int value = ReadInt(key, name, (int)fallback);
+            return Enum.IsDefined(typeof(SystemWidgetStyle), value)
+                ? (SystemWidgetStyle)value
                 : fallback;
         }
     }

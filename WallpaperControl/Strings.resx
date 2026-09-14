@@ -782,4 +782,43 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="SettingsNavLanguage" xml:space="preserve">
     <value>Sprache</value>
   </data>
+  <data name="SettingsNavSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="SettingsSystemWidgetTitle" xml:space="preserve">
+    <value>System-Widget</value>
+  </data>
+  <data name="SettingsSystemWidgetEnabled" xml:space="preserve">
+    <value>System-Widget aktivieren</value>
+  </data>
+  <data name="SettingsSystemRefresh" xml:space="preserve">
+    <value>Aktualisierung:</value>
+  </data>
+  <data name="SettingsSystemWidgetHint" xml:space="preserve">
+    <value>Zeigt CPU, RAM, GPU, VRAM, Temperaturen, Netzwerk und Laufwerk an.</value>
+  </data>
+  <data name="SettingsSystemStyle" xml:space="preserve">
+    <value>Stil:</value>
+  </data>
+  <data name="SettingsSystemModules" xml:space="preserve">
+    <value>Anzeigen:</value>
+  </data>
+  <data name="SettingsSystemCpu" xml:space="preserve">
+    <value>CPU + Temperatur</value>
+  </data>
+  <data name="SettingsSystemRam" xml:space="preserve">
+    <value>Arbeitsspeicher (RAM)</value>
+  </data>
+  <data name="SettingsSystemGpu" xml:space="preserve">
+    <value>GPU + Temperatur</value>
+  </data>
+  <data name="SettingsSystemVram" xml:space="preserve">
+    <value>Grafikspeicher (VRAM)</value>
+  </data>
+  <data name="SettingsSystemNetwork" xml:space="preserve">
+    <value>Netzwerk ↓ / ↑</value>
+  </data>
+  <data name="SettingsSystemDrives" xml:space="preserve">
+    <value>Systemlaufwerk</value>
+  </data>
 </root>

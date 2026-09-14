@@ -782,4 +782,43 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsNavLanguage" xml:space="preserve">
     <value>Language</value>
   </data>
+  <data name="SettingsNavSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="SettingsSystemWidgetTitle" xml:space="preserve">
+    <value>System widget</value>
+  </data>
+  <data name="SettingsSystemWidgetEnabled" xml:space="preserve">
+    <value>Enable system widget</value>
+  </data>
+  <data name="SettingsSystemRefresh" xml:space="preserve">
+    <value>Refresh:</value>
+  </data>
+  <data name="SettingsSystemWidgetHint" xml:space="preserve">
+    <value>Shows CPU, RAM, GPU, VRAM, temperatures, network and drive information.</value>
+  </data>
+  <data name="SettingsSystemStyle" xml:space="preserve">
+    <value>Style:</value>
+  </data>
+  <data name="SettingsSystemModules" xml:space="preserve">
+    <value>Show:</value>
+  </data>
+  <data name="SettingsSystemCpu" xml:space="preserve">
+    <value>CPU + temperature</value>
+  </data>
+  <data name="SettingsSystemRam" xml:space="preserve">
+    <value>Memory (RAM)</value>
+  </data>
+  <data name="SettingsSystemGpu" xml:space="preserve">
+    <value>GPU + temperature</value>
+  </data>
+  <data name="SettingsSystemVram" xml:space="preserve">
+    <value>Graphics memory (VRAM)</value>
+  </data>
+  <data name="SettingsSystemNetwork" xml:space="preserve">
+    <value>Network ↓ / ↑</value>
+  </data>
+  <data name="SettingsSystemDrives" xml:space="preserve">
+    <value>System drive</value>
+  </data>
 </root>

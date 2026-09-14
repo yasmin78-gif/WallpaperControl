@@ -9,6 +9,7 @@ namespace WallpaperControl
         private WidgetSettings settings;
         private ClockWidgetForm? clock;
         private NextWidgetForm? nextWidget;
+        private SystemWidgetForm? systemWidget;
         private bool previewMode;
 
         public WidgetManager(Action next)
@@ -40,6 +41,16 @@ namespace WallpaperControl
             settings.ClockLanguageCode = previewSettings.ClockLanguageCode;
             settings.NextEnabled = previewSettings.NextEnabled;
             settings.NextLocked = previewSettings.NextLocked;
+            settings.SystemEnabled = previewSettings.SystemEnabled;
+            settings.SystemLocked = previewSettings.SystemLocked;
+            settings.SystemRefreshSeconds = previewSettings.SystemRefreshSeconds;
+            settings.SystemStyle = previewSettings.SystemStyle;
+            settings.SystemShowCpu = previewSettings.SystemShowCpu;
+            settings.SystemShowRam = previewSettings.SystemShowRam;
+            settings.SystemShowGpu = previewSettings.SystemShowGpu;
+            settings.SystemShowVram = previewSettings.SystemShowVram;
+            settings.SystemShowNetwork = previewSettings.SystemShowNetwork;
+            settings.SystemShowDrives = previewSettings.SystemShowDrives;
 
             ApplyVisualState(settings, restoreLocations: false);
         }
@@ -51,10 +62,12 @@ namespace WallpaperControl
             // widget windows themselves.
             Point clockLocation = settings.ClockLocation;
             Point nextLocation = settings.NextLocation;
+            Point systemLocation = settings.SystemLocation;
 
             settings = committedSettings.Clone();
             settings.ClockLocation = clockLocation;
             settings.NextLocation = nextLocation;
+            settings.SystemLocation = systemLocation;
             previewMode = false;
             settings.Save();
 
@@ -188,6 +201,63 @@ namespace WallpaperControl
                 nextWidget?.Dispose();
                 nextWidget = null;
             }
+
+            if (target.SystemEnabled)
+            {
+                if (systemWidget == null || systemWidget.IsDisposed)
+                {
+                    systemWidget = new SystemWidgetForm(
+                        target.SystemLocked,
+                        target.SystemRefreshSeconds,
+                        target.SystemStyle,
+                        target.SystemShowCpu,
+                        target.SystemShowRam,
+                        target.SystemShowGpu,
+                        target.SystemShowVram,
+                        target.SystemShowNetwork,
+                        target.SystemShowDrives,
+                        target.SystemLocation,
+                        SaveSystemLocation);
+
+                    systemWidget.Show();
+                    if (!DesktopWidgetNative.AttachToDesktop(systemWidget, target.SystemLocation))
+                    {
+                        systemWidget.Hide();
+                        AppLogger.Warning(
+                            "System widget could not be attached to the desktop.",
+                            new InvalidOperationException("AttachToDesktop returned false."));
+                    }
+                    else if (previewMode)
+                    {
+                        DesktopWidgetNative.EnableInteraction(systemWidget);
+                    }
+                }
+                else
+                {
+                    systemWidget.Apply(
+                        target.SystemLocked,
+                        target.SystemRefreshSeconds,
+                        target.SystemStyle,
+                        target.SystemShowCpu,
+                        target.SystemShowRam,
+                        target.SystemShowGpu,
+                        target.SystemShowVram,
+                        target.SystemShowNetwork,
+                        target.SystemShowDrives);
+                    if (restoreLocations)
+                    {
+                        systemWidget.Location = WidgetSettings.EnsureVisible(target.SystemLocation, systemWidget.Size);
+                    }
+                    DesktopWidgetNative.KeepOnDesktop(systemWidget);
+                    if (previewMode) DesktopWidgetNative.EnableInteraction(systemWidget);
+                }
+            }
+            else
+            {
+                systemWidget?.Close();
+                systemWidget?.Dispose();
+                systemWidget = null;
+            }
         }
 
         private void SaveClockLocation(Point p)
@@ -208,6 +278,15 @@ namespace WallpaperControl
             }
         }
 
+        private void SaveSystemLocation(Point p)
+        {
+            settings.SystemLocation = p;
+            if (!previewMode)
+            {
+                settings.Save();
+            }
+        }
+
         public void Dispose()
         {
             clock?.Close();
@@ -217,6 +296,10 @@ namespace WallpaperControl
             nextWidget?.Close();
             nextWidget?.Dispose();
             nextWidget = null;
+
+            systemWidget?.Close();
+            systemWidget?.Dispose();
+            systemWidget = null;
         }
     }
 }

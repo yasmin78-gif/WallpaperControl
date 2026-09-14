@@ -51,11 +51,22 @@ namespace WallpaperControl
         private Button? settingsWidgetsToggleButton;
         private Button? settingsClockNavigationButton;
         private Button? settingsNextNavigationButton;
+        private Button? settingsSystemNavigationButton;
         private Button? settingsAppearanceNavigationButton;
         private Button? settingsLanguageNavigationButton;
         private bool settingsWidgetsExpanded = true;
         private readonly CheckBox nextWidgetEnabledCheckBox;
         private readonly CheckBox nextWidgetLockedCheckBox;
+        private readonly CheckBox systemWidgetEnabledCheckBox;
+        private readonly CheckBox systemWidgetLockedCheckBox;
+        private readonly ComboBox systemWidgetRefreshComboBox;
+        private readonly ComboBox systemWidgetStyleComboBox;
+        private readonly CheckBox systemShowCpuCheckBox;
+        private readonly CheckBox systemShowRamCheckBox;
+        private readonly CheckBox systemShowGpuCheckBox;
+        private readonly CheckBox systemShowVramCheckBox;
+        private readonly CheckBox systemShowNetworkCheckBox;
+        private readonly CheckBox systemShowDrivesCheckBox;
         private readonly WidgetSettings initialWidgetSettings;
         private readonly Action<WidgetSettings>? widgetPreviewChanged;
         private string previewLanguageCode;
@@ -230,6 +241,7 @@ namespace WallpaperControl
             TabPage rejectPage = CreateSettingsPage("SettingsNavReject");
             TabPage clockPage = CreateSettingsPage("SettingsNavClock");
             TabPage nextWidgetPage = CreateSettingsPage("SettingsNavNextWallpaper");
+            TabPage systemWidgetPage = CreateSettingsPage("SettingsNavSystem");
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
 
@@ -238,6 +250,7 @@ namespace WallpaperControl
             tabControl.TabPages.Add(rejectPage);
             tabControl.TabPages.Add(clockPage);
             tabControl.TabPages.Add(nextWidgetPage);
+            tabControl.TabPages.Add(systemWidgetPage);
             tabControl.TabPages.Add(appearancePage);
             tabControl.TabPages.Add(languagePage);
 
@@ -266,8 +279,9 @@ namespace WallpaperControl
 
             settingsClockNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, clockPage, "◷", "SettingsNavClock", 246, 14);
             settingsNextNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, nextWidgetPage, "▷", "SettingsNavNextWallpaper", 292, 14);
-            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 352);
-            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 398);
+            settingsSystemNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, systemWidgetPage, "▥", "SettingsNavSystem", 338, 14);
+            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 398);
+            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 444);
             UpdateWidgetsNavigationLayout();
 
             tabControl.SelectedTab = hotkeysPage;
@@ -958,6 +972,118 @@ namespace WallpaperControl
             nextOptions.Controls.Add(nextWidgetEnabledCheckBox);
             nextOptions.Controls.Add(nextWidgetLockedCheckBox);
 
+            Label systemWidgetPageTitle = new Label
+            {
+                Text = Localization.Get("SettingsNavSystem", previewLanguageCode),
+                Tag = "SettingsNavSystem",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+            systemWidgetPage.Controls.Add(systemWidgetPageTitle);
+
+            GroupBox systemOptions = new GroupBox
+            {
+                Text = Localization.Get("SettingsSystemWidgetTitle", previewLanguageCode),
+                Tag = "SettingsSystemWidgetTitle",
+                Location = new Point(18, 58),
+                Size = new Size(620, 430)
+            };
+
+            systemWidgetEnabledCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsSystemWidgetEnabled", previewLanguageCode),
+                Tag = "SettingsSystemWidgetEnabled",
+                Location = new Point(18, 32),
+                AutoSize = true,
+                Checked = initialWidgetSettings.SystemEnabled
+            };
+
+            systemWidgetLockedCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(18, 68),
+                AutoSize = true,
+                Checked = initialWidgetSettings.SystemLocked
+            };
+
+            Label systemStyleLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemStyle", previewLanguageCode),
+                Tag = "SettingsSystemStyle",
+                Location = new Point(18, 110),
+                AutoSize = true
+            };
+
+            systemWidgetStyleComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 106),
+                Size = new Size(170, 30)
+            };
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            systemWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)initialWidgetSettings.SystemStyle, 0, 2);
+
+            Label systemRefreshLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemRefresh", previewLanguageCode),
+                Tag = "SettingsSystemRefresh",
+                Location = new Point(18, 150),
+                AutoSize = true
+            };
+
+            systemWidgetRefreshComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 146),
+                Size = new Size(125, 30)
+            };
+            systemWidgetRefreshComboBox.Items.AddRange(new object[] { "1 s", "2 s", "5 s" });
+            systemWidgetRefreshComboBox.SelectedIndex = initialWidgetSettings.SystemRefreshSeconds switch { 1 => 0, 5 => 2, _ => 1 };
+
+            Label modulesLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemModules", previewLanguageCode),
+                Tag = "SettingsSystemModules",
+                Location = new Point(18, 194),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 9f, FontStyle.Bold)
+            };
+
+            systemShowCpuCheckBox = CreateSystemModuleCheckBox("SettingsSystemCpu", 18, 225, initialWidgetSettings.SystemShowCpu);
+            systemShowRamCheckBox = CreateSystemModuleCheckBox("SettingsSystemRam", 18, 258, initialWidgetSettings.SystemShowRam);
+            systemShowGpuCheckBox = CreateSystemModuleCheckBox("SettingsSystemGpu", 18, 291, initialWidgetSettings.SystemShowGpu);
+            systemShowVramCheckBox = CreateSystemModuleCheckBox("SettingsSystemVram", 300, 225, initialWidgetSettings.SystemShowVram);
+            systemShowNetworkCheckBox = CreateSystemModuleCheckBox("SettingsSystemNetwork", 300, 258, initialWidgetSettings.SystemShowNetwork);
+            systemShowDrivesCheckBox = CreateSystemModuleCheckBox("SettingsSystemDrives", 300, 291, initialWidgetSettings.SystemShowDrives);
+
+            Label systemHint = new Label
+            {
+                Text = Localization.Get("SettingsSystemWidgetHint", previewLanguageCode),
+                Tag = "SettingsSystemWidgetHint",
+                Location = new Point(18, 345),
+                Size = new Size(570, 55)
+            };
+
+            systemOptions.Controls.Add(systemWidgetEnabledCheckBox);
+            systemOptions.Controls.Add(systemWidgetLockedCheckBox);
+            systemOptions.Controls.Add(systemStyleLabel);
+            systemOptions.Controls.Add(systemWidgetStyleComboBox);
+            systemOptions.Controls.Add(systemRefreshLabel);
+            systemOptions.Controls.Add(systemWidgetRefreshComboBox);
+            systemOptions.Controls.Add(modulesLabel);
+            systemOptions.Controls.Add(systemShowCpuCheckBox);
+            systemOptions.Controls.Add(systemShowRamCheckBox);
+            systemOptions.Controls.Add(systemShowGpuCheckBox);
+            systemOptions.Controls.Add(systemShowVramCheckBox);
+            systemOptions.Controls.Add(systemShowNetworkCheckBox);
+            systemOptions.Controls.Add(systemShowDrivesCheckBox);
+            systemOptions.Controls.Add(systemHint);
+            systemWidgetPage.Controls.Add(systemOptions);
+
             Label widgetHint = new Label
             {
                 Text = Localization.Get("SettingsWidgetsHint", previewLanguageCode),
@@ -992,6 +1118,16 @@ namespace WallpaperControl
             };
             nextWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             nextWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemWidgetRefreshComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemWidgetStyleComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowCpuCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowRamCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowGpuCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowVramCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowNetworkCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            systemShowDrivesCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
 
             // ==========================================================
             // FOOTER
@@ -1141,8 +1277,11 @@ namespace WallpaperControl
             if (settingsNextNavigationButton != null)
                 settingsNextNavigationButton.Visible = settingsWidgetsExpanded;
 
-            int appearanceY = settingsWidgetsExpanded ? 352 : 252;
-            int languageY = settingsWidgetsExpanded ? 398 : 298;
+            if (settingsSystemNavigationButton != null)
+                settingsSystemNavigationButton.Visible = settingsWidgetsExpanded;
+
+            int appearanceY = settingsWidgetsExpanded ? 398 : 252;
+            int languageY = settingsWidgetsExpanded ? 444 : 298;
 
             if (settingsAppearanceNavigationButton != null)
                 settingsAppearanceNavigationButton.Location = new Point(14, appearanceY);
@@ -1657,6 +1796,7 @@ namespace WallpaperControl
                     previewThemeMode);
 
                 RefreshClockStyleChoices(GetSelectedClockStyle());
+                RefreshSystemStyleChoices(GetSelectedSystemStyle());
 
                 SetComboValues(
                     nextModifierCombo,
@@ -1951,6 +2091,16 @@ namespace WallpaperControl
             RefreshClockStyleChoices(ClockWidgetStyle.Chrome);
             nextWidgetEnabledCheckBox.Checked = false;
             nextWidgetLockedCheckBox.Checked = false;
+            systemWidgetEnabledCheckBox.Checked = false;
+            systemWidgetLockedCheckBox.Checked = false;
+            systemWidgetRefreshComboBox.SelectedIndex = 1;
+            RefreshSystemStyleChoices(SystemWidgetStyle.Glow);
+            systemShowCpuCheckBox.Checked = true;
+            systemShowRamCheckBox.Checked = true;
+            systemShowGpuCheckBox.Checked = true;
+            systemShowVramCheckBox.Checked = true;
+            systemShowNetworkCheckBox.Checked = true;
+            systemShowDrivesCheckBox.Checked = true;
 
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
@@ -2015,6 +2165,47 @@ namespace WallpaperControl
                 : ClockWidgetStyle.Chrome;
         }
 
+        private void RefreshSystemStyleChoices(SystemWidgetStyle selectedStyle)
+        {
+            if (systemWidgetStyleComboBox == null) return;
+
+            systemWidgetStyleComboBox.BeginUpdate();
+            systemWidgetStyleComboBox.Items.Clear();
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            systemWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 2);
+            systemWidgetStyleComboBox.EndUpdate();
+        }
+
+        private CheckBox CreateSystemModuleCheckBox(string resourceKey, int x, int y, bool isChecked)
+        {
+            return new CheckBox
+            {
+                Text = Localization.Get(resourceKey, previewLanguageCode),
+                Tag = resourceKey,
+                Location = new Point(x, y),
+                AutoSize = true,
+                Checked = isChecked
+            };
+        }
+
+        private SystemWidgetStyle GetSelectedSystemStyle()
+        {
+            int index = systemWidgetStyleComboBox?.SelectedIndex ?? (int)SystemWidgetStyle.Glow;
+            return Enum.IsDefined(typeof(SystemWidgetStyle), index)
+                ? (SystemWidgetStyle)index
+                : SystemWidgetStyle.Glow;
+        }
+
+        private int GetSystemRefreshSeconds() =>
+            systemWidgetRefreshComboBox.SelectedIndex switch
+            {
+                0 => 1,
+                2 => 5,
+                _ => 2
+            };
+
         private void NotifyWidgetPreviewChanged()
         {
             if (widgetPreviewChanged == null)
@@ -2031,6 +2222,16 @@ namespace WallpaperControl
             preview.ClockLanguageCode = previewLanguageCode;
             preview.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             preview.NextLocked = nextWidgetLockedCheckBox.Checked;
+            preview.SystemEnabled = systemWidgetEnabledCheckBox.Checked;
+            preview.SystemLocked = systemWidgetLockedCheckBox.Checked;
+            preview.SystemRefreshSeconds = GetSystemRefreshSeconds();
+            preview.SystemStyle = GetSelectedSystemStyle();
+            preview.SystemShowCpu = systemShowCpuCheckBox.Checked;
+            preview.SystemShowRam = systemShowRamCheckBox.Checked;
+            preview.SystemShowGpu = systemShowGpuCheckBox.Checked;
+            preview.SystemShowVram = systemShowVramCheckBox.Checked;
+            preview.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
+            preview.SystemShowDrives = systemShowDrivesCheckBox.Checked;
 
             widgetPreviewChanged(preview);
         }
@@ -2171,6 +2372,16 @@ namespace WallpaperControl
             WidgetSettings.ClockLanguageCode = previewLanguageCode;
             WidgetSettings.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             WidgetSettings.NextLocked = nextWidgetLockedCheckBox.Checked;
+            WidgetSettings.SystemEnabled = systemWidgetEnabledCheckBox.Checked;
+            WidgetSettings.SystemLocked = systemWidgetLockedCheckBox.Checked;
+            WidgetSettings.SystemRefreshSeconds = GetSystemRefreshSeconds();
+            WidgetSettings.SystemStyle = GetSelectedSystemStyle();
+            WidgetSettings.SystemShowCpu = systemShowCpuCheckBox.Checked;
+            WidgetSettings.SystemShowRam = systemShowRamCheckBox.Checked;
+            WidgetSettings.SystemShowGpu = systemShowGpuCheckBox.Checked;
+            WidgetSettings.SystemShowVram = systemShowVramCheckBox.Checked;
+            WidgetSettings.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
+            WidgetSettings.SystemShowDrives = systemShowDrivesCheckBox.Checked;
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))

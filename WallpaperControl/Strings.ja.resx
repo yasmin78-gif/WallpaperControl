@@ -754,4 +754,43 @@
   <data name="SettingsNavLanguage" xml:space="preserve">
     <value>言語</value>
   </data>
+  <data name="SettingsNavSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="SettingsSystemWidgetTitle" xml:space="preserve">
+    <value>システムウィジェット</value>
+  </data>
+  <data name="SettingsSystemWidgetEnabled" xml:space="preserve">
+    <value>システムウィジェットを有効にする</value>
+  </data>
+  <data name="SettingsSystemRefresh" xml:space="preserve">
+    <value>更新間隔:</value>
+  </data>
+  <data name="SettingsSystemWidgetHint" xml:space="preserve">
+    <value>CPU、RAM、GPU、VRAM、温度、ネットワーク、ドライブ情報を表示します。</value>
+  </data>
+  <data name="SettingsSystemStyle" xml:space="preserve">
+    <value>スタイル:</value>
+  </data>
+  <data name="SettingsSystemModules" xml:space="preserve">
+    <value>表示:</value>
+  </data>
+  <data name="SettingsSystemCpu" xml:space="preserve">
+    <value>CPU + 温度</value>
+  </data>
+  <data name="SettingsSystemRam" xml:space="preserve">
+    <value>メモリ (RAM)</value>
+  </data>
+  <data name="SettingsSystemGpu" xml:space="preserve">
+    <value>GPU + 温度</value>
+  </data>
+  <data name="SettingsSystemVram" xml:space="preserve">
+    <value>ビデオメモリ (VRAM)</value>
+  </data>
+  <data name="SettingsSystemNetwork" xml:space="preserve">
+    <value>ネットワーク ↓ / ↑</value>
+  </data>
+  <data name="SettingsSystemDrives" xml:space="preserve">
+    <value>システムドライブ</value>
+  </data>
 </root>
