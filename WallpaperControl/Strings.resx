@@ -821,4 +821,79 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="SettingsSystemDrives" xml:space="preserve">
     <value>Systemlaufwerk</value>
   </data>
+  <data name="SettingsNavWeather" xml:space="preserve">
+    <value>Wetter</value>
+  </data>
+  <data name="SettingsWeatherWidgetTitle" xml:space="preserve">
+    <value>Wetter-Widget</value>
+  </data>
+  <data name="SettingsWeatherWidgetEnabled" xml:space="preserve">
+    <value>Wetter-Widget aktivieren</value>
+  </data>
+  <data name="SettingsWeatherLocation" xml:space="preserve">
+    <value>Ort:</value>
+  </data>
+  <data name="SettingsWeatherRefresh" xml:space="preserve">
+    <value>Aktualisierung:</value>
+  </data>
+  <data name="SettingsWeatherForecast" xml:space="preserve">
+    <value>3-Tage-Vorschau anzeigen</value>
+  </data>
+  <data name="SettingsWeatherHint" xml:space="preserve">
+    <value>Wetterdaten werden ohne API-Schlüssel über Open-Meteo geladen. Der Ort kann als Stadt oder Stadt, Land eingegeben werden.</value>
+  </data>
+  <data name="WeatherWidgetTitle" xml:space="preserve">
+    <value>Wetter</value>
+  </data>
+  <data name="WeatherLoading" xml:space="preserve">
+    <value>Wetter wird geladen…</value>
+  </data>
+  <data name="WeatherLocationNotFound" xml:space="preserve">
+    <value>Ort nicht gefunden</value>
+  </data>
+  <data name="WeatherUnavailable" xml:space="preserve">
+    <value>Wetterdaten nicht verfügbar</value>
+  </data>
+  <data name="WeatherFeelsLike" xml:space="preserve">
+    <value>Gefühlt</value>
+  </data>
+  <data name="WeatherHumidity" xml:space="preserve">
+    <value>Feuchte</value>
+  </data>
+  <data name="WeatherRain" xml:space="preserve">
+    <value>Regen</value>
+  </data>
+  <data name="WeatherWind" xml:space="preserve">
+    <value>Wind</value>
+  </data>
+  <data name="WeatherClear" xml:space="preserve">
+    <value>Klar</value>
+  </data>
+  <data name="WeatherPartlyCloudy" xml:space="preserve">
+    <value>Leicht bewölkt</value>
+  </data>
+  <data name="WeatherCloudy" xml:space="preserve">
+    <value>Bewölkt</value>
+  </data>
+  <data name="WeatherFog" xml:space="preserve">
+    <value>Nebel</value>
+  </data>
+  <data name="WeatherRainy" xml:space="preserve">
+    <value>Regen</value>
+  </data>
+  <data name="WeatherSnowy" xml:space="preserve">
+    <value>Schnee</value>
+  </data>
+  <data name="WeatherShowers" xml:space="preserve">
+    <value>Schauer</value>
+  </data>
+  <data name="WeatherSnowShowers" xml:space="preserve">
+    <value>Schneeschauer</value>
+  </data>
+  <data name="WeatherThunderstorm" xml:space="preserve">
+    <value>Gewitter</value>
+  </data>
+  <data name="SettingsWeatherApplyLocation" xml:space="preserve">
+    <value>Übernehmen</value>
+  </data>
 </root>

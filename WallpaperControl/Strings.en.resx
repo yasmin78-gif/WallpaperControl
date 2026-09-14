@@ -821,4 +821,79 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsSystemDrives" xml:space="preserve">
     <value>System drive</value>
   </data>
+  <data name="SettingsNavWeather" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="SettingsWeatherWidgetTitle" xml:space="preserve">
+    <value>Weather widget</value>
+  </data>
+  <data name="SettingsWeatherWidgetEnabled" xml:space="preserve">
+    <value>Enable weather widget</value>
+  </data>
+  <data name="SettingsWeatherLocation" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="SettingsWeatherRefresh" xml:space="preserve">
+    <value>Refresh:</value>
+  </data>
+  <data name="SettingsWeatherForecast" xml:space="preserve">
+    <value>Show 3-day forecast</value>
+  </data>
+  <data name="SettingsWeatherHint" xml:space="preserve">
+    <value>Weather data is loaded from Open-Meteo without an API key. Enter a city or city, country.</value>
+  </data>
+  <data name="WeatherWidgetTitle" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="WeatherLoading" xml:space="preserve">
+    <value>Loading weather…</value>
+  </data>
+  <data name="WeatherLocationNotFound" xml:space="preserve">
+    <value>Location not found</value>
+  </data>
+  <data name="WeatherUnavailable" xml:space="preserve">
+    <value>Weather data unavailable</value>
+  </data>
+  <data name="WeatherFeelsLike" xml:space="preserve">
+    <value>Feels</value>
+  </data>
+  <data name="WeatherHumidity" xml:space="preserve">
+    <value>Humidity</value>
+  </data>
+  <data name="WeatherRain" xml:space="preserve">
+    <value>Rain</value>
+  </data>
+  <data name="WeatherWind" xml:space="preserve">
+    <value>Wind</value>
+  </data>
+  <data name="WeatherClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="WeatherPartlyCloudy" xml:space="preserve">
+    <value>Partly cloudy</value>
+  </data>
+  <data name="WeatherCloudy" xml:space="preserve">
+    <value>Cloudy</value>
+  </data>
+  <data name="WeatherFog" xml:space="preserve">
+    <value>Fog</value>
+  </data>
+  <data name="WeatherRainy" xml:space="preserve">
+    <value>Rain</value>
+  </data>
+  <data name="WeatherSnowy" xml:space="preserve">
+    <value>Snow</value>
+  </data>
+  <data name="WeatherShowers" xml:space="preserve">
+    <value>Showers</value>
+  </data>
+  <data name="WeatherSnowShowers" xml:space="preserve">
+    <value>Snow showers</value>
+  </data>
+  <data name="WeatherThunderstorm" xml:space="preserve">
+    <value>Thunderstorm</value>
+  </data>
+  <data name="SettingsWeatherApplyLocation" xml:space="preserve">
+    <value>Apply</value>
+  </data>
 </root>

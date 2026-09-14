@@ -10,6 +10,7 @@ namespace WallpaperControl
         private ClockWidgetForm? clock;
         private NextWidgetForm? nextWidget;
         private SystemWidgetForm? systemWidget;
+        private WeatherWidgetForm? weatherWidget;
         private bool previewMode;
 
         public WidgetManager(Action next)
@@ -51,6 +52,12 @@ namespace WallpaperControl
             settings.SystemShowVram = previewSettings.SystemShowVram;
             settings.SystemShowNetwork = previewSettings.SystemShowNetwork;
             settings.SystemShowDrives = previewSettings.SystemShowDrives;
+            settings.WeatherEnabled = previewSettings.WeatherEnabled;
+            settings.WeatherLocked = previewSettings.WeatherLocked;
+            settings.WeatherRefreshMinutes = previewSettings.WeatherRefreshMinutes;
+            settings.WeatherStyle = previewSettings.WeatherStyle;
+            settings.WeatherLocationName = previewSettings.WeatherLocationName;
+            settings.WeatherShowForecast = previewSettings.WeatherShowForecast;
 
             ApplyVisualState(settings, restoreLocations: false);
         }
@@ -63,11 +70,13 @@ namespace WallpaperControl
             Point clockLocation = settings.ClockLocation;
             Point nextLocation = settings.NextLocation;
             Point systemLocation = settings.SystemLocation;
+            Point weatherLocation = settings.WeatherLocation;
 
             settings = committedSettings.Clone();
             settings.ClockLocation = clockLocation;
             settings.NextLocation = nextLocation;
             settings.SystemLocation = systemLocation;
+            settings.WeatherLocation = weatherLocation;
             previewMode = false;
             settings.Save();
 
@@ -258,6 +267,58 @@ namespace WallpaperControl
                 systemWidget?.Dispose();
                 systemWidget = null;
             }
+      
+            if (target.WeatherEnabled)
+            {
+                if (weatherWidget == null || weatherWidget.IsDisposed)
+                {
+                    weatherWidget = new WeatherWidgetForm(
+                        target.WeatherLocked,
+                        target.WeatherRefreshMinutes,
+                        target.WeatherStyle,
+                        target.WeatherLocationName,
+                        target.ClockLanguageCode,
+                        target.WeatherShowForecast,
+                        target.WeatherLocation,
+                        SaveWeatherLocation);
+
+                    weatherWidget.Show();
+                    if (!DesktopWidgetNative.AttachToDesktop(weatherWidget, target.WeatherLocation))
+                    {
+                        weatherWidget.Hide();
+                        AppLogger.Warning(
+                            "Weather widget could not be attached to the desktop.",
+                            new InvalidOperationException("AttachToDesktop returned false."));
+                    }
+                    else if (previewMode)
+                    {
+                        DesktopWidgetNative.EnableInteraction(weatherWidget);
+                    }
+                }
+                else
+                {
+                    weatherWidget.Apply(
+                        target.WeatherLocked,
+                        target.WeatherRefreshMinutes,
+                        target.WeatherStyle,
+                        target.WeatherLocationName,
+                        target.ClockLanguageCode,
+                        target.WeatherShowForecast);
+
+                    if (restoreLocations)
+                    {
+                        weatherWidget.Location = WidgetSettings.EnsureVisible(target.WeatherLocation, weatherWidget.Size);
+                    }
+                    DesktopWidgetNative.KeepOnDesktop(weatherWidget);
+                    if (previewMode) DesktopWidgetNative.EnableInteraction(weatherWidget);
+                }
+            }
+            else
+            {
+                weatherWidget?.Close();
+                weatherWidget?.Dispose();
+                weatherWidget = null;
+            }
         }
 
         private void SaveClockLocation(Point p)
@@ -287,6 +348,15 @@ namespace WallpaperControl
             }
         }
 
+        private void SaveWeatherLocation(Point p)
+        {
+            settings.WeatherLocation = p;
+            if (!previewMode)
+            {
+                settings.Save();
+            }
+        }
+
         public void Dispose()
         {
             clock?.Close();
@@ -300,6 +370,10 @@ namespace WallpaperControl
             systemWidget?.Close();
             systemWidget?.Dispose();
             systemWidget = null;
+
+            weatherWidget?.Close();
+            weatherWidget?.Dispose();
+            weatherWidget = null;
         }
     }
 }

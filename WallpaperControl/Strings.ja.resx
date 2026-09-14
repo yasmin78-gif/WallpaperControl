@@ -793,4 +793,79 @@
   <data name="SettingsSystemDrives" xml:space="preserve">
     <value>システムドライブ</value>
   </data>
+  <data name="SettingsNavWeather" xml:space="preserve">
+    <value>天気</value>
+  </data>
+  <data name="SettingsWeatherWidgetTitle" xml:space="preserve">
+    <value>天気ウィジェット</value>
+  </data>
+  <data name="SettingsWeatherWidgetEnabled" xml:space="preserve">
+    <value>天気ウィジェットを有効にする</value>
+  </data>
+  <data name="SettingsWeatherLocation" xml:space="preserve">
+    <value>場所:</value>
+  </data>
+  <data name="SettingsWeatherRefresh" xml:space="preserve">
+    <value>更新間隔:</value>
+  </data>
+  <data name="SettingsWeatherForecast" xml:space="preserve">
+    <value>3日間の予報を表示</value>
+  </data>
+  <data name="SettingsWeatherHint" xml:space="preserve">
+    <value>天気データはAPIキー不要のOpen-Meteoから取得します。都市名、または都市名と国名を入力してください。</value>
+  </data>
+  <data name="WeatherWidgetTitle" xml:space="preserve">
+    <value>天気</value>
+  </data>
+  <data name="WeatherLoading" xml:space="preserve">
+    <value>天気を読み込み中…</value>
+  </data>
+  <data name="WeatherLocationNotFound" xml:space="preserve">
+    <value>場所が見つかりません</value>
+  </data>
+  <data name="WeatherUnavailable" xml:space="preserve">
+    <value>天気データを取得できません</value>
+  </data>
+  <data name="WeatherFeelsLike" xml:space="preserve">
+    <value>体感</value>
+  </data>
+  <data name="WeatherHumidity" xml:space="preserve">
+    <value>湿度</value>
+  </data>
+  <data name="WeatherRain" xml:space="preserve">
+    <value>降水</value>
+  </data>
+  <data name="WeatherWind" xml:space="preserve">
+    <value>風</value>
+  </data>
+  <data name="WeatherClear" xml:space="preserve">
+    <value>快晴</value>
+  </data>
+  <data name="WeatherPartlyCloudy" xml:space="preserve">
+    <value>晴れ時々曇り</value>
+  </data>
+  <data name="WeatherCloudy" xml:space="preserve">
+    <value>曇り</value>
+  </data>
+  <data name="WeatherFog" xml:space="preserve">
+    <value>霧</value>
+  </data>
+  <data name="WeatherRainy" xml:space="preserve">
+    <value>雨</value>
+  </data>
+  <data name="WeatherSnowy" xml:space="preserve">
+    <value>雪</value>
+  </data>
+  <data name="WeatherShowers" xml:space="preserve">
+    <value>にわか雨</value>
+  </data>
+  <data name="WeatherSnowShowers" xml:space="preserve">
+    <value>にわか雪</value>
+  </data>
+  <data name="WeatherThunderstorm" xml:space="preserve">
+    <value>雷雨</value>
+  </data>
+  <data name="SettingsWeatherApplyLocation" xml:space="preserve">
+    <value>適用</value>
+  </data>
 </root>

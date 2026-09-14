@@ -30,6 +30,13 @@ namespace WallpaperControl
         public bool SystemShowNetwork { get; set; } = true;
         public bool SystemShowDrives { get; set; } = true;
         public Point SystemLocation { get; set; } = new(40, 400);
+        public bool WeatherEnabled { get; set; }
+        public bool WeatherLocked { get; set; }
+        public int WeatherRefreshMinutes { get; set; } = 30;
+        public SystemWidgetStyle WeatherStyle { get; set; } = SystemWidgetStyle.Glow;
+        public string WeatherLocationName { get; set; } = "Karlsruhe";
+        public bool WeatherShowForecast { get; set; } = true;
+        public Point WeatherLocation { get; set; } = new(390, 400);
 
         public static WidgetSettings Load()
         {
@@ -60,6 +67,14 @@ namespace WallpaperControl
                 result.SystemShowNetwork = ReadBool(key, "SystemWidgetShowNetwork", true);
                 result.SystemShowDrives = ReadBool(key, "SystemWidgetShowDrives", true);
                 result.SystemLocation = new Point(ReadInt(key, "SystemWidgetX", 40), ReadInt(key, "SystemWidgetY", 400));
+                result.WeatherEnabled = ReadBool(key, "WeatherWidgetEnabled", false);
+                result.WeatherLocked = ReadBool(key, "WeatherWidgetLocked", false);
+                result.WeatherRefreshMinutes = Math.Clamp(ReadInt(key, "WeatherWidgetRefreshMinutes", 30), 15, 120);
+                result.WeatherStyle = ReadSystemStyle(key, "WeatherWidgetStyle", SystemWidgetStyle.Glow);
+                result.WeatherLocationName = Convert.ToString(key.GetValue("WeatherWidgetLocation", "Karlsruhe"))?.Trim() ?? "Karlsruhe";
+                if (string.IsNullOrWhiteSpace(result.WeatherLocationName)) result.WeatherLocationName = "Karlsruhe";
+                result.WeatherShowForecast = ReadBool(key, "WeatherWidgetShowForecast", true);
+                result.WeatherLocation = new Point(ReadInt(key, "WeatherWidgetX", 390), ReadInt(key, "WeatherWidgetY", 400));
             }
             catch (Exception ex)
             {
@@ -96,6 +111,14 @@ namespace WallpaperControl
                 key.SetValue("SystemWidgetShowDrives", SystemShowDrives ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetX", SystemLocation.X, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetY", SystemLocation.Y, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetEnabled", WeatherEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetLocked", WeatherLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetRefreshMinutes", Math.Clamp(WeatherRefreshMinutes, 15, 120), RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetStyle", (int)WeatherStyle, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetLocation", WeatherLocationName?.Trim() ?? "", RegistryValueKind.String);
+                key.SetValue("WeatherWidgetShowForecast", WeatherShowForecast ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetX", WeatherLocation.X, RegistryValueKind.DWord);
+                key.SetValue("WeatherWidgetY", WeatherLocation.Y, RegistryValueKind.DWord);
             }
             catch (Exception ex)
             {
@@ -125,7 +148,14 @@ namespace WallpaperControl
             SystemShowVram = SystemShowVram,
             SystemShowNetwork = SystemShowNetwork,
             SystemShowDrives = SystemShowDrives,
-            SystemLocation = SystemLocation
+            SystemLocation = SystemLocation,
+            WeatherEnabled = WeatherEnabled,
+            WeatherLocked = WeatherLocked,
+            WeatherRefreshMinutes = WeatherRefreshMinutes,
+            WeatherStyle = WeatherStyle,
+            WeatherLocationName = WeatherLocationName,
+            WeatherShowForecast = WeatherShowForecast,
+            WeatherLocation = WeatherLocation
         };
 
         public static Point EnsureVisible(Point location, Size size)

@@ -52,6 +52,7 @@ namespace WallpaperControl
         private Button? settingsClockNavigationButton;
         private Button? settingsNextNavigationButton;
         private Button? settingsSystemNavigationButton;
+        private Button? settingsWeatherNavigationButton;
         private Button? settingsAppearanceNavigationButton;
         private Button? settingsLanguageNavigationButton;
         private bool settingsWidgetsExpanded = true;
@@ -67,6 +68,12 @@ namespace WallpaperControl
         private readonly CheckBox systemShowVramCheckBox;
         private readonly CheckBox systemShowNetworkCheckBox;
         private readonly CheckBox systemShowDrivesCheckBox;
+        private readonly CheckBox weatherWidgetEnabledCheckBox;
+        private readonly CheckBox weatherWidgetLockedCheckBox;
+        private readonly TextBox weatherLocationTextBox;
+        private readonly ComboBox weatherWidgetRefreshComboBox;
+        private readonly ComboBox weatherWidgetStyleComboBox;
+        private readonly CheckBox weatherShowForecastCheckBox;
         private readonly WidgetSettings initialWidgetSettings;
         private readonly Action<WidgetSettings>? widgetPreviewChanged;
         private string previewLanguageCode;
@@ -242,6 +249,7 @@ namespace WallpaperControl
             TabPage clockPage = CreateSettingsPage("SettingsNavClock");
             TabPage nextWidgetPage = CreateSettingsPage("SettingsNavNextWallpaper");
             TabPage systemWidgetPage = CreateSettingsPage("SettingsNavSystem");
+            TabPage weatherWidgetPage = CreateSettingsPage("SettingsNavWeather");
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
 
@@ -251,6 +259,7 @@ namespace WallpaperControl
             tabControl.TabPages.Add(clockPage);
             tabControl.TabPages.Add(nextWidgetPage);
             tabControl.TabPages.Add(systemWidgetPage);
+            tabControl.TabPages.Add(weatherWidgetPage);
             tabControl.TabPages.Add(appearancePage);
             tabControl.TabPages.Add(languagePage);
 
@@ -280,8 +289,9 @@ namespace WallpaperControl
             settingsClockNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, clockPage, "◷", "SettingsNavClock", 246, 14);
             settingsNextNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, nextWidgetPage, "▷", "SettingsNavNextWallpaper", 292, 14);
             settingsSystemNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, systemWidgetPage, "▥", "SettingsNavSystem", 338, 14);
-            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 398);
-            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 444);
+            settingsWeatherNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, weatherWidgetPage, "☀", "SettingsNavWeather", 384, 14);
+            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 444);
+            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 490);
             UpdateWidgetsNavigationLayout();
 
             tabControl.SelectedTab = hotkeysPage;
@@ -1084,6 +1094,132 @@ namespace WallpaperControl
             systemOptions.Controls.Add(systemHint);
             systemWidgetPage.Controls.Add(systemOptions);
 
+            Label weatherWidgetPageTitle = new Label
+            {
+                Text = Localization.Get("SettingsNavWeather", previewLanguageCode),
+                Tag = "SettingsNavWeather",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+            weatherWidgetPage.Controls.Add(weatherWidgetPageTitle);
+
+            GroupBox weatherOptions = new GroupBox
+            {
+                Text = Localization.Get("SettingsWeatherWidgetTitle", previewLanguageCode),
+                Tag = "SettingsWeatherWidgetTitle",
+                Location = new Point(18, 58),
+                Size = new Size(620, 330)
+            };
+
+            weatherWidgetEnabledCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWeatherWidgetEnabled", previewLanguageCode),
+                Tag = "SettingsWeatherWidgetEnabled",
+                Location = new Point(18, 32),
+                AutoSize = true,
+                Checked = initialWidgetSettings.WeatherEnabled
+            };
+
+            weatherWidgetLockedCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(18, 68),
+                AutoSize = true,
+                Checked = initialWidgetSettings.WeatherLocked
+            };
+
+            Label weatherLocationLabel = new Label
+            {
+                Text = Localization.Get("SettingsWeatherLocation", previewLanguageCode),
+                Tag = "SettingsWeatherLocation",
+                Location = new Point(18, 110),
+                AutoSize = true
+            };
+
+            weatherLocationTextBox = new TextBox
+            {
+                Location = new Point(190, 106),
+                Size = new Size(205, 28),
+                Text = initialWidgetSettings.WeatherLocationName
+            };
+
+            Button weatherApplyLocationButton = new Button
+            {
+                Text = Localization.Get("SettingsWeatherApplyLocation", previewLanguageCode),
+                Tag = "SettingsWeatherApplyLocation",
+                Location = new Point(405, 104),
+                Size = new Size(110, 31),
+                Cursor = Cursors.Hand
+            };
+
+            Label weatherStyleLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemStyle", previewLanguageCode),
+                Tag = "SettingsSystemStyle",
+                Location = new Point(18, 150),
+                AutoSize = true
+            };
+
+            weatherWidgetStyleComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 146),
+                Size = new Size(170, 30)
+            };
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            weatherWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)initialWidgetSettings.WeatherStyle, 0, 2);
+
+            Label weatherRefreshLabel = new Label
+            {
+                Text = Localization.Get("SettingsWeatherRefresh", previewLanguageCode),
+                Tag = "SettingsWeatherRefresh",
+                Location = new Point(18, 190),
+                AutoSize = true
+            };
+
+            weatherWidgetRefreshComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 186),
+                Size = new Size(125, 30)
+            };
+            weatherWidgetRefreshComboBox.Items.AddRange(new object[] { "15 min", "30 min", "60 min", "120 min" });
+            weatherWidgetRefreshComboBox.SelectedIndex = initialWidgetSettings.WeatherRefreshMinutes switch { 15 => 0, 60 => 2, 120 => 3, _ => 1 };
+
+            weatherShowForecastCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWeatherForecast", previewLanguageCode),
+                Tag = "SettingsWeatherForecast",
+                Location = new Point(18, 232),
+                AutoSize = true,
+                Checked = initialWidgetSettings.WeatherShowForecast
+            };
+
+            Label weatherHint = new Label
+            {
+                Text = Localization.Get("SettingsWeatherHint", previewLanguageCode),
+                Tag = "SettingsWeatherHint",
+                Location = new Point(18, 270),
+                Size = new Size(570, 45)
+            };
+
+            weatherOptions.Controls.Add(weatherWidgetEnabledCheckBox);
+            weatherOptions.Controls.Add(weatherWidgetLockedCheckBox);
+            weatherOptions.Controls.Add(weatherLocationLabel);
+            weatherOptions.Controls.Add(weatherLocationTextBox);
+            weatherOptions.Controls.Add(weatherApplyLocationButton);
+            weatherOptions.Controls.Add(weatherStyleLabel);
+            weatherOptions.Controls.Add(weatherWidgetStyleComboBox);
+            weatherOptions.Controls.Add(weatherRefreshLabel);
+            weatherOptions.Controls.Add(weatherWidgetRefreshComboBox);
+            weatherOptions.Controls.Add(weatherShowForecastCheckBox);
+            weatherOptions.Controls.Add(weatherHint);
+            weatherWidgetPage.Controls.Add(weatherOptions);
+
             Label widgetHint = new Label
             {
                 Text = Localization.Get("SettingsWidgetsHint", previewLanguageCode),
@@ -1128,6 +1264,20 @@ namespace WallpaperControl
             systemShowVramCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             systemShowNetworkCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             systemShowDrivesCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherWidgetRefreshComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherWidgetStyleComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherShowForecastCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            weatherApplyLocationButton.Click += (_, _) => NotifyWidgetPreviewChanged();
+            weatherLocationTextBox.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    weatherApplyLocationButton.PerformClick();
+                    e.SuppressKeyPress = true;
+                }
+            };
 
             // ==========================================================
             // FOOTER
@@ -1280,8 +1430,11 @@ namespace WallpaperControl
             if (settingsSystemNavigationButton != null)
                 settingsSystemNavigationButton.Visible = settingsWidgetsExpanded;
 
-            int appearanceY = settingsWidgetsExpanded ? 398 : 252;
-            int languageY = settingsWidgetsExpanded ? 444 : 298;
+            if (settingsWeatherNavigationButton != null)
+                settingsWeatherNavigationButton.Visible = settingsWidgetsExpanded;
+
+            int appearanceY = settingsWidgetsExpanded ? 444 : 252;
+            int languageY = settingsWidgetsExpanded ? 490 : 298;
 
             if (settingsAppearanceNavigationButton != null)
                 settingsAppearanceNavigationButton.Location = new Point(14, appearanceY);
@@ -1797,6 +1950,7 @@ namespace WallpaperControl
 
                 RefreshClockStyleChoices(GetSelectedClockStyle());
                 RefreshSystemStyleChoices(GetSelectedSystemStyle());
+                RefreshWeatherStyleChoices(GetSelectedWeatherStyle());
 
                 SetComboValues(
                     nextModifierCombo,
@@ -2101,6 +2255,12 @@ namespace WallpaperControl
             systemShowVramCheckBox.Checked = true;
             systemShowNetworkCheckBox.Checked = true;
             systemShowDrivesCheckBox.Checked = true;
+            weatherWidgetEnabledCheckBox.Checked = false;
+            weatherWidgetLockedCheckBox.Checked = false;
+            weatherLocationTextBox.Text = "Karlsruhe";
+            weatherWidgetRefreshComboBox.SelectedIndex = 1;
+            RefreshWeatherStyleChoices(SystemWidgetStyle.Glow);
+            weatherShowForecastCheckBox.Checked = true;
 
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
@@ -2178,6 +2338,36 @@ namespace WallpaperControl
             systemWidgetStyleComboBox.EndUpdate();
         }
 
+        private void RefreshWeatherStyleChoices(SystemWidgetStyle selectedStyle)
+        {
+            if (weatherWidgetStyleComboBox == null) return;
+
+            weatherWidgetStyleComboBox.BeginUpdate();
+            weatherWidgetStyleComboBox.Items.Clear();
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            weatherWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            weatherWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 2);
+            weatherWidgetStyleComboBox.EndUpdate();
+        }
+
+        private SystemWidgetStyle GetSelectedWeatherStyle()
+        {
+            int index = weatherWidgetStyleComboBox?.SelectedIndex ?? (int)SystemWidgetStyle.Glow;
+            return Enum.IsDefined(typeof(SystemWidgetStyle), index)
+                ? (SystemWidgetStyle)index
+                : SystemWidgetStyle.Glow;
+        }
+
+        private int GetWeatherRefreshMinutes() =>
+            weatherWidgetRefreshComboBox.SelectedIndex switch
+            {
+                0 => 15,
+                2 => 60,
+                3 => 120,
+                _ => 30
+            };
+
         private CheckBox CreateSystemModuleCheckBox(string resourceKey, int x, int y, bool isChecked)
         {
             return new CheckBox
@@ -2232,6 +2422,12 @@ namespace WallpaperControl
             preview.SystemShowVram = systemShowVramCheckBox.Checked;
             preview.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
             preview.SystemShowDrives = systemShowDrivesCheckBox.Checked;
+            preview.WeatherEnabled = weatherWidgetEnabledCheckBox.Checked;
+            preview.WeatherLocked = weatherWidgetLockedCheckBox.Checked;
+            preview.WeatherRefreshMinutes = GetWeatherRefreshMinutes();
+            preview.WeatherStyle = GetSelectedWeatherStyle();
+            preview.WeatherLocationName = weatherLocationTextBox.Text.Trim();
+            preview.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
 
             widgetPreviewChanged(preview);
         }
@@ -2382,6 +2578,12 @@ namespace WallpaperControl
             WidgetSettings.SystemShowVram = systemShowVramCheckBox.Checked;
             WidgetSettings.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
             WidgetSettings.SystemShowDrives = systemShowDrivesCheckBox.Checked;
+            WidgetSettings.WeatherEnabled = weatherWidgetEnabledCheckBox.Checked;
+            WidgetSettings.WeatherLocked = weatherWidgetLockedCheckBox.Checked;
+            WidgetSettings.WeatherRefreshMinutes = GetWeatherRefreshMinutes();
+            WidgetSettings.WeatherStyle = GetSelectedWeatherStyle();
+            WidgetSettings.WeatherLocationName = string.IsNullOrWhiteSpace(weatherLocationTextBox.Text) ? "Karlsruhe" : weatherLocationTextBox.Text.Trim();
+            WidgetSettings.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))
