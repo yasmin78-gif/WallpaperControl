@@ -37,6 +37,15 @@ namespace WallpaperControl
         public string WeatherLocationName { get; set; } = "Karlsruhe";
         public bool WeatherShowForecast { get; set; } = true;
         public Point WeatherLocation { get; set; } = new(390, 400);
+        public bool CalendarEnabled { get; set; }
+        public bool CalendarLocked { get; set; }
+        public SystemWidgetStyle CalendarStyle { get; set; } = SystemWidgetStyle.Glow;
+        public int CalendarMaxEntries { get; set; } = 9;
+        public bool CalendarShowLocation { get; set; } = true;
+        public int CalendarRefreshMinutes { get; set; } = 30;
+        public string CalendarIcsUrl { get; set; } = string.Empty;
+        public string CalendarHolidayIcsUrl { get; set; } = string.Empty;
+        public Point CalendarLocation { get; set; } = new(740, 400);
 
         public static WidgetSettings Load()
         {
@@ -75,6 +84,18 @@ namespace WallpaperControl
                 if (string.IsNullOrWhiteSpace(result.WeatherLocationName)) result.WeatherLocationName = "Karlsruhe";
                 result.WeatherShowForecast = ReadBool(key, "WeatherWidgetShowForecast", true);
                 result.WeatherLocation = new Point(ReadInt(key, "WeatherWidgetX", 390), ReadInt(key, "WeatherWidgetY", 400));
+                result.CalendarEnabled = ReadBool(key, "CalendarWidgetEnabled", false);
+                result.CalendarLocked = ReadBool(key, "CalendarWidgetLocked", false);
+                result.CalendarStyle = ReadSystemStyle(key, "CalendarWidgetStyle", SystemWidgetStyle.Glow);
+                int storedCalendarDays = ReadInt(key, "CalendarWidgetMaxEntries", 9);
+                result.CalendarMaxEntries = storedCalendarDays <= 3 ? 3 : storedCalendarDays <= 5 ? 5 : 9;
+                result.CalendarShowLocation = ReadBool(key, "CalendarWidgetShowLocation", true);
+                result.CalendarRefreshMinutes = Math.Clamp(ReadInt(key, "CalendarWidgetRefreshMinutes", 30), 15, 120);
+                string protectedCalendarUrl = Convert.ToString(key.GetValue("CalendarWidgetIcsUrlProtected", "")) ?? "";
+                result.CalendarIcsUrl = WindowsSecretProtector.Unprotect(protectedCalendarUrl);
+                string protectedHolidayCalendarUrl = Convert.ToString(key.GetValue("CalendarWidgetHolidayIcsUrlProtected", "")) ?? "";
+                result.CalendarHolidayIcsUrl = WindowsSecretProtector.Unprotect(protectedHolidayCalendarUrl);
+                result.CalendarLocation = new Point(ReadInt(key, "CalendarWidgetX", 740), ReadInt(key, "CalendarWidgetY", 400));
             }
             catch (Exception ex)
             {
@@ -119,6 +140,16 @@ namespace WallpaperControl
                 key.SetValue("WeatherWidgetShowForecast", WeatherShowForecast ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("WeatherWidgetX", WeatherLocation.X, RegistryValueKind.DWord);
                 key.SetValue("WeatherWidgetY", WeatherLocation.Y, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetEnabled", CalendarEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetLocked", CalendarLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetStyle", (int)CalendarStyle, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetMaxEntries", CalendarMaxEntries <= 3 ? 3 : CalendarMaxEntries <= 5 ? 5 : 9, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetShowLocation", CalendarShowLocation ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetRefreshMinutes", Math.Clamp(CalendarRefreshMinutes, 15, 120), RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetIcsUrlProtected", WindowsSecretProtector.Protect(CalendarIcsUrl?.Trim() ?? ""), RegistryValueKind.String);
+                key.SetValue("CalendarWidgetHolidayIcsUrlProtected", WindowsSecretProtector.Protect(CalendarHolidayIcsUrl?.Trim() ?? ""), RegistryValueKind.String);
+                key.SetValue("CalendarWidgetX", CalendarLocation.X, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetY", CalendarLocation.Y, RegistryValueKind.DWord);
             }
             catch (Exception ex)
             {
@@ -155,7 +186,16 @@ namespace WallpaperControl
             WeatherStyle = WeatherStyle,
             WeatherLocationName = WeatherLocationName,
             WeatherShowForecast = WeatherShowForecast,
-            WeatherLocation = WeatherLocation
+            WeatherLocation = WeatherLocation,
+            CalendarEnabled = CalendarEnabled,
+            CalendarLocked = CalendarLocked,
+            CalendarStyle = CalendarStyle,
+            CalendarMaxEntries = CalendarMaxEntries,
+            CalendarShowLocation = CalendarShowLocation,
+            CalendarRefreshMinutes = CalendarRefreshMinutes,
+            CalendarIcsUrl = CalendarIcsUrl,
+            CalendarHolidayIcsUrl = CalendarHolidayIcsUrl,
+            CalendarLocation = CalendarLocation
         };
 
         public static Point EnsureVisible(Point location, Size size)

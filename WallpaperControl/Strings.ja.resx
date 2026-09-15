@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -867,5 +867,116 @@
   </data>
   <data name="SettingsWeatherApplyLocation" xml:space="preserve">
     <value>適用</value>
+  </data>
+  <data name="SettingsNavCalendar" xml:space="preserve">
+    <value>カレンダー</value>
+  </data>
+  <data name="SettingsCalendarWidgetTitle" xml:space="preserve">
+    <value>カレンダーウィジェット</value>
+  </data>
+  <data name="SettingsCalendarWidgetEnabled" xml:space="preserve">
+    <value>カレンダーウィジェットを表示</value>
+  </data>
+  <data name="SettingsCalendarEntries" xml:space="preserve">
+    <value>予定がある日数</value>
+  </data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve">
+    <value>場所 / ソースを表示</value>
+  </data>
+  <data name="SettingsCalendarHint" xml:space="preserve">
+    <value>非公開 iCalendar アドレスを1行に1件入力します。すべて読み取り専用で使用し、Windows DPAPI でまとめて暗号化して保存します。ログには記録しません。</value>
+  </data>
+  <data name="CalendarWidgetTitle" xml:space="preserve">
+    <value>カレンダー</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>今日</value>
+  </data>
+  <data name="CalendarTomorrow" xml:space="preserve">
+    <value>明日</value>
+  </data>
+  <data name="CalendarAllDay" xml:space="preserve">
+    <value>終日</value>
+  </data>
+  <data name="CalendarDemoData" xml:space="preserve">
+    <value>テストデータ</value>
+  </data>
+  <data name="CalendarDemoMeeting" xml:space="preserve">
+    <value>チームミーティング</value>
+  </data>
+  <data name="CalendarDemoLunch" xml:space="preserve">
+    <value>昼休み</value>
+  </data>
+  <data name="CalendarDemoCafeteria" xml:space="preserve">
+    <value>食堂</value>
+  </data>
+  <data name="CalendarDemoAppointment" xml:space="preserve">
+    <value>予定</value>
+  </data>
+  <data name="CalendarDemoCityCenter" xml:space="preserve">
+    <value>市内中心部</value>
+  </data>
+  <data name="CalendarDemoShift" xml:space="preserve">
+    <value>早番</value>
+  </data>
+  <data name="CalendarDemoHomeOffice" xml:space="preserve">
+    <value>在宅勤務</value>
+  </data>
+  <data name="CalendarDemoProject" xml:space="preserve">
+    <value>プロジェクト会議</value>
+  </data>
+  <data name="CalendarDemoBirthday" xml:space="preserve">
+    <value>誕生日</value>
+  </data>
+  <data name="CalendarDemoPrivate" xml:space="preserve">
+    <value>プライベート</value>
+  </data>
+  <data name="CalendarDemoDinner" xml:space="preserve">
+    <value>夕食</value>
+  </data>
+  <data name="CalendarDemoRestaurant" xml:space="preserve">
+    <value>レストラン</value>
+  </data>
+  <data name="SettingsCalendarSource" xml:space="preserve">
+    <value>非公開 iCalendar アドレス (ICS、1行に1件)</value>
+  </data>
+  <data name="SettingsCalendarApplySource" xml:space="preserve">
+    <value>適用</value>
+  </data>
+  <data name="SettingsCalendarShowSource" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="SettingsCalendarHideSource" xml:space="preserve">
+    <value>非表示</value>
+  </data>
+  <data name="SettingsCalendarRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="CalendarStatusNoSource" xml:space="preserve">
+    <value>カレンダーの接続先がありません</value>
+  </data>
+  <data name="CalendarStatusLoading" xml:space="preserve">
+    <value>カレンダーを読み込み中 …</value>
+  </data>
+  <data name="CalendarStatusConnected" xml:space="preserve">
+    <value>iCalendar 接続済み</value>
+  </data>
+  <data name="CalendarStatusError" xml:space="preserve">
+    <value>カレンダーを読み込めませんでした</value>
+  </data>
+  <data name="CalendarStatusInvalidAddress" xml:space="preserve">
+    <value>iCalendar アドレスが無効です</value>
+  </data>
+  <data name="CalendarStatusDemo" xml:space="preserve">
+    <value>テストデータ</value>
+  </data>
+  <data name="CalendarNoUpcoming" xml:space="preserve">
+    <value>今後の予定はありません</value>
+  </data>
+  <data name="CalendarStatusPartial" xml:space="preserve">
+    <value>iCalendar 一部接続済み</value>
+  </data>
+  <data name="SettingsCalendarHolidaySource" xml:space="preserve">
+    <value>祝日カレンダー（強調表示、1行に1つの非公開iCalアドレス）</value>
   </data>
 </root>

@@ -31,6 +31,7 @@
 	<ItemGroup>
 		<EmbeddedResource Include="WallpaperControl.ico" />
 		<PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+		<PackageReference Include="Ical.Net" Version="5.2.3" />
 	</ItemGroup>
 
 </Project>

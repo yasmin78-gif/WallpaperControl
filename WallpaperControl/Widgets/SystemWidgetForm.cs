@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WallpaperControl
@@ -25,6 +26,8 @@ namespace WallpaperControl
         private bool showVram;
         private bool showNetwork;
         private bool showDrives;
+        private bool refreshInProgress;
+        private bool disposingWidget;
 
         private const int WidgetWidth = 330;
         private const int WM_MOUSEACTIVATE = 0x0021;
@@ -139,16 +142,35 @@ namespace WallpaperControl
             return Math.Max(108, height + 12);
         }
 
-        private void RefreshSnapshot()
+        private async void RefreshSnapshot()
         {
+            if (refreshInProgress || disposingWidget || IsDisposed)
+                return;
+
+            refreshInProgress = true;
             try
             {
-                snapshot = monitor.Sample();
+                // LibreHardwareMonitor can take long enough to stall the WinForms UI thread.
+                // Sample it on a worker thread so wallpaper transition timers stay smooth.
+                SystemMonitorSnapshot nextSnapshot = await Task.Run(monitor.Sample);
+
+                if (disposingWidget || IsDisposed || !IsHandleCreated)
+                    return;
+
+                snapshot = nextSnapshot;
                 RenderLayeredWindow();
+            }
+            catch (ObjectDisposedException) when (disposingWidget || IsDisposed)
+            {
+                // The widget was closed while a background sample was finishing.
             }
             catch (Exception ex)
             {
                 AppLogger.Warning("System widget could not read hardware data.", ex);
+            }
+            finally
+            {
+                refreshInProgress = false;
             }
         }
 
@@ -418,6 +440,8 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                disposingWidget = true;
+                timer.Stop();
                 timer.Dispose();
                 monitor.Dispose();
             }

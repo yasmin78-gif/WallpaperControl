@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -895,5 +895,116 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   </data>
   <data name="SettingsWeatherApplyLocation" xml:space="preserve">
     <value>Apply</value>
+  </data>
+  <data name="SettingsNavCalendar" xml:space="preserve">
+    <value>Calendar</value>
+  </data>
+  <data name="SettingsCalendarWidgetTitle" xml:space="preserve">
+    <value>Calendar widget</value>
+  </data>
+  <data name="SettingsCalendarWidgetEnabled" xml:space="preserve">
+    <value>Show calendar widget</value>
+  </data>
+  <data name="SettingsCalendarEntries" xml:space="preserve">
+    <value>Days with events</value>
+  </data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve">
+    <value>Show location / source</value>
+  </data>
+  <data name="SettingsCalendarHint" xml:space="preserve">
+    <value>Enter one private iCalendar address per line. All sources are read-only and stored together encrypted with Windows DPAPI. They are never written to the log.</value>
+  </data>
+  <data name="CalendarWidgetTitle" xml:space="preserve">
+    <value>Calendar</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="CalendarTomorrow" xml:space="preserve">
+    <value>Tomorrow</value>
+  </data>
+  <data name="CalendarAllDay" xml:space="preserve">
+    <value>All day</value>
+  </data>
+  <data name="CalendarDemoData" xml:space="preserve">
+    <value>Sample data</value>
+  </data>
+  <data name="CalendarDemoMeeting" xml:space="preserve">
+    <value>Team meeting</value>
+  </data>
+  <data name="CalendarDemoLunch" xml:space="preserve">
+    <value>Lunch break</value>
+  </data>
+  <data name="CalendarDemoCafeteria" xml:space="preserve">
+    <value>Cafeteria</value>
+  </data>
+  <data name="CalendarDemoAppointment" xml:space="preserve">
+    <value>Appointment</value>
+  </data>
+  <data name="CalendarDemoCityCenter" xml:space="preserve">
+    <value>City centre</value>
+  </data>
+  <data name="CalendarDemoShift" xml:space="preserve">
+    <value>Early shift</value>
+  </data>
+  <data name="CalendarDemoHomeOffice" xml:space="preserve">
+    <value>Home office</value>
+  </data>
+  <data name="CalendarDemoProject" xml:space="preserve">
+    <value>Project meeting</value>
+  </data>
+  <data name="CalendarDemoBirthday" xml:space="preserve">
+    <value>Birthday</value>
+  </data>
+  <data name="CalendarDemoPrivate" xml:space="preserve">
+    <value>Private</value>
+  </data>
+  <data name="CalendarDemoDinner" xml:space="preserve">
+    <value>Dinner</value>
+  </data>
+  <data name="CalendarDemoRestaurant" xml:space="preserve">
+    <value>Restaurant</value>
+  </data>
+  <data name="SettingsCalendarSource" xml:space="preserve">
+    <value>Private iCalendar addresses (ICS, one per line)</value>
+  </data>
+  <data name="SettingsCalendarApplySource" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="SettingsCalendarShowSource" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="SettingsCalendarHideSource" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="SettingsCalendarRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="CalendarStatusNoSource" xml:space="preserve">
+    <value>No calendar source</value>
+  </data>
+  <data name="CalendarStatusLoading" xml:space="preserve">
+    <value>Loading calendar …</value>
+  </data>
+  <data name="CalendarStatusConnected" xml:space="preserve">
+    <value>iCalendar connected</value>
+  </data>
+  <data name="CalendarStatusError" xml:space="preserve">
+    <value>Calendar could not be loaded</value>
+  </data>
+  <data name="CalendarStatusInvalidAddress" xml:space="preserve">
+    <value>Invalid iCalendar address</value>
+  </data>
+  <data name="CalendarStatusDemo" xml:space="preserve">
+    <value>Sample data</value>
+  </data>
+  <data name="CalendarNoUpcoming" xml:space="preserve">
+    <value>No upcoming events</value>
+  </data>
+  <data name="CalendarStatusPartial" xml:space="preserve">
+    <value>iCalendar partially connected</value>
+  </data>
+  <data name="SettingsCalendarHolidaySource" xml:space="preserve">
+    <value>Holiday calendars (highlighted, one private iCal address per line)</value>
   </data>
 </root>
