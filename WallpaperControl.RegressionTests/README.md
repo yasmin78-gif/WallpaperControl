@@ -19,3 +19,5 @@ Statistics service checks cover duplicate suppression, day rollover, recurrence,
 Hotkey checks simulate native registration and release calls. They cover disabled combinations, conflicts, swapped combinations, unchanged bindings, cleanup, and labels without taking over real global hotkeys.
 
 Settings checks use a unique temporary key under HKCU\\Software\\WallpaperControl.RegressionTests-<GUID> and remove it afterward. They verify defaults, legacy value types, round trips, bounds, and invalid values without touching production settings.
+
+Transition checks include legacy numeric indices, named effects, duration fallback, and direction/zoom persistence. Position checks cover negative coordinates, invalid values, and the existing visibility threshold for disconnected monitors.

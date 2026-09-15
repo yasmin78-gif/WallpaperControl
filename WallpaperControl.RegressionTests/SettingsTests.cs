@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.Drawing;
 using WallpaperControl;
 
 internal static class SettingsTests
@@ -63,6 +64,53 @@ internal static class SettingsTests
                 store.LoadWindowOpacityPercent() == 92 && store.LoadThemeMode() == "system" &&
                 store.LoadHotkeySettings().NextKey == 0x27 && store.LoadRejectSettings().RootFolder == "",
                 "Invalid legacy settings fall back safely");
+            check(store.LoadTransitionSettings() == new TransitionSettings(0, 2000, 0, 0) && store.LoadWindowPosition() == null,
+                "Missing transition and position settings preserve defaults");
+            for (int legacyIndex = 0; legacyIndex <= 6; legacyIndex++)
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(path, writable: true)!;
+                key.SetValue("TransitionKind", legacyIndex, RegistryValueKind.DWord);
+                check(store.LoadTransitionSettings().KindIndex == legacyIndex,
+                    "Legacy transition index retained: " + legacyIndex);
+            }
+            store.SaveTransitionKind(WallpaperTransitionKind.DesktopZoomFade);
+            store.SaveTransitionDuration(3000);
+            store.SaveTransitionDirection(4);
+            store.SaveTransitionZoomMode(1);
+            check(store.LoadTransitionSettings() == new TransitionSettings(3, 3000, 4, 1),
+                "Named transition, duration, direction and zoom round-trip");
+            using (var key = Registry.CurrentUser.OpenSubKey(path, writable: true)!)
+            {
+                check(key.GetValueKind("TransitionKind") == RegistryValueKind.String &&
+                    key.GetValueKind("TransitionDirection") == RegistryValueKind.DWord &&
+                    key.GetValueKind("TransitionDurationMilliseconds") == RegistryValueKind.DWord,
+                    "Transition registry value types retained");
+                key.SetValue("TransitionDurationMilliseconds", 2200, RegistryValueKind.DWord);
+            }
+            check(store.LoadTransitionSettings().DurationMilliseconds == 2000,
+                "Unsupported duration falls back to an available dropdown value");
+            using (var key = Registry.CurrentUser.OpenSubKey(path, writable: true)!)
+            {
+                key.SetValue("TransitionKind", "invalid", RegistryValueKind.String);
+                key.SetValue("TransitionDirection", "invalid", RegistryValueKind.String);
+                key.SetValue("TransitionZoomMode", "invalid", RegistryValueKind.String);
+            }
+            check(store.LoadTransitionSettings() == new TransitionSettings(0, 2000, 0, 0),
+                "Invalid transition settings retain fallback behavior");
+            store.SaveWindowPosition(new Point(-1500, 120));
+            check(store.LoadWindowPosition() == new Point(-1500, 120),
+                "Negative monitor coordinates round-trip");
+            var primary = new Rectangle(0, 0, 1920, 1040);
+            var secondary = new Rectangle(-1920, 0, 1920, 1040);
+            check(AppSettingsStore.IsWindowPositionVisible(new Rectangle(-1500, 120, 600, 500), new[] { primary, secondary }) &&
+                !AppSettingsStore.IsWindowPositionVisible(new Rectangle(-1500, 120, 600, 500), new[] { primary }),
+                "Disconnected monitor positions trigger existing centering fallback");
+            check(AppSettingsStore.IsWindowPositionVisible(new Rectangle(1800, 960, 600, 500), new[] { primary }) &&
+                !AppSettingsStore.IsWindowPositionVisible(new Rectangle(1801, 960, 600, 500), new[] { primary }),
+                "Minimum visible area remains 120 by 80 pixels");
+            using (var key = Registry.CurrentUser.OpenSubKey(path, writable: true)!)
+                key.SetValue("WindowX", "invalid", RegistryValueKind.String);
+            check(store.LoadWindowPosition() == null, "Invalid position triggers centering fallback");
         }
         finally
         {

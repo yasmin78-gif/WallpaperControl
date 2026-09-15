@@ -1,9 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.IO;
+using System.Drawing;
+using System.Collections.Generic;
 
 namespace WallpaperControl
 {
+    internal sealed record TransitionSettings(int KindIndex, int DurationMilliseconds, int DirectionIndex, int ZoomMode);
+
     internal sealed class HotkeySettings
     {
         public uint NextModifiers { get; set; } = 3;
@@ -477,6 +481,191 @@ namespace WallpaperControl
             catch
             {
             }
+        }
+        internal TransitionSettings LoadTransitionSettings()
+        {
+            int transitionIndex = 0;
+            int duration = 2000;
+            int zoomMode = 0;
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        registryPath);
+
+                object? transitionValue =
+                    key?.GetValue(
+                        "TransitionKind");
+
+                if (transitionValue is string transitionName &&
+                    Enum.TryParse(
+                        transitionName,
+                        ignoreCase: true,
+                        out WallpaperTransitionKind storedKind) &&
+                    Enum.IsDefined(storedKind))
+                {
+                    transitionIndex =
+                        TransitionKindToIndex(storedKind);
+                }
+                else if (transitionValue != null)
+                {
+                    // Backward compatibility with v1.7.1 and older,
+                    // which stored the ComboBox index as a DWORD.
+                    transitionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(
+                                transitionValue),
+                            0,
+                            6);
+                }
+
+                object? durationValue =
+                    key?.GetValue(
+                        "TransitionDurationMilliseconds");
+
+                if (durationValue != null)
+                {
+                    duration =
+                        Math.Clamp(
+                            Convert.ToInt32(durationValue),
+                            500,
+                            5000);
+                }
+            }
+            catch
+            {
+                transitionIndex = 0;
+                duration = 2000;
+            }
+
+            int directionIndex = 0;
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(registryPath);
+
+                object? directionValue =
+                    key?.GetValue("TransitionDirection");
+
+                if (directionValue != null)
+                {
+                    directionIndex =
+                        Math.Clamp(
+                            Convert.ToInt32(directionValue),
+                            0,
+                            4);
+                }
+            }
+            catch
+            {
+                directionIndex = 0;
+            }
+
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(registryPath);
+
+                object? zoomModeValue =
+                    key?.GetValue("TransitionZoomMode");
+
+                if (zoomModeValue != null &&
+                    Convert.ToInt32(zoomModeValue) == 1)
+                {
+                    zoomMode = 1;
+                }
+                else
+                {
+                    zoomMode = 0;
+                }
+            }
+            catch
+            {
+                zoomMode = 0;
+            }
+
+
+
+            int[] durations =
+                { 500, 1000, 1500, 2000, 3000, 5000 };
+
+            int index =
+                Array.IndexOf(
+                    durations,
+                    duration);
+
+            if (index < 0)
+            {
+                index = 3;
+                duration = 2000;
+            }
+
+            return new TransitionSettings(transitionIndex, duration, directionIndex, zoomMode);
+        }
+
+        internal static int TransitionKindToIndex(
+            WallpaperTransitionKind kind)
+        {
+            return kind switch
+            {
+                WallpaperTransitionKind.DesktopSlide => 1,
+                WallpaperTransitionKind.DesktopFade => 2,
+                WallpaperTransitionKind.DesktopZoomFade => 3,
+                WallpaperTransitionKind.DesktopSplit => 4,
+                WallpaperTransitionKind.DesktopCurtain => 5,
+                WallpaperTransitionKind.DesktopRandom => 6,
+                _ => 0
+            };
+        }
+
+        internal void SaveTransitionKind(WallpaperTransitionKind kind) => WriteValue("TransitionKind", kind.ToString(), RegistryValueKind.String);
+        internal void SaveTransitionDuration(int duration) => WriteValue("TransitionDurationMilliseconds", duration, RegistryValueKind.DWord);
+        internal void SaveTransitionDirection(int index) => WriteValue("TransitionDirection", Math.Clamp(index, 0, 4), RegistryValueKind.DWord);
+        internal void SaveTransitionZoomMode(int mode) => WriteValue("TransitionZoomMode", mode == 1 ? 1 : 0, RegistryValueKind.DWord);
+
+        private void WriteValue(string name, object value, RegistryValueKind kind)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(registryPath);
+                key.SetValue(name, value, kind);
+            }
+            catch { }
+        }
+
+        internal void SaveWindowPosition(Point position)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(registryPath);
+                key.SetValue("WindowX", position.X, RegistryValueKind.DWord);
+                key.SetValue("WindowY", position.Y, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        internal Point? LoadWindowPosition()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(registryPath);
+                object? x = key?.GetValue("WindowX"), y = key?.GetValue("WindowY");
+                if (x != null && y != null) return new Point(Convert.ToInt32(x), Convert.ToInt32(y));
+            }
+            catch { }
+            return null;
+        }
+
+        internal static bool IsWindowPositionVisible(Rectangle bounds, IEnumerable<Rectangle> workingAreas)
+        {
+            foreach (var area in workingAreas)
+            {
+                Rectangle visible = Rectangle.Intersect(bounds, area);
+                if (visible.Width >= 120 && visible.Height >= 80) return true;
+            }
+            return false;
         }
     }
 }

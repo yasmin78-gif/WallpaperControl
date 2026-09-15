@@ -21,9 +21,6 @@ namespace WallpaperControl
         private const string WindowsSlideshowRegistryPath =
             @"Control Panel\Personalization\Desktop Slideshow";
 
-        private const string AppRegistryPath =
-            @"Software\WallpaperControl";
-
         private readonly Label statusLabel;
         private readonly Button activateButton;
         private readonly Button settingsButton;
@@ -1923,61 +1920,21 @@ namespace WallpaperControl
 
         private void SaveWindowPosition()
         {
-            try
-            {
-                Rectangle bounds =
-                    WindowState == FormWindowState.Normal
-                    ? Bounds
-                    : RestoreBounds;
-
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue("WindowX", bounds.X, RegistryValueKind.DWord);
-                key.SetValue("WindowY", bounds.Y, RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
+            Rectangle bounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+            appSettings.SaveWindowPosition(bounds.Location);
         }
 
         private void RestoreWindowPosition()
         {
             StartPosition = FormStartPosition.Manual;
 
-            try
+            Point? saved = appSettings.LoadWindowPosition();
+            if (saved is Point position && AppSettingsStore.IsWindowPositionVisible(
+                new Rectangle(position, ClientSize), Screen.AllScreens.Select(screen => screen.WorkingArea)))
             {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                object? xValue = key?.GetValue("WindowX");
-                object? yValue = key?.GetValue("WindowY");
-
-                if (xValue != null && yValue != null)
-                {
-                    int x = Convert.ToInt32(xValue);
-                    int y = Convert.ToInt32(yValue);
-
-                    Rectangle savedBounds =
-                        new Rectangle(
-                            x,
-                            y,
-                            ClientSize.Width,
-                            ClientSize.Height);
-
-                    if (IsWindowPositionVisible(savedBounds))
-                    {
-                        Location = new Point(x, y);
-                        return;
-                    }
-                }
+                Location = position;
+                return;
             }
-            catch
-            {
-            }
-
             Screen screen =
                 Screen.PrimaryScreen ??
                 Screen.AllScreens[0];
@@ -1987,26 +1944,6 @@ namespace WallpaperControl
             Location = new Point(
                 area.Left + Math.Max(0, (area.Width - Width) / 2),
                 area.Top + Math.Max(0, (area.Height - Height) / 2));
-        }
-
-        private bool IsWindowPositionVisible(
-            Rectangle windowBounds)
-        {
-            foreach (Screen screen in Screen.AllScreens)
-            {
-                Rectangle visible =
-                    Rectangle.Intersect(
-                        windowBounds,
-                        screen.WorkingArea);
-
-                if (visible.Width >= 120 &&
-                    visible.Height >= 80)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         protected override void OnResize(
@@ -5048,146 +4985,25 @@ namespace WallpaperControl
 
         private void LoadTransitionSettings()
         {
-            int transitionIndex = 0;
-
-            try
+            var settings = appSettings.LoadTransitionSettings();
+            selectedTransitionDurationMilliseconds = settings.DurationMilliseconds;
+            transitionComboBox.SelectedIndex = settings.KindIndex;
+            selectedTransitionKind = settings.KindIndex switch
             {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                object? transitionValue =
-                    key?.GetValue(
-                        "TransitionKind");
-
-                if (transitionValue is string transitionName &&
-                    Enum.TryParse(
-                        transitionName,
-                        ignoreCase: true,
-                        out WallpaperTransitionKind storedKind) &&
-                    Enum.IsDefined(storedKind))
-                {
-                    transitionIndex =
-                        TransitionKindToIndex(storedKind);
-                }
-                else if (transitionValue != null)
-                {
-                    // Backward compatibility with v1.7.1 and older,
-                    // which stored the ComboBox index as a DWORD.
-                    transitionIndex =
-                        Math.Clamp(
-                            Convert.ToInt32(
-                                transitionValue),
-                            0,
-                            6);
-                }
-
-                object? durationValue =
-                    key?.GetValue(
-                        "TransitionDurationMilliseconds");
-
-                if (durationValue != null)
-                {
-                    selectedTransitionDurationMilliseconds =
-                        Math.Clamp(
-                            Convert.ToInt32(durationValue),
-                            500,
-                            5000);
-                }
-            }
-            catch
-            {
-                transitionIndex = 0;
-                selectedTransitionDurationMilliseconds = 2000;
-            }
-
-            transitionComboBox.SelectedIndex =
-                transitionIndex;
-
-            selectedTransitionKind =
-                transitionIndex switch
-                {
-                    1 => WallpaperTransitionKind.DesktopSlide,
-                    2 => WallpaperTransitionKind.DesktopFade,
-                    3 => WallpaperTransitionKind.DesktopZoomFade,
-                    4 => WallpaperTransitionKind.DesktopSplit,
-                    5 => WallpaperTransitionKind.DesktopCurtain,
-                    6 => WallpaperTransitionKind.DesktopRandom,
-                    _ => WallpaperTransitionKind.DesktopWipe
-                };
-
-            int directionIndex = 0;
-
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
-
-                object? directionValue =
-                    key?.GetValue("TransitionDirection");
-
-                if (directionValue != null)
-                {
-                    directionIndex =
-                        Math.Clamp(
-                            Convert.ToInt32(directionValue),
-                            0,
-                            4);
-                }
-            }
-            catch
-            {
-                directionIndex = 0;
-            }
-
-            // Nur den gespeicherten Wert übernehmen.
-            // Das Dropdown selbst wird erst in UpdateTransitionDirectionState()
-            // passend zum aktuell gewählten Effekt befüllt. Sonst kann z.B.
-            // bei Split/Vorhang nur "Nicht verfügbar" enthalten sein und ein
-            // gespeicherter Richtungsindex wie 4 einen OutOfRange-Fehler auslösen.
-            selectedTransitionDirection =
-                DirectionFromIndex(directionIndex);
-
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(AppRegistryPath);
-
-                object? zoomModeValue =
-                    key?.GetValue("TransitionZoomMode");
-
-                if (zoomModeValue != null &&
-                    Convert.ToInt32(zoomModeValue) == 1)
-                {
-                    selectedZoomMode = WallpaperZoomMode.Out;
-                }
-                else
-                {
-                    selectedZoomMode = WallpaperZoomMode.In;
-                }
-            }
-            catch
-            {
-                selectedZoomMode = WallpaperZoomMode.In;
-            }
-
+                1 => WallpaperTransitionKind.DesktopSlide,
+                2 => WallpaperTransitionKind.DesktopFade,
+                3 => WallpaperTransitionKind.DesktopZoomFade,
+                4 => WallpaperTransitionKind.DesktopSplit,
+                5 => WallpaperTransitionKind.DesktopCurtain,
+                6 => WallpaperTransitionKind.DesktopRandom,
+                _ => WallpaperTransitionKind.DesktopWipe
+            };
+            // Restore values before populating the effect-specific choices.
+            selectedTransitionDirection = DirectionFromIndex(settings.DirectionIndex);
+            selectedZoomMode = settings.ZoomMode == 1 ? WallpaperZoomMode.Out : WallpaperZoomMode.In;
             UpdateTransitionDirectionState();
-
-            int[] durations =
-                { 500, 1000, 1500, 2000, 3000, 5000 };
-
-            int index =
-                Array.IndexOf(
-                    durations,
-                    selectedTransitionDurationMilliseconds);
-
-            if (index < 0)
-            {
-                index = 3;
-                selectedTransitionDurationMilliseconds = 2000;
-            }
-
-            transitionDurationComboBox.SelectedIndex = index;
+            transitionDurationComboBox.SelectedIndex = Array.IndexOf(
+                new[] { 500, 1000, 1500, 2000, 3000, 5000 }, settings.DurationMilliseconds);
         }
 
         private void TransitionComboBox_SelectedIndexChanged(
@@ -5216,35 +5032,7 @@ namespace WallpaperControl
                 return;
             }
 
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "TransitionKind",
-                    selectedTransitionKind.ToString(),
-                    RegistryValueKind.String);
-            }
-            catch
-            {
-            }
-        }
-
-        private static int TransitionKindToIndex(
-            WallpaperTransitionKind kind)
-        {
-            return kind switch
-            {
-                WallpaperTransitionKind.DesktopSlide => 1,
-                WallpaperTransitionKind.DesktopFade => 2,
-                WallpaperTransitionKind.DesktopZoomFade => 3,
-                WallpaperTransitionKind.DesktopSplit => 4,
-                WallpaperTransitionKind.DesktopCurtain => 5,
-                WallpaperTransitionKind.DesktopRandom => 6,
-                _ => 0
-            };
+            appSettings.SaveTransitionKind(selectedTransitionKind);
         }
 
         private WallpaperTransitionDirection DirectionFromIndex(int index)
@@ -5346,19 +5134,7 @@ namespace WallpaperControl
                     ? WallpaperZoomMode.Out
                     : WallpaperZoomMode.In;
 
-                try
-                {
-                    using RegistryKey key =
-                        Registry.CurrentUser.CreateSubKey(AppRegistryPath);
-
-                    key.SetValue(
-                        "TransitionZoomMode",
-                        selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0,
-                        RegistryValueKind.DWord);
-                }
-                catch
-                {
-                }
+                appSettings.SaveTransitionZoomMode(selectedZoomMode == WallpaperZoomMode.Out ? 1 : 0);
 
                 return;
             }
@@ -5372,19 +5148,7 @@ namespace WallpaperControl
             selectedTransitionDirection =
                 DirectionFromIndex(index);
 
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(AppRegistryPath);
-
-                key.SetValue(
-                    "TransitionDirection",
-                    Math.Clamp(index, 0, 4),
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
+            appSettings.SaveTransitionDirection(index);
         }
 
         private void TransitionDurationComboBox_SelectedIndexChanged(
@@ -5406,20 +5170,7 @@ namespace WallpaperControl
             selectedTransitionDurationMilliseconds =
                 durations[index];
 
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "TransitionDurationMilliseconds",
-                    selectedTransitionDurationMilliseconds,
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
+            appSettings.SaveTransitionDuration(selectedTransitionDurationMilliseconds);
         }
 
         // ============================================================
