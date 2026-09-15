@@ -5830,234 +5830,43 @@ namespace WallpaperControl
         // GLOBALE HOTKEYS
         // ============================================================
 
-        private void RegisterHotKeys(
-            bool showErrors)
+        private readonly GlobalHotkeyManager hotkeyManager = new();
+
+        private HotkeyBinding[] GetHotkeyBindings() => new[]
         {
-            List<string> failedHotkeys =
-                new();
+            new HotkeyBinding(HOTKEY_NEXT, hotkeyNextModifiers, hotkeyNextKey, Localization.Get("SettingsHotkeyNext")),
+            new HotkeyBinding(HOTKEY_PAUSE, hotkeyPauseModifiers, hotkeyPauseKey, Localization.Get("SettingsHotkeyPause")),
+            new HotkeyBinding(HOTKEY_EXPLORER, hotkeyExplorerModifiers, hotkeyExplorerKey, Localization.Get("SettingsHotkeyExplorer")),
+            new HotkeyBinding(HOTKEY_REJECT, hotkeyRejectModifiers, hotkeyRejectKey, Localization.Get("SettingsHotkeyReject"))
+        };
 
-            TryRegisterHotKey(
-                HOTKEY_NEXT,
-                hotkeyNextModifiers,
-                hotkeyNextKey,
-                Localization.Get(
-                    "SettingsHotkeyNext"),
-                failedHotkeys);
-
-            TryRegisterHotKey(
-                HOTKEY_PAUSE,
-                hotkeyPauseModifiers,
-                hotkeyPauseKey,
-                Localization.Get(
-                    "SettingsHotkeyPause"),
-                failedHotkeys);
-
-            TryRegisterHotKey(
-                HOTKEY_EXPLORER,
-                hotkeyExplorerModifiers,
-                hotkeyExplorerKey,
-                Localization.Get(
-                    "SettingsHotkeyExplorer"),
-                failedHotkeys);
-
-            TryRegisterHotKey(
-                HOTKEY_REJECT,
-                hotkeyRejectModifiers,
-                hotkeyRejectKey,
-                Localization.Get(
-                    "SettingsHotkeyReject"),
-                failedHotkeys);
-
-            if (showErrors &&
-                failedHotkeys.Count > 0)
-            {
-                MessageBox.Show(
-                    this,
-                    string.Format(
-                        Localization.CurrentCulture,
-                        Localization.Get(
-                            "SettingsHotkeyRegistrationFailed"),
-                        string.Join(
-                            Environment.NewLine,
-                            failedHotkeys.Select(
-                                item => "• " + item))),
-                    "Wallpaper Control",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
+        private void RegisterHotKeys(bool showErrors)
+        {
+            ShowHotkeyErrors(hotkeyManager.Register(Handle, GetHotkeyBindings()), showErrors);
         }
 
         private void ReRegisterChangedHotKeys(
-            bool nextChanged,
-            bool pauseChanged,
-            bool explorerChanged,
-            bool rejectChanged,
-            bool showErrors)
+            bool nextChanged, bool pauseChanged, bool explorerChanged, bool rejectChanged, bool showErrors)
         {
-            List<string> failedHotkeys =
-                new();
-
-            if (nextChanged)
-            {
-                UnregisterHotKey(
-                    Handle,
-                    HOTKEY_NEXT);
-
-                TryRegisterHotKey(
-                    HOTKEY_NEXT,
-                    hotkeyNextModifiers,
-                    hotkeyNextKey,
-                    Localization.Get(
-                        "SettingsHotkeyNext"),
-                    failedHotkeys);
-            }
-
-            if (pauseChanged)
-            {
-                UnregisterHotKey(
-                    Handle,
-                    HOTKEY_PAUSE);
-
-                TryRegisterHotKey(
-                    HOTKEY_PAUSE,
-                    hotkeyPauseModifiers,
-                    hotkeyPauseKey,
-                    Localization.Get(
-                        "SettingsHotkeyPause"),
-                    failedHotkeys);
-            }
-
-            if (explorerChanged)
-            {
-                UnregisterHotKey(
-                    Handle,
-                    HOTKEY_EXPLORER);
-
-                TryRegisterHotKey(
-                    HOTKEY_EXPLORER,
-                    hotkeyExplorerModifiers,
-                    hotkeyExplorerKey,
-                    Localization.Get(
-                        "SettingsHotkeyExplorer"),
-                    failedHotkeys);
-            }
-
-            if (rejectChanged)
-            {
-                UnregisterHotKey(
-                    Handle,
-                    HOTKEY_REJECT);
-
-                TryRegisterHotKey(
-                    HOTKEY_REJECT,
-                    hotkeyRejectModifiers,
-                    hotkeyRejectKey,
-                    Localization.Get(
-                        "SettingsHotkeyReject"),
-                    failedHotkeys);
-            }
-
-            if (showErrors &&
-                failedHotkeys.Count > 0)
-            {
-                MessageBox.Show(
-                    this,
-                    string.Format(
-                        Localization.CurrentCulture,
-                        Localization.Get(
-                            "SettingsHotkeyRegistrationFailed"),
-                        string.Join(
-                            Environment.NewLine,
-                            failedHotkeys.Select(
-                                item => "• " + item))),
-                    "Wallpaper Control",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
+            bool[] changed = { nextChanged, pauseChanged, explorerChanged, rejectChanged };
+            HotkeyBinding[] bindings = GetHotkeyBindings().Where((_, index) => changed[index]).ToArray();
+            ShowHotkeyErrors(hotkeyManager.Replace(Handle, bindings), showErrors);
         }
 
-        private void TryRegisterHotKey(
-            int id,
-            uint modifiers,
-            uint key,
-            string displayName,
-            List<string> failedHotkeys)
+        private void ShowHotkeyErrors(IReadOnlyList<string> failures, bool showErrors)
         {
-            if (modifiers == 0 ||
-                key == 0)
-            {
-                return;
-            }
-
-            if (!RegisterHotKey(
-                    Handle,
-                    id,
-                    modifiers,
-                    key))
-            {
-                failedHotkeys.Add(
-                    $"{displayName} ({FormatHotkey(modifiers, key)})");
-            }
-        }
-
-        private static string FormatHotkey(
-            uint modifiers,
-            uint key)
-        {
-            List<string> parts =
-                new();
-
-            if ((modifiers & MOD_CONTROL) != 0)
-                parts.Add("Ctrl");
-
-            if ((modifiers & MOD_ALT) != 0)
-                parts.Add("Alt");
-
-            if ((modifiers & MOD_SHIFT) != 0)
-                parts.Add("Shift");
-
-            if ((modifiers & MOD_WIN) != 0)
-                parts.Add("Win");
-
-            string keyText =
-                key switch
-                {
-                    0x25 => "←",
-                    0x26 => "↑",
-                    0x27 => "→",
-                    0x28 => "↓",
-                    >= 0x70 and <= 0x7B =>
-                        "F" + (key - 0x6F),
-                    _ => ((char)key).ToString()
-                };
-
-            parts.Add(
-                keyText);
-
-            return string.Join(
-                "+",
-                parts);
+            if (!showErrors || failures.Count == 0) return;
+            MessageBox.Show(this,
+                string.Format(Localization.CurrentCulture,
+                    Localization.Get("SettingsHotkeyRegistrationFailed"),
+                    string.Join(Environment.NewLine, failures.Select(item => "• " + item))),
+                "Wallpaper Control", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void UnregisterHotKeys()
         {
-            UnregisterHotKey(
-                Handle,
-                HOTKEY_NEXT);
-
-            UnregisterHotKey(
-                Handle,
-                HOTKEY_PAUSE);
-
-            UnregisterHotKey(
-                Handle,
-                HOTKEY_EXPLORER);
-
-            UnregisterHotKey(
-                Handle,
-                HOTKEY_REJECT);
+            hotkeyManager.Release(Handle, new[] { HOTKEY_NEXT, HOTKEY_PAUSE, HOTKEY_EXPLORER, HOTKEY_REJECT });
         }
-
         protected override void WndProc(
             ref Message m)
         {
@@ -6156,20 +5965,6 @@ namespace WallpaperControl
                 int attribute,
                 ref int attributeValue,
                 int attributeSize);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool RegisterHotKey(
-            IntPtr hWnd,
-            int id,
-            uint fsModifiers,
-            uint vk);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnregisterHotKey(
-            IntPtr hWnd,
-            int id);
 
         [DllImport(
             "shell32.dll",

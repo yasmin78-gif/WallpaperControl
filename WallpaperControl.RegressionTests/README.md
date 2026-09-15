@@ -15,3 +15,5 @@ Remote command checks cover the 64-character limit, incomplete lines, the two-se
 Calendar checks use simulated HTTP responses without contacting real feeds. They cover full and partial outages, repeated failures, recovery, empty feeds, and source changes.
 
 Statistics service checks cover duplicate suppression, day rollover, recurrence, removal, reset, loading saved data, and save triggers. They use a controlled clock and do not modify real user statistics.
+
+Hotkey checks simulate native registration and release calls. They cover disabled combinations, conflicts, swapped combinations, unchanged bindings, cleanup, and labels without taking over real global hotkeys.

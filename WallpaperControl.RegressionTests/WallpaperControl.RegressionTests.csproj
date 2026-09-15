@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WallpaperControl/Services/GlobalHotkeyManager.cs" Link="GlobalHotkeyManager.cs" />
     <Compile Include="../WallpaperControl/Services/WallpaperStatistics.cs" Link="WallpaperStatistics.cs" />
     <PackageReference Include="Ical.Net" Version="5.2.3" />
     <Compile Include="../WallpaperControl/Services/IcsCalendarProvider.cs" Link="IcsCalendarProvider.cs" />
