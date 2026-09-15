@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1041,5 +1041,14 @@ Versión instalada: {0}
   </data>
   <data name="UpdateCheckFailedMessage" xml:space="preserve">
     <value>WallpaperControl no pudo buscar actualizaciones. Inténtalo de nuevo más tarde.</value>
+  </data>
+  <data name="UpdateDialogLaterButton" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="UpdateDialogViewReleaseButton" xml:space="preserve">
+    <value>Ver versión</value>
+  </data>
+  <data name="UpdateDialogOkButton" xml:space="preserve">
+    <value>Aceptar</value>
   </data>
 </root>

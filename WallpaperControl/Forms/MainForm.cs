@@ -4831,19 +4831,15 @@ namespace WallpaperControl
                 string latestVersion =
                     result.LatestVersion.ToString(3);
 
-                DialogResult answer = MessageBox.Show(
-                    this,
-                    string.Format(
-                        Localization.Get(
-                            "UpdateCheckAvailableMessage"),
-                        currentVersion,
-                        latestVersion),
-                    string.Format(
-                        Localization.Get(
-                            "UpdateCheckAvailableTitle"),
-                        latestVersion),
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information);
+                using UpdateDialog updateDialog = new(
+                    UpdateDialogKind.UpdateAvailable,
+                    currentVersion,
+                    latestVersion,
+                    darkMode,
+                    windowOpacityPercent);
+
+                DialogResult answer =
+                    updateDialog.ShowDialog(this);
 
                 if (answer == DialogResult.Yes &&
                     result.ReleaseUri != null)

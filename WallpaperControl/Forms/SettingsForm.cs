@@ -1804,18 +1804,14 @@ namespace WallpaperControl
 
                 if (result.Status == UpdateCheckStatus.UpToDate)
                 {
-                    MessageBox.Show(
-                        this,
-                        string.Format(
-                            Localization.Get(
-                                "UpdateCheckUpToDateMessage",
-                                previewLanguageCode),
-                            currentVersion),
-                        Localization.Get(
-                            "UpdateCheckUpToDateTitle",
-                            previewLanguageCode),
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                    using UpdateDialog upToDateDialog = new(
+                        UpdateDialogKind.UpToDate,
+                        currentVersion,
+                        null,
+                        ResolvePreviewDarkMode(),
+                        opacityTrackBar.Value,
+                        previewLanguageCode);
+                    upToDateDialog.ShowDialog(this);
                     return;
                 }
 
@@ -1825,21 +1821,15 @@ namespace WallpaperControl
                     string latestVersion =
                         result.LatestVersion.ToString(3);
 
-                    DialogResult answer = MessageBox.Show(
-                        this,
-                        string.Format(
-                            Localization.Get(
-                                "UpdateCheckAvailableMessage",
-                                previewLanguageCode),
-                            currentVersion,
-                            latestVersion),
-                        string.Format(
-                            Localization.Get(
-                                "UpdateCheckAvailableTitle",
-                                previewLanguageCode),
-                            latestVersion),
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Information);
+                    using UpdateDialog updateAvailableDialog = new(
+                        UpdateDialogKind.UpdateAvailable,
+                        currentVersion,
+                        latestVersion,
+                        ResolvePreviewDarkMode(),
+                        opacityTrackBar.Value,
+                        previewLanguageCode);
+
+                    DialogResult answer = updateAvailableDialog.ShowDialog(this);
 
                     if (answer == DialogResult.Yes &&
                         result.ReleaseUri != null)
@@ -1855,16 +1845,14 @@ namespace WallpaperControl
                     return;
                 }
 
-                MessageBox.Show(
-                    this,
-                    Localization.Get(
-                        "UpdateCheckFailedMessage",
-                        previewLanguageCode),
-                    Localization.Get(
-                        "UpdateCheckFailedTitle",
-                        previewLanguageCode),
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                using UpdateDialog failedDialog = new(
+                    UpdateDialogKind.Failed,
+                    currentVersion,
+                    null,
+                    ResolvePreviewDarkMode(),
+                    opacityTrackBar.Value,
+                    previewLanguageCode);
+                failedDialog.ShowDialog(this);
             }
             catch (Exception ex)
             {
@@ -1872,16 +1860,16 @@ namespace WallpaperControl
                     "Manual update check failed.",
                     ex);
 
-                MessageBox.Show(
-                    this,
-                    Localization.Get(
-                        "UpdateCheckFailedMessage",
-                        previewLanguageCode),
-                    Localization.Get(
-                        "UpdateCheckFailedTitle",
-                        previewLanguageCode),
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                string fallbackVersion =
+                    Application.ProductVersion.Split('+')[0];
+                using UpdateDialog exceptionDialog = new(
+                    UpdateDialogKind.Failed,
+                    fallbackVersion,
+                    null,
+                    ResolvePreviewDarkMode(),
+                    opacityTrackBar.Value,
+                    previewLanguageCode);
+                exceptionDialog.ShowDialog(this);
             }
             finally
             {
