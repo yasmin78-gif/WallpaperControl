@@ -5,6 +5,7 @@
 		<TargetFramework>net10.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWindowsForms>true</UseWindowsForms>
+		<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>WallpaperControl.ico</ApplicationIcon>
