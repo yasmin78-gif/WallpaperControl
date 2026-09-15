@@ -4,7 +4,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.1**
+**Current release: v1.8.2**
 
 ## ✨ Features
 
@@ -13,6 +13,8 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Change the slideshow interval
   - Enable or disable shuffle
   - Switch to the next wallpaper instantly
+  - Highlighted **Next Wallpaper** action for easier access
+  - Dedicated current-wallpaper section with quick actions and full-path tooltip
   - Pause and resume the slideshow
   - Pin the current wallpaper
 
@@ -49,7 +51,10 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Opens folders using your configured default file manager
   - Optional automatic startup with Windows
   - Restores native Windows wallpaper handling when Wallpaper Control exits
+  - Runs as a single instance per Windows user
+  - Starting Wallpaper Control again brings the existing window to the foreground
   - Supports external wallpaper switching with the `--next` command-line argument
+  - `--next` commands are forwarded securely to the running instance for the current Windows user
   - Exposes the enabled state of the native clock widget for external applications and scripts
 
 - 📊 **Statistics dashboard**
@@ -68,6 +73,8 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Set a wallpaper directly from the statistics window
   - Open wallpapers or their folders from the context menu
   - Remove individual entries or reset all statistics
+  - Automatic backup and recovery if the main statistics file cannot be loaded
+  - Damaged statistics files are preserved for possible recovery
 
 - 🗑️ **Quick wallpaper rejection**
   - Move unwanted wallpapers to an `Aussortiert` folder with one click
@@ -90,6 +97,8 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Hotkeys can be customized or disabled
   - Detects duplicate hotkey assignments
   - Warns when Windows cannot register a selected hotkey
+  - Hotkeys can be swapped between actions without conflicts from previous assignments
+  - Unchanged hotkeys remain registered when other shortcuts are modified
   - Default Reject hotkey: `Ctrl+Alt+Shift+R`
 
 - 🔔 **System tray support**
@@ -108,8 +117,25 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Remembers window position
   - Drag & drop support
   - Reorganized settings interface
+  - Refreshed main window with clearer grouping and improved visual hierarchy
+  - Dark dropdowns and improved readability for disabled controls
+  - Improved keyboard tab order and consistent spacing
   - Separate appearance reset
   - Localized interface
+
+## 🔄 Update Checks
+
+Wallpaper Control can check GitHub Releases for newer versions without taking control away from the user.
+
+- Manual update check available from Settings
+- Optional automatic check whenever Wallpaper Control starts
+- While the application remains running, automatic checks repeat every 24 hours
+- Dedicated update dialogs show the installed and latest available versions
+- The release page can be opened directly when a newer version is available
+- Automatic update checks can be disabled in Settings
+- Wallpaper Control **never downloads or installs updates automatically**
+
+If the installed version is already current, automatic checks remain silent. Manual checks always provide feedback.
 
 ## 🕐 Desktop Widgets
 
@@ -208,6 +234,8 @@ Holiday events are visually highlighted and automatically placed before normal a
 
 Multiple normal and holiday calendar sources can be combined in the same Calendar widget.
 
+Calendar refreshes are resilient to temporary feed failures. Previously loaded events remain visible when an individual source becomes unavailable, while available feeds continue to update. Wallpaper Control indicates when cached calendar data may be outdated and clears the warning after all configured feeds refresh successfully. Cached events are retained for the current application session.
+
 ### Next Wallpaper
 
 The Next Wallpaper widget provides a compact desktop button for immediately advancing to the next wallpaper.
@@ -232,6 +260,8 @@ The statistics dashboard can show:
 - Wallpapers that have never been displayed or have not been shown for a long time
 
 Statistics are stored locally and survive application restarts.
+
+Wallpaper Control keeps the previous statistics file as a backup. If the main statistics file cannot be loaded, it can automatically fall back to the backup while preserving damaged files for possible recovery. Statistics are written through unique temporary files to reduce the risk of save collisions or incomplete replacements.
 
 Time-based statistics and recurrence tracking begin when the corresponding tracking data is first initialized. Historical daily or recurrence data from before tracking began is not reconstructed.
 
@@ -260,6 +290,8 @@ WallpaperControl.exe --next
 ```
 
 This sends a request to the running Wallpaper Control instance and immediately switches to the next wallpaper.
+
+Wallpaper Control runs as a single instance for the current Windows user. Starting it again normally brings the existing main window to the foreground. Command communication such as `--next` is restricted to the current user, and malformed, oversized or stalled requests are rejected without blocking subsequent commands.
 
 External requests use the same slideshow, scheduling and transition handling as wallpaper changes triggered directly from Wallpaper Control.
 
@@ -346,10 +378,11 @@ No Wallpaper Control account is required.
 
 Most functionality, including wallpaper management, slideshow control, transitions and statistics, works entirely locally.
 
-Some optional widgets require an internet connection:
+Some optional features require an internet connection:
 
 - The **Weather widget** connects to Open-Meteo to retrieve weather information.
 - The **Calendar widget** connects to the configured iCalendar / ICS addresses to retrieve calendar data.
+- The optional **Update Check** connects to GitHub Releases to determine whether a newer Wallpaper Control version is available. Automatic checks can be disabled, and Wallpaper Control never downloads or installs updates automatically.
 
 Private ICS addresses configured for the Calendar widget are stored encrypted using the Windows Data Protection API (DPAPI) for the current Windows user.
 
