@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1053,4 +1053,6 @@ Versión instalada: {0}
   </data>
   <data name="MsgInstanceNotResponding" xml:space="preserve"><value>Wallpaper Control ya está en ejecución, pero no responde. Vuelve a intentarlo en unos instantes.</value></data>
   <data name="CalendarStatusStale" xml:space="preserve"><value>Datos quizá desactualizados</value></data>
+  <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Fondo actual</value></data>
+  <data name="MainDirectionHeading" xml:space="preserve"><value>Dirección</value></data>
 </root>

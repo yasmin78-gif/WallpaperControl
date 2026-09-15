@@ -63,6 +63,9 @@ namespace WallpaperControl
         private readonly Button nextWallpaperButton;
 
         private readonly Label currentWallpaperLabel;
+        private readonly Label mainHeading = new();
+        private readonly Label currentHeading = new();
+        private readonly Label directionHeading = new();
         private readonly Form wallpaperPreviewForm;
         private readonly PictureBox wallpaperPreviewPictureBox;
         private readonly Label wallpaperPreviewInfoLabel;
@@ -257,7 +260,7 @@ namespace WallpaperControl
                 Visible = false
             };
 
-            activateButton = new Button
+            activateButton = new MainFormButton
             {
                 Text = Localization.Get("ActivateSlideshow"),
                 Location = new Point(25, 48),
@@ -268,7 +271,7 @@ namespace WallpaperControl
             activateButton.Click +=
                 ActivateButton_Click;
 
-            settingsButton = new Button
+            settingsButton = new MainFormButton
             {
                 Text = "⚙",
                 Location = new Point(387, 10),
@@ -284,7 +287,7 @@ namespace WallpaperControl
             settingsButton.Click +=
                 SettingsButton_Click;
 
-            aboutButton = new Button
+            aboutButton = new MainFormButton
             {
                 Text = "ⓘ",
                 Location = new Point(10, 10),
@@ -324,7 +327,7 @@ namespace WallpaperControl
                 ReadOnly = true
             };
 
-            folderButton = new Button
+            folderButton = new MainFormButton
             {
                 Text = "...",
                 Location = new Point(335, 55),
@@ -357,7 +360,7 @@ namespace WallpaperControl
                     FontStyle.Bold)
             };
 
-            intervalComboBox = new ComboBox
+            intervalComboBox = new MainFormComboBox
             {
                 Location = new Point(25, 145),
                 Width = 375,
@@ -414,7 +417,7 @@ namespace WallpaperControl
                     FontStyle.Bold)
             };
 
-            positionComboBox = new ComboBox
+            positionComboBox = new MainFormComboBox
             {
                 Location = new Point(25, 270),
                 Width = 375,
@@ -445,7 +448,7 @@ namespace WallpaperControl
                     FontStyle.Bold)
             };
 
-            transitionComboBox = new ComboBox
+            transitionComboBox = new MainFormComboBox
             {
                 Location = new Point(25, 345),
                 Width = 125,
@@ -470,7 +473,7 @@ namespace WallpaperControl
             transitionComboBox.SelectedIndexChanged +=
                 TransitionComboBox_SelectedIndexChanged;
 
-            transitionDirectionComboBox = new ComboBox
+            transitionDirectionComboBox = new MainFormComboBox
             {
                 Location = new Point(160, 345),
                 Width = 115,
@@ -504,7 +507,7 @@ namespace WallpaperControl
                     FontStyle.Bold)
             };
 
-            transitionDurationComboBox = new ComboBox
+            transitionDurationComboBox = new MainFormComboBox
             {
                 Location = new Point(285, 345),
                 Width = 115,
@@ -532,7 +535,7 @@ namespace WallpaperControl
             // PAUSE + FESTLEGEN
             // ========================================================
 
-            pauseButton = new Button
+            pauseButton = new MainFormButton
             {
                 Text = Localization.Get("PauseSlideshow"),
                 Location = new Point(25, 395),
@@ -542,7 +545,7 @@ namespace WallpaperControl
             pauseButton.Click +=
                 PauseButton_Click;
 
-            pinButton = new Button
+            pinButton = new MainFormButton
             {
                 Text = Localization.Get("PinImage"),
                 Location = new Point(220, 395),
@@ -556,7 +559,7 @@ namespace WallpaperControl
             // NAVIGATION
             // ========================================================
 
-            nextWallpaperButton = new Button
+            nextWallpaperButton = new MainFormButton
             {
                 Text = Localization.Get("NextWallpaper"),
                 Location = new Point(25, 450),
@@ -621,7 +624,7 @@ namespace WallpaperControl
             wallpaperPreviewForm.Controls.Add(
                 wallpaperPreviewInfoLabel);
 
-            explorerButton = new Button
+            explorerButton = new MainFormButton
             {
                 Text = Localization.Get("ShowInExplorer"),
                 Location = new Point(25, 540),
@@ -631,7 +634,7 @@ namespace WallpaperControl
             explorerButton.Click +=
                 ExplorerButton_Click;
 
-            rejectButton = new Button
+            rejectButton = new MainFormButton
             {
                 Text = Localization.Get("RejectWallpaper"),
                 Location = new Point(220, 540),
@@ -655,7 +658,7 @@ namespace WallpaperControl
             rejectButton.ContextMenuStrip =
                 rejectMenu;
 
-            undoRejectButton = new Button
+            undoRejectButton = new MainFormButton
             {
                 Text = Localization.Get("Undo"),
                 Location = new Point(25, 588),
@@ -666,7 +669,7 @@ namespace WallpaperControl
             undoRejectButton.Click +=
                 UndoRejectButton_Click;
 
-            historyButton = new Button
+            historyButton = new MainFormButton
             {
                 Text = Localization.Get("History"),
                 Location = new Point(25, 630),
@@ -674,7 +677,7 @@ namespace WallpaperControl
                 Enabled = false
             };
 
-            statisticsButton = new Button
+            statisticsButton = new MainFormButton
             {
                 Text = Localization.Get("Statistics"),
                 Location = new Point(220, 630),
@@ -794,6 +797,18 @@ namespace WallpaperControl
                     UpdateWallpaperCount();
                 };
 
+            mainHeading.Text = "Wallpaper Control";
+            mainHeading.Font = CreateOwnedFont("Segoe UI", 15, FontStyle.Bold);
+            mainHeading.TextAlign = ContentAlignment.MiddleCenter;
+            currentHeading.Font = CreateOwnedFont("Segoe UI", 10, FontStyle.Bold);
+            directionHeading.Font = CreateOwnedFont("Segoe UI", 10, FontStyle.Bold);
+            currentHeading.Text = Localization.Get("MainCurrentWallpaperHeading");
+            directionHeading.Text = Localization.Get("MainDirectionHeading");
+            folderLabel.TextAlign = ContentAlignment.MiddleLeft;
+            nextWallpaperButton.Font = CreateOwnedFont("Segoe UI", 11, FontStyle.Bold);
+            Controls.Add(mainHeading);
+            Controls.Add(currentHeading);
+            Controls.Add(directionHeading);
             Controls.Add(statusLabel);
             Controls.Add(activateButton);
             Controls.Add(settingsButton);
@@ -1196,6 +1211,27 @@ namespace WallpaperControl
             trayMenu.ForeColor =
                 foreground;
 
+            foreach (Control control in Controls)
+            {
+                if (control is MainFormComboBox combo)
+                {
+                    combo.BackColor = inputBackground;
+                    combo.ForeColor = inputForeground;
+                    combo.MutedColor = AppTheme.TextSecondary(darkMode);
+                    combo.ItemHeight = Math.Max(combo.Font.Height + 8, 26);
+                }
+                if (control is MainFormButton button)
+                    button.MutedColor = AppTheme.TextSecondary(darkMode);
+            }
+            mainHeading.ForeColor = foreground;
+            currentHeading.ForeColor = foreground;
+            directionHeading.ForeColor = foreground;
+            wallpaperCountLabel.ForeColor = AppTheme.TextSecondary(darkMode);
+            nextWallpaperButton.BackColor = Color.FromArgb(29, 105, 184);
+            nextWallpaperButton.ForeColor = Color.White;
+            nextWallpaperButton.FlatAppearance.BorderColor = Color.FromArgb(29, 105, 184);
+            nextWallpaperButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(37, 121, 207);
+            nextWallpaperButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(23, 85, 151);
             ApplyTitleBarTheme();
             Invalidate(true);
         }
@@ -1392,168 +1428,58 @@ namespace WallpaperControl
         // LAYOUT
         // ============================================================
 
-        private void SetNormalLayout()
+        private void SetNormalLayout() => ArrangeMainForm(0);
+        private void SetWarningLayout(bool showActivateButton) => ArrangeMainForm(showActivateButton ? 76 : 40);
+
+        private void ArrangeMainForm(int offset)
         {
-            folderLabel.Location =
-                new Point(48, 18);
-
-            folderTextBox.Location =
-                new Point(25, 56);
-
-            folderButton.Location =
-                new Point(335, 55);
-
-            wallpaperCountLabel.Location =
-                new Point(25, 88);
-
-            intervalLabel.Location =
-                new Point(25, 110);
-
-            intervalComboBox.Location =
-                new Point(25, 145);
-
-            windowsIntervalLabel.Location =
-                new Point(25, 176);
-
-            shuffleCheckBox.Location =
-                new Point(25, 200);
-
-            positionLabel.Location =
-                new Point(25, 235);
-
-            positionComboBox.Location =
-                new Point(25, 270);
-
-            transitionLabel.Location =
-                new Point(25, 310);
-
-            transitionComboBox.Location =
-                new Point(25, 345);
-
-            transitionDirectionComboBox.Location =
-                new Point(160, 345);
-
-            transitionDurationLabel.Location =
-                new Point(285, 310);
-
-            transitionDurationComboBox.Location =
-                new Point(285, 345);
-
-            pauseButton.Location =
-                new Point(25, 395);
-
-            pinButton.Location =
-                new Point(220, 395);
-
-            nextWallpaperButton.Location =
-                new Point(25, 450);
-
-            currentWallpaperLabel.Location =
-                new Point(25, 505);
-
-            explorerButton.Location =
-                new Point(25, 540);
-
-            rejectButton.Location =
-                new Point(220, 540);
-
-            undoRejectButton.Location =
-                new Point(25, 588);
-
-            historyButton.Location =
-                new Point(25, 630);
-
-            statisticsButton.Location =
-                new Point(220, 630);
-
-            ClientSize =
-                new Size(425, 690);
+            SuspendLayout();
+            float scale = DeviceDpi / 96f;
+            int Px(int value) => (int)Math.Round(value * scale);
+            void Place(Control control, int x, int y, int width, int height)
+            {
+                if (control is Label label) label.AutoSize = false;
+                control.SetBounds(Px(x), Px(y), Px(width), Px(height));
+            }
+            Place(mainHeading, 48, 14, 329, 30);
+            Place(aboutButton, 12, 15, 28, 28);
+            Place(settingsButton, 385, 15, 28, 28);
+            Place(statusLabel, 25, 50, 375, 25);
+            Place(activateButton, 25, 80, 375, 34);
+            Place(folderLabel, 25, 56 + offset, 375, 24);
+            Place(folderTextBox, 25, 84 + offset, 300, 28);
+            Place(folderButton, 335, 83 + offset, 65, 28);
+            Place(wallpaperCountLabel, 25, 114 + offset, 375, 20);
+            Place(intervalLabel, 25, 143 + offset, 375, 24);
+            Place(intervalComboBox, 25, 171 + offset, 375, 28);
+            Place(windowsIntervalLabel, 25, 202 + offset, 375, 20);
+            Place(shuffleCheckBox, 25, 224 + offset, 375, 24);
+            Place(positionLabel, 25, 256 + offset, 375, 24);
+            Place(positionComboBox, 25, 284 + offset, 375, 28);
+            Place(transitionLabel, 25, 322 + offset, 125, 24);
+            Place(directionHeading, 160, 322 + offset, 115, 24);
+            Place(transitionDurationLabel, 285, 322 + offset, 115, 24);
+            Place(transitionComboBox, 25, 350 + offset, 125, 28);
+            Place(transitionDirectionComboBox, 160, 350 + offset, 115, 28);
+            Place(transitionDurationComboBox, 285, 350 + offset, 115, 28);
+            Place(nextWallpaperButton, 25, 396 + offset, 375, 44);
+            Place(currentHeading, 25, 458 + offset, 375, 22);
+            Place(currentWallpaperLabel, 25, 481 + offset, 375, 24);
+            Place(pauseButton, 25, 518 + offset, 180, 34);
+            Place(pinButton, 220, 518 + offset, 180, 34);
+            Place(explorerButton, 25, 562 + offset, 180, 34);
+            Place(rejectButton, 220, 562 + offset, 180, 34);
+            Place(undoRejectButton, 25, 605 + offset, 375, 30);
+            Place(historyButton, 25, 646 + offset, 180, 30);
+            Place(statisticsButton, 220, 646 + offset, 180, 30);
+            int tab = 0;
+            foreach (Control control in new Control[] { folderButton, intervalComboBox, shuffleCheckBox,
+                positionComboBox, transitionComboBox, transitionDirectionComboBox, transitionDurationComboBox,
+                nextWallpaperButton, pauseButton, pinButton, explorerButton, rejectButton, undoRejectButton,
+                historyButton, statisticsButton }) control.TabIndex = tab++;
+            ClientSize = new Size(Px(425), Px(690 + offset));
+            ResumeLayout();
         }
-
-        private void SetWarningLayout(
-            bool showActivateButton)
-        {
-            int offset =
-                showActivateButton ? 75 : 40;
-
-            folderLabel.Location =
-                new Point(48, 18 + offset);
-
-            folderTextBox.Location =
-                new Point(25, 56 + offset);
-
-            folderButton.Location =
-                new Point(335, 55 + offset);
-
-            wallpaperCountLabel.Location =
-                new Point(25, 88 + offset);
-
-            intervalLabel.Location =
-                new Point(25, 110 + offset);
-
-            intervalComboBox.Location =
-                new Point(25, 145 + offset);
-
-            windowsIntervalLabel.Location =
-                new Point(25, 176 + offset);
-
-            shuffleCheckBox.Location =
-                new Point(25, 200 + offset);
-
-            positionLabel.Location =
-                new Point(25, 235 + offset);
-
-            positionComboBox.Location =
-                new Point(25, 270 + offset);
-
-            transitionLabel.Location =
-                new Point(25, 310 + offset);
-
-            transitionComboBox.Location =
-                new Point(25, 345 + offset);
-
-            transitionDirectionComboBox.Location =
-                new Point(160, 345 + offset);
-
-            transitionDurationLabel.Location =
-                new Point(285, 310 + offset);
-
-            transitionDurationComboBox.Location =
-                new Point(285, 345 + offset);
-
-            pauseButton.Location =
-                new Point(25, 395 + offset);
-
-            pinButton.Location =
-                new Point(220, 395 + offset);
-
-            nextWallpaperButton.Location =
-                new Point(25, 450 + offset);
-
-            currentWallpaperLabel.Location =
-                new Point(25, 505 + offset);
-
-            explorerButton.Location =
-                new Point(25, 540 + offset);
-
-            rejectButton.Location =
-                new Point(220, 540 + offset);
-
-            undoRejectButton.Location =
-                new Point(25, 588 + offset);
-
-            historyButton.Location =
-                new Point(25, 630 + offset);
-
-            statisticsButton.Location =
-                new Point(220, 630 + offset);
-
-            ClientSize =
-                new Size(
-                    425,
-                    690 + offset);
-        }
-
         // ============================================================
         // ORDNER LADEN
         // ============================================================
@@ -3323,9 +3249,8 @@ namespace WallpaperControl
                 currentWallpaperLabel.Text =
                     string.IsNullOrWhiteSpace(path)
                     ? Localization.Get("CurrentWallpaperEmpty")
-                    : string.Format(
-                        Localization.Get("CurrentWallpaper"),
-                        Path.GetFileName(path));
+                    : Path.GetFileName(path);
+                toolTip.SetToolTip(currentWallpaperLabel, path ?? string.Empty);
 
                 if (!string.IsNullOrWhiteSpace(path) &&
                     File.Exists(path))
@@ -4836,8 +4761,9 @@ namespace WallpaperControl
             activateButton.Text =
                 Localization.Get("ActivateSlideshow");
 
-            folderLabel.Text =
-                Localization.Get("WallpaperFolder");
+            currentHeading.Text = Localization.Get("MainCurrentWallpaperHeading");
+            directionHeading.Text = Localization.Get("MainDirectionHeading");
+            folderLabel.Text = Localization.Get("WallpaperFolder");
 
             intervalLabel.Text =
                 Localization.Get("WallpaperInterval");
