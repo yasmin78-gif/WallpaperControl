@@ -6,11 +6,13 @@ namespace WallpaperControl
     internal sealed class WidgetManager : IDisposable
     {
         private readonly Action next;
+        private readonly IcsCalendarProvider calendarProvider = new();
         private WidgetSettings settings;
         private ClockWidgetForm? clock;
         private NextWidgetForm? nextWidget;
         private SystemWidgetForm? systemWidget;
         private WeatherWidgetForm? weatherWidget;
+        private CalendarWidgetForm? calendarWidget;
         private bool previewMode;
 
         public WidgetManager(Action next)
@@ -58,6 +60,14 @@ namespace WallpaperControl
             settings.WeatherStyle = previewSettings.WeatherStyle;
             settings.WeatherLocationName = previewSettings.WeatherLocationName;
             settings.WeatherShowForecast = previewSettings.WeatherShowForecast;
+            settings.CalendarEnabled = previewSettings.CalendarEnabled;
+            settings.CalendarLocked = previewSettings.CalendarLocked;
+            settings.CalendarStyle = previewSettings.CalendarStyle;
+            settings.CalendarMaxEntries = previewSettings.CalendarMaxEntries;
+            settings.CalendarShowLocation = previewSettings.CalendarShowLocation;
+            settings.CalendarRefreshMinutes = previewSettings.CalendarRefreshMinutes;
+            settings.CalendarIcsUrl = previewSettings.CalendarIcsUrl;
+            settings.CalendarHolidayIcsUrl = previewSettings.CalendarHolidayIcsUrl;
 
             ApplyVisualState(settings, restoreLocations: false);
         }
@@ -71,12 +81,14 @@ namespace WallpaperControl
             Point nextLocation = settings.NextLocation;
             Point systemLocation = settings.SystemLocation;
             Point weatherLocation = settings.WeatherLocation;
+            Point calendarLocation = settings.CalendarLocation;
 
             settings = committedSettings.Clone();
             settings.ClockLocation = clockLocation;
             settings.NextLocation = nextLocation;
             settings.SystemLocation = systemLocation;
             settings.WeatherLocation = weatherLocation;
+            settings.CalendarLocation = calendarLocation;
             previewMode = false;
             settings.Save();
 
@@ -319,6 +331,63 @@ namespace WallpaperControl
                 weatherWidget?.Dispose();
                 weatherWidget = null;
             }
+
+            bool calendarSourceChanged = calendarProvider.SetSources(target.CalendarIcsUrl, target.CalendarHolidayIcsUrl);
+
+            if (target.CalendarEnabled)
+            {
+                if (calendarWidget == null || calendarWidget.IsDisposed)
+                {
+                    calendarWidget = new CalendarWidgetForm(
+                        target.CalendarLocked,
+                        target.CalendarStyle,
+                        target.CalendarMaxEntries,
+                        target.CalendarShowLocation,
+                        target.CalendarRefreshMinutes,
+                        target.ClockLanguageCode,
+                        calendarProvider,
+                        target.CalendarLocation,
+                        SaveCalendarLocation);
+
+                    calendarWidget.Show();
+                    if (!DesktopWidgetNative.AttachToDesktop(calendarWidget, target.CalendarLocation))
+                    {
+                        calendarWidget.Hide();
+                        AppLogger.Warning(
+                            "Calendar widget could not be attached to the desktop.",
+                            new InvalidOperationException("AttachToDesktop returned false."));
+                    }
+                    else if (previewMode)
+                    {
+                        DesktopWidgetNative.EnableInteraction(calendarWidget);
+                    }
+                }
+                else
+                {
+                    calendarWidget.Apply(
+                        target.CalendarLocked,
+                        target.CalendarStyle,
+                        target.CalendarMaxEntries,
+                        target.CalendarShowLocation,
+                        target.CalendarRefreshMinutes,
+                        target.ClockLanguageCode);
+                    if (calendarSourceChanged)
+                        calendarWidget.RefreshCalendar();
+
+                    if (restoreLocations)
+                    {
+                        calendarWidget.Location = WidgetSettings.EnsureVisible(target.CalendarLocation, calendarWidget.Size);
+                    }
+                    DesktopWidgetNative.KeepOnDesktop(calendarWidget);
+                    if (previewMode) DesktopWidgetNative.EnableInteraction(calendarWidget);
+                }
+            }
+            else
+            {
+                calendarWidget?.Close();
+                calendarWidget?.Dispose();
+                calendarWidget = null;
+            }
         }
 
         private void SaveClockLocation(Point p)
@@ -357,6 +426,15 @@ namespace WallpaperControl
             }
         }
 
+        private void SaveCalendarLocation(Point p)
+        {
+            settings.CalendarLocation = p;
+            if (!previewMode)
+            {
+                settings.Save();
+            }
+        }
+
         public void Dispose()
         {
             clock?.Close();
@@ -374,6 +452,12 @@ namespace WallpaperControl
             weatherWidget?.Close();
             weatherWidget?.Dispose();
             weatherWidget = null;
+
+            calendarWidget?.Close();
+            calendarWidget?.Dispose();
+            calendarWidget = null;
+
+            calendarProvider.Dispose();
         }
     }
 }

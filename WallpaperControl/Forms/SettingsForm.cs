@@ -53,6 +53,7 @@ namespace WallpaperControl
         private Button? settingsNextNavigationButton;
         private Button? settingsSystemNavigationButton;
         private Button? settingsWeatherNavigationButton;
+        private Button? settingsCalendarNavigationButton;
         private Button? settingsAppearanceNavigationButton;
         private Button? settingsLanguageNavigationButton;
         private bool settingsWidgetsExpanded = true;
@@ -74,6 +75,14 @@ namespace WallpaperControl
         private readonly ComboBox weatherWidgetRefreshComboBox;
         private readonly ComboBox weatherWidgetStyleComboBox;
         private readonly CheckBox weatherShowForecastCheckBox;
+        private readonly CheckBox calendarWidgetEnabledCheckBox;
+        private readonly CheckBox calendarWidgetLockedCheckBox;
+        private readonly ComboBox calendarWidgetStyleComboBox;
+        private readonly ComboBox calendarMaxEntriesComboBox;
+        private readonly CheckBox calendarShowLocationCheckBox;
+        private readonly TextBox calendarIcsUrlTextBox;
+        private readonly TextBox calendarHolidayIcsUrlTextBox;
+        private readonly ComboBox calendarRefreshComboBox;
         private readonly WidgetSettings initialWidgetSettings;
         private readonly Action<WidgetSettings>? widgetPreviewChanged;
         private string previewLanguageCode;
@@ -250,6 +259,7 @@ namespace WallpaperControl
             TabPage nextWidgetPage = CreateSettingsPage("SettingsNavNextWallpaper");
             TabPage systemWidgetPage = CreateSettingsPage("SettingsNavSystem");
             TabPage weatherWidgetPage = CreateSettingsPage("SettingsNavWeather");
+            TabPage calendarWidgetPage = CreateSettingsPage("SettingsNavCalendar");
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
 
@@ -260,6 +270,7 @@ namespace WallpaperControl
             tabControl.TabPages.Add(nextWidgetPage);
             tabControl.TabPages.Add(systemWidgetPage);
             tabControl.TabPages.Add(weatherWidgetPage);
+            tabControl.TabPages.Add(calendarWidgetPage);
             tabControl.TabPages.Add(appearancePage);
             tabControl.TabPages.Add(languagePage);
 
@@ -290,8 +301,9 @@ namespace WallpaperControl
             settingsNextNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, nextWidgetPage, "▷", "SettingsNavNextWallpaper", 292, 14);
             settingsSystemNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, systemWidgetPage, "▥", "SettingsNavSystem", 338, 14);
             settingsWeatherNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, weatherWidgetPage, "☀", "SettingsNavWeather", 384, 14);
-            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 444);
-            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 490);
+            settingsCalendarNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, calendarWidgetPage, "▣", "SettingsNavCalendar", 430, 14);
+            settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 490);
+            settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 536);
             UpdateWidgetsNavigationLayout();
 
             tabControl.SelectedTab = hotkeysPage;
@@ -1220,6 +1232,210 @@ namespace WallpaperControl
             weatherOptions.Controls.Add(weatherHint);
             weatherWidgetPage.Controls.Add(weatherOptions);
 
+            Label calendarWidgetPageTitle = new Label
+            {
+                Text = Localization.Get("SettingsNavCalendar", previewLanguageCode),
+                Tag = "SettingsNavCalendar",
+                Location = new Point(18, 18),
+                AutoSize = true,
+                Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold)
+            };
+            calendarWidgetPage.Controls.Add(calendarWidgetPageTitle);
+
+            GroupBox calendarOptions = new GroupBox
+            {
+                Text = Localization.Get("SettingsCalendarWidgetTitle", previewLanguageCode),
+                Tag = "SettingsCalendarWidgetTitle",
+                Location = new Point(18, 58),
+                Size = new Size(620, 535)
+            };
+
+            calendarWidgetEnabledCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsCalendarWidgetEnabled", previewLanguageCode),
+                Tag = "SettingsCalendarWidgetEnabled",
+                Location = new Point(18, 32),
+                AutoSize = true,
+                Checked = initialWidgetSettings.CalendarEnabled
+            };
+
+            calendarWidgetLockedCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsWidgetLocked", previewLanguageCode),
+                Tag = "SettingsWidgetLocked",
+                Location = new Point(18, 68),
+                AutoSize = true,
+                Checked = initialWidgetSettings.CalendarLocked
+            };
+
+            Label calendarSourceLabel = new Label
+            {
+                Text = Localization.Get("SettingsCalendarSource", previewLanguageCode),
+                Tag = "SettingsCalendarSource",
+                Location = new Point(18, 108),
+                AutoSize = true
+            };
+
+            calendarIcsUrlTextBox = new TextBox
+            {
+                Location = new Point(18, 132),
+                Size = new Size(390, 44),
+                Text = initialWidgetSettings.CalendarIcsUrl,
+                Multiline = true,
+                AcceptsReturn = true,
+                ScrollBars = ScrollBars.Vertical,
+                UseSystemPasswordChar = true
+            };
+
+            Label calendarHolidaySourceLabel = new Label
+            {
+                Text = Localization.Get("SettingsCalendarHolidaySource", previewLanguageCode),
+                Tag = "SettingsCalendarHolidaySource",
+                Location = new Point(18, 184),
+                AutoSize = true
+            };
+
+            calendarHolidayIcsUrlTextBox = new TextBox
+            {
+                Location = new Point(18, 208),
+                Size = new Size(390, 44),
+                Text = initialWidgetSettings.CalendarHolidayIcsUrl,
+                Multiline = true,
+                AcceptsReturn = true,
+                ScrollBars = ScrollBars.Vertical,
+                UseSystemPasswordChar = true
+            };
+
+            Button calendarShowSourceButton = new Button
+            {
+                Text = Localization.Get("SettingsCalendarShowSource", previewLanguageCode),
+                Tag = "SettingsCalendarShowSource",
+                Location = new Point(414, 130),
+                Size = new Size(86, 31)
+            };
+
+            Button calendarApplySourceButton = new Button
+            {
+                Text = Localization.Get("SettingsCalendarApplySource", previewLanguageCode),
+                Tag = "SettingsCalendarApplySource",
+                Location = new Point(506, 130),
+                Size = new Size(96, 31)
+            };
+
+            calendarShowSourceButton.Click += (_, _) =>
+            {
+                calendarIcsUrlTextBox.UseSystemPasswordChar = !calendarIcsUrlTextBox.UseSystemPasswordChar;
+                calendarHolidayIcsUrlTextBox.UseSystemPasswordChar = calendarIcsUrlTextBox.UseSystemPasswordChar;
+                string key = calendarIcsUrlTextBox.UseSystemPasswordChar ? "SettingsCalendarShowSource" : "SettingsCalendarHideSource";
+                calendarShowSourceButton.Tag = key;
+                calendarShowSourceButton.Text = Localization.Get(key, previewLanguageCode);
+            };
+            calendarApplySourceButton.Click += (_, _) => NotifyWidgetPreviewChanged();
+            calendarIcsUrlTextBox.KeyDown += (_, e) =>
+            {
+                if (e.Control && e.KeyCode == Keys.Enter)
+                {
+                    calendarApplySourceButton.PerformClick();
+                    e.SuppressKeyPress = true;
+                }
+            };
+            calendarHolidayIcsUrlTextBox.KeyDown += (_, e) =>
+            {
+                if (e.Control && e.KeyCode == Keys.Enter)
+                {
+                    calendarApplySourceButton.PerformClick();
+                    e.SuppressKeyPress = true;
+                }
+            };
+
+            Label calendarStyleLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemStyle", previewLanguageCode),
+                Tag = "SettingsSystemStyle",
+                Location = new Point(18, 284),
+                AutoSize = true
+            };
+
+            calendarWidgetStyleComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 280),
+                Size = new Size(170, 30)
+            };
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            calendarWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)initialWidgetSettings.CalendarStyle, 0, 2);
+
+            Label calendarEntriesLabel = new Label
+            {
+                Text = Localization.Get("SettingsCalendarEntries", previewLanguageCode),
+                Tag = "SettingsCalendarEntries",
+                Location = new Point(18, 324),
+                AutoSize = true
+            };
+
+            calendarMaxEntriesComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 320),
+                Size = new Size(125, 30)
+            };
+            calendarMaxEntriesComboBox.Items.AddRange(new object[] { "3", "5", "9" });
+            calendarMaxEntriesComboBox.SelectedIndex = initialWidgetSettings.CalendarMaxEntries switch { 3 => 0, 5 => 1, _ => 2 };
+
+            Label calendarRefreshLabel = new Label
+            {
+                Text = Localization.Get("SettingsCalendarRefresh", previewLanguageCode),
+                Tag = "SettingsCalendarRefresh",
+                Location = new Point(18, 364),
+                AutoSize = true
+            };
+
+            calendarRefreshComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(190, 360),
+                Size = new Size(125, 30)
+            };
+            calendarRefreshComboBox.Items.AddRange(new object[] { "15 min", "30 min", "60 min", "120 min" });
+            calendarRefreshComboBox.SelectedIndex = initialWidgetSettings.CalendarRefreshMinutes switch { 15 => 0, 60 => 2, 120 => 3, _ => 1 };
+
+            calendarShowLocationCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsCalendarShowLocation", previewLanguageCode),
+                Tag = "SettingsCalendarShowLocation",
+                Location = new Point(18, 402),
+                AutoSize = true,
+                Checked = initialWidgetSettings.CalendarShowLocation
+            };
+
+            Label calendarHint = new Label
+            {
+                Text = Localization.Get("SettingsCalendarHint", previewLanguageCode),
+                Tag = "SettingsCalendarHint",
+                Location = new Point(18, 438),
+                Size = new Size(575, 58)
+            };
+
+            calendarOptions.Controls.Add(calendarWidgetEnabledCheckBox);
+            calendarOptions.Controls.Add(calendarWidgetLockedCheckBox);
+            calendarOptions.Controls.Add(calendarSourceLabel);
+            calendarOptions.Controls.Add(calendarIcsUrlTextBox);
+            calendarOptions.Controls.Add(calendarHolidaySourceLabel);
+            calendarOptions.Controls.Add(calendarHolidayIcsUrlTextBox);
+            calendarOptions.Controls.Add(calendarShowSourceButton);
+            calendarOptions.Controls.Add(calendarApplySourceButton);
+            calendarOptions.Controls.Add(calendarStyleLabel);
+            calendarOptions.Controls.Add(calendarWidgetStyleComboBox);
+            calendarOptions.Controls.Add(calendarEntriesLabel);
+            calendarOptions.Controls.Add(calendarMaxEntriesComboBox);
+            calendarOptions.Controls.Add(calendarRefreshLabel);
+            calendarOptions.Controls.Add(calendarRefreshComboBox);
+            calendarOptions.Controls.Add(calendarShowLocationCheckBox);
+            calendarOptions.Controls.Add(calendarHint);
+            calendarWidgetPage.Controls.Add(calendarOptions);
+
             Label widgetHint = new Label
             {
                 Text = Localization.Get("SettingsWidgetsHint", previewLanguageCode),
@@ -1278,6 +1494,12 @@ namespace WallpaperControl
                     e.SuppressKeyPress = true;
                 }
             };
+            calendarWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarWidgetStyleComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarMaxEntriesComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarRefreshComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarShowLocationCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
 
             // ==========================================================
             // FOOTER
@@ -1433,8 +1655,11 @@ namespace WallpaperControl
             if (settingsWeatherNavigationButton != null)
                 settingsWeatherNavigationButton.Visible = settingsWidgetsExpanded;
 
-            int appearanceY = settingsWidgetsExpanded ? 444 : 252;
-            int languageY = settingsWidgetsExpanded ? 490 : 298;
+            if (settingsCalendarNavigationButton != null)
+                settingsCalendarNavigationButton.Visible = settingsWidgetsExpanded;
+
+            int appearanceY = settingsWidgetsExpanded ? 490 : 252;
+            int languageY = settingsWidgetsExpanded ? 536 : 298;
 
             if (settingsAppearanceNavigationButton != null)
                 settingsAppearanceNavigationButton.Location = new Point(14, appearanceY);
@@ -1951,6 +2176,7 @@ namespace WallpaperControl
                 RefreshClockStyleChoices(GetSelectedClockStyle());
                 RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle());
+                RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
 
                 SetComboValues(
                     nextModifierCombo,
@@ -2261,6 +2487,14 @@ namespace WallpaperControl
             weatherWidgetRefreshComboBox.SelectedIndex = 1;
             RefreshWeatherStyleChoices(SystemWidgetStyle.Glow);
             weatherShowForecastCheckBox.Checked = true;
+            calendarWidgetEnabledCheckBox.Checked = false;
+            calendarWidgetLockedCheckBox.Checked = false;
+            RefreshCalendarStyleChoices(SystemWidgetStyle.Glow);
+            calendarMaxEntriesComboBox.SelectedIndex = 2;
+            calendarRefreshComboBox.SelectedIndex = 1;
+            calendarIcsUrlTextBox.Text = "";
+            calendarHolidayIcsUrlTextBox.Text = "";
+            calendarShowLocationCheckBox.Checked = true;
 
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
@@ -2351,6 +2585,44 @@ namespace WallpaperControl
             weatherWidgetStyleComboBox.EndUpdate();
         }
 
+        private void RefreshCalendarStyleChoices(SystemWidgetStyle selectedStyle)
+        {
+            if (calendarWidgetStyleComboBox == null) return;
+
+            calendarWidgetStyleComboBox.BeginUpdate();
+            calendarWidgetStyleComboBox.Items.Clear();
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
+            calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
+            calendarWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 2);
+            calendarWidgetStyleComboBox.EndUpdate();
+        }
+
+        private SystemWidgetStyle GetSelectedCalendarStyle()
+        {
+            int index = calendarWidgetStyleComboBox?.SelectedIndex ?? (int)SystemWidgetStyle.Glow;
+            return Enum.IsDefined(typeof(SystemWidgetStyle), index)
+                ? (SystemWidgetStyle)index
+                : SystemWidgetStyle.Glow;
+        }
+
+        private int GetCalendarMaxEntries() =>
+            calendarMaxEntriesComboBox.SelectedIndex switch
+            {
+                0 => 3,
+                2 => 9,
+                _ => 5
+            };
+
+        private int GetCalendarRefreshMinutes() =>
+            calendarRefreshComboBox.SelectedIndex switch
+            {
+                0 => 15,
+                2 => 60,
+                3 => 120,
+                _ => 30
+            };
+
         private SystemWidgetStyle GetSelectedWeatherStyle()
         {
             int index = weatherWidgetStyleComboBox?.SelectedIndex ?? (int)SystemWidgetStyle.Glow;
@@ -2428,6 +2700,14 @@ namespace WallpaperControl
             preview.WeatherStyle = GetSelectedWeatherStyle();
             preview.WeatherLocationName = weatherLocationTextBox.Text.Trim();
             preview.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
+            preview.CalendarEnabled = calendarWidgetEnabledCheckBox.Checked;
+            preview.CalendarLocked = calendarWidgetLockedCheckBox.Checked;
+            preview.CalendarStyle = GetSelectedCalendarStyle();
+            preview.CalendarMaxEntries = GetCalendarMaxEntries();
+            preview.CalendarShowLocation = calendarShowLocationCheckBox.Checked;
+            preview.CalendarRefreshMinutes = GetCalendarRefreshMinutes();
+            preview.CalendarIcsUrl = calendarIcsUrlTextBox.Text.Trim();
+            preview.CalendarHolidayIcsUrl = calendarHolidayIcsUrlTextBox.Text.Trim();
 
             widgetPreviewChanged(preview);
         }
@@ -2584,6 +2864,14 @@ namespace WallpaperControl
             WidgetSettings.WeatherStyle = GetSelectedWeatherStyle();
             WidgetSettings.WeatherLocationName = string.IsNullOrWhiteSpace(weatherLocationTextBox.Text) ? "Karlsruhe" : weatherLocationTextBox.Text.Trim();
             WidgetSettings.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
+            WidgetSettings.CalendarEnabled = calendarWidgetEnabledCheckBox.Checked;
+            WidgetSettings.CalendarLocked = calendarWidgetLockedCheckBox.Checked;
+            WidgetSettings.CalendarStyle = GetSelectedCalendarStyle();
+            WidgetSettings.CalendarMaxEntries = GetCalendarMaxEntries();
+            WidgetSettings.CalendarShowLocation = calendarShowLocationCheckBox.Checked;
+            WidgetSettings.CalendarRefreshMinutes = GetCalendarRefreshMinutes();
+            WidgetSettings.CalendarIcsUrl = calendarIcsUrlTextBox.Text.Trim();
+            WidgetSettings.CalendarHolidayIcsUrl = calendarHolidayIcsUrlTextBox.Text.Trim();
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))

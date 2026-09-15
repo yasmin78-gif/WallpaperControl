@@ -35,6 +35,7 @@ namespace WallpaperControl
         private long previousSent;
         private bool networkInitialized;
         private bool disposed;
+        private readonly object syncRoot = new();
 
         public SystemMonitorService()
         {
@@ -49,6 +50,17 @@ namespace WallpaperControl
         }
 
         public SystemMonitorSnapshot Sample()
+        {
+            lock (syncRoot)
+            {
+                if (disposed)
+                    return new SystemMonitorSnapshot();
+
+                return SampleCore();
+            }
+        }
+
+        private SystemMonitorSnapshot SampleCore()
         {
             float? cpuLoad = null;
             float? cpuTemp = null;
@@ -303,9 +315,12 @@ namespace WallpaperControl
 
         public void Dispose()
         {
-            if (disposed) return;
-            disposed = true;
-            try { computer.Close(); } catch { }
+            lock (syncRoot)
+            {
+                if (disposed) return;
+                disposed = true;
+                try { computer.Close(); } catch { }
+            }
         }
     }
 }
