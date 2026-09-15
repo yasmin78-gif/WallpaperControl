@@ -4,7 +4,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.0**
+**Current release: v1.8.1**
 
 ## ✨ Features
 
@@ -29,17 +29,16 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Desktop icons and desktop tools remain visible above the transition layer
 
 - 🕐 **Native desktop widgets**
-  - Optional Chrome-style desktop clock
-  - Optional seconds display
-  - Localized date formatting
-  - Adjustable clock size
+  - Clock widget with 5 selectable themes
+  - System monitoring widget
+  - Weather widget with optional 3-day forecast
+  - Calendar widget with iCalendar / ICS support
   - Optional Next Wallpaper button
   - Widgets can be positioned independently anywhere on the desktop
   - Independent position locking for each widget
   - Widget positions and settings are remembered
   - Live widget preview while changing settings
   - Widgets remain part of the desktop and do not stay above normal application windows
-  - Next Wallpaper widget includes a localized tooltip
 
 - 🖥️ **Windows integration**
   - Integrates with native Windows wallpaper APIs while providing its own slideshow timing and transition engine
@@ -100,6 +99,9 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Exit the application directly from the tray menu
 
 - 🎨 **Interface & appearance**
+  - Redesigned Settings interface
+  - Main application redesigned to match the Settings interface
+  - Consistent modern appearance across the application
   - System, Dark and Light theme selection
   - System theme automatically follows the Windows app theme
   - Adjustable window opacity
@@ -111,29 +113,106 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
 
 ## 🕐 Desktop Widgets
 
-Wallpaper Control 1.8.0 introduces optional native desktop widgets that integrate directly with the Windows desktop.
+Wallpaper Control includes native desktop widgets that integrate directly with the Windows desktop.
+
+Widgets can be positioned independently and locked in place. Their positions and settings are remembered between application sessions.
+
+Widget changes are previewed immediately while configuring them in Settings. They are permanently applied when the settings are saved. Cancelling the settings restores the previous widget state and position.
 
 ### Clock
 
 The desktop clock provides:
 
-- Chrome-style rendering
 - Hours and minutes display
 - Optional seconds
 - Localized date formatting
 - Adjustable size
+- 5 selectable visual themes
 - Free positioning
 - Optional position locking
 
 The clock automatically follows the language selected in Wallpaper Control.
 
+### 🖥️ System Monitor
+
+The System widget provides an at-a-glance overview of important hardware and system information directly on the desktop.
+
+It can display:
+
+- CPU usage
+- CPU temperature
+- RAM usage
+- GPU usage
+- GPU temperature
+- VRAM usage
+- Network download activity
+- Network upload activity
+- Drive usage
+
+The widget includes compact graphical usage bars and offers **Minimal**, **Clean** and **Glow** styles.
+
+Hardware monitoring runs asynchronously so that sensor updates do not interfere with wallpaper transitions or the responsiveness of the main application.
+
+### 🌦️ Weather
+
+The Weather widget displays current weather information directly on the desktop.
+
+It can display:
+
+- Current temperature
+- Feels-like temperature
+- Current weather conditions
+- Humidity
+- Precipitation
+- Wind speed
+- Optional 3-day forecast
+
+Weather data is provided by **Open-Meteo** and does not require an API key.
+
+The location can be configured in Settings, and weather information can be refreshed automatically at selectable intervals.
+
+The Weather widget offers **Minimal**, **Clean** and **Glow** styles and can be positioned and locked independently.
+
+### 📅 Calendar
+
+The Calendar widget provides a compact overview of upcoming appointments directly on the desktop.
+
+Calendar data is loaded using read-only **iCalendar / ICS** feeds.
+
+Features include:
+
+- Support for multiple ICS calendar sources
+- Timed appointments
+- All-day events
+- Recurring events
+- Multi-day events
+- Multi-day all-day events are displayed on every affected day
+- Multiple appointments on the same day are grouped together
+- Displays upcoming days that actually contain appointments
+- Empty days are skipped
+- Optional event location display
+- Automatic widget sizing based on displayed appointments
+- Configurable refresh interval
+- **Minimal**, **Clean** and **Glow** styles
+- Independent positioning and locking
+
+Private ICS addresses are stored encrypted using **Windows Data Protection API (DPAPI)** for the current Windows user.
+
+Wallpaper Control only reads calendar feeds and does not modify calendar data.
+
+#### 🎌 Holiday Calendars
+
+Separate ICS sources can be configured as holiday calendars.
+
+Holiday events are visually highlighted and automatically placed before normal appointments on the same day, making public holidays and other special calendar entries easier to recognize.
+
+Multiple normal and holiday calendar sources can be combined in the same Calendar widget.
+
 ### Next Wallpaper
 
 The Next Wallpaper widget provides a compact desktop button for immediately advancing to the next wallpaper.
 
-It can be positioned and locked independently from the clock and uses the same wallpaper switching and transition handling as the main application.
-
-Widget changes are previewed immediately in the settings window. They are permanently applied when the settings are saved. Cancelling the settings restores the previous widget state and position.
+It can be positioned and locked independently from the other widgets and uses the same wallpaper switching and transition handling as the main application.
 
 ## 📊 Statistics
 
@@ -255,19 +334,28 @@ Desktop widget text and date formatting follow the selected application language
 1. Download `WallpaperControl.exe` from the latest release.
 2. Start `WallpaperControl.exe`.
 3. Select your wallpaper folder.
-4. Configure the slideshow, desktop widgets and optional features to your liking.
+4. Configure the slideshow, transition effects, desktop widgets and optional features to your liking.
 
 No installer or separate .NET installation is required.
 
 ## 🔒 Privacy
 
-Wallpaper Control works locally on your computer.
+Wallpaper Control stores its application settings and wallpaper statistics locally on your computer.
 
-It does not require an account, cloud service or online connection to manage your wallpapers.
+No Wallpaper Control account is required.
 
-Wallpaper statistics are stored locally in the user's application data folder.
+Most functionality, including wallpaper management, slideshow control, transitions and statistics, works entirely locally.
 
-Diagnostic logs are also stored locally and are only created when needed for troubleshooting.
+Some optional widgets require an internet connection:
+
+- The **Weather widget** connects to Open-Meteo to retrieve weather information.
+- The **Calendar widget** connects to the configured iCalendar / ICS addresses to retrieve calendar data.
+
+Private ICS addresses configured for the Calendar widget are stored encrypted using the Windows Data Protection API (DPAPI) for the current Windows user.
+
+Calendar access is read-only. Wallpaper Control does not modify appointments or calendar data.
+
+Diagnostic logs are stored locally and are only created when needed for troubleshooting.
 
 ## 🛠️ Built With
 
@@ -275,6 +363,8 @@ Diagnostic logs are also stored locally and are only created when needed for tro
 - .NET 10
 - Windows Forms
 - Native Windows APIs / COM integration
+- Open-Meteo
+- iCalendar / ICS
 
 ## 📄 License
 
