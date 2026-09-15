@@ -17,3 +17,5 @@ Calendar checks use simulated HTTP responses without contacting real feeds. They
 Statistics service checks cover duplicate suppression, day rollover, recurrence, removal, reset, loading saved data, and save triggers. They use a controlled clock and do not modify real user statistics.
 
 Hotkey checks simulate native registration and release calls. They cover disabled combinations, conflicts, swapped combinations, unchanged bindings, cleanup, and labels without taking over real global hotkeys.
+
+Settings checks use a unique temporary key under HKCU\\Software\\WallpaperControl.RegressionTests-<GUID> and remove it afterward. They verify defaults, legacy value types, round trips, bounds, and invalid values without touching production settings.

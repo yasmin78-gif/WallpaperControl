@@ -14,6 +14,7 @@ namespace WallpaperControl
 {
     public class MainForm : Form
     {
+        private readonly AppSettingsStore appSettings = new();
         private readonly List<Font> ownedFonts = new();
         private readonly WidgetManager widgetManager;
 
@@ -196,10 +197,10 @@ namespace WallpaperControl
             MinimizeBox = true;
 
             windowOpacityPercent =
-                LoadWindowOpacityPercent();
+                appSettings.LoadWindowOpacityPercent();
 
             themeMode =
-                LoadThemeMode();
+                appSettings.LoadThemeMode();
 
             Opacity =
                 windowOpacityPercent / 100.0;
@@ -1198,7 +1199,6 @@ namespace WallpaperControl
             trayMenu.ForeColor =
                 foreground;
 
-
             ApplyTitleBarTheme();
             Invalidate(true);
         }
@@ -1606,7 +1606,7 @@ namespace WallpaperControl
                                     folderTextBox.Text =
                                         path;
 
-                                    SaveLastWallpaperFolder(
+                                    appSettings.SaveLastWallpaperFolder(
                                         path);
 
                                     folderFound = true;
@@ -1634,7 +1634,7 @@ namespace WallpaperControl
             if (!folderFound)
             {
                 string? saved =
-                    LoadLastWallpaperFolder();
+                    appSettings.LoadLastWallpaperFolder();
 
                 if (!string.IsNullOrWhiteSpace(
                     saved))
@@ -1921,43 +1921,6 @@ namespace WallpaperControl
         // APP-EIGENE REGISTRY
         // ============================================================
 
-        private void SaveLastWallpaperFolder(
-            string path)
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "LastWallpaperFolder",
-                    path,
-                    RegistryValueKind.String);
-            }
-            catch
-            {
-            }
-        }
-
-        private string? LoadLastWallpaperFolder()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                return key?.GetValue(
-                    "LastWallpaperFolder")
-                    as string;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private void SaveWindowPosition()
         {
             try
@@ -2095,7 +2058,7 @@ namespace WallpaperControl
             // bewusst, weil dieser auf Windows 11 nicht zuverlässig funktioniert.
             if (customSlideshowEngineActive)
             {
-                string? folder = LoadLastWallpaperFolder();
+                string? folder = appSettings.LoadLastWallpaperFolder();
 
                 customSlideshowEngineActive = false;
                 PersistentDesktopTransitionManager.Shutdown();
@@ -2294,7 +2257,7 @@ namespace WallpaperControl
 
             HideWallpaperPreview();
 
-            SaveLastWallpaperFolder(
+            appSettings.SaveLastWallpaperFolder(
                 folder);
 
             SetWallpaperFolder(
@@ -2399,7 +2362,7 @@ namespace WallpaperControl
                 folderTextBox.Text =
                     path;
 
-                SaveLastWallpaperFolder(
+                appSettings.SaveLastWallpaperFolder(
                     path);
 
                 UpdateWallpaperCount();
@@ -2563,7 +2526,7 @@ namespace WallpaperControl
             }
 
             string? folder =
-                LoadLastWallpaperFolder();
+                appSettings.LoadLastWallpaperFolder();
 
             if (string.IsNullOrWhiteSpace(folder))
             {
@@ -3860,7 +3823,6 @@ namespace WallpaperControl
 
             UpdateHistoryButton();
 
-
             BuildHistoryMenu();
 
             if (historyMenu.Items.Count == 0)
@@ -4446,87 +4408,9 @@ namespace WallpaperControl
             }
         }
 
-        private void LoadCloseToTraySetting()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
+        private void LoadCloseToTraySetting() => closeToTrayEnabled = appSettings.LoadCloseToTraySetting();
 
-                object? value =
-                    key?.GetValue(
-                        "CloseToTray");
-
-                closeToTrayEnabled =
-                    value == null ||
-                    Convert.ToInt32(value) != 0;
-            }
-            catch
-            {
-                closeToTrayEnabled = true;
-            }
-        }
-
-        private void SaveCloseToTraySetting(
-            bool enabled)
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "CloseToTray",
-                    enabled ? 1 : 0,
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
-        }
-
-        private void LoadAutomaticUpdateCheckSetting()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                object? value =
-                    key?.GetValue(
-                        "AutomaticUpdateCheck");
-
-                automaticUpdateCheckEnabled =
-                    value == null ||
-                    Convert.ToInt32(value) != 0;
-            }
-            catch
-            {
-                automaticUpdateCheckEnabled = true;
-            }
-        }
-
-        private void SaveAutomaticUpdateCheckSetting(
-            bool enabled)
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "AutomaticUpdateCheck",
-                    enabled ? 1 : 0,
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
-        }
+        private void LoadAutomaticUpdateCheckSetting() => automaticUpdateCheckEnabled = appSettings.LoadAutomaticUpdateCheckSetting();
 
         private async void AutomaticUpdateCheckTimer_Tick(
             object? sender,
@@ -4610,104 +4494,6 @@ namespace WallpaperControl
             finally
             {
                 automaticUpdateCheckRunning = false;
-            }
-        }
-
-        private string LoadThemeMode()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                string? value =
-                    key?.GetValue(
-                        "ThemeMode")
-                    as string;
-
-                return NormalizeThemeMode(
-                    value);
-            }
-            catch
-            {
-                return "system";
-            }
-        }
-
-        private void SaveThemeMode(
-            string value)
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "ThemeMode",
-                    NormalizeThemeMode(value),
-                    RegistryValueKind.String);
-            }
-            catch
-            {
-            }
-        }
-
-        private static string NormalizeThemeMode(
-            string? value)
-        {
-            return value?.Trim().ToLowerInvariant() switch
-            {
-                "dark" => "dark",
-                "light" => "light",
-                _ => "system"
-            };
-        }
-
-        private int LoadWindowOpacityPercent()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                object? value =
-                    key?.GetValue(
-                        "WindowOpacity");
-
-                if (value != null)
-                {
-                    return Math.Clamp(
-                        Convert.ToInt32(value),
-                        80,
-                        100);
-                }
-            }
-            catch
-            {
-            }
-
-            return 92;
-        }
-
-        private void SaveWindowOpacityPercent(
-            int value)
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "WindowOpacity",
-                    Math.Clamp(value, 80, 100),
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
             }
         }
 
@@ -4926,7 +4712,7 @@ namespace WallpaperControl
                 dialog.WidgetSettings;
 
             string newThemeMode =
-                NormalizeThemeMode(
+                AppSettingsStore.NormalizeThemeMode(
                     dialog.ThemeMode);
 
             SaveHotkeySettings();
@@ -4948,7 +4734,7 @@ namespace WallpaperControl
                 closeToTrayEnabled =
                     newCloseToTrayEnabled;
 
-                SaveCloseToTraySetting(
+                appSettings.SaveCloseToTraySetting(
                     closeToTrayEnabled);
             }
 
@@ -4958,7 +4744,7 @@ namespace WallpaperControl
                 automaticUpdateCheckEnabled =
                     newAutomaticUpdateCheckEnabled;
 
-                SaveAutomaticUpdateCheckSetting(
+                appSettings.SaveAutomaticUpdateCheckSetting(
                     automaticUpdateCheckEnabled);
             }
 
@@ -4971,7 +4757,7 @@ namespace WallpaperControl
                 Opacity =
                     windowOpacityPercent / 100.0;
 
-                SaveWindowOpacityPercent(
+                appSettings.SaveWindowOpacityPercent(
                     windowOpacityPercent);
             }
 
@@ -4983,7 +4769,7 @@ namespace WallpaperControl
                 themeMode =
                     newThemeMode;
 
-                SaveThemeMode(
+                appSettings.SaveThemeMode(
                     themeMode);
 
                 ApplyWindowsTheme();
@@ -5225,230 +5011,40 @@ namespace WallpaperControl
 
         private void LoadRejectSettings()
         {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                if (key == null)
-                {
-                    return;
-                }
-
-                string storedRejectRoot =
-                    key.GetValue(
-                        "RejectRootFolder")
-                    as string ?? "";
-
-                rejectRootFolder =
-                    NormalizeRejectRootFolder(storedRejectRoot);
-
-                object? subfolderValue =
-                    key.GetValue(
-                        "RejectUseSubfolder");
-
-                if (subfolderValue != null)
-                {
-                    rejectUseSubfolder =
-                        Convert.ToInt32(
-                            subfolderValue) != 0;
-                }
-            }
-            catch
-            {
-            }
+            var settings = appSettings.LoadRejectSettings();
+            rejectRootFolder = settings.RootFolder;
+            rejectUseSubfolder = settings.UseSubfolder;
         }
 
-        private static string NormalizeRejectRootFolder(
-            string path)
+        private void SaveRejectSettings() => appSettings.SaveRejectSettings(new RejectSettings
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                return string.Empty;
-            }
-
-            try
-            {
-                string trimmed = path.Trim();
-
-                return Path.IsPathFullyQualified(trimmed)
-                    ? Path.GetFullPath(trimmed)
-                    : string.Empty;
-            }
-            catch (Exception ex) when (
-                ex is ArgumentException or
-                NotSupportedException or
-                PathTooLongException)
-            {
-                return string.Empty;
-            }
-        }
-
-        private void SaveRejectSettings()
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "RejectRootFolder",
-                    rejectRootFolder,
-                    RegistryValueKind.String);
-
-                key.SetValue(
-                    "RejectUseSubfolder",
-                    rejectUseSubfolder ? 1 : 0,
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
-        }
+            RootFolder = rejectRootFolder, UseSubfolder = rejectUseSubfolder
+        });
 
         private void LoadHotkeySettings()
         {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        AppRegistryPath);
-
-                if (key == null)
-                {
-                    return;
-                }
-
-                hotkeyNextModifiers =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyNextModifiers",
-                        MOD_CONTROL | MOD_ALT);
-
-                hotkeyNextKey =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyNextKey",
-                        VK_RIGHT);
-
-                hotkeyPauseModifiers =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyPauseModifiers",
-                        MOD_CONTROL | MOD_ALT);
-
-                hotkeyPauseKey =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyPauseKey",
-                        VK_P);
-
-                hotkeyExplorerModifiers =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyExplorerModifiers",
-                        MOD_CONTROL | MOD_ALT);
-
-                hotkeyExplorerKey =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyExplorerKey",
-                        VK_E);
-
-                hotkeyRejectModifiers =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyRejectModifiers",
-                        MOD_CONTROL | MOD_ALT | MOD_SHIFT);
-
-                hotkeyRejectKey =
-                    ReadRegistryUInt(
-                        key,
-                        "HotkeyRejectKey",
-                        VK_R);
-            }
-            catch
-            {
-            }
+            var settings = appSettings.LoadHotkeySettings();
+            hotkeyNextKey = settings.NextKey;
+            hotkeyRejectKey = settings.RejectKey;
+            hotkeyPauseKey = settings.PauseKey;
+            hotkeyRejectModifiers = settings.RejectModifiers;
+            hotkeyNextModifiers = settings.NextModifiers;
+            hotkeyExplorerKey = settings.ExplorerKey;
+            hotkeyExplorerModifiers = settings.ExplorerModifiers;
+            hotkeyPauseModifiers = settings.PauseModifiers;
         }
 
-        private static uint ReadRegistryUInt(
-            RegistryKey key,
-            string name,
-            uint defaultValue)
+        private void SaveHotkeySettings() => appSettings.SaveHotkeySettings(new HotkeySettings
         {
-            object? value =
-                key.GetValue(name);
-
-            if (value == null)
-            {
-                return defaultValue;
-            }
-
-            try
-            {
-                return Convert.ToUInt32(value);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        private void SaveHotkeySettings()
-        {
-            try
-            {
-                using RegistryKey key =
-                    Registry.CurrentUser.CreateSubKey(
-                        AppRegistryPath);
-
-                key.SetValue(
-                    "HotkeyNextModifiers",
-                    hotkeyNextModifiers,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyNextKey",
-                    hotkeyNextKey,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyPauseModifiers",
-                    hotkeyPauseModifiers,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyPauseKey",
-                    hotkeyPauseKey,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyExplorerModifiers",
-                    hotkeyExplorerModifiers,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyExplorerKey",
-                    hotkeyExplorerKey,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyRejectModifiers",
-                    hotkeyRejectModifiers,
-                    RegistryValueKind.DWord);
-
-                key.SetValue(
-                    "HotkeyRejectKey",
-                    hotkeyRejectKey,
-                    RegistryValueKind.DWord);
-            }
-            catch
-            {
-            }
-        }
+            NextKey = hotkeyNextKey,
+            RejectKey = hotkeyRejectKey,
+            PauseKey = hotkeyPauseKey,
+            RejectModifiers = hotkeyRejectModifiers,
+            NextModifiers = hotkeyNextModifiers,
+            ExplorerKey = hotkeyExplorerKey,
+            ExplorerModifiers = hotkeyExplorerModifiers,
+            PauseModifiers = hotkeyPauseModifiers,
+        });
 
         private void LoadTransitionSettings()
         {
