@@ -3028,9 +3028,18 @@ namespace WallpaperControl
 
         internal void ExecuteRemoteCommand(string command)
         {
+            if (IsDisposed || Disposing)
+                return;
+
             if (InvokeRequired)
             {
                 BeginInvoke(() => ExecuteRemoteCommand(command));
+                return;
+            }
+
+            if (string.Equals(command, "show", StringComparison.OrdinalIgnoreCase))
+            {
+                RestoreFromTray();
                 return;
             }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,69 +44,94 @@ namespace WallpaperControl
                 StatisticsDirectory,
                 "statistics.json");
 
-        public static PersistentStatisticsData Load()
+        public static PersistentStatisticsData Load() => Load(StatisticsFilePath);
+
+        internal static PersistentStatisticsData Load(string path)
         {
-            try
+            foreach (string candidate in new[] { path, path + ".bak" })
             {
-                if (!File.Exists(StatisticsFilePath))
+                if (!File.Exists(candidate)) continue;
+                try { return ReadData(candidate); }
+                catch (Exception ex)
                 {
-                    return CreateEmpty();
+                    AppLogger.Warning("Could not load persistent statistics: " + candidate, ex);
+                    if (ex is JsonException)
+                    {
+                        try { PreserveDamagedFile(candidate); }
+                        catch (Exception backupError)
+                        {
+                            AppLogger.Warning("Could not preserve damaged statistics.", backupError);
+                        }
+                    }
                 }
-
-                string json =
-                    File.ReadAllText(
-                        StatisticsFilePath);
-
-                PersistentStatisticsData? data =
-                    JsonSerializer.Deserialize<PersistentStatisticsData>(
-                        json,
-                        JsonOptions);
-
-                if (data == null)
-                {
-                    return CreateEmpty();
-                }
-
-                if (data.StartedAt == default)
-                {
-                    data.StartedAt = DateTime.Now;
-                }
-
-                if (data.DailyTrackingStartedAt == default)
-                {
-                    // Existing statistics.json files from before Stage 3
-                    // have no historical day buckets. Time-based tracking
-                    // therefore starts when this version first loads them.
-                    data.DailyTrackingStartedAt = DateTime.Now;
-                }
-
-                if (data.RecurrenceTrackingStartedAt == default)
-                {
-                    // Existing statistics cannot tell us historical
-                    // recurrence intervals reliably. Stage 5 therefore
-                    // starts measuring them from this first load.
-                    data.RecurrenceTrackingStartedAt = DateTime.Now;
-                }
-
-                data.Wallpapers ??= new();
-
-                foreach (PersistentWallpaperStatistics wallpaper
-                    in data.Wallpapers)
-                {
-                    wallpaper.DailyViews ??= new();
-                }
-
-                return data;
             }
-            catch (Exception ex)
-            {
-                // A damaged statistics file must never prevent
-                // Wallpaper Control from starting.
-                AppLogger.Warning("Could not load persistent statistics.", ex);
-                return CreateEmpty();
-            }
+            return CreateEmpty();
         }
 
+        private static PersistentStatisticsData ReadData(string path)
+        {
+            var data = JsonSerializer.Deserialize<PersistentStatisticsData>(
+                File.ReadAllText(path), JsonOptions)
+                ?? throw new JsonException("Statistics contain null instead of an object.");
+            if (data.StartedAt == default) data.StartedAt = DateTime.Now;
+            if (data.DailyTrackingStartedAt == default) data.DailyTrackingStartedAt = DateTime.Now;
+            if (data.RecurrenceTrackingStartedAt == default) data.RecurrenceTrackingStartedAt = DateTime.Now;
+            data.Wallpapers ??= new();
+            foreach (var wallpaper in data.Wallpapers)
+            {
+                if (wallpaper == null) throw new JsonException("Statistics contain a null wallpaper.");
+                wallpaper.DailyViews ??= new();
+            }
+            return data;
+        }
+
+        private static void PreserveDamagedFile(string path)
+        {
+            File.Move(path, path + ".corrupt-" +
+                DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffffff") + "-" + Guid.NewGuid().ToString("N"));
+        }
+
+        internal static void SaveData(string path, PersistentStatisticsData data)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+            string tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                // Flush the complete new document before replacing the current file.
+                using (var stream = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    JsonSerializer.Serialize(stream, data, JsonOptions);
+                    stream.Flush(true);
+                }
+                if (File.Exists(path))
+                {
+                    try { ReadData(path); }
+                    catch (JsonException) { PreserveDamagedFile(path); }
+                }
+                if (File.Exists(path))
+                {
+                    // Stage the backup as well, so interruption cannot leave a
+                    // partially overwritten backup file.
+                    string backupTemp = tempPath + ".bak";
+                    try
+                    {
+                        File.Copy(path, backupTemp);
+                        File.Move(backupTemp, path + ".bak", true);
+                    }
+                    finally
+                    {
+                        if (File.Exists(backupTemp)) File.Delete(backupTemp);
+                    }
+                    File.Move(tempPath, path, true);
+                }
+                else
+                    File.Move(tempPath, path);
+            }
+            finally
+            {
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+            }
+        }
         public static void Save(
             DateTime startedAt,
             DateTime dailyTrackingStartedAt,
@@ -198,22 +223,7 @@ namespace WallpaperControl
                                 .ToList()
                     };
 
-                string json =
-                    JsonSerializer.Serialize(
-                        data,
-                        JsonOptions);
-
-                string tempPath =
-                    StatisticsFilePath + ".tmp";
-
-                File.WriteAllText(
-                    tempPath,
-                    json);
-
-                File.Move(
-                    tempPath,
-                    StatisticsFilePath,
-                    true);
+                SaveData(StatisticsFilePath, data);
             }
             catch (Exception ex)
             {

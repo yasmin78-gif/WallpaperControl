@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -15,11 +15,23 @@ namespace WallpaperControl
         {
             string? remoteCommand = GetRemoteCommand();
 
-            // A command-line invocation (for example from Rainmeter) first
-            // tries to hand the command to an already running instance.
-            if (remoteCommand != null &&
-                RemoteCommandServer.TrySend(remoteCommand))
+            using SingleInstanceGuard instance = new();
+            if (!instance.IsPrimary)
             {
+                // The first process may still be creating its window and pipe.
+                DateTime deadline = DateTime.UtcNow.AddSeconds(5);
+                do
+                {
+                    if (RemoteCommandServer.TrySend(remoteCommand ?? "show"))
+                        return;
+                    System.Threading.Thread.Sleep(100);
+                } while (DateTime.UtcNow < deadline);
+
+                ApplicationConfiguration.Initialize();
+                Localization.Initialize();
+                MessageBox.Show(
+                    Localization.Get("MsgInstanceNotResponding"),
+                    "Wallpaper Control", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -43,7 +55,9 @@ namespace WallpaperControl
             using RemoteCommandServer remoteServer =
                 new RemoteCommandServer(form.ExecuteRemoteCommand);
 
-            remoteServer.Start();
+            // Start only after the UI handle exists, so remote callbacks can
+            // reliably marshal to the UI thread.
+            form.Shown += (_, _) => remoteServer.Start();
 
             if (Environment.GetCommandLineArgs()
                 .Any(a => string.Equals(

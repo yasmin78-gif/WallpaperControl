@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.Pipes;
 using System.Threading;
@@ -8,16 +8,18 @@ namespace WallpaperControl
 {
     internal sealed class RemoteCommandServer : IDisposable
     {
-        private const string PipeName =
-            "WallpaperControl.RemoteCommands.v1";
+        private static readonly string PipeName =
+            "WallpaperControl.RemoteCommands.v1." + SingleInstanceGuard.UserKey;
 
+        private readonly string pipeName;
         private readonly Action<string> commandHandler;
         private readonly CancellationTokenSource cancellation = new();
         private Task? listenerTask;
 
-        internal RemoteCommandServer(Action<string> commandHandler)
+        internal RemoteCommandServer(Action<string> commandHandler, string? pipeName = null)
         {
             this.commandHandler = commandHandler;
+            this.pipeName = pipeName ?? PipeName;
         }
 
         internal void Start()
@@ -25,13 +27,13 @@ namespace WallpaperControl
             listenerTask = Task.Run(ListenAsync);
         }
 
-        internal static bool TrySend(string command)
+        internal static bool TrySend(string command, string? pipeName = null)
         {
             try
             {
                 using NamedPipeClientStream client = new(
                     ".",
-                    PipeName,
+                    pipeName ?? PipeName,
                     PipeDirection.Out);
 
                 client.Connect(250);
@@ -44,8 +46,9 @@ namespace WallpaperControl
                 writer.WriteLine(command);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not send remote command.", ex);
                 return false;
             }
         }
@@ -57,11 +60,11 @@ namespace WallpaperControl
                 try
                 {
                     using NamedPipeServerStream server = new(
-                        PipeName,
+                        pipeName ?? PipeName,
                         PipeDirection.In,
                         1,
                         PipeTransmissionMode.Byte,
-                        PipeOptions.Asynchronous);
+                        PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
                     await server.WaitForConnectionAsync(
                         cancellation.Token);
@@ -93,7 +96,11 @@ namespace WallpaperControl
         public void Dispose()
         {
             cancellation.Cancel();
-            cancellation.Dispose();
+            // The listener still uses the token until its pending await ends.
+            if (listenerTask == null)
+                cancellation.Dispose();
+            else
+                _ = listenerTask.ContinueWith(_ => cancellation.Dispose(), TaskScheduler.Default);
         }
     }
 }
