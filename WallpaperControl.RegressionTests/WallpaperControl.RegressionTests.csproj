@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Ical.Net" Version="5.2.3" />
+    <Compile Include="../WallpaperControl/Services/IcsCalendarProvider.cs" Link="IcsCalendarProvider.cs" />
+    <Compile Include="../WallpaperControl/Services/ICalendarProvider.cs" Link="ICalendarProvider.cs" />
+    <Compile Include="../WallpaperControl/Models/CalendarEvent.cs" Link="CalendarEvent.cs" />
     <Compile Include="../WallpaperControl/Data/StatisticsStorage.cs" Link="StatisticsStorage.cs" />
     <Compile Include="../WallpaperControl/Services/SingleInstanceGuard.cs" Link="SingleInstanceGuard.cs" />
     <Compile Include="../WallpaperControl/Services/RemoteCommandServer.cs" Link="RemoteCommandServer.cs" />

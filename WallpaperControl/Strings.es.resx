@@ -1052,4 +1052,5 @@ Versión instalada: {0}
     <value>Aceptar</value>
   </data>
   <data name="MsgInstanceNotResponding" xml:space="preserve"><value>Wallpaper Control ya está en ejecución, pero no responde. Vuelve a intentarlo en unos instantes.</value></data>
+  <data name="CalendarStatusStale" xml:space="preserve"><value>Datos quizá desactualizados</value></data>
 </root>

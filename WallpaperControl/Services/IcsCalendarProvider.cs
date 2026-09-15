@@ -12,16 +12,28 @@ namespace WallpaperControl
 {
     internal sealed class IcsCalendarProvider : ICalendarProvider, IDisposable
     {
-        private readonly HttpClient httpClient = new() { Timeout = TimeSpan.FromSeconds(15) };
+        private readonly HttpClient httpClient;
+        private readonly bool ownsHttpClient;
         private readonly SemaphoreSlim refreshLock = new(1, 1);
         private readonly object sync = new();
         private List<CalendarEvent> cachedEvents = new();
+        private Dictionary<CalendarSource, IReadOnlyList<CalendarEvent>> sourceCache = new();
         private List<CalendarSource> sources = new();
         private bool disposed;
 
         public string ProviderName => "iCalendar";
         public string StatusResourceKey { get; private set; } = "CalendarStatusNoSource";
         public DateTime? LastRefresh { get; private set; }
+
+        public IcsCalendarProvider() : this(new HttpClient { Timeout = TimeSpan.FromSeconds(15) })
+        {
+            ownsHttpClient = true;
+        }
+
+        internal IcsCalendarProvider(HttpClient httpClient)
+        {
+            this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        }
 
         public bool SetSource(string? urls) => SetSources(urls, null);
 
@@ -38,6 +50,7 @@ namespace WallpaperControl
                 if (sources.SequenceEqual(normalized)) return false;
                 sources = normalized;
                 cachedEvents.Clear();
+                sourceCache.Clear();
                 LastRefresh = null;
                 StatusResourceKey = normalized.Count == 0 ? "CalendarStatusNoSource" : "CalendarStatusLoading";
                 return true;
@@ -48,28 +61,22 @@ namespace WallpaperControl
         {
             if (disposed) return;
 
-            List<CalendarSource> currentSources;
-            lock (sync) currentSources = sources.ToList();
-
-            if (currentSources.Count == 0)
-            {
-                lock (sync)
-                {
-                    cachedEvents.Clear();
-                    StatusResourceKey = "CalendarStatusNoSource";
-                    LastRefresh = null;
-                }
-                return;
-            }
-
             await refreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                lock (sync) StatusResourceKey = "CalendarStatusLoading";
+                List<CalendarSource> currentSources;
+                Dictionary<CalendarSource, IReadOnlyList<CalendarEvent>> refreshedCache;
+                lock (sync)
+                {
+                    currentSources = sources.ToList();
+                    if (currentSources.Count == 0) return;
+                    refreshedCache = new(sourceCache);
+                    StatusResourceKey = "CalendarStatusLoading";
+                }
 
-                List<CalendarEvent> merged = new();
                 int successCount = 0;
                 int invalidCount = 0;
+                bool hasStaleData = false;
 
                 for (int index = 0; index < currentSources.Count; index++)
                 {
@@ -81,6 +88,7 @@ namespace WallpaperControl
                         (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
                     {
                         invalidCount++;
+                        hasStaleData |= refreshedCache.ContainsKey(calendarSource);
                         continue;
                     }
 
@@ -90,7 +98,8 @@ namespace WallpaperControl
                             uri,
                             calendarSource.IsHoliday ? $"Holiday:{index + 1}" : $"iCalendar {index + 1}",
                             cancellationToken).ConfigureAwait(false);
-                        merged.AddRange(events);
+                        // A successful empty feed replaces old entries too.
+                        refreshedCache[calendarSource] = events;
                         successCount++;
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -99,6 +108,7 @@ namespace WallpaperControl
                     }
                     catch (Exception ex)
                     {
+                        hasStaleData |= refreshedCache.ContainsKey(calendarSource);
                         // Never log the private feed URL. Some networking exceptions include it.
                         AppLogger.Warning(
                             $"iCalendar feed {index + 1} could not be refreshed.",
@@ -110,19 +120,19 @@ namespace WallpaperControl
                 {
                     if (!sources.SequenceEqual(currentSources)) return;
 
+                    sourceCache = refreshedCache;
+                    cachedEvents = refreshedCache.Values.SelectMany(events => events).OrderBy(e => e.Start).ToList();
+
                     if (successCount > 0)
                     {
-                        cachedEvents = merged.OrderBy(e => e.Start).ToList();
                         LastRefresh = DateTime.Now;
                         StatusResourceKey = successCount == currentSources.Count
                             ? "CalendarStatusConnected"
-                            : "CalendarStatusPartial";
+                            : hasStaleData ? "CalendarStatusStale" : "CalendarStatusPartial";
                     }
                     else
                     {
-                        cachedEvents.Clear();
-                        LastRefresh = null;
-                        StatusResourceKey = invalidCount == currentSources.Count
+                        StatusResourceKey = hasStaleData ? "CalendarStatusStale" : invalidCount == currentSources.Count
                             ? "CalendarStatusInvalidAddress"
                             : "CalendarStatusError";
                     }
@@ -256,7 +266,7 @@ namespace WallpaperControl
         {
             if (disposed) return;
             disposed = true;
-            httpClient.Dispose();
+            if (ownsHttpClient) httpClient.Dispose();
             refreshLock.Dispose();
         }
     }

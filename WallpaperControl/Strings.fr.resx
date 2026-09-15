@@ -1052,4 +1052,5 @@ Voulez-vous ouvrir la page de la version ?</value>
     <value>OK</value>
   </data>
   <data name="MsgInstanceNotResponding" xml:space="preserve"><value>Wallpaper Control est déjà lancé, mais ne répond pas. Veuillez réessayer dans un instant.</value></data>
+  <data name="CalendarStatusStale" xml:space="preserve"><value>Données peut-être obsolètes</value></data>
 </root>

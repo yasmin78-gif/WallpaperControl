@@ -1052,4 +1052,5 @@ Möchtest du die Release-Seite öffnen?</value>
     <value>OK</value>
   </data>
   <data name="MsgInstanceNotResponding" xml:space="preserve"><value>Wallpaper Control läuft bereits, antwortet aber gerade nicht. Bitte versuche es gleich noch einmal.</value></data>
+  <data name="CalendarStatusStale" xml:space="preserve"><value>Daten evtl. veraltet</value></data>
 </root>
