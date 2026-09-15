@@ -174,6 +174,8 @@ namespace WallpaperControl
         private bool autostartEnabled = false;
         private bool closeToTrayEnabled = true;
         private bool automaticUpdateCheckEnabled = true;
+        private readonly System.Windows.Forms.Timer automaticUpdateCheckTimer;
+        private bool automaticUpdateCheckRunning = false;
         private bool exitRequested = false;
         private int windowOpacityPercent = 92;
 
@@ -245,6 +247,15 @@ namespace WallpaperControl
                     null,
                     Timeout.Infinite,
                     Timeout.Infinite);
+
+            automaticUpdateCheckTimer =
+                new System.Windows.Forms.Timer
+                {
+                    Interval = (int)TimeSpan.FromHours(24).TotalMilliseconds
+                };
+
+            automaticUpdateCheckTimer.Tick +=
+                AutomaticUpdateCheckTimer_Tick;
 
             RestoreWindowPosition();
 
@@ -910,6 +921,16 @@ namespace WallpaperControl
                     CheckSlideshowStatus();
                 }
             }
+
+            await CheckForUpdatesAutomaticallyAsync();
+
+            if (!IsDisposed)
+            {
+                // Every application start performs its own update check.
+                // While Wallpaper Control remains running, repeat the check
+                // every 24 hours. No timestamp is carried across restarts.
+                automaticUpdateCheckTimer.Start();
+            }
         }
 
         private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
@@ -935,6 +956,12 @@ namespace WallpaperControl
                 wallpaperRefreshTimer.Dispose();
 
                 customSlideshowPreciseTimer.Dispose();
+
+                automaticUpdateCheckTimer.Stop();
+                automaticUpdateCheckTimer.Tick -=
+                    AutomaticUpdateCheckTimer_Tick;
+                automaticUpdateCheckTimer.Dispose();
+
                 toolTip.Dispose();
                 widgetManager.Dispose();
 
@@ -4752,6 +4779,95 @@ namespace WallpaperControl
             }
             catch
             {
+            }
+        }
+
+        private async void AutomaticUpdateCheckTimer_Tick(
+            object? sender,
+            EventArgs e)
+        {
+            await CheckForUpdatesAutomaticallyAsync();
+        }
+
+        private async Task CheckForUpdatesAutomaticallyAsync()
+        {
+            if (!automaticUpdateCheckEnabled ||
+                automaticUpdateCheckRunning ||
+                IsDisposed)
+            {
+                return;
+            }
+
+            automaticUpdateCheckRunning = true;
+
+            try
+            {
+                UpdateCheckResult result;
+
+                try
+                {
+                    using UpdateService updateService = new();
+                    result = await updateService.CheckAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Automatic checks must never interrupt normal use.
+                    AppLogger.Warning(
+                        "Automatic update check failed.",
+                        ex);
+                    return;
+                }
+
+                if (result.Status != UpdateCheckStatus.UpdateAvailable ||
+                    result.LatestVersion == null ||
+                    IsDisposed)
+                {
+                    // Up-to-date and failed automatic checks stay silent.
+                    return;
+                }
+
+                string currentVersion =
+                    result.CurrentVersion.ToString(3);
+                string latestVersion =
+                    result.LatestVersion.ToString(3);
+
+                DialogResult answer = MessageBox.Show(
+                    this,
+                    string.Format(
+                        Localization.Get(
+                            "UpdateCheckAvailableMessage"),
+                        currentVersion,
+                        latestVersion),
+                    string.Format(
+                        Localization.Get(
+                            "UpdateCheckAvailableTitle"),
+                        latestVersion),
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+                if (answer == DialogResult.Yes &&
+                    result.ReleaseUri != null)
+                {
+                    try
+                    {
+                        Process.Start(
+                            new ProcessStartInfo
+                            {
+                                FileName = result.ReleaseUri.AbsoluteUri,
+                                UseShellExecute = true
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        AppLogger.Warning(
+                            "Could not open update release page.",
+                            ex);
+                    }
+                }
+            }
+            finally
+            {
+                automaticUpdateCheckRunning = false;
             }
         }
 
