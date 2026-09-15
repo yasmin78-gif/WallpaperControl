@@ -23,6 +23,7 @@ try
         passed++;
     }
     CalendarTests.Run(Check);
+    StatisticsTests.Run(Check);
     var root = Path.Combine(AppContext.BaseDirectory, "test-data", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(root);
     var path = Path.Combine(root, "statistics.json");

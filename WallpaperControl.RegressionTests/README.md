@@ -13,3 +13,5 @@ The checks use a dedicated temporary statistics directory and unique mutex and p
 Remote command checks cover the 64-character limit, incomplete lines, the two-second read deadline, shutdown cancellation, and listener recovery after idle or oversized input. Test failures are printed to stderr and return exit code 1; they are caught before reaching Windows error reporting.
 
 Calendar checks use simulated HTTP responses without contacting real feeds. They cover full and partial outages, repeated failures, recovery, empty feeds, and source changes.
+
+Statistics service checks cover duplicate suppression, day rollover, recurrence, removal, reset, loading saved data, and save triggers. They use a controlled clock and do not modify real user statistics.

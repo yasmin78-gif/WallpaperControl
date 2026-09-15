@@ -80,36 +80,7 @@ namespace WallpaperControl
         private readonly List<string> wallpaperHistory = new();
         private const int MaxWallpaperHistory = 10;
 
-        private readonly Dictionary<string, int>
-            wallpaperViewCounts =
-                new(StringComparer.OrdinalIgnoreCase);
-
-        private DateTime statisticsStartedAt =
-            DateTime.Now;
-
-        private readonly Dictionary<string, DateTime>
-            wallpaperLastShown =
-                new(StringComparer.OrdinalIgnoreCase);
-
-        private readonly Dictionary<string, Dictionary<string, int>>
-            wallpaperDailyViewCounts =
-                new(StringComparer.OrdinalIgnoreCase);
-
-        private DateTime dailyStatisticsStartedAt =
-            DateTime.Now;
-
-        private readonly Dictionary<string, int>
-            wallpaperRecurrenceCounts =
-                new(StringComparer.OrdinalIgnoreCase);
-
-        private readonly Dictionary<string, double>
-            wallpaperRecurrenceSeconds =
-                new(StringComparer.OrdinalIgnoreCase);
-
-        private DateTime recurrenceStatisticsStartedAt =
-            DateTime.Now;
-
-        private string? lastCountedWallpaperPath;
+        private readonly WallpaperStatistics statistics = new();
 
         private string? lastRejectedSourcePath;
         private string? lastRejectedDestinationPath;
@@ -867,7 +838,7 @@ namespace WallpaperControl
             LoadAutostartState();
             LoadCloseToTraySetting();
             LoadAutomaticUpdateCheckSetting();
-            LoadPersistentStatistics();
+            statistics.Load();
             UpdateCurrentWallpaperDisplay();
             UpdateWallpaperCount();
             ConfigureWallpaperFolderWatcher();
@@ -2136,7 +2107,7 @@ namespace WallpaperControl
                 }
             }
 
-            SavePersistentStatistics();
+            statistics.Save();
 
             base.OnFormClosing(e);
         }
@@ -3459,7 +3430,7 @@ namespace WallpaperControl
                 if (!string.IsNullOrWhiteSpace(path) &&
                     File.Exists(path))
                 {
-                    RecordWallpaperView(path);
+                    statistics.RecordView(path);
                     AddWallpaperToHistory(path);
                 }
 
@@ -3480,120 +3451,6 @@ namespace WallpaperControl
                 exists &&
                 !slideshowPaused &&
                 !customSlideshowChangeRunning;
-        }
-
-        private void LoadPersistentStatistics()
-        {
-            PersistentStatisticsData data =
-                StatisticsStorage.Load();
-
-            statisticsStartedAt =
-                data.StartedAt == default
-                    ? DateTime.Now
-                    : data.StartedAt;
-
-            lastCountedWallpaperPath =
-                string.IsNullOrWhiteSpace(
-                    data.LastCountedWallpaperPath)
-                    ? null
-                    : data.LastCountedWallpaperPath;
-
-            dailyStatisticsStartedAt =
-                data.DailyTrackingStartedAt == default
-                    ? DateTime.Now
-                    : data.DailyTrackingStartedAt;
-
-            recurrenceStatisticsStartedAt =
-                data.RecurrenceTrackingStartedAt == default
-                    ? DateTime.Now
-                    : data.RecurrenceTrackingStartedAt;
-
-            wallpaperViewCounts.Clear();
-            wallpaperLastShown.Clear();
-            wallpaperDailyViewCounts.Clear();
-            wallpaperRecurrenceCounts.Clear();
-            wallpaperRecurrenceSeconds.Clear();
-
-            foreach (PersistentWallpaperStatistics item
-                in data.Wallpapers)
-            {
-                if (string.IsNullOrWhiteSpace(item.Path) ||
-                    item.Views <= 0)
-                {
-                    continue;
-                }
-
-                wallpaperViewCounts[item.Path] =
-                    item.Views;
-
-                if (item.LastShown != default)
-                {
-                    wallpaperLastShown[item.Path] =
-                        item.LastShown;
-                }
-
-                Dictionary<string, int> validDailyCounts =
-                    item.DailyViews
-                        .Where(
-                            entry =>
-                                !string.IsNullOrWhiteSpace(
-                                    entry.Key) &&
-                                entry.Value > 0)
-                        .ToDictionary(
-                            entry => entry.Key,
-                            entry => entry.Value,
-                            StringComparer.Ordinal);
-
-                if (validDailyCounts.Count > 0)
-                {
-                    wallpaperDailyViewCounts[item.Path] =
-                        validDailyCounts;
-                }
-
-                if (item.RecurrenceCount > 0 &&
-                    item.TotalRecurrenceSeconds > 0)
-                {
-                    wallpaperRecurrenceCounts[item.Path] =
-                        item.RecurrenceCount;
-
-                    wallpaperRecurrenceSeconds[item.Path] =
-                        item.TotalRecurrenceSeconds;
-                }
-            }
-        }
-
-        private void SavePersistentStatistics()
-        {
-            StatisticsStorage.Save(
-                statisticsStartedAt,
-                dailyStatisticsStartedAt,
-                wallpaperViewCounts,
-                wallpaperLastShown,
-                wallpaperDailyViewCounts,
-                wallpaperRecurrenceCounts,
-                wallpaperRecurrenceSeconds,
-                recurrenceStatisticsStartedAt,
-                lastCountedWallpaperPath);
-        }
-
-        private void RemoveWallpaperFromStatistics(
-            string path)
-        {
-            wallpaperViewCounts.Remove(path);
-            wallpaperLastShown.Remove(path);
-            wallpaperDailyViewCounts.Remove(path);
-            wallpaperRecurrenceCounts.Remove(path);
-            wallpaperRecurrenceSeconds.Remove(path);
-
-            if (string.Equals(
-                path,
-                lastCountedWallpaperPath,
-                StringComparison.OrdinalIgnoreCase))
-            {
-                lastCountedWallpaperPath = null;
-            }
-
-            SavePersistentStatistics();
         }
 
         private async void SetWallpaperFromStatistics(
@@ -3686,127 +3543,7 @@ namespace WallpaperControl
 
         private void ResetPersistentStatistics()
         {
-            wallpaperViewCounts.Clear();
-            wallpaperLastShown.Clear();
-            wallpaperDailyViewCounts.Clear();
-            wallpaperRecurrenceCounts.Clear();
-            wallpaperRecurrenceSeconds.Clear();
-
-            statisticsStartedAt =
-                DateTime.Now;
-
-            dailyStatisticsStartedAt =
-                statisticsStartedAt;
-
-            recurrenceStatisticsStartedAt =
-                statisticsStartedAt;
-
-            // Nach einem Reset soll die Anzeige wirklich bei 0 beginnen.
-            // Das aktuell sichtbare Wallpaper gilt als bereits vorhanden
-            // und wird erst nach einem echten Wechsel wieder gezählt.
-            lastCountedWallpaperPath =
-                GetCurrentWallpaperPath();
-
-            SavePersistentStatistics();
-        }
-
-        private void RecordWallpaperView(
-            string path)
-        {
-            if (string.Equals(
-                path,
-                lastCountedWallpaperPath,
-                StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            DateTime now =
-                DateTime.Now;
-
-            if (wallpaperLastShown.TryGetValue(
-                    path,
-                    out DateTime previousShown) &&
-                previousShown >= recurrenceStatisticsStartedAt &&
-                now > previousShown)
-            {
-                double recurrenceSeconds =
-                    (now - previousShown).TotalSeconds;
-
-                if (wallpaperRecurrenceCounts.TryGetValue(
-                    path,
-                    out int recurrenceCount))
-                {
-                    wallpaperRecurrenceCounts[path] =
-                        recurrenceCount + 1;
-                }
-                else
-                {
-                    wallpaperRecurrenceCounts[path] = 1;
-                }
-
-                if (wallpaperRecurrenceSeconds.TryGetValue(
-                    path,
-                    out double totalSeconds))
-                {
-                    wallpaperRecurrenceSeconds[path] =
-                        totalSeconds + recurrenceSeconds;
-                }
-                else
-                {
-                    wallpaperRecurrenceSeconds[path] =
-                        recurrenceSeconds;
-                }
-            }
-
-            lastCountedWallpaperPath =
-                path;
-
-            wallpaperLastShown[path] =
-                now;
-
-            if (wallpaperViewCounts.TryGetValue(
-                path,
-                out int count))
-            {
-                wallpaperViewCounts[path] =
-                    count + 1;
-            }
-            else
-            {
-                wallpaperViewCounts[path] = 1;
-            }
-
-            string todayKey =
-                now.ToString(
-                    "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture);
-
-            if (!wallpaperDailyViewCounts.TryGetValue(
-                path,
-                out Dictionary<string, int>? dailyCounts))
-            {
-                dailyCounts =
-                    new Dictionary<string, int>(
-                        StringComparer.Ordinal);
-
-                wallpaperDailyViewCounts[path] =
-                    dailyCounts;
-            }
-
-            if (dailyCounts.TryGetValue(
-                todayKey,
-                out int dailyCount))
-            {
-                dailyCounts[todayKey] =
-                    dailyCount + 1;
-            }
-            else
-            {
-                dailyCounts[todayKey] = 1;
-            }
-
-            SavePersistentStatistics();
+            statistics.Reset(GetCurrentWallpaperPath());
         }
 
         private void CurrentWallpaperLabel_MouseEnter(
@@ -5053,16 +4790,16 @@ namespace WallpaperControl
                 new StatisticsForm(
                     darkMode,
                     windowOpacityPercent,
-                    wallpaperViewCounts,
-                    wallpaperLastShown,
-                    wallpaperDailyViewCounts,
-                    wallpaperRecurrenceCounts,
-                    wallpaperRecurrenceSeconds,
+                    statistics.ViewCounts,
+                    statistics.LastShown,
+                    statistics.DailyViewCounts,
+                    statistics.RecurrenceCounts,
+                    statistics.RecurrenceSeconds,
                     folderTextBox.Text,
-                    statisticsStartedAt,
-                    dailyStatisticsStartedAt,
-                    recurrenceStatisticsStartedAt,
-                    RemoveWallpaperFromStatistics,
+                    statistics.StartedAt,
+                    statistics.DailyStartedAt,
+                    statistics.RecurrenceStartedAt,
+                    statistics.Remove,
                     SetWallpaperFromStatistics,
                     ResetPersistentStatistics);
 
