@@ -1007,4 +1007,39 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsCalendarHolidaySource" xml:space="preserve">
     <value>Holiday calendars (highlighted, one private iCal address per line)</value>
   </data>
+  <data name="SettingsUpdatesTitle" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheck" xml:space="preserve">
+    <value>Automatically check for updates</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheckHint" xml:space="preserve">
+    <value>Checks for new WallpaperControl releases. Updates are never downloaded or installed automatically.</value>
+  </data>
+  <data name="SettingsCheckForUpdatesNow" xml:space="preserve">
+    <value>Check for updates now</value>
+  </data>
+  <data name="UpdateCheckUpToDateTitle" xml:space="preserve">
+    <value>WallpaperControl is up to date</value>
+  </data>
+  <data name="UpdateCheckUpToDateMessage" xml:space="preserve">
+    <value>You are already using the latest version ({0}).</value>
+  </data>
+  <data name="UpdateCheckAvailableTitle" xml:space="preserve">
+    <value>WallpaperControl {0} is available</value>
+  </data>
+  <data name="UpdateCheckAvailableMessage" xml:space="preserve">
+    <value>A new version of WallpaperControl is available.
+
+Installed version: {0}
+Latest version: {1}
+
+Would you like to open the release page?</value>
+  </data>
+  <data name="UpdateCheckFailedTitle" xml:space="preserve">
+    <value>Unable to check for updates</value>
+  </data>
+  <data name="UpdateCheckFailedMessage" xml:space="preserve">
+    <value>WallpaperControl could not check for updates. Please try again later.</value>
+  </data>
 </root>

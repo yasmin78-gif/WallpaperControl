@@ -1007,4 +1007,39 @@ Se eliminarán permanentemente todas las vistas, fechas y clasificaciones anteri
   <data name="SettingsCalendarHolidaySource" xml:space="preserve">
     <value>Calendarios de festivos (resaltados, una dirección iCal privada por línea)</value>
   </data>
+  <data name="SettingsUpdatesTitle" xml:space="preserve">
+    <value>Actualizaciones</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheck" xml:space="preserve">
+    <value>Buscar actualizaciones automáticamente</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheckHint" xml:space="preserve">
+    <value>Busca nuevas versiones de WallpaperControl. Las actualizaciones nunca se descargan ni se instalan automáticamente.</value>
+  </data>
+  <data name="SettingsCheckForUpdatesNow" xml:space="preserve">
+    <value>Buscar actualizaciones ahora</value>
+  </data>
+  <data name="UpdateCheckUpToDateTitle" xml:space="preserve">
+    <value>WallpaperControl está actualizado</value>
+  </data>
+  <data name="UpdateCheckUpToDateMessage" xml:space="preserve">
+    <value>Ya estás usando la versión más reciente ({0}).</value>
+  </data>
+  <data name="UpdateCheckAvailableTitle" xml:space="preserve">
+    <value>WallpaperControl {0} está disponible</value>
+  </data>
+  <data name="UpdateCheckAvailableMessage" xml:space="preserve">
+    <value>Hay una nueva versión de WallpaperControl disponible.
+
+Versión instalada: {0}
+Última versión: {1}
+
+¿Quieres abrir la página de la versión?</value>
+  </data>
+  <data name="UpdateCheckFailedTitle" xml:space="preserve">
+    <value>No se pueden buscar actualizaciones</value>
+  </data>
+  <data name="UpdateCheckFailedMessage" xml:space="preserve">
+    <value>WallpaperControl no pudo buscar actualizaciones. Inténtalo de nuevo más tarde.</value>
+  </data>
 </root>

@@ -173,6 +173,7 @@ namespace WallpaperControl
         private bool restoringFromTray = false;
         private bool autostartEnabled = false;
         private bool closeToTrayEnabled = true;
+        private bool automaticUpdateCheckEnabled = true;
         private bool exitRequested = false;
         private int windowOpacityPercent = 92;
 
@@ -854,6 +855,7 @@ namespace WallpaperControl
             UpdateToolTips();
             LoadAutostartState();
             LoadCloseToTraySetting();
+            LoadAutomaticUpdateCheckSetting();
             LoadPersistentStatistics();
             UpdateCurrentWallpaperDisplay();
             UpdateWallpaperCount();
@@ -4712,6 +4714,47 @@ namespace WallpaperControl
             }
         }
 
+        private void LoadAutomaticUpdateCheckSetting()
+        {
+            try
+            {
+                using RegistryKey? key =
+                    Registry.CurrentUser.OpenSubKey(
+                        AppRegistryPath);
+
+                object? value =
+                    key?.GetValue(
+                        "AutomaticUpdateCheck");
+
+                automaticUpdateCheckEnabled =
+                    value == null ||
+                    Convert.ToInt32(value) != 0;
+            }
+            catch
+            {
+                automaticUpdateCheckEnabled = true;
+            }
+        }
+
+        private void SaveAutomaticUpdateCheckSetting(
+            bool enabled)
+        {
+            try
+            {
+                using RegistryKey key =
+                    Registry.CurrentUser.CreateSubKey(
+                        AppRegistryPath);
+
+                key.SetValue(
+                    "AutomaticUpdateCheck",
+                    enabled ? 1 : 0,
+                    RegistryValueKind.DWord);
+            }
+            catch
+            {
+            }
+        }
+
         private string LoadThemeMode()
         {
             try
@@ -4940,6 +4983,7 @@ namespace WallpaperControl
                     rejectUseSubfolder,
                     autostartEnabled,
                     closeToTrayEnabled,
+                    automaticUpdateCheckEnabled,
                     windowOpacityPercent,
                     originalWidgetSettings,
                     previewSettings =>
@@ -5014,6 +5058,9 @@ namespace WallpaperControl
             bool newCloseToTrayEnabled =
                 dialog.CloseToTrayEnabled;
 
+            bool newAutomaticUpdateCheckEnabled =
+                dialog.AutomaticUpdateCheckEnabled;
+
             int newWindowOpacityPercent =
                 dialog.WindowOpacityPercent;
 
@@ -5045,6 +5092,16 @@ namespace WallpaperControl
 
                 SaveCloseToTraySetting(
                     closeToTrayEnabled);
+            }
+
+            if (newAutomaticUpdateCheckEnabled !=
+                automaticUpdateCheckEnabled)
+            {
+                automaticUpdateCheckEnabled =
+                    newAutomaticUpdateCheckEnabled;
+
+                SaveAutomaticUpdateCheckSetting(
+                    automaticUpdateCheckEnabled);
             }
 
             if (newWindowOpacityPercent !=

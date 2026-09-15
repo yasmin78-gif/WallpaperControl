@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using Microsoft.Win32;
@@ -31,6 +32,8 @@ namespace WallpaperControl
         private readonly CheckBox rejectSubfolderCheckBox;
         private readonly CheckBox autostartCheckBox;
         private readonly CheckBox closeToTrayCheckBox;
+        private readonly CheckBox automaticUpdateCheckCheckBox;
+        private readonly Button checkForUpdatesButton;
         private readonly ComboBox languageComboBox;
         private readonly ComboBox themeComboBox;
         private readonly TrackBar opacityTrackBar;
@@ -102,6 +105,7 @@ namespace WallpaperControl
         public bool RejectUseSubfolder { get; private set; } = true;
         public bool AutostartEnabled { get; private set; }
         public bool CloseToTrayEnabled { get; private set; } = true;
+        public bool AutomaticUpdateCheckEnabled { get; private set; } = true;
         public int WindowOpacityPercent { get; private set; } = 80;
         public string ThemeMode { get; private set; } = "system";
         public WidgetSettings WidgetSettings { get; private set; } = new();
@@ -172,6 +176,7 @@ namespace WallpaperControl
             bool rejectUseSubfolder,
             bool autostartEnabled,
             bool closeToTrayEnabled,
+            bool automaticUpdateCheckEnabled,
             int windowOpacityPercent,
             WidgetSettings widgetSettings,
             Action<WidgetSettings>? widgetPreviewChanged = null)
@@ -594,6 +599,65 @@ namespace WallpaperControl
                         closeToTrayEnabled
                 };
 
+            Label updatesTitleLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsUpdatesTitle",
+                            previewLanguageCode),
+                    Tag = "SettingsUpdatesTitle",
+                    Location = new Point(18, 154),
+                    AutoSize = true,
+                    Font = CreateOwnedFont(
+                        "Segoe UI",
+                        11,
+                        FontStyle.Bold)
+                };
+
+            automaticUpdateCheckCheckBox =
+                new CheckBox
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsAutomaticUpdateCheck",
+                            previewLanguageCode),
+                    Tag = "SettingsAutomaticUpdateCheck",
+                    Location = new Point(18, 194),
+                    AutoSize = true,
+                    Checked = automaticUpdateCheckEnabled
+                };
+
+            Label updateCheckHintLabel =
+                new Label
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsAutomaticUpdateCheckHint",
+                            previewLanguageCode),
+                    Tag = "SettingsAutomaticUpdateCheckHint",
+                    Location = new Point(38, 224),
+                    Size = new Size(650, 42),
+                    Font = CreateOwnedFont(
+                        "Segoe UI",
+                        8.25f)
+                };
+
+            checkForUpdatesButton =
+                new Button
+                {
+                    Text =
+                        Localization.Get(
+                            "SettingsCheckForUpdatesNow",
+                            previewLanguageCode),
+                    Tag = "SettingsCheckForUpdatesNow",
+                    Location = new Point(18, 278),
+                    Size = new Size(210, 36)
+                };
+
+            checkForUpdatesButton.Click +=
+                CheckForUpdatesButton_Click;
+
             rejectPage.Controls.Add(
                 rejectTitleLabel);
 
@@ -620,6 +684,18 @@ namespace WallpaperControl
 
             generalPage.Controls.Add(
                 closeToTrayCheckBox);
+
+            generalPage.Controls.Add(
+                updatesTitleLabel);
+
+            generalPage.Controls.Add(
+                automaticUpdateCheckCheckBox);
+
+            generalPage.Controls.Add(
+                updateCheckHintLabel);
+
+            generalPage.Controls.Add(
+                checkForUpdatesButton);
 
             // ==========================================================
             // DARSTELLUNG
@@ -1711,6 +1787,109 @@ namespace WallpaperControl
             UpdateWidgetsNavigationLayout();
         }
 
+        private async void CheckForUpdatesButton_Click(
+            object? sender,
+            EventArgs e)
+        {
+            checkForUpdatesButton.Enabled = false;
+
+            try
+            {
+                using UpdateService updateService = new();
+                UpdateCheckResult result =
+                    await updateService.CheckAsync();
+
+                string currentVersion =
+                    result.CurrentVersion.ToString(3);
+
+                if (result.Status == UpdateCheckStatus.UpToDate)
+                {
+                    MessageBox.Show(
+                        this,
+                        string.Format(
+                            Localization.Get(
+                                "UpdateCheckUpToDateMessage",
+                                previewLanguageCode),
+                            currentVersion),
+                        Localization.Get(
+                            "UpdateCheckUpToDateTitle",
+                            previewLanguageCode),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+
+                if (result.Status == UpdateCheckStatus.UpdateAvailable &&
+                    result.LatestVersion != null)
+                {
+                    string latestVersion =
+                        result.LatestVersion.ToString(3);
+
+                    DialogResult answer = MessageBox.Show(
+                        this,
+                        string.Format(
+                            Localization.Get(
+                                "UpdateCheckAvailableMessage",
+                                previewLanguageCode),
+                            currentVersion,
+                            latestVersion),
+                        string.Format(
+                            Localization.Get(
+                                "UpdateCheckAvailableTitle",
+                                previewLanguageCode),
+                            latestVersion),
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Information);
+
+                    if (answer == DialogResult.Yes &&
+                        result.ReleaseUri != null)
+                    {
+                        Process.Start(
+                            new ProcessStartInfo
+                            {
+                                FileName = result.ReleaseUri.AbsoluteUri,
+                                UseShellExecute = true
+                            });
+                    }
+
+                    return;
+                }
+
+                MessageBox.Show(
+                    this,
+                    Localization.Get(
+                        "UpdateCheckFailedMessage",
+                        previewLanguageCode),
+                    Localization.Get(
+                        "UpdateCheckFailedTitle",
+                        previewLanguageCode),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Warning(
+                    "Manual update check failed.",
+                    ex);
+
+                MessageBox.Show(
+                    this,
+                    Localization.Get(
+                        "UpdateCheckFailedMessage",
+                        previewLanguageCode),
+                    Localization.Get(
+                        "UpdateCheckFailedTitle",
+                        previewLanguageCode),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                if (!IsDisposed)
+                    checkForUpdatesButton.Enabled = true;
+            }
+        }
+
         private void RejectRootBrowseButton_Click(
             object? sender,
             EventArgs e)
@@ -2461,6 +2640,7 @@ namespace WallpaperControl
             rejectSubfolderCheckBox.Checked = true;
             autostartCheckBox.Checked = false;
             closeToTrayCheckBox.Checked = true;
+            automaticUpdateCheckCheckBox.Checked = true;
 
             ResetAppearanceSettings();
 
@@ -2831,6 +3011,9 @@ namespace WallpaperControl
 
             CloseToTrayEnabled =
                 closeToTrayCheckBox.Checked;
+
+            AutomaticUpdateCheckEnabled =
+                automaticUpdateCheckCheckBox.Checked;
 
             WindowOpacityPercent =
                 opacityTrackBar.Value;

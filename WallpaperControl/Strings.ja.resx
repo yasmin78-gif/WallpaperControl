@@ -979,4 +979,39 @@
   <data name="SettingsCalendarHolidaySource" xml:space="preserve">
     <value>祝日カレンダー（強調表示、1行に1つの非公開iCalアドレス）</value>
   </data>
+  <data name="SettingsUpdatesTitle" xml:space="preserve">
+    <value>アップデート</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheck" xml:space="preserve">
+    <value>アップデートを自動的に確認する</value>
+  </data>
+  <data name="SettingsAutomaticUpdateCheckHint" xml:space="preserve">
+    <value>WallpaperControl の新しいリリースを確認します。アップデートが自動的にダウンロードまたはインストールされることはありません。</value>
+  </data>
+  <data name="SettingsCheckForUpdatesNow" xml:space="preserve">
+    <value>今すぐアップデートを確認</value>
+  </data>
+  <data name="UpdateCheckUpToDateTitle" xml:space="preserve">
+    <value>WallpaperControl は最新です</value>
+  </data>
+  <data name="UpdateCheckUpToDateMessage" xml:space="preserve">
+    <value>すでに最新バージョン（{0}）を使用しています。</value>
+  </data>
+  <data name="UpdateCheckAvailableTitle" xml:space="preserve">
+    <value>WallpaperControl {0} が利用可能です</value>
+  </data>
+  <data name="UpdateCheckAvailableMessage" xml:space="preserve">
+    <value>WallpaperControl の新しいバージョンが利用可能です。
+
+インストール済み: {0}
+最新バージョン: {1}
+
+リリースページを開きますか？</value>
+  </data>
+  <data name="UpdateCheckFailedTitle" xml:space="preserve">
+    <value>アップデートを確認できません</value>
+  </data>
+  <data name="UpdateCheckFailedMessage" xml:space="preserve">
+    <value>WallpaperControl はアップデートを確認できませんでした。後でもう一度お試しください。</value>
+  </data>
 </root>
