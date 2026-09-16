@@ -314,7 +314,7 @@ namespace WallpaperControl
             settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 536);
             UpdateWidgetsNavigationLayout();
 
-            tabControl.SelectedTab = hotkeysPage;
+            tabControl.SelectedTab = generalPage;
             UpdateSettingsNavigationSelection();
             tabControl.SelectedIndexChanged += (_, _) => UpdateSettingsNavigationSelection();
 
