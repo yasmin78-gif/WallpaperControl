@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace WallpaperControl
@@ -13,24 +11,24 @@ namespace WallpaperControl
         private readonly Action<Point> locationChanged;
         private readonly ToolTip toolTip;
         private bool locked;
+        private SystemWidgetStyle style;
         private bool hover;
         private bool dragging;
         private bool moved;
         private Point dragMouseStart;
         private Point dragFormStart;
         private const int WS_EX_LAYERED = 0x00080000;
-        private const byte AC_SRC_OVER = 0x00;
-        private const byte AC_SRC_ALPHA = 0x01;
-        private const int ULW_ALPHA = 0x00000002;
 
         public NextWidgetForm(
             bool locked,
+            SystemWidgetStyle style,
             string languageCode,
             Point location,
             Action next,
             Action<Point> locationChanged)
         {
             this.locked = locked;
+            this.style = Enum.IsDefined(style) ? style : SystemWidgetStyle.Minimal;
             this.next = next;
             this.locationChanged = locationChanged;
 
@@ -98,10 +96,13 @@ namespace WallpaperControl
             }
         }
 
-        public void Apply(bool isLocked, string languageCode)
+        /// <summary>Applies preview or saved preferences and redraws the selected style immediately.</summary>
+        public void Apply(bool isLocked, SystemWidgetStyle newStyle, string languageCode)
         {
             locked = isLocked;
+            style = Enum.IsDefined(newStyle) ? newStyle : SystemWidgetStyle.Minimal;
             UpdateToolTip(languageCode);
+            RenderLayeredWindow();
         }
 
         private void UpdateToolTip(string languageCode)
@@ -123,188 +124,16 @@ namespace WallpaperControl
             base.Dispose(disposing);
         }
 
+        /// <summary>Renders the current style and hover state without altering click or drag handling.</summary>
         private void RenderLayeredWindow()
         {
-            if (!IsHandleCreated || IsDisposed)
-            {
-                return;
-            }
+            if (!IsHandleCreated || IsDisposed) return;
 
-            using Bitmap bitmap =
-                new Bitmap(
-                    ClientSize.Width,
-                    ClientSize.Height,
-                    PixelFormat.Format32bppPArgb);
-
+            using Bitmap bitmap = new(ClientSize.Width, ClientSize.Height, PixelFormat.Format32bppPArgb);
             using (Graphics graphics = Graphics.FromImage(bitmap))
-            {
-                graphics.Clear(Color.Transparent);
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.CompositingMode = CompositingMode.SourceOver;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphics.TextRenderingHint =
-                    System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                NextWidgetRenderer.Draw(graphics, ClientSize, style, hover);
 
-                // Same geometry and opacity as the Rainmeter button.
-                RectangleF rect = new RectangleF(0.5f, 0.5f, 51.0f, 51.0f);
-                using GraphicsPath path = RoundedRectangle(rect, 12.0f);
-
-                Color fillColor = hover
-                    ? Color.FromArgb(210, 55, 55, 55)
-                    : Color.FromArgb(150, 20, 20, 20);
-
-                Color borderColor = hover
-                    ? Color.FromArgb(100, 255, 255, 255)
-                    : Color.FromArgb(45, 255, 255, 255);
-
-                using SolidBrush fill = new SolidBrush(fillColor);
-                using Pen border = new Pen(borderColor, 1.0f);
-
-                graphics.FillPath(fill, path);
-                graphics.DrawPath(border, path);
-
-                using Font font =
-                    new Font(
-                        "Segoe UI Symbol",
-                        22,
-                        FontStyle.Regular,
-                        GraphicsUnit.Point);
-
-                using SolidBrush text =
-                    new SolidBrush(
-                        Color.FromArgb(
-                            230,
-                            235,
-                            235,
-                            235));
-
-                using StringFormat format = new StringFormat
-                {
-                    Alignment = StringAlignment.Center,
-                    LineAlignment = StringAlignment.Center,
-                    FormatFlags = StringFormatFlags.NoWrap
-                };
-
-                // Rainmeter's CenterCenter sits visually a touch higher than
-                // GDI+ DrawString's mathematical centre.
-                RectangleF textBounds =
-                    new RectangleF(
-                        0,
-                        -1,
-                        ClientSize.Width,
-                        ClientSize.Height);
-
-                graphics.DrawString(
-                    "❯",
-                    font,
-                    text,
-                    textBounds,
-                    format);
-            }
-
-            UpdateLayeredBitmap(bitmap);
-        }
-
-        private void UpdateLayeredBitmap(Bitmap bitmap)
-        {
-            IntPtr screenDc = GetDC(IntPtr.Zero);
-            IntPtr memoryDc = CreateCompatibleDC(screenDc);
-            IntPtr bitmapHandle = IntPtr.Zero;
-            IntPtr oldBitmap = IntPtr.Zero;
-
-            try
-            {
-                bitmapHandle = bitmap.GetHbitmap(Color.FromArgb(0));
-                oldBitmap = SelectObject(memoryDc, bitmapHandle);
-
-                NativePoint source = new NativePoint(0, 0);
-                NativePoint destination =
-                    new NativePoint(Left, Top);
-                NativeSize size =
-                    new NativeSize(bitmap.Width, bitmap.Height);
-
-                BlendFunction blend = new BlendFunction
-                {
-                    BlendOp = AC_SRC_OVER,
-                    BlendFlags = 0,
-                    SourceConstantAlpha = 255,
-                    AlphaFormat = AC_SRC_ALPHA
-                };
-
-                UpdateLayeredWindow(
-                    Handle,
-                    screenDc,
-                    ref destination,
-                    ref size,
-                    memoryDc,
-                    ref source,
-                    0,
-                    ref blend,
-                    ULW_ALPHA);
-            }
-            finally
-            {
-                if (oldBitmap != IntPtr.Zero)
-                {
-                    SelectObject(memoryDc, oldBitmap);
-                }
-
-                if (bitmapHandle != IntPtr.Zero)
-                {
-                    DeleteObject(bitmapHandle);
-                }
-
-                if (memoryDc != IntPtr.Zero)
-                {
-                    DeleteDC(memoryDc);
-                }
-
-                if (screenDc != IntPtr.Zero)
-                {
-                    ReleaseDC(IntPtr.Zero, screenDc);
-                }
-            }
-        }
-
-        private static GraphicsPath RoundedRectangle(
-            RectangleF rectangle,
-            float radius)
-        {
-            float diameter = radius * 2.0f;
-            GraphicsPath path = new GraphicsPath();
-
-            path.AddArc(
-                rectangle.Left,
-                rectangle.Top,
-                diameter,
-                diameter,
-                180,
-                90);
-            path.AddArc(
-                rectangle.Right - diameter,
-                rectangle.Top,
-                diameter,
-                diameter,
-                270,
-                90);
-            path.AddArc(
-                rectangle.Right - diameter,
-                rectangle.Bottom - diameter,
-                diameter,
-                diameter,
-                0,
-                90);
-            path.AddArc(
-                rectangle.Left,
-                rectangle.Bottom - diameter,
-                diameter,
-                diameter,
-                90,
-                90);
-            path.CloseFigure();
-
-            return path;
+            LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
         private void BeginPointer(
@@ -370,75 +199,5 @@ namespace WallpaperControl
             dragging = false;
             DesktopWidgetNative.KeepOnDesktop(this);
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativePoint
-        {
-            public int X;
-            public int Y;
-
-            public NativePoint(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativeSize
-        {
-            public int Width;
-            public int Height;
-
-            public NativeSize(int width, int height)
-            {
-                Width = width;
-                Height = height;
-            }
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        private struct BlendFunction
-        {
-            public byte BlendOp;
-            public byte BlendFlags;
-            public byte SourceConstantAlpha;
-            public byte AlphaFormat;
-        }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetDC(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDc);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateCompatibleDC(IntPtr hDc);
-
-        [DllImport("gdi32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool DeleteDC(IntPtr hDc);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr SelectObject(
-            IntPtr hDc,
-            IntPtr hObject);
-
-        [DllImport("gdi32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool DeleteObject(IntPtr hObject);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UpdateLayeredWindow(
-            IntPtr hWnd,
-            IntPtr hDcDestination,
-            ref NativePoint destination,
-            ref NativeSize size,
-            IntPtr hDcSource,
-            ref NativePoint source,
-            int colorKey,
-            ref BlendFunction blend,
-            int flags);
     }
 }

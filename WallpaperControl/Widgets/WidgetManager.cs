@@ -44,6 +44,7 @@ namespace WallpaperControl
             settings.ClockLanguageCode = previewSettings.ClockLanguageCode;
             settings.NextEnabled = previewSettings.NextEnabled;
             settings.NextLocked = previewSettings.NextLocked;
+            settings.NextStyle = previewSettings.NextStyle;
             settings.SystemEnabled = previewSettings.SystemEnabled;
             settings.SystemLocked = previewSettings.SystemLocked;
             settings.SystemRefreshSeconds = previewSettings.SystemRefreshSeconds;
@@ -177,6 +178,7 @@ namespace WallpaperControl
                 {
                     nextWidget = new NextWidgetForm(
                         effectiveNextLocked,
+                        target.NextStyle,
                         target.ClockLanguageCode,
                         target.NextLocation,
                         next,
@@ -200,6 +202,7 @@ namespace WallpaperControl
                 {
                     nextWidget.Apply(
                         effectiveNextLocked,
+                        target.NextStyle,
                         target.ClockLanguageCode);
 
                     if (restoreLocations)

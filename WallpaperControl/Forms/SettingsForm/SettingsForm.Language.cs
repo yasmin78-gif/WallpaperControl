@@ -105,6 +105,7 @@ namespace WallpaperControl
                 RefreshClockStyleChoices(GetSelectedClockStyle());
                 RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle());
+                RefreshNextStyleChoices(GetSelectedNextStyle());
                 RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
 
                 SetComboValues(

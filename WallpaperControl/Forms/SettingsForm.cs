@@ -33,6 +33,7 @@ namespace WallpaperControl
             RefreshClockStyleChoices(ClockWidgetStyle.Chrome);
             nextWidgetEnabledCheckBox.Checked = false;
             nextWidgetLockedCheckBox.Checked = false;
+            RefreshNextStyleChoices(SystemWidgetStyle.Minimal);
             systemWidgetEnabledCheckBox.Checked = false;
             systemWidgetLockedCheckBox.Checked = false;
             systemWidgetRefreshComboBox.SelectedIndex = 1;

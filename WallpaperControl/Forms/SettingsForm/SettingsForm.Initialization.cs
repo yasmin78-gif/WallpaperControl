@@ -857,7 +857,7 @@ namespace WallpaperControl
                 Text = Localization.Get("SettingsClockEnabled", previewLanguageCode),
                 Tag = "SettingsClockEnabled",
                 Location = new Point(18, 370),
-                Size = new Size(500, 150)
+                Size = new Size(500, 190)
             };
 
             clockEnabledCheckBox = new CheckBox
@@ -953,6 +953,23 @@ namespace WallpaperControl
 
             nextOptions.Controls.Add(nextWidgetEnabledCheckBox);
             nextOptions.Controls.Add(nextWidgetLockedCheckBox);
+
+            Label nextStyleLabel = new Label
+            {
+                Text = Localization.Get("SettingsSystemStyle", previewLanguageCode),
+                Tag = "SettingsSystemStyle",
+                Location = new Point(18, 114),
+                AutoSize = true
+            };
+            nextWidgetStyleComboBox = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(180, 110),
+                Size = new Size(220, 28)
+            };
+            RefreshNextStyleChoices(initialWidgetSettings.NextStyle);
+            nextOptions.Controls.Add(nextStyleLabel);
+            nextOptions.Controls.Add(nextWidgetStyleComboBox);
 
             #endregion
 
@@ -1446,6 +1463,7 @@ namespace WallpaperControl
             };
             nextWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             nextWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+            nextWidgetStyleComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
             systemWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             systemWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             systemWidgetRefreshComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();

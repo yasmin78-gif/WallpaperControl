@@ -18,6 +18,7 @@ namespace WallpaperControl
         public Point ClockLocation { get; set; } = new(40, 40);
         public bool NextEnabled { get; set; }
         public bool NextLocked { get; set; }
+        public SystemWidgetStyle NextStyle { get; set; } = SystemWidgetStyle.Minimal;
         public Point NextLocation { get; set; } = new(40, 330);
         public bool SystemEnabled { get; set; }
         public bool SystemLocked { get; set; }
@@ -47,12 +48,13 @@ namespace WallpaperControl
         public string CalendarHolidayIcsUrl { get; set; } = string.Empty;
         public Point CalendarLocation { get; set; } = new(740, 400);
 
-        public static WidgetSettings Load()
+        /// <summary>Loads widget preferences; an alternate registry path isolates persistence tests.</summary>
+        public static WidgetSettings Load(string registryPath = RegistryPath)
         {
             WidgetSettings result = new();
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RegistryPath);
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
 
                 result.ClockEnabled = ReadBool(key, "ClockWidgetEnabled", false);
@@ -64,6 +66,7 @@ namespace WallpaperControl
                 result.ClockLocation = new Point(ReadInt(key, "ClockWidgetX", 40), ReadInt(key, "ClockWidgetY", 40));
                 result.NextEnabled = ReadBool(key, "NextWidgetEnabled", false);
                 result.NextLocked = ReadBool(key, "NextWidgetLocked", false);
+                result.NextStyle = ReadSystemStyle(key, "NextWidgetStyle", SystemWidgetStyle.Minimal);
                 result.NextLocation = new Point(ReadInt(key, "NextWidgetX", 40), ReadInt(key, "NextWidgetY", 330));
                 result.SystemEnabled = ReadBool(key, "SystemWidgetEnabled", false);
                 result.SystemLocked = ReadBool(key, "SystemWidgetLocked", false);
@@ -104,11 +107,12 @@ namespace WallpaperControl
             return result;
         }
 
-        public void Save()
+        /// <summary>Saves widget preferences to the application key or an explicitly supplied test key.</summary>
+        public void Save(string registryPath = RegistryPath)
         {
             try
             {
-                using RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryPath);
+                using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
                 key.SetValue("ClockWidgetEnabled", ClockEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetLocked", ClockLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetSize", Math.Clamp(ClockSize, 70, 240), RegistryValueKind.DWord);
@@ -118,6 +122,7 @@ namespace WallpaperControl
                 key.SetValue("ClockWidgetY", ClockLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetEnabled", NextEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetLocked", NextLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("NextWidgetStyle", (int)NextStyle, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetX", NextLocation.X, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetY", NextLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetEnabled", SystemEnabled ? 1 : 0, RegistryValueKind.DWord);
@@ -168,6 +173,7 @@ namespace WallpaperControl
             ClockLocation = ClockLocation,
             NextEnabled = NextEnabled,
             NextLocked = NextLocked,
+            NextStyle = NextStyle,
             NextLocation = NextLocation,
             SystemEnabled = SystemEnabled,
             SystemLocked = SystemLocked,

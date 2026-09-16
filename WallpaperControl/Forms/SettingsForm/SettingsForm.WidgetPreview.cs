@@ -29,6 +29,7 @@ namespace WallpaperControl
             preview.ClockLanguageCode = previewLanguageCode;
             preview.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             preview.NextLocked = nextWidgetLockedCheckBox.Checked;
+            preview.NextStyle = GetSelectedNextStyle();
             preview.SystemEnabled = systemWidgetEnabledCheckBox.Checked;
             preview.SystemLocked = systemWidgetLockedCheckBox.Checked;
             preview.SystemRefreshSeconds = GetSystemRefreshSeconds();

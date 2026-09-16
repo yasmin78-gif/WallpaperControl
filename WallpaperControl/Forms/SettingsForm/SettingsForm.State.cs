@@ -70,6 +70,7 @@ namespace WallpaperControl
         // Widget page controls
         private readonly CheckBox nextWidgetEnabledCheckBox;
         private readonly CheckBox nextWidgetLockedCheckBox;
+        private readonly ComboBox nextWidgetStyleComboBox;
         private readonly CheckBox systemWidgetEnabledCheckBox;
         private readonly CheckBox systemWidgetLockedCheckBox;
         private readonly ComboBox systemWidgetRefreshComboBox;

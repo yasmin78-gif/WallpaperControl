@@ -15,6 +15,7 @@
 | `SettingsForm.Appearance.cs` | Theme, opacity, Windows theme notifications, and native title-bar styling. |
 | `SettingsForm.Language.cs` | Available languages and localized dialog previews. |
 | `SettingsForm.ClockPage.cs` | Clock style selection and synchronization with preview cards. |
+| `SettingsForm.NextPage.cs` | Next-wallpaper widget styles: Minimal, Clean, and Glow. |
 | `SettingsForm.SystemPage.cs` | System-widget styles, module checkboxes, and refresh intervals. |
 | `SettingsForm.WeatherPage.cs` | Weather-widget styles and refresh intervals. |
 | `SettingsForm.CalendarPage.cs` | Calendar styles, event counts, and refresh intervals. |
@@ -22,7 +23,7 @@
 | `SettingsForm.ClockPreview.cs` | Custom clock-style cards and clock sample drawing. |
 | `SettingsForm.Choices.cs` | Small selector types pairing stable values with display labels. |
 
-General preferences and the next-wallpaper widget have no separate conversion logic: their controls are built in `Initialization`, previewed in `WidgetPreview`, and accepted by `SaveAndClose` in the main file.
+General preference controls are built in `Initialization` and accepted by `SaveAndClose` in the main file. Widget options are collected by `ReadWidgetSettings` in `WidgetPreview` for both preview and acceptance.
 
 ## Preserve these contracts
 
@@ -32,6 +33,7 @@ General preferences and the next-wallpaper widget have no separate conversion lo
 - Live previews operate on cloned widget settings. The caller (`MainForm.Settings.cs`) cancels or commits the preview after `ShowDialog` returns. Do not persist preview changes directly from page handlers.
 - `ReadWidgetSettings` is the single mapping from controls to widget options. Its explicit `applySaveDefaults` argument preserves the empty weather-location difference: previews keep an empty string; saving uses `Karlsruhe`.
 - Shared widget style choices are populated by `RefreshWidgetStyleChoices` in `Choices`. Theme normalization is owned by `AppSettingsStore`, and Windows theme/native title-bar operations by `WindowsTheme`.
+- The next-wallpaper widget defaults to Minimal to retain its original appearance on existing installations. Its selected style survives localization, preview, save, and cancellation; resetting defaults selects Minimal.
 - `SaveAndClose` retains its validation order and only closes with `DialogResult.OK` after successful validation. The caller reads the accepted public values only for that result.
 - Keep the preview-language and preview-theme recursion guards when rebuilding selectors.
 - Widget preview notifications are connected after their controls exist. The additional `Shown` notification restores widget interaction after modal dialog startup.

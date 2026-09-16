@@ -19,7 +19,7 @@ internal static class SharedUiTests
         Exception? failure = null;
         Thread thread = new(() =>
         {
-            try { CheckSettings(check); CheckImages(check); CheckDrawing(check); CheckDragging(check); }
+            try { CheckSettings(check); CheckNextStyles(check); CheckImages(check); CheckDrawing(check); CheckDragging(check); }
             catch (Exception ex) { failure = ex; }
         });
         thread.SetApartmentState(ApartmentState.STA);
@@ -72,6 +72,7 @@ internal static class SharedUiTests
             ("calendarMaxEntriesComboBox", "CalendarMaxEntries", 1, 5)
         }) { Control<ComboBox>(form, field).SelectedIndex = index; expected[property] = value; }
         foreach (var (field, property) in new[] { ("clockStyleComboBox", "ClockStyle"),
+            ("nextWidgetStyleComboBox", "NextStyle"),
             ("systemWidgetStyleComboBox", "SystemStyle"), ("weatherWidgetStyleComboBox", "WeatherStyle"),
             ("calendarWidgetStyleComboBox", "CalendarStyle") })
         {
@@ -98,6 +99,71 @@ internal static class SharedUiTests
             "Empty weather locations retain distinct preview and save behavior");
         check((string?)Control<TabControl>(form, "settingsTabControl").SelectedTab?.Tag == "SettingsNavGeneral",
             "Settings still open on General");
+    }
+
+    /// <summary>Checks next-widget style persistence, settings previews, reset behavior, and distinct rendering.</summary>
+    private static void CheckNextStyles(Action<bool, string> check)
+    {
+        object Style(int value) => Enum.ToObject(Type("SystemWidgetStyle"), value);
+        string registryPath = @"Software\WallpaperControl.RegressionTests-" + Guid.NewGuid().ToString("N");
+        try
+        {
+            object settings = Call("WidgetSettings", "Load", registryPath)!;
+            check(Convert.ToInt32(Value(settings, "NextStyle")) == 0, "Existing installations retain the original Minimal next-widget style");
+            bool roundTrip = true;
+            for (int style = 0; style < 3; style++)
+            {
+                Set(settings, "NextStyle", Style(style));
+                settings.GetType().GetMethod("Save")!.Invoke(settings, new object[] { registryPath });
+                object loaded = Call("WidgetSettings", "Load", registryPath)!;
+                object clone = settings.GetType().GetMethod("Clone")!.Invoke(settings, null)!;
+                roundTrip &= Convert.ToInt32(Value(loaded, "NextStyle")) == style && Convert.ToInt32(Value(clone, "NextStyle")) == style;
+            }
+            check(roundTrip, "All next-widget styles survive save, load, and cloning");
+            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(registryPath, writable: true)!)
+            {
+                key.SetValue("NextWidgetStyle", 99);
+                check(Convert.ToInt32(Value(Call("WidgetSettings", "Load", registryPath)!, "NextStyle")) == 0,
+                    "Invalid saved next-widget styles fall back to Minimal");
+                key.SetValue("NextWidgetStyle", "invalid");
+                check(Convert.ToInt32(Value(Call("WidgetSettings", "Load", registryPath)!, "NextStyle")) == 0,
+                    "Malformed next-widget styles fall back safely");
+            }
+        }
+        finally { Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(registryPath, throwOnMissingSubKey: false); }
+
+        object initial = Activator.CreateInstance(Type("WidgetSettings"))!;
+        Set(initial, "NextStyle", Style(1));
+        var previews = new List<object>();
+        Action<object> capture = value => previews.Add(value);
+        Delegate callback = Delegate.CreateDelegate(typeof(Action<>).MakeGenericType(Type("WidgetSettings")), capture.Target, capture.Method);
+        using Form form = (Form)Activator.CreateInstance(Type("SettingsForm"),
+            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, initial, callback)!;
+        var selector = Control<ComboBox>(form, "nextWidgetStyleComboBox");
+        check(selector.Items.Count == 3 && selector.SelectedIndex == 1, "Next-widget selector restores the saved style");
+        previews.Clear();
+        selector.SelectedIndex = 2;
+        object read = form.GetType().GetMethod("ReadWidgetSettings", Methods)!.Invoke(form, new object[] { true })!;
+        check(previews.Count > 0 && Convert.ToInt32(Value(previews.Last(), "NextStyle")) == 2 && Convert.ToInt32(Value(read, "NextStyle")) == 2,
+            "Next-widget style changes reach both live preview and accepted settings");
+        form.GetType().GetMethod("ApplyPreviewLocalization", Methods)!.Invoke(form, new object[] { "en" });
+        check(selector.SelectedIndex == 2, "Changing preview language preserves the next-widget style");
+        form.GetType().GetMethod("ResetAllSettings", Methods)!.Invoke(form, null);
+        check(selector.SelectedIndex == 0 && Convert.ToInt32(Value(initial, "NextStyle")) == 1,
+            "Restoring defaults selects Minimal without mutating the original settings");
+
+        var normalColors = new List<int>();
+        for (int style = 0; style < 3; style++)
+        {
+            using Bitmap normal = new(52, 52, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+            using Bitmap hover = new(52, 52, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+            using (Graphics g = Graphics.FromImage(normal)) Call("NextWidgetRenderer", "Draw", g, normal.Size, Style(style), false);
+            using (Graphics g = Graphics.FromImage(hover)) Call("NextWidgetRenderer", "Draw", g, hover.Size, Style(style), true);
+            normalColors.Add(normal.GetPixel(8, 26).ToArgb());
+            check(normal.GetPixel(0, 0).A == 0 && hover.GetPixel(8, 26).A > normal.GetPixel(8, 26).A,
+                $"Next-widget style {style} retains transparent corners and visible hover feedback");
+        }
+        check(normalColors.Distinct().Count() == 3, "Minimal, Clean, and Glow render distinct next-widget surfaces");
     }
 
     /// <summary>Checks accepted extensions and real image metadata without touching wallpaper files.</summary>
