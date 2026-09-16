@@ -247,12 +247,20 @@ namespace WallpaperControl
             }
 
             stopwatch.Restart();
-            animationTimer.Start();
+            if (activitySuspended) stopwatch.Stop();
+            if (!activitySuspended) animationTimer.Start();
             Invalidate(true);
 
             return source.Task;
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            activitySuspended = suspended;
+            if (suspended) { animationTimer.Stop(); stopwatch.Stop(); }
+            else if (completionSource != null) { stopwatch.Start(); animationTimer.Start(); }
+        }
         private void AnimationTimer_Tick(object? sender, EventArgs e)
         {
             progress = Math.Clamp(

@@ -1055,4 +1055,7 @@ Would you like to open the release page?</value>
   <data name="CalendarStatusStale" xml:space="preserve"><value>Data may be outdated</value></data>
   <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Current wallpaper</value></data>
   <data name="MainDirectionHeading" xml:space="preserve"><value>Direction</value></data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Automatically pause for fullscreen apps</value></data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Pauses wallpaper changes, animations and widget updates when a foreground app fills a monitor. Resumes after leaving fullscreen; manual pauses are preserved.</value></data>
+  <data name="StatusFullscreenPaused" xml:space="preserve"><value>Auto-paused: fullscreen active</value></data>
 </root>

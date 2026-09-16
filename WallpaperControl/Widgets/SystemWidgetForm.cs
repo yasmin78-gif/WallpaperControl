@@ -96,7 +96,7 @@ namespace WallpaperControl
         {
             base.OnShown(e);
             RefreshSnapshot();
-            timer.Start();
+            if (!activitySuspended) timer.Start();
         }
 
         public void Apply(
@@ -126,7 +126,7 @@ namespace WallpaperControl
                 ClientSize = newSize;
             }
 
-            if (Visible && !timer.Enabled) timer.Start();
+            if (Visible && !timer.Enabled && !activitySuspended) timer.Start();
             if (IsHandleCreated && !IsDisposed) RenderLayeredWindow();
         }
 
@@ -144,7 +144,7 @@ namespace WallpaperControl
 
         private async void RefreshSnapshot()
         {
-            if (refreshInProgress || disposingWidget || IsDisposed)
+            if (activitySuspended || refreshInProgress || disposingWidget || IsDisposed)
                 return;
 
             refreshInProgress = true;
@@ -154,7 +154,7 @@ namespace WallpaperControl
                 // Sample it on a worker thread so wallpaper transition timers stay smooth.
                 SystemMonitorSnapshot nextSnapshot = await Task.Run(monitor.Sample);
 
-                if (disposingWidget || IsDisposed || !IsHandleCreated)
+                if (activitySuspended || disposingWidget || IsDisposed || !IsHandleCreated)
                     return;
 
                 snapshot = nextSnapshot;
@@ -176,7 +176,7 @@ namespace WallpaperControl
 
         private void RenderLayeredWindow()
         {
-            if (!IsHandleCreated || IsDisposed) return;
+            if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
             using Bitmap bitmap = new(ClientSize.Width, ClientSize.Height, PixelFormat.Format32bppPArgb);
             using (Graphics g = Graphics.FromImage(bitmap))
@@ -436,6 +436,14 @@ namespace WallpaperControl
             locationChanged(Location);
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            if (activitySuspended == suspended || IsDisposed) return;
+            activitySuspended = suspended;
+            if (suspended) timer.Stop(); else timer.Start();
+            if (!suspended) RefreshSnapshot();
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

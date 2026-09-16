@@ -131,6 +131,16 @@ namespace WallpaperControl
         private bool darkMode;
         private string themeMode = "system";
         private bool slideshowPaused = false;
+        private readonly FullscreenPausePolicy fullscreenPolicy = new();
+        private bool pauseOnFullscreen;
+        private bool fullscreenUpdateRunning;
+        private bool nativeSlideshowAutoPaused;
+        private IShellItemArray? fullscreenSavedSlideshow;
+        private DesktopSlideshowOptions fullscreenSavedOptions;
+        private uint fullscreenSavedInterval;
+        private bool deferredUpdateCheck;
+        private bool deferredWallpaperCount;
+        private CancellationTokenSource? automaticUpdateCancellation;
         // Phase 1: Wallpaper Control übernimmt die zeitliche Steuerung selbst.
         // Windows bleibt nur noch für die eigentliche Wallpaper-Darstellung zuständig.
         private bool customSlideshowEngineActive = false;
@@ -182,6 +192,7 @@ namespace WallpaperControl
 
         public MainForm()
         {
+            pauseOnFullscreen = appSettings.LoadPauseOnFullscreen();
             widgetManager = new WidgetManager(() =>
                 AdvanceWallpaper(DesktopSlideshowDirection.Forward));
 
@@ -774,8 +785,10 @@ namespace WallpaperControl
                 };
 
             wallpaperRefreshTimer.Tick +=
-                (_, _) =>
+                async (_, _) =>
                 {
+                    await UpdateFullscreenPauseAsync();
+                    if (fullscreenPolicy.IsPaused || IsDisposed) return;
                     UpdateCurrentWallpaperDisplay();
                     UpdateWallpaperPositionDisplay();
                 };
@@ -794,6 +807,7 @@ namespace WallpaperControl
                 (_, _) =>
                 {
                     wallpaperCountDebounceTimer.Stop();
+                    if (fullscreenPolicy.IsPaused) { deferredWallpaperCount = true; return; }
                     UpdateWallpaperCount();
                 };
 
@@ -875,6 +889,13 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            await UpdateFullscreenPauseAsync();
+            while (fullscreenPolicy.IsPaused && !IsDisposed)
+            {
+                await Task.Delay(1000);
+                await UpdateFullscreenPauseAsync();
+            }
+            if (IsDisposed) return;
             // Initialize the persistent desktop renderer before the first
             // wallpaper transition, so Explorer/DWM's one-time taskbar refresh
             // happens during startup instead of inside the first wipe.
@@ -928,6 +949,13 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                if (nativeSlideshowAutoPaused && !slideshowPaused)
+                {
+                    try { RestoreNativeSlideshowAfterFullscreen(); }
+                    catch (Exception ex) { AppLogger.Warning("Could not restore Windows slideshow on exit.", ex); }
+                }
+                ReleaseComObject(fullscreenSavedSlideshow);
+                fullscreenSavedSlideshow = null;
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
 
@@ -942,6 +970,7 @@ namespace WallpaperControl
                 customSlideshowPreciseTimer.Dispose();
 
                 automaticUpdateCheckTimer.Stop();
+                automaticUpdateCancellation?.Cancel();
                 automaticUpdateCheckTimer.Tick -=
                     AutomaticUpdateCheckTimer_Tick;
                 automaticUpdateCheckTimer.Dispose();
@@ -1286,8 +1315,95 @@ namespace WallpaperControl
         // STATUS
         // ============================================================
 
+        private async Task UpdateFullscreenPauseAsync()
+        {
+            if (fullscreenUpdateRunning || IsDisposed) return;
+            fullscreenUpdateRunning = true;
+            try
+            {
+                if (!fullscreenPolicy.Update(pauseOnFullscreen,
+                    pauseOnFullscreen && FullscreenActivityDetector.IsFullscreenActive(), DateTime.UtcNow)) return;
+                bool paused = fullscreenPolicy.IsPaused;
+                widgetManager.SetActivitySuspended(paused);
+                PersistentDesktopTransitionManager.SetActivitySuspended(paused);
+                if (paused)
+                {
+                    if (automaticUpdateCheckRunning)
+                    {
+                        deferredUpdateCheck = true;
+                        automaticUpdateCancellation?.Cancel();
+                    }
+                    wallpaperPreviewForm.Hide();
+                    customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    // The fallback Windows slideshow also needs to stop. Keep this
+                    // separate from the user's manual pause state.
+                    if (!customSlideshowEngineActive && !slideshowPaused && IsSlideshowCurrentlyActive())
+                    {
+                        string? path = GetCurrentWallpaperPath();
+                        if (!string.IsNullOrWhiteSpace(path))
+                        {
+                            IDesktopWallpaper? wallpaper = null;
+                            try
+                            {
+                                wallpaper = (IDesktopWallpaper)new DesktopWallpaper();
+                                wallpaper.GetSlideshow(out var items);
+                                ReleaseComObject(fullscreenSavedSlideshow);
+                                fullscreenSavedSlideshow = items;
+                                wallpaper.GetSlideshowOptions(out fullscreenSavedOptions, out fullscreenSavedInterval);
+                                wallpaper.SetWallpaper(null, path);
+                                nativeSlideshowAutoPaused = true;
+                            }
+                            finally { ReleaseComObject(wallpaper); }
+                        }
+                    }
+                }
+                else
+                {
+                    if (nativeSlideshowAutoPaused && !slideshowPaused)
+                    {
+                        if (fullscreenSavedSlideshow != null) RestoreNativeSlideshowAfterFullscreen();
+                        else await ResumeSlideshowAsync(showError: false);
+                    }
+                    nativeSlideshowAutoPaused = false;
+                    ReleaseComObject(fullscreenSavedSlideshow);
+                    fullscreenSavedSlideshow = null;
+                    if (customSlideshowEngineActive && !slideshowPaused)
+                        RecalculateCustomSlideshowSchedule();
+                    if (deferredWallpaperCount)
+                    {
+                        deferredWallpaperCount = false;
+                        UpdateWallpaperCount();
+                    }
+                    if (deferredUpdateCheck) _ = CheckForUpdatesAutomaticallyAsync();
+                }
+                CheckSlideshowStatus();
+            }
+            catch (Exception ex) { AppLogger.Warning("Could not update fullscreen pause state.", ex); }
+            finally { fullscreenUpdateRunning = false; }
+        }
+        private void RestoreNativeSlideshowAfterFullscreen()
+        {
+            if (fullscreenSavedSlideshow == null) return;
+            IDesktopWallpaper? wallpaper = null;
+            try
+            {
+                wallpaper = (IDesktopWallpaper)new DesktopWallpaper();
+                wallpaper.SetSlideshow(fullscreenSavedSlideshow);
+                wallpaper.SetSlideshowOptions(fullscreenSavedOptions, fullscreenSavedInterval);
+                nativeSlideshowAutoPaused = false;
+            }
+            finally { ReleaseComObject(wallpaper); }
+        }
+
         private void CheckSlideshowStatus()
         {
+            if (fullscreenPolicy.IsPaused)
+            {
+                ShowPausedStatus();
+                statusLabel.Text = Localization.Get("StatusFullscreenPaused");
+                pauseButton.Text = Localization.Get(slideshowPaused ? "ResumeSlideshow" : "PauseSlideshow");
+                return;
+            }
             // Die eigene Engine ist absichtlich kein Windows-Slideshow-Status.
             // Für die Oberfläche gilt sie trotzdem als aktive Diashow.
             if (customSlideshowEngineActive && !slideshowPaused)
@@ -2701,7 +2817,7 @@ namespace WallpaperControl
             if (loading)
                 return;
 
-            if (slideshowPaused)
+            if (slideshowPaused || fullscreenPolicy.IsPaused)
                 return;
 
             ApplySlideshowOptions();
@@ -2719,7 +2835,7 @@ namespace WallpaperControl
             if (loading)
                 return;
 
-            if (slideshowPaused)
+            if (slideshowPaused || fullscreenPolicy.IsPaused)
                 return;
 
             ApplySlideshowOptions();
@@ -2859,6 +2975,8 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            await UpdateFullscreenPauseAsync();
+            if (fullscreenPolicy.IsPaused) return false;
             if (slideshowPaused)
                 return false;
 
@@ -2971,7 +3089,7 @@ namespace WallpaperControl
         private void ArmCustomSlideshowPreciseTimer()
         {
             if (!customSlideshowEngineActive ||
-                slideshowPaused ||
+                !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowNextChange == DateTime.MaxValue)
             {
                 customSlideshowPreciseTimer.Change(
@@ -3024,8 +3142,9 @@ namespace WallpaperControl
 
         private void ProcessPreciseCustomSlideshowTick()
         {
+            _ = UpdateFullscreenPauseAsync();
             if (!customSlideshowEngineActive ||
-                slideshowPaused ||
+                !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowChangeRunning)
             {
                 ArmCustomSlideshowPreciseTimer();
@@ -3111,6 +3230,8 @@ namespace WallpaperControl
         private async Task<bool> AdvanceCustomWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            await UpdateFullscreenPauseAsync();
+            if (fullscreenPolicy.IsPaused) return false;
             if (customSlideshowChangeRunning)
                 return false;
 
@@ -3957,7 +4078,7 @@ namespace WallpaperControl
 
         private async Task RejectCurrentWallpaperAsync()
         {
-            if (slideshowPaused)
+            if (slideshowPaused || fullscreenPolicy.IsPaused)
                 return;
 
             string? path =
@@ -4283,6 +4404,12 @@ namespace WallpaperControl
 
         private async Task CheckForUpdatesAutomaticallyAsync()
         {
+            if (pauseOnFullscreen && (fullscreenPolicy.IsPaused || FullscreenActivityDetector.IsFullscreenActive()))
+            {
+                deferredUpdateCheck = true;
+                return;
+            }
+            deferredUpdateCheck = false;
             if (!automaticUpdateCheckEnabled ||
                 automaticUpdateCheckRunning ||
                 IsDisposed)
@@ -4299,7 +4426,14 @@ namespace WallpaperControl
                 try
                 {
                     using UpdateService updateService = new();
-                    result = await updateService.CheckAsync();
+                    using var cancellation = new CancellationTokenSource();
+                    automaticUpdateCancellation = cancellation;
+                    try { result = await updateService.CheckAsync(cancellation.Token); }
+                    finally { automaticUpdateCancellation = null; }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
                 }
                 catch (Exception ex)
                 {
@@ -4318,6 +4452,11 @@ namespace WallpaperControl
                     return;
                 }
 
+                if (pauseOnFullscreen && (fullscreenPolicy.IsPaused || FullscreenActivityDetector.IsFullscreenActive()))
+                {
+                    deferredUpdateCheck = true;
+                    return;
+                }
                 string currentVersion =
                     result.CurrentVersion.ToString(3);
                 string latestVersion =
@@ -4490,6 +4629,7 @@ namespace WallpaperControl
                     autostartEnabled,
                     closeToTrayEnabled,
                     automaticUpdateCheckEnabled,
+                    pauseOnFullscreen,
                     windowOpacityPercent,
                     originalWidgetSettings,
                     previewSettings =>
@@ -4577,6 +4717,9 @@ namespace WallpaperControl
                 AppSettingsStore.NormalizeThemeMode(
                     dialog.ThemeMode);
 
+            pauseOnFullscreen = dialog.PauseOnFullscreen;
+            appSettings.SavePauseOnFullscreen(pauseOnFullscreen);
+            _ = UpdateFullscreenPauseAsync();
             SaveHotkeySettings();
             SaveRejectSettings();
 

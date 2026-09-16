@@ -93,7 +93,7 @@ namespace WallpaperControl
         {
             base.OnShown(e);
             await RefreshWeatherAsync();
-            timer.Start();
+            if (!activitySuspended) timer.Start();
         }
 
         public void Apply(
@@ -120,7 +120,7 @@ namespace WallpaperControl
             if (Size != newSize)
                 ClientSize = newSize;
 
-            if (Visible && !timer.Enabled) timer.Start();
+            if (Visible && !timer.Enabled && !activitySuspended) timer.Start();
             if (IsHandleCreated && !IsDisposed) RenderLayeredWindow();
 
             if (mustRefresh && Visible && IsHandleCreated)
@@ -129,7 +129,7 @@ namespace WallpaperControl
 
         private async Task RefreshWeatherAsync()
         {
-            if (IsDisposed)
+            if (activitySuspended || IsDisposed)
                 return;
 
             CancellationTokenSource cts = new();
@@ -181,7 +181,7 @@ namespace WallpaperControl
 
         private void RenderLayeredWindow()
         {
-            if (!IsHandleCreated || IsDisposed) return;
+            if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
             using Bitmap bitmap = new(ClientSize.Width, ClientSize.Height, PixelFormat.Format32bppPArgb);
             using (Graphics g = Graphics.FromImage(bitmap))
@@ -432,6 +432,14 @@ namespace WallpaperControl
             locationChanged(Location);
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            if (activitySuspended == suspended || IsDisposed) return;
+            activitySuspended = suspended;
+            if (suspended) timer.Stop(); else timer.Start();
+            if (suspended) refreshCts?.Cancel(); else _ = RefreshWeatherAsync();
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

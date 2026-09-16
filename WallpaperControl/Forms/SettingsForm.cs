@@ -33,6 +33,7 @@ namespace WallpaperControl
         private readonly CheckBox autostartCheckBox;
         private readonly CheckBox closeToTrayCheckBox;
         private readonly CheckBox automaticUpdateCheckCheckBox;
+        private readonly CheckBox pauseOnFullscreenCheckBox;
         private readonly Button checkForUpdatesButton;
         private readonly ComboBox languageComboBox;
         private readonly ComboBox themeComboBox;
@@ -105,6 +106,7 @@ namespace WallpaperControl
         public bool RejectUseSubfolder { get; private set; } = true;
         public bool AutostartEnabled { get; private set; }
         public bool CloseToTrayEnabled { get; private set; } = true;
+        public bool PauseOnFullscreen { get; private set; } = true;
         public bool AutomaticUpdateCheckEnabled { get; private set; } = true;
         public int WindowOpacityPercent { get; private set; } = 80;
         public string ThemeMode { get; private set; } = "system";
@@ -177,6 +179,7 @@ namespace WallpaperControl
             bool autostartEnabled,
             bool closeToTrayEnabled,
             bool automaticUpdateCheckEnabled,
+            bool pauseOnFullscreen,
             int windowOpacityPercent,
             WidgetSettings widgetSettings,
             Action<WidgetSettings>? widgetPreviewChanged = null)
@@ -654,6 +657,23 @@ namespace WallpaperControl
                     Location = new Point(18, 278),
                     Size = new Size(210, 36)
                 };
+
+            pauseOnFullscreenCheckBox = new CheckBox
+            {
+                Text = Localization.Get("SettingsPauseOnFullscreen", previewLanguageCode),
+                Tag = "SettingsPauseOnFullscreen",
+                Location = new Point(18, 346), Size = new Size(650, 30),
+                Checked = pauseOnFullscreen
+            };
+            var fullscreenHint = new Label
+            {
+                Text = Localization.Get("SettingsPauseOnFullscreenHint", previewLanguageCode),
+                Tag = "SettingsPauseOnFullscreenHint",
+                Location = new Point(38, 380), Size = new Size(650, 62),
+                Font = CreateOwnedFont("Segoe UI", 8.25f)
+            };
+            generalPage.Controls.Add(pauseOnFullscreenCheckBox);
+            generalPage.Controls.Add(fullscreenHint);
 
             checkForUpdatesButton.Click +=
                 CheckForUpdatesButton_Click;
@@ -2629,6 +2649,7 @@ namespace WallpaperControl
             autostartCheckBox.Checked = false;
             closeToTrayCheckBox.Checked = true;
             automaticUpdateCheckCheckBox.Checked = true;
+            pauseOnFullscreenCheckBox.Checked = true;
 
             ResetAppearanceSettings();
 
@@ -3000,6 +3021,7 @@ namespace WallpaperControl
             CloseToTrayEnabled =
                 closeToTrayCheckBox.Checked;
 
+            PauseOnFullscreen = pauseOnFullscreenCheckBox.Checked;
             AutomaticUpdateCheckEnabled =
                 automaticUpdateCheckCheckBox.Checked;
 

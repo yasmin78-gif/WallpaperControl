@@ -58,7 +58,7 @@ namespace WallpaperControl
                 Interval = 1000
             };
             timer.Tick += (_, _) => Invalidate();
-            timer.Start();
+            if (!activitySuspended) timer.Start();
         }
 
         protected override bool ShowWithoutActivation => true;
@@ -550,6 +550,14 @@ namespace WallpaperControl
             DesktopWidgetNative.KeepOnDesktop(this);
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            if (activitySuspended == suspended || IsDisposed) return;
+            activitySuspended = suspended;
+            if (suspended) timer.Stop(); else timer.Start();
+            if (!suspended) Invalidate();
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

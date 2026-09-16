@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -95,6 +95,14 @@ namespace WallpaperControl
             RefreshCalendar();
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            if (activitySuspended == suspended || IsDisposed) return;
+            activitySuspended = suspended;
+            if (suspended) refreshTimer.Stop(); else refreshTimer.Start();
+            if (suspended) refreshCancellation?.Cancel(); else { var previous = refreshCancellation; refreshCancellation = new CancellationTokenSource(); previous?.Dispose(); RefreshCalendar(); }
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -127,7 +135,7 @@ namespace WallpaperControl
             refreshMinutes = Math.Clamp(newRefreshMinutes, 15, 120);
             languageCode = string.IsNullOrWhiteSpace(newLanguageCode) ? Localization.CurrentLanguage : newLanguageCode;
             refreshTimer.Interval = refreshMinutes * 60 * 1000;
-            if (IsHandleCreated && !refreshTimer.Enabled) refreshTimer.Start();
+            if (IsHandleCreated && !refreshTimer.Enabled && !activitySuspended) refreshTimer.Start();
 
             // Final height depends on how many appointments occur on the selected
             // occupied days and is calculated by RenderLayeredWindow().
@@ -140,7 +148,7 @@ namespace WallpaperControl
 
         private void RenderLayeredWindow()
         {
-            if (!IsHandleCreated || IsDisposed) return;
+            if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
             IReadOnlyList<CalendarEvent> entries = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
             int occupiedDays = entries.Select(e => e.Start.Date).Distinct().Count();
@@ -267,7 +275,7 @@ namespace WallpaperControl
 
         public async void RefreshCalendar()
         {
-            if (IsDisposed) return;
+            if (activitySuspended || IsDisposed) return;
 
             CancellationTokenSource? cancellation = Volatile.Read(ref refreshCancellation);
             if (cancellation == null) return;

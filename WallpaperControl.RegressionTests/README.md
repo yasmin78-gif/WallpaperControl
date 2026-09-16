@@ -21,3 +21,5 @@ Hotkey checks simulate native registration and release calls. They cover disable
 Settings checks use a unique temporary key under HKCU\\Software\\WallpaperControl.RegressionTests-<GUID> and remove it afterward. They verify defaults, legacy value types, round trips, bounds, and invalid values without touching production settings.
 
 Transition checks include legacy numeric indices, named effects, duration fallback, and direction/zoom persistence. Position checks cover negative coordinates, invalid values, and the existing visibility threshold for disconnected monitors.
+
+Fullscreen tests cover monitor bounds (including secondary monitors), automatic pause state, Alt-Tab grace periods, manual pause preservation, and persisted opt-out. Native foreground detection, rendering suspension, and actual game frame times still need a desktop smoke test.

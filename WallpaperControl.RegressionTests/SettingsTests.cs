@@ -11,6 +11,10 @@ internal static class SettingsTests
         var store = new AppSettingsStore(path);
         try
         {
+            check(store.LoadPauseOnFullscreen(), "Fullscreen pause is enabled by default");
+            store.SavePauseOnFullscreen(false);
+            check(!store.LoadPauseOnFullscreen(), "Fullscreen pause preference persists");
+            store.SavePauseOnFullscreen(true);
             check(store.LoadCloseToTraySetting() && store.LoadAutomaticUpdateCheckSetting() &&
                 store.LoadThemeMode() == "system" && store.LoadWindowOpacityPercent() == 92 &&
                 store.LoadLastWallpaperFolder() == null,

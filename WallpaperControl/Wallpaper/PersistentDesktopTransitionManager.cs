@@ -7,6 +7,7 @@ namespace WallpaperControl
     internal static class PersistentDesktopTransitionManager
     {
         private static PersistentDesktopWallpaperHost? persistentHost;
+        private static bool activitySuspended;
         private static DesktopWallpaperPosition wallpaperPosition =
             DesktopWallpaperPosition.Fill;
 
@@ -28,6 +29,7 @@ namespace WallpaperControl
 
             persistentHost =
                 new PersistentDesktopWallpaperHost();
+            persistentHost.SetActivitySuspended(activitySuspended);
             persistentHost.SetWallpaperPosition(wallpaperPosition);
 
             if (!persistentHost.Initialize(
@@ -90,6 +92,11 @@ namespace WallpaperControl
             // So bleibt Windows' eigener Fade vollständig außen vor.
         }
 
+        internal static void SetActivitySuspended(bool suspended)
+        {
+            activitySuspended = suspended;
+            persistentHost?.SetActivitySuspended(suspended);
+        }
         public static void SetWallpaperPosition(DesktopWallpaperPosition position)
         {
             wallpaperPosition = position;

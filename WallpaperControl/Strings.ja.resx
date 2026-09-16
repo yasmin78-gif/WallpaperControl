@@ -1027,4 +1027,7 @@
   <data name="CalendarStatusStale" xml:space="preserve"><value>情報が古い可能性があります</value></data>
   <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>現在の壁紙</value></data>
   <data name="MainDirectionHeading" xml:space="preserve"><value>方向</value></data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>全画面アプリの使用中は自動的に一時停止</value></data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>前面のアプリが画面全体を占める間、壁紙の切り替え、アニメーション、ウィジェットの更新を停止します。終了後に再開しますが、手動の一時停止は維持されます。</value></data>
+  <data name="StatusFullscreenPaused" xml:space="preserve"><value>自動一時停止：全画面表示中</value></data>
 </root>

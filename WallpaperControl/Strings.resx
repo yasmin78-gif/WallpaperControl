@@ -1055,4 +1055,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="CalendarStatusStale" xml:space="preserve"><value>Daten evtl. veraltet</value></data>
   <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Aktuelles Wallpaper</value></data>
   <data name="MainDirectionHeading" xml:space="preserve"><value>Richtung</value></data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Bei Vollbildanwendungen automatisch pausieren</value></data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Pausiert Wallpaperwechsel, Animationen und Widget-Aktualisierungen bei aktivem Vollbild auf einem Monitor. Nach der Rückkehr geht es automatisch weiter; eine manuelle Pause bleibt erhalten.</value></data>
+  <data name="StatusFullscreenPaused" xml:space="preserve"><value>Auto-Pause: Vollbild aktiv</value></data>
 </root>

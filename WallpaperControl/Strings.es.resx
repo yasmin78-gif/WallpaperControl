@@ -1055,4 +1055,7 @@ Versión instalada: {0}
   <data name="CalendarStatusStale" xml:space="preserve"><value>Datos quizá desactualizados</value></data>
   <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Fondo actual</value></data>
   <data name="MainDirectionHeading" xml:space="preserve"><value>Dirección</value></data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Pausar automáticamente a pantalla completa</value></data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Pausa fondos, animaciones y widgets cuando una aplicación activa ocupa una pantalla. Se reanuda al salir y mantiene las pausas manuales.</value></data>
+  <data name="StatusFullscreenPaused" xml:space="preserve"><value>Pausa automática: pantalla completa</value></data>
 </root>

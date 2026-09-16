@@ -1055,4 +1055,7 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="CalendarStatusStale" xml:space="preserve"><value>Données peut-être obsolètes</value></data>
   <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Fond actuel</value></data>
   <data name="MainDirectionHeading" xml:space="preserve"><value>Direction</value></data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Pause automatique en plein écran</value></data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Suspend les changements de fond, les animations et les widgets en plein écran au premier plan. Reprend ensuite automatiquement, en conservant une pause manuelle.</value></data>
+  <data name="StatusFullscreenPaused" xml:space="preserve"><value>Pause auto : plein écran</value></data>
 </root>

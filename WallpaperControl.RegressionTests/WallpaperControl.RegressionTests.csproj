@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WallpaperControl/Services/FullscreenActivityDetector.cs" Link="FullscreenActivityDetector.cs" />
     <Compile Include="../WallpaperControl/Wallpaper/WallpaperTransitionKind.cs" Link="WallpaperTransitionKind.cs" />
     <Compile Include="../WallpaperControl/Services/AppSettingsStore.cs" Link="AppSettingsStore.cs" />
     <Compile Include="../WallpaperControl/Services/GlobalHotkeyManager.cs" Link="GlobalHotkeyManager.cs" />

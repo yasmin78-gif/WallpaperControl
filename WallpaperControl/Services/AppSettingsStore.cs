@@ -35,6 +35,17 @@ namespace WallpaperControl
         {
             this.registryPath = registryPath;
         }
+        internal bool LoadPauseOnFullscreen()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(registryPath);
+                object? value = key?.GetValue("PauseOnFullscreen");
+                return value == null || Convert.ToInt32(value) != 0;
+            }
+            catch { return true; }
+        }
+        internal void SavePauseOnFullscreen(bool enabled) => WriteValue("PauseOnFullscreen", enabled ? 1 : 0, RegistryValueKind.DWord);
         internal void SaveLastWallpaperFolder(
             string path)
         {

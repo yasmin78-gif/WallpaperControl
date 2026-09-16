@@ -388,6 +388,7 @@ namespace WallpaperControl
                 calendarWidget?.Dispose();
                 calendarWidget = null;
             }
+            SetActivitySuspended(activitySuspended);
         }
 
         private void SaveClockLocation(Point p)
@@ -435,6 +436,15 @@ namespace WallpaperControl
             }
         }
 
+        private bool activitySuspended;
+        internal void SetActivitySuspended(bool suspended)
+        {
+            activitySuspended = suspended;
+            clock?.SetActivitySuspended(suspended);
+            systemWidget?.SetActivitySuspended(suspended);
+            weatherWidget?.SetActivitySuspended(suspended);
+            calendarWidget?.SetActivitySuspended(suspended);
+        }
         public void Dispose()
         {
             clock?.Close();
