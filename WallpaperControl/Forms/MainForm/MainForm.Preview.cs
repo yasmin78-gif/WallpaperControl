@@ -136,7 +136,7 @@ namespace WallpaperControl
                     new FileInfo(path);
 
                 string resolution =
-                    GetImageResolutionText(path);
+                    WallpaperImageInfo.GetImageResolutionText(path);
 
                 string sizeText =
                     FormatFileSize(fileInfo.Length);
@@ -153,26 +153,6 @@ namespace WallpaperControl
             {
                 wallpaperPreviewInfoLabel.Text =
                     path;
-            }
-        }
-
-        /// <summary>
-        /// Reads the image dimensions for preview metadata, tolerating unreadable files.
-        /// </summary>
-        private static string GetImageResolutionText(
-            string path)
-        {
-            try
-            {
-                using Image image =
-                    Image.FromFile(path);
-
-                return
-                    $"{image.Width} × {image.Height}";
-            }
-            catch
-            {
-                return Localization.Get("NotAvailable");
             }
         }
 

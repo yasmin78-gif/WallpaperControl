@@ -181,8 +181,6 @@ namespace WallpaperControl
         // Native hotkey ownership and window constants
         private readonly GlobalHotkeyManager hotkeyManager = new();
         private const int
-            DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-        private const int
             SW_RESTORE = 9;
         private const int
             SW_SHOWNOACTIVATE = 4;

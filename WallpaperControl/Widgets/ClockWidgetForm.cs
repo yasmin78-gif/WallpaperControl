@@ -63,17 +63,9 @@ namespace WallpaperControl
 
         protected override bool ShowWithoutActivation => true;
 
-        private const int WM_MOUSEACTIVATE = 0x0021;
-        private const int MA_NOACTIVATE = 3;
-
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WM_MOUSEACTIVATE)
-            {
-                m.Result = new IntPtr(MA_NOACTIVATE);
-                return;
-            }
-
+            if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 

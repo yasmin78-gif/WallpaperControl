@@ -113,42 +113,6 @@ namespace WallpaperControl
             return persistentHost?.CurrentWallpaperPath;
         }
 
-        public static bool TryAttachWidget(Control widget, Point location)
-        {
-            if (persistentHost == null ||
-                persistentHost.IsDisposed ||
-                !persistentHost.IsHandleCreated ||
-                widget.IsDisposed)
-            {
-                return false;
-            }
-
-            Point safeLocation =
-                WidgetSettings.EnsureVisible(location, widget.Size);
-
-            if (widget.Parent != persistentHost)
-            {
-                widget.Parent?.Controls.Remove(widget);
-                persistentHost.Controls.Add(widget);
-            }
-
-            widget.Location = safeLocation;
-            widget.Visible = true;
-            widget.BringToFront();
-            widget.Invalidate();
-
-            return true;
-        }
-
-        public static void DetachWidget(Control widget)
-        {
-            if (widget.IsDisposed)
-                return;
-
-            widget.Parent?.Controls.Remove(widget);
-            widget.Visible = false;
-        }
-
         public static void Shutdown()
         {
             if (persistentHost == null)

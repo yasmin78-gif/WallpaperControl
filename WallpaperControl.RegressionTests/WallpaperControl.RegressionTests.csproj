@@ -4,8 +4,10 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../WallpaperControl/WallpaperControl.csproj" Aliases="WallpaperApp" />
     <Compile Include="../WallpaperControl/Services/FullscreenActivityDetector.cs" Link="FullscreenActivityDetector.cs" />
     <Compile Include="../WallpaperControl/Wallpaper/WallpaperTransitionKind.cs" Link="WallpaperTransitionKind.cs" />
     <Compile Include="../WallpaperControl/Services/AppSettingsStore.cs" Link="AppSettingsStore.cs" />

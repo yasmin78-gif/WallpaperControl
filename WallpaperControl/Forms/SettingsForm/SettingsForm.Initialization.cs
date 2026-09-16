@@ -42,7 +42,7 @@ namespace WallpaperControl
                 Localization.CurrentLanguage;
 
             previewThemeMode =
-                NormalizeThemeMode(
+                AppSettingsStore.NormalizeThemeMode(
                     themeMode);
 
             ThemeMode =

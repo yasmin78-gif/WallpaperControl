@@ -16,8 +16,6 @@ namespace WallpaperControl
     internal sealed class StatisticsForm : Form
     {
         private readonly List<Font> ownedFonts = new();
-
-        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
         private const int SW_SHOWNOACTIVATE = 4;
         private const int SW_HIDE = 0;
 
@@ -1421,7 +1419,7 @@ namespace WallpaperControl
                         "*",
                         SearchOption.TopDirectoryOnly)
                     .Where(
-                        IsSupportedWallpaperExtension)
+                        WallpaperImageInfo.IsSupportedWallpaperExtension)
                     .OrderBy(
                         path =>
                             Path.GetFileName(path),
@@ -1433,38 +1431,6 @@ namespace WallpaperControl
             {
                 return new List<string>();
             }
-        }
-
-        private static bool IsSupportedWallpaperExtension(
-            string path)
-        {
-            string extension =
-                Path.GetExtension(path);
-
-            return extension.Equals(
-                       ".jpg",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".jpeg",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".png",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".bmp",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".gif",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".tif",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".tiff",
-                       StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(
-                       ".webp",
-                       StringComparison.OrdinalIgnoreCase);
         }
 
         private Dictionary<string, int> GetViewCountsForPeriod(
@@ -2717,7 +2683,7 @@ namespace WallpaperControl
                     new FileInfo(path);
 
                 string resolution =
-                    GetImageResolutionText(path);
+                    WallpaperImageInfo.GetImageResolutionText(path);
 
                 string sizeText =
                     FormatFileSize(
@@ -2749,24 +2715,6 @@ namespace WallpaperControl
                 ShowWindow(
                     wallpaperPreviewForm.Handle,
                     SW_HIDE);
-            }
-        }
-
-        private static string GetImageResolutionText(
-            string path)
-        {
-            try
-            {
-                using Image image =
-                    Image.FromFile(path);
-
-                return
-                    $"{image.Width} × {image.Height}";
-            }
-            catch
-            {
-                return Localization.Get(
-                    "NotAvailable");
             }
         }
 
@@ -2932,26 +2880,8 @@ namespace WallpaperControl
 
         private void ApplyTitleBarTheme()
         {
-            if (!IsHandleCreated)
-                return;
-
-            int value =
-                darkMode ? 1 : 0;
-
-            DwmSetWindowAttribute(
-                Handle,
-                DWMWA_USE_IMMERSIVE_DARK_MODE,
-                ref value,
-                sizeof(int));
+            WindowsTheme.ApplyTitleBar(this, darkMode);
         }
-
-        [DllImport("dwmapi.dll")]
-        private static extern int
-            DwmSetWindowAttribute(
-                IntPtr hwnd,
-                int attribute,
-                ref int attributeValue,
-                int attributeSize);
 
         [DllImport("user32.dll")]
         private static extern bool

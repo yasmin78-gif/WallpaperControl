@@ -25,7 +25,7 @@
 | `MainForm.Tray.cs` | Tray pause action and restoring the window. |
 | `MainForm.Hotkeys.cs` | Shortcut preferences, native message dispatch, and forwarded-instance commands. |
 | `MainForm.Updates.cs` | Scheduled release checks and fullscreen-aware notifications. |
-| `MainForm.Native.cs` | Windows API declarations and COM-wrapper release. |
+| `MainForm.Native.cs` | Window/shell API declarations and COM-wrapper release; shared title-bar operations live in `Themes/WindowsTheme.cs`. |
 
 ## Ownership and ordering
 
@@ -34,6 +34,8 @@
 - Dispose form-owned fonts, images, watchers, timers, widgets, tray items, and subscriptions in `MainForm.Dispose`. Continue releasing temporary COM wrappers in their existing `finally` blocks.
 - File-watcher and precise-timer callbacks must marshal UI work to the window thread. Do not move control access onto a worker thread when editing these areas.
 - Manual pause (`slideshowPaused`) and automatic fullscreen suspension (`fullscreenPolicy`) are independent. Resuming from fullscreen must not clear a manual pause.
+- Manual pause actions share `ToggleSlideshowPauseAsync`. Its `refreshDisplay` argument retains the extra display refresh performed by tray and hotkey actions.
+- `WallpaperImageInfo` owns the image extension filter and resolution lookup shared with the statistics window. Byte-size captions remain form-specific because their existing text differs.
 - The application owns slideshow timing while running. Shutdown restores the native Windows slideshow; preserve the existing transition-host shutdown order.
 - Existing services remain the owners of persisted settings, statistics, hotkey registrations, wallpaper rendering, and widgets. This file split organizes form coordination; it does not introduce independent service boundaries between the partial files.
 

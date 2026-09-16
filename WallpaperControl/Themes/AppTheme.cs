@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace WallpaperControl
@@ -51,9 +51,6 @@ namespace WallpaperControl
 
         public static Color Border(bool darkMode) =>
             darkMode ? DarkBorder : Color.FromArgb(180, 180, 180);
-
-        public static Color BorderStrong(bool darkMode) =>
-            darkMode ? DarkBorderStrong : Color.FromArgb(175, 175, 175);
 
         public static Color TextPrimary(bool darkMode) =>
             darkMode ? DarkTextPrimary : SystemColors.ControlText;

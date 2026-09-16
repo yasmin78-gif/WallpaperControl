@@ -47,32 +47,6 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Reads the Windows app theme preference, using the existing fallback when unavailable.
-        /// </summary>
-        private bool IsWindowsDarkMode()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-
-                object? value =
-                    key?.GetValue("AppsUseLightTheme");
-
-                if (value != null)
-                {
-                    return Convert.ToInt32(value) == 0;
-                }
-            }
-            catch
-            {
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Applies the selected light, dark, or system theme to the main window and its menus.
         /// </summary>
         private void ApplyWindowsTheme()
@@ -82,7 +56,7 @@ namespace WallpaperControl
                 {
                     "dark" => true,
                     "light" => false,
-                    _ => IsWindowsDarkMode()
+                    _ => WindowsTheme.IsDarkMode()
                 };
 
             Color background =
@@ -297,17 +271,7 @@ namespace WallpaperControl
         /// </summary>
         private void ApplyTitleBarTheme()
         {
-            if (!IsHandleCreated)
-                return;
-
-            int value =
-                darkMode ? 1 : 0;
-
-            DwmSetWindowAttribute(
-                Handle,
-                DWMWA_USE_IMMERSIVE_DARK_MODE,
-                ref value,
-                sizeof(int));
+            WindowsTheme.ApplyTitleBar(this, darkMode);
         }
 
         /// <summary>

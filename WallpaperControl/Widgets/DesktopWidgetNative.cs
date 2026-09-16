@@ -142,5 +142,12 @@ namespace WallpaperControl
 
         private static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr newValue) =>
             IntPtr.Size == 8 ? SetWindowLongPtr64(hWnd, nIndex, newValue) : SetWindowLong32(hWnd, nIndex, newValue);
+        /// <summary>Handles mouse activation without taking focus away from the foreground application.</summary>
+        internal static bool HandleMouseActivation(ref Message message)
+        {
+            if (message.Msg != 0x0021) return false;
+            message.Result = new IntPtr(3);
+            return true;
+        }
     }
 }

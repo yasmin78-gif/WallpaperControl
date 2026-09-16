@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -14,22 +14,13 @@ namespace WallpaperControl
 {
     internal sealed class CalendarWidgetForm : Form
     {
+        private readonly WidgetDragHandler dragHandler;
         private const int WidgetWidth = 340;
-        private const int WM_MOUSEACTIVATE = 0x0021;
-        private const int MA_NOACTIVATE = 3;
         private const int WS_EX_LAYERED = 0x00080000;
-        private const byte AC_SRC_OVER = 0x00;
-        private const byte AC_SRC_ALPHA = 0x01;
-        private const int ULW_ALPHA = 0x00000002;
-
-        private readonly Action<Point> locationChanged;
         private readonly ICalendarProvider calendarProvider;
         private readonly System.Windows.Forms.Timer refreshTimer = new();
         private CancellationTokenSource? refreshCancellation = new();
         private bool locked;
-        private bool dragging;
-        private Point dragMouseStart;
-        private Point dragFormStart;
         private SystemWidgetStyle style;
         private int maxEntries;
         private bool showLocation;
@@ -47,7 +38,6 @@ namespace WallpaperControl
             Point location,
             Action<Point> locationChanged)
         {
-            this.locationChanged = locationChanged;
             this.calendarProvider = calendarProvider ?? throw new ArgumentNullException(nameof(calendarProvider));
 
             FormBorderStyle = FormBorderStyle.None;
@@ -55,9 +45,7 @@ namespace WallpaperControl
             StartPosition = FormStartPosition.Manual;
             DoubleBuffered = true;
 
-            MouseDown += BeginDrag;
-            MouseMove += ContinueDrag;
-            MouseUp += EndDrag;
+            dragHandler = new WidgetDragHandler(this, () => this.locked, RenderLayeredWindow, locationChanged);
             refreshTimer.Tick += (_, _) => RefreshCalendar();
 
             Apply(locked, style, maxEntries, showLocation, refreshMinutes, languageCode);
@@ -80,11 +68,7 @@ namespace WallpaperControl
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WM_MOUSEACTIVATE)
-            {
-                m.Result = new IntPtr(MA_NOACTIVATE);
-                return;
-            }
+            if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 
@@ -107,6 +91,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                dragHandler.Dispose();
                 refreshTimer.Stop();
                 refreshTimer.Dispose();
 
@@ -172,7 +157,7 @@ namespace WallpaperControl
                 g.PixelOffsetMode = PixelOffsetMode.HighQuality;
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-                (Color panelColor, Color borderColor, Color titleColor, Color textColor, Color mutedColor, Color accentColor) = GetPalette();
+                (Color panelColor, Color borderColor, Color titleColor, Color textColor, Color mutedColor, Color accentColor) = WidgetDrawing.GetPalette(style);
 
                 if (style == SystemWidgetStyle.Glow)
                 {
@@ -199,7 +184,7 @@ namespace WallpaperControl
 
                 string widgetTitle = Localization.Get("CalendarWidgetTitle", languageCode).ToUpperInvariant();
                 if (style == SystemWidgetStyle.Glow)
-                    DrawGlowText(g, widgetTitle, titleFont, 16, 13, accentColor);
+                    WidgetDrawing.DrawGlowText(g, widgetTitle, titleFont, 16, 13, accentColor);
                 else
                     g.DrawString(widgetTitle, titleFont, titleBrush, 16, 13);
 
@@ -270,7 +255,7 @@ namespace WallpaperControl
                 g.DrawString(status, statusFont, mutedBrush, Width - statusSize.Width - 16, Height - 20);
             }
 
-            UpdateLayeredBitmap(bitmap);
+            LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
         public async void RefreshCalendar()
@@ -338,113 +323,9 @@ namespace WallpaperControl
             }
         }
 
-        private (Color panel, Color border, Color title, Color text, Color muted, Color accent) GetPalette()
-        {
-            return style switch
-            {
-                SystemWidgetStyle.Minimal => (
-                    Color.FromArgb(112, 12, 18, 24), Color.FromArgb(48, 255, 255, 255), Color.FromArgb(245, 241, 246),
-                    Color.FromArgb(238, 235, 241, 246), Color.FromArgb(185, 174, 188, 199), Color.FromArgb(185, 174, 188, 199)),
-                SystemWidgetStyle.Clean => (
-                    Color.FromArgb(178, 17, 24, 31), Color.FromArgb(105, 92, 184, 224), Color.FromArgb(245, 241, 246),
-                    Color.FromArgb(238, 235, 241, 246), Color.FromArgb(200, 174, 188, 199), Color.FromArgb(210, 92, 184, 224)),
-                _ => (
-                    Color.FromArgb(166, 10, 18, 25), Color.FromArgb(175, 82, 201, 255), Color.FromArgb(255, 228, 249, 255),
-                    Color.FromArgb(245, 239, 248, 252), Color.FromArgb(205, 177, 211, 226), Color.FromArgb(235, 88, 211, 255))
-            };
-        }
-
-        private static void DrawGlowText(Graphics g, string text, Font font, float x, float y, Color color)
-        {
-            using SolidBrush glow1 = new(Color.FromArgb(40, color));
-            using SolidBrush glow2 = new(Color.FromArgb(70, color));
-            using SolidBrush core = new(Color.FromArgb(255, color));
-            g.DrawString(text, font, glow1, x - 2, y - 2);
-            g.DrawString(text, font, glow1, x + 2, y + 2);
-            g.DrawString(text, font, glow2, x - 1, y);
-            g.DrawString(text, font, glow2, x + 1, y);
-            g.DrawString(text, font, core, x, y);
-        }
-
-        private void UpdateLayeredBitmap(Bitmap bitmap)
-        {
-            IntPtr screenDc = GetDC(IntPtr.Zero);
-            IntPtr memoryDc = CreateCompatibleDC(screenDc);
-            IntPtr bitmapHandle = IntPtr.Zero;
-            IntPtr oldBitmap = IntPtr.Zero;
-
-            try
-            {
-                bitmapHandle = bitmap.GetHbitmap(Color.FromArgb(0));
-                oldBitmap = SelectObject(memoryDc, bitmapHandle);
-                NativePoint source = new(0, 0);
-                NativePoint destination = new(Left, Top);
-                NativeSize size = new(bitmap.Width, bitmap.Height);
-                BlendFunction blend = new() { BlendOp = AC_SRC_OVER, BlendFlags = 0, SourceConstantAlpha = 255, AlphaFormat = AC_SRC_ALPHA };
-                UpdateLayeredWindow(Handle, screenDc, ref destination, ref size, memoryDc, ref source, 0, ref blend, ULW_ALPHA);
-            }
-            finally
-            {
-                if (oldBitmap != IntPtr.Zero) SelectObject(memoryDc, oldBitmap);
-                if (bitmapHandle != IntPtr.Zero) DeleteObject(bitmapHandle);
-                if (memoryDc != IntPtr.Zero) DeleteDC(memoryDc);
-                if (screenDc != IntPtr.Zero) ReleaseDC(IntPtr.Zero, screenDc);
-            }
-        }
-
-        private void BeginDrag(object? sender, MouseEventArgs e)
-        {
-            if (locked || e.Button != MouseButtons.Left) return;
-            dragging = true;
-            dragMouseStart = Cursor.Position;
-            dragFormStart = Location;
-            Capture = true;
-        }
-
-        private void ContinueDrag(object? sender, MouseEventArgs e)
-        {
-            if (!dragging) return;
-            Point now = Cursor.Position;
-            Location = new Point(dragFormStart.X + now.X - dragMouseStart.X, dragFormStart.Y + now.Y - dragMouseStart.Y);
-            RenderLayeredWindow();
-        }
-
-        private void EndDrag(object? sender, MouseEventArgs e)
-        {
-            if (!dragging || e.Button != MouseButtons.Left) return;
-            dragging = false;
-            Capture = false;
-            locationChanged(Location);
-        }
-
         private static GraphicsPath RoundedRectangle(RectangleF rect, float radius)
         {
-            radius = Math.Max(0.5f, Math.Min(radius, Math.Min(rect.Width, rect.Height) / 2f));
-            float d = radius * 2f;
-            GraphicsPath path = new();
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
+            return WidgetDrawing.RoundedRectangle(rect, radius, skipEmptyBounds: false);
         }
-
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativePoint { public int X; public int Y; public NativePoint(int x, int y) { X = x; Y = y; } }
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativeSize { public int Width; public int Height; public NativeSize(int width, int height) { Width = width; Height = height; } }
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        private struct BlendFunction { public byte BlendOp; public byte BlendFlags; public byte SourceConstantAlpha; public byte AlphaFormat; }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool UpdateLayeredWindow(IntPtr hWnd, IntPtr hdcDst, ref NativePoint pptDst, ref NativeSize psize, IntPtr hdcSrc, ref NativePoint pptSrc, int crKey, ref BlendFunction pblend, int dwFlags);
-        [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr hWnd);
-        [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-        [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleDC(IntPtr hDC);
-        [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr hdc);
-        [DllImport("gdi32.dll")] private static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-        [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr hObject);
     }
 }

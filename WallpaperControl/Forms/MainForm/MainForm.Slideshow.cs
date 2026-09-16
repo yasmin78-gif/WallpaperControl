@@ -18,15 +18,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
-            if (slideshowPaused)
-            {
-                await ResumeSlideshowAsync(
-                    showError: true);
-            }
-            else
-            {
-                PauseSlideshow();
-            }
+            await ToggleSlideshowPauseAsync(refreshDisplay: false);
         }
 
         /// <summary>
@@ -276,5 +268,25 @@ namespace WallpaperControl
                 ReleaseComObject(wallpaper);
             }
         }
+        /// <summary>Toggles manual pause and optionally refreshes displays used by tray and hotkey actions.</summary>
+        private async Task ToggleSlideshowPauseAsync(bool refreshDisplay)
+        {
+            if (slideshowPaused)
+            {
+                await ResumeSlideshowAsync(
+                    showError: true);
+            }
+            else
+            {
+                PauseSlideshow();
+            }
+
+            if (refreshDisplay)
+            {
+                UpdateCurrentWallpaperDisplay();
+                UpdateTrayPauseText();
+            }
+        }
+
     }
 }

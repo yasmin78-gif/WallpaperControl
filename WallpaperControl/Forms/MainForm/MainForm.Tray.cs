@@ -18,18 +18,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
-            if (slideshowPaused)
-            {
-                await ResumeSlideshowAsync(
-                    showError: true);
-            }
-            else
-            {
-                PauseSlideshow();
-            }
-
-            UpdateCurrentWallpaperDisplay();
-            UpdateTrayPauseText();
+            await ToggleSlideshowPauseAsync(refreshDisplay: true);
         }
 
         /// <summary>

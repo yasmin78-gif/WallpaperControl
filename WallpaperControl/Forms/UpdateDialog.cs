@@ -14,7 +14,6 @@ namespace WallpaperControl
 
     internal sealed class UpdateDialog : Form
     {
-        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
         private readonly bool darkMode;
 
         public UpdateDialog(
@@ -189,22 +188,7 @@ namespace WallpaperControl
 
         private void ApplyTitleBarTheme()
         {
-            if (!IsHandleCreated)
-                return;
-
-            int value = darkMode ? 1 : 0;
-            DwmSetWindowAttribute(
-                Handle,
-                DWMWA_USE_IMMERSIVE_DARK_MODE,
-                ref value,
-                sizeof(int));
+            WindowsTheme.ApplyTitleBar(this, darkMode);
         }
-
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(
-            IntPtr hwnd,
-            int attribute,
-            ref int attributeValue,
-            int attributeSize);
     }
 }

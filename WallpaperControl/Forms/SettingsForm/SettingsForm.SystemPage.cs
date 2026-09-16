@@ -14,15 +14,7 @@ namespace WallpaperControl
         /// </summary>
         private void RefreshSystemStyleChoices(SystemWidgetStyle selectedStyle)
         {
-            if (systemWidgetStyleComboBox == null) return;
-
-            systemWidgetStyleComboBox.BeginUpdate();
-            systemWidgetStyleComboBox.Items.Clear();
-            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
-            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
-            systemWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
-            systemWidgetStyleComboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 2);
-            systemWidgetStyleComboBox.EndUpdate();
+            RefreshWidgetStyleChoices(systemWidgetStyleComboBox, selectedStyle);
         }
 
         /// <summary>

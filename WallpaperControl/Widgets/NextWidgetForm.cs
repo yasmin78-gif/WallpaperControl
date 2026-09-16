@@ -18,9 +18,6 @@ namespace WallpaperControl
         private bool moved;
         private Point dragMouseStart;
         private Point dragFormStart;
-
-        private const int WM_MOUSEACTIVATE = 0x0021;
-        private const int MA_NOACTIVATE = 3;
         private const int WS_EX_LAYERED = 0x00080000;
         private const byte AC_SRC_OVER = 0x00;
         private const byte AC_SRC_ALPHA = 0x01;
@@ -81,14 +78,7 @@ namespace WallpaperControl
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WM_MOUSEACTIVATE)
-            {
-                // Receive mouse input without activating the widget or
-                // bringing it into the normal application Z-order.
-                m.Result = new IntPtr(MA_NOACTIVATE);
-                return;
-            }
-
+            if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 

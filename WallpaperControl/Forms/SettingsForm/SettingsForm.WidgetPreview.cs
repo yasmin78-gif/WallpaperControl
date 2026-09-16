@@ -14,11 +14,12 @@ namespace WallpaperControl
         /// </summary>
         private void NotifyWidgetPreviewChanged()
         {
-            if (widgetPreviewChanged == null)
-            {
-                return;
-            }
-
+            if (widgetPreviewChanged != null)
+                widgetPreviewChanged(ReadWidgetSettings(applySaveDefaults: false));
+        }
+        /// <summary>Reads editable widget values into a clone, preserving positions and unexposed settings.</summary>
+        private WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
+        {
             WidgetSettings preview = initialWidgetSettings.Clone();
             preview.ClockEnabled = clockEnabledCheckBox.Checked;
             preview.ClockLocked = clockLockedCheckBox.Checked;
@@ -42,7 +43,10 @@ namespace WallpaperControl
             preview.WeatherLocked = weatherWidgetLockedCheckBox.Checked;
             preview.WeatherRefreshMinutes = GetWeatherRefreshMinutes();
             preview.WeatherStyle = GetSelectedWeatherStyle();
-            preview.WeatherLocationName = weatherLocationTextBox.Text.Trim();
+            // Live previews retain an empty location; saving uses the historical default.
+            preview.WeatherLocationName = applySaveDefaults && string.IsNullOrWhiteSpace(weatherLocationTextBox.Text)
+                ? "Karlsruhe"
+                : weatherLocationTextBox.Text.Trim();
             preview.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
             preview.CalendarEnabled = calendarWidgetEnabledCheckBox.Checked;
             preview.CalendarLocked = calendarWidgetLockedCheckBox.Checked;
@@ -53,7 +57,8 @@ namespace WallpaperControl
             preview.CalendarIcsUrl = calendarIcsUrlTextBox.Text.Trim();
             preview.CalendarHolidayIcsUrl = calendarHolidayIcsUrlTextBox.Text.Trim();
 
-            widgetPreviewChanged(preview);
+            return preview;
         }
+
     }
 }

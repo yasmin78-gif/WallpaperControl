@@ -44,17 +44,6 @@ namespace WallpaperControl
             IntPtr hWnd);
 
         /// <summary>
-        /// Sets a Desktop Window Manager attribute such as the title-bar theme.
-        /// </summary>
-        [DllImport("dwmapi.dll")]
-        private static extern int
-            DwmSetWindowAttribute(
-                IntPtr hwnd,
-                int attribute,
-                ref int attributeValue,
-                int attributeSize);
-
-        /// <summary>
         /// Creates a shell item for a filesystem path.
         /// </summary>
         [DllImport(

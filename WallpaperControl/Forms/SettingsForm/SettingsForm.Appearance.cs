@@ -69,51 +69,13 @@ namespace WallpaperControl
         /// </summary>
         private bool ResolvePreviewDarkMode()
         {
-            return NormalizeThemeMode(
+            return AppSettingsStore.NormalizeThemeMode(
                 previewThemeMode) switch
                 {
                     "dark" => true,
                     "light" => false,
-                    _ => IsWindowsDarkMode()
+                    _ => WindowsTheme.IsDarkMode()
                 };
-        }
-
-        /// <summary>
-        /// Reads the Windows app theme preference and falls back safely when it is unavailable.
-        /// </summary>
-        private static bool IsWindowsDarkMode()
-        {
-            try
-            {
-                using RegistryKey? key =
-                    Registry.CurrentUser.OpenSubKey(
-                        @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-
-                object? value =
-                    key?.GetValue(
-                        "AppsUseLightTheme");
-
-                return value != null &&
-                       Convert.ToInt32(value) == 0;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Normalizes supported theme names and falls back to system mode.
-        /// </summary>
-        private static string NormalizeThemeMode(
-            string? value)
-        {
-            return value?.Trim().ToLowerInvariant() switch
-            {
-                "dark" => "dark",
-                "light" => "light",
-                _ => "system"
-            };
         }
 
         /// <summary>
@@ -123,7 +85,7 @@ namespace WallpaperControl
             string selectedMode)
         {
             string normalized =
-                NormalizeThemeMode(
+                AppSettingsStore.NormalizeThemeMode(
                     selectedMode);
 
             updatingThemePreview = true;
@@ -380,30 +342,7 @@ namespace WallpaperControl
         private void ApplyTitleBarTheme(
             bool darkMode)
         {
-            if (!IsHandleCreated)
-            {
-                return;
-            }
-
-            int darkValue =
-                darkMode ? 1 : 0;
-
-            DwmSetWindowAttribute(
-                Handle,
-                20,
-                ref darkValue,
-                sizeof(int));
+            WindowsTheme.ApplyTitleBar(this, darkMode);
         }
-
-        /// <summary>
-        /// Sets a Desktop Window Manager attribute on the specified native window.
-        /// </summary>
-        [DllImport("dwmapi.dll")]
-        private static extern int
-            DwmSetWindowAttribute(
-                IntPtr hwnd,
-                int attribute,
-                ref int attributeValue,
-                int attributeSize);
     }
 }

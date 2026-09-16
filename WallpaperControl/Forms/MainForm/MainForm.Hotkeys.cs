@@ -168,18 +168,7 @@ namespace WallpaperControl
         /// </summary>
         private async void TogglePauseFromHotkey()
         {
-            if (slideshowPaused)
-            {
-                await ResumeSlideshowAsync(
-                    showError: true);
-            }
-            else
-            {
-                PauseSlideshow();
-            }
-
-            UpdateCurrentWallpaperDisplay();
-            UpdateTrayPauseText();
+            await ToggleSlideshowPauseAsync(refreshDisplay: true);
         }
     }
 }

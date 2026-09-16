@@ -195,42 +195,10 @@ namespace WallpaperControl
                 opacityTrackBar.Value;
 
             ThemeMode =
-                NormalizeThemeMode(
+                AppSettingsStore.NormalizeThemeMode(
                     previewThemeMode);
 
-            WidgetSettings = initialWidgetSettings.Clone();
-            WidgetSettings.ClockEnabled = clockEnabledCheckBox.Checked;
-            WidgetSettings.ClockLocked = clockLockedCheckBox.Checked;
-            WidgetSettings.ClockSize = (int)clockSizeNumeric.Value;
-            WidgetSettings.ClockShowSeconds = clockSecondsCheckBox.Checked;
-            WidgetSettings.ClockStyle = GetSelectedClockStyle();
-            WidgetSettings.ClockLanguageCode = previewLanguageCode;
-            WidgetSettings.NextEnabled = nextWidgetEnabledCheckBox.Checked;
-            WidgetSettings.NextLocked = nextWidgetLockedCheckBox.Checked;
-            WidgetSettings.SystemEnabled = systemWidgetEnabledCheckBox.Checked;
-            WidgetSettings.SystemLocked = systemWidgetLockedCheckBox.Checked;
-            WidgetSettings.SystemRefreshSeconds = GetSystemRefreshSeconds();
-            WidgetSettings.SystemStyle = GetSelectedSystemStyle();
-            WidgetSettings.SystemShowCpu = systemShowCpuCheckBox.Checked;
-            WidgetSettings.SystemShowRam = systemShowRamCheckBox.Checked;
-            WidgetSettings.SystemShowGpu = systemShowGpuCheckBox.Checked;
-            WidgetSettings.SystemShowVram = systemShowVramCheckBox.Checked;
-            WidgetSettings.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
-            WidgetSettings.SystemShowDrives = systemShowDrivesCheckBox.Checked;
-            WidgetSettings.WeatherEnabled = weatherWidgetEnabledCheckBox.Checked;
-            WidgetSettings.WeatherLocked = weatherWidgetLockedCheckBox.Checked;
-            WidgetSettings.WeatherRefreshMinutes = GetWeatherRefreshMinutes();
-            WidgetSettings.WeatherStyle = GetSelectedWeatherStyle();
-            WidgetSettings.WeatherLocationName = string.IsNullOrWhiteSpace(weatherLocationTextBox.Text) ? "Karlsruhe" : weatherLocationTextBox.Text.Trim();
-            WidgetSettings.WeatherShowForecast = weatherShowForecastCheckBox.Checked;
-            WidgetSettings.CalendarEnabled = calendarWidgetEnabledCheckBox.Checked;
-            WidgetSettings.CalendarLocked = calendarWidgetLockedCheckBox.Checked;
-            WidgetSettings.CalendarStyle = GetSelectedCalendarStyle();
-            WidgetSettings.CalendarMaxEntries = GetCalendarMaxEntries();
-            WidgetSettings.CalendarShowLocation = calendarShowLocationCheckBox.Checked;
-            WidgetSettings.CalendarRefreshMinutes = GetCalendarRefreshMinutes();
-            WidgetSettings.CalendarIcsUrl = calendarIcsUrlTextBox.Text.Trim();
-            WidgetSettings.CalendarHolidayIcsUrl = calendarHolidayIcsUrlTextBox.Text.Trim();
+            WidgetSettings = ReadWidgetSettings(applySaveDefaults: true);
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))

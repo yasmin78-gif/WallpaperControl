@@ -27,6 +27,7 @@ try
     HotkeyTests.Run(Check);
     SettingsTests.Run(Check);
     FullscreenTests.Run(Check);
+    SharedUiTests.Run(Check);
     var root = Path.Combine(AppContext.BaseDirectory, "test-data", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(root);
     var path = Path.Combine(root, "statistics.json");

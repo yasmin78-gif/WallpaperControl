@@ -201,7 +201,7 @@ namespace WallpaperControl
             object sender,
             FileSystemEventArgs e)
         {
-            if (!IsSupportedWallpaperExtension(e.FullPath))
+            if (!WallpaperImageInfo.IsSupportedWallpaperExtension(e.FullPath))
                 return;
 
             ScheduleWallpaperCountUpdate();
@@ -214,31 +214,13 @@ namespace WallpaperControl
             object sender,
             RenamedEventArgs e)
         {
-            if (!IsSupportedWallpaperExtension(e.OldFullPath) &&
-                !IsSupportedWallpaperExtension(e.FullPath))
+            if (!WallpaperImageInfo.IsSupportedWallpaperExtension(e.OldFullPath) &&
+                !WallpaperImageInfo.IsSupportedWallpaperExtension(e.FullPath))
             {
                 return;
             }
 
             ScheduleWallpaperCountUpdate();
-        }
-
-        /// <summary>
-        /// Checks whether a path has an image extension accepted by the slideshow.
-        /// </summary>
-        private static bool IsSupportedWallpaperExtension(
-            string path)
-        {
-            string extension = Path.GetExtension(path);
-
-            return extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".bmp", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".gif", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".tif", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".tiff", StringComparison.OrdinalIgnoreCase) ||
-                   extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

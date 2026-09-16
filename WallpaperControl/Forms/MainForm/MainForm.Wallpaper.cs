@@ -154,7 +154,7 @@ namespace WallpaperControl
                         folder,
                         "*",
                         SearchOption.TopDirectoryOnly)
-                    .Where(IsSupportedWallpaperExtension)
+                    .Where(WallpaperImageInfo.IsSupportedWallpaperExtension)
                     .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 

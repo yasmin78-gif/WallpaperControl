@@ -18,7 +18,7 @@
 | `SettingsForm.SystemPage.cs` | System-widget styles, module checkboxes, and refresh intervals. |
 | `SettingsForm.WeatherPage.cs` | Weather-widget styles and refresh intervals. |
 | `SettingsForm.CalendarPage.cs` | Calendar styles, event counts, and refresh intervals. |
-| `SettingsForm.WidgetPreview.cs` | Collect control values into a cloned widget settings object for live preview. |
+| `SettingsForm.WidgetPreview.cs` | Collect control values into a cloned widget settings object for both live preview and saving. |
 | `SettingsForm.ClockPreview.cs` | Custom clock-style cards and clock sample drawing. |
 | `SettingsForm.Choices.cs` | Small selector types pairing stable values with display labels. |
 
@@ -30,6 +30,8 @@ General preferences and the next-wallpaper widget have no separate conversion lo
 - Control construction remains in the constructor so readonly references and event ordering are preserved. Use its named regions to navigate individual page layouts. Shared appearance/language controls are intentionally initialized in their existing order.
 - `General` remains the selected page each time the dialog opens.
 - Live previews operate on cloned widget settings. The caller (`MainForm.Settings.cs`) cancels or commits the preview after `ShowDialog` returns. Do not persist preview changes directly from page handlers.
+- `ReadWidgetSettings` is the single mapping from controls to widget options. Its explicit `applySaveDefaults` argument preserves the empty weather-location difference: previews keep an empty string; saving uses `Karlsruhe`.
+- Shared widget style choices are populated by `RefreshWidgetStyleChoices` in `Choices`. Theme normalization is owned by `AppSettingsStore`, and Windows theme/native title-bar operations by `WindowsTheme`.
 - `SaveAndClose` retains its validation order and only closes with `DialogResult.OK` after successful validation. The caller reads the accepted public values only for that result.
 - Keep the preview-language and preview-theme recursion guards when rebuilding selectors.
 - Widget preview notifications are connected after their controls exist. The additional `Shown` notification restores widget interaction after modal dialog startup.
