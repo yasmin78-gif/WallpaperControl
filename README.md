@@ -4,7 +4,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.2**
+**Current release: v1.8.3**
 
 ## ✨ Features
 
@@ -16,6 +16,9 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Highlighted **Next Wallpaper** action for easier access
   - Dedicated current-wallpaper section with quick actions and full-path tooltip
   - Pause and resume the slideshow
+  - Automatic pause while fullscreen applications are active, including on additional monitors
+  - Two-second resume delay prevents brief Alt-Tab switches from immediately restarting background activity
+  - Manual slideshow pauses remain preserved independently
   - Pin the current wallpaper
 
 - 🎬 **Wallpaper transition effects**
@@ -117,11 +120,25 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Remembers window position
   - Drag & drop support
   - Reorganized settings interface
+  - Settings always open on the **General** tab
   - Refreshed main window with clearer grouping and improved visual hierarchy
   - Dark dropdowns and improved readability for disabled controls
   - Improved keyboard tab order and consistent spacing
   - Separate appearance reset
   - Localized interface
+
+## 🎮 Fullscreen Pause
+
+Wallpaper Control can automatically reduce background activity while a fullscreen application is active.
+
+- Detects fullscreen applications on all connected monitors
+- Pauses automatic wallpaper changes and transition animations
+- Suspends regular desktop widget refreshes
+- Postpones automatic update checks
+- Resumes activity after two seconds without a fullscreen application
+- Brief Alt-Tab switches therefore do not immediately restart paused activity
+- A slideshow paused manually remains paused when fullscreen mode ends
+- Fullscreen detection is enabled by default and can be disabled in Settings
 
 ## 🔄 Update Checks
 
@@ -239,6 +256,8 @@ Calendar refreshes are resilient to temporary feed failures. Previously loaded e
 ### Next Wallpaper
 
 The Next Wallpaper widget provides a compact desktop button for immediately advancing to the next wallpaper.
+
+It offers **Minimal**, **Clean** and **Glow** styles. Style changes are shown immediately in the live preview, and the selected style is remembered between application sessions. Existing configurations continue to use the previous **Minimal** appearance by default.
 
 It can be positioned and locked independently from the other widgets and uses the same wallpaper switching and transition handling as the main application.
 
@@ -359,16 +378,27 @@ Desktop widget text and date formatting follow the selected application language
 - **Windows 11:** supported and tested
 - **Windows 10:** expected to be compatible, currently untested
 - 64-bit Windows
-- No separate .NET installation required when using the self-contained release
+- No separate .NET installation required
 
 ## 🚀 Installation
 
-1. Download `WallpaperControl.exe` from the latest release.
-2. Start `WallpaperControl.exe`.
-3. Select your wallpaper folder.
-4. Configure the slideshow, transition effects, desktop widgets and optional features to your liking.
+The **official installation method** for Wallpaper Control is the Windows x64 installer provided with each release.
 
-No installer or separate .NET installation is required.
+1. Download `WallpaperControl-1.8.3-Setup-x64.exe` from the latest GitHub release.
+2. Completely exit an existing Wallpaper Control instance from the system tray before installing or upgrading.
+3. Run the installer.
+4. Optionally select a Desktop shortcut during setup.
+5. Start Wallpaper Control from the Start Menu or Desktop shortcut.
+
+Wallpaper Control is installed for the current Windows user and **does not require administrator privileges**.
+
+The installer includes the required **.NET runtime**, so no separate .NET installation is necessary. A Start Menu shortcut is created automatically, while the Desktop shortcut is optional.
+
+When upgrading from an existing installation, Wallpaper Control settings and statistics are preserved. If automatic startup was already enabled, its entry is updated to use the installed application path.
+
+Uninstalling Wallpaper Control removes the application and its shortcuts while preserving user settings and statistics, allowing them to be reused by a later installation.
+
+The installer is currently **not digitally signed**. Windows may therefore display a security warning when the setup file is launched.
 
 ## 🔒 Privacy
 
@@ -376,7 +406,7 @@ Wallpaper Control stores its application settings and wallpaper statistics local
 
 No Wallpaper Control account is required.
 
-Most functionality, including wallpaper management, slideshow control, transitions and statistics, works entirely locally.
+Most functionality, including wallpaper management, slideshow control, transitions, fullscreen detection and statistics, works entirely locally.
 
 Some optional features require an internet connection:
 
@@ -413,4 +443,3 @@ See the `LICENSE` file for the full license text.
 
 **Wallpaper Control**  
 A little more control over what Windows puts on your desktop. 🖼️
-
