@@ -1,5 +1,7 @@
 # 🖼️ Wallpaper Control
 
+🌐 **Language:** [English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [日本語](README.ja.md)
+
 **Wallpaper Control** is a lightweight Windows utility for managing and displaying desktop wallpaper slideshows with precise scheduling, animated transitions, statistics, native desktop widgets and additional quality-of-life controls.
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
