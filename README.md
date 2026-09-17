@@ -414,8 +414,3 @@ See the `LICENSE` file for the full license text.
 **Wallpaper Control**  
 A little more control over what Windows puts on your desktop. 🖼️
 
-## Fullscreen auto-pause
-
-The General settings include **Automatically pause for fullscreen apps**, enabled by default. When a foreground application covers a monitor, WallpaperControl pauses wallpaper scheduling, transition animations, and widget refreshes across all monitors. Automatic update checks are deferred. Manual slideshow pauses remain in effect.
-
-Detection runs about once a second and covers borderless fullscreen windows. Normal maximized windows are excluded. Refreshes resume after fullscreen has been absent for two seconds, without replaying missed wallpaper changes. A hardware sample already in progress may finish. This is foreground-window detection, not process-based game detection; windowed games do not trigger it.
