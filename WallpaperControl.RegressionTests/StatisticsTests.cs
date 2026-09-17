@@ -2,6 +2,10 @@ using WallpaperControl;
 
 internal static class StatisticsTests
 {
+    /// <summary>
+    /// Runs the statistics regression checks using the supplied assertion callback.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     internal static void Run(Action<bool, string> check)
     {
         DateTime now = new(2026, 9, 15, 23, 59, 0);

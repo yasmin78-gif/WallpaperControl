@@ -14,6 +14,7 @@ namespace WallpaperControl
         /// <summary>
         /// Returns the hosted wallpaper path, falling back to the Windows desktop wallpaper API.
         /// </summary>
+        /// <returns>The current wallpaper path, or null when it cannot be determined.</returns>
         private string? GetCurrentWallpaperPath()
         {
             string? hostedWallpaper =
@@ -61,6 +62,8 @@ namespace WallpaperControl
         /// <summary>
         /// Requests the next wallpaper from the main-window action button.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void NextWallpaperButton_Click(
             object? sender,
             EventArgs e)
@@ -72,6 +75,7 @@ namespace WallpaperControl
         /// <summary>
         /// Starts an asynchronous wallpaper advance from synchronous UI and widget callbacks.
         /// </summary>
+        /// <param name="direction">Whether to move forward or backward in the slideshow.</param>
         private void AdvanceWallpaper(
             DesktopSlideshowDirection direction)
         {
@@ -81,6 +85,8 @@ namespace WallpaperControl
         /// <summary>
         /// Advances through the application engine or native fallback while respecting pause state.
         /// </summary>
+        /// <param name="direction">Whether to move forward or backward in the slideshow.</param>
+        /// <returns>A task whose result indicates whether the slideshow advance was accepted or the custom wallpaper change succeeded.</returns>
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
@@ -129,6 +135,8 @@ namespace WallpaperControl
         /// <summary>
         /// Chooses the next supported image and applies its transition without overlapping changes.
         /// </summary>
+        /// <param name="direction">Whether to move forward or backward in the slideshow.</param>
+        /// <returns>A task whose result is true when the selected wallpaper became the current wallpaper; false when blocked, unavailable, or unsuccessful.</returns>
         private async Task<bool> AdvanceCustomWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
@@ -245,6 +253,7 @@ namespace WallpaperControl
         /// <summary>
         /// Waits for Windows to settle before refreshing the displayed wallpaper information.
         /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task RefreshCurrentWallpaperSoonAsync()
         {
             await Task.Delay(300);

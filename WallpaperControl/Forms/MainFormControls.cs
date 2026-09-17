@@ -7,12 +7,19 @@ namespace WallpaperControl
     {
         internal Color MutedColor = SystemColors.GrayText;
 
+        /// <summary>
+        /// Configures owner drawing for the main window&apos;s themed selectors.
+        /// </summary>
         internal MainFormComboBox()
         {
             DrawMode = DrawMode.OwnerDrawFixed;
             FlatStyle = FlatStyle.Flat;
         }
 
+        /// <summary>
+        /// Draws a selector item using the current theme and selection state.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
             bool selected = (e.State & DrawItemState.Selected) != 0;
@@ -31,6 +38,10 @@ namespace WallpaperControl
     {
         internal Color MutedColor = SystemColors.GrayText;
 
+        /// <summary>
+        /// Paints the themed button and its enabled or disabled caption.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

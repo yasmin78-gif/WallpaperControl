@@ -10,6 +10,9 @@ namespace WallpaperControl
 {
     internal static class Program
     {
+        /// <summary>
+        /// Starts the primary application instance or forwards the requested command to the existing instance.
+        /// </summary>
         [STAThread]
         static void Main()
         {
@@ -84,6 +87,10 @@ namespace WallpaperControl
             Application.Run(form);
         }
 
+        /// <summary>
+        /// Recognizes the supported command-line action for the primary application instance.
+        /// </summary>
+        /// <returns>The supported remote command, or null when no recognized action is requested.</returns>
         private static string? GetRemoteCommand()
         {
             foreach (string arg in Environment.GetCommandLineArgs().Skip(1))

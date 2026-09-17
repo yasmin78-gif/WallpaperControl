@@ -17,7 +17,11 @@ namespace WallpaperControl
             public string Text { get; }
             public uint Value { get; }
 
-            /// <summary>Stores the display label and its stable selection value.</summary>
+            /// <summary>
+            /// Stores the display label and its stable selection value.
+            /// </summary>
+            /// <param name="text">The text to display, format, or parse.</param>
+            /// <param name="value">The underlying key or modifier value represented by this choice.</param>
             public Choice(
                 string text,
                 uint value)
@@ -26,7 +30,10 @@ namespace WallpaperControl
                 Value = value;
             }
 
-            /// <summary>Returns the label displayed by the selector.</summary>
+            /// <summary>
+            /// Returns the label displayed by the selector.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() =>
                 Text;
         }
@@ -39,7 +46,11 @@ namespace WallpaperControl
             public string Text { get; }
             public string Code { get; }
 
-            /// <summary>Stores the display label and its stable selection value.</summary>
+            /// <summary>
+            /// Stores the display label and its stable selection value.
+            /// </summary>
+            /// <param name="text">The text to display, format, or parse.</param>
+            /// <param name="code">The culture code represented by this language choice.</param>
             public LanguageChoice(
                 string text,
                 string code)
@@ -48,7 +59,10 @@ namespace WallpaperControl
                 Code = code;
             }
 
-            /// <summary>Returns the label displayed by the selector.</summary>
+            /// <summary>
+            /// Returns the label displayed by the selector.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() =>
                 Text;
         }
@@ -61,7 +75,11 @@ namespace WallpaperControl
             public string Text { get; }
             public string Mode { get; }
 
-            /// <summary>Stores the display label and its stable selection value.</summary>
+            /// <summary>
+            /// Stores the display label and its stable selection value.
+            /// </summary>
+            /// <param name="text">The text to display, format, or parse.</param>
+            /// <param name="mode">The theme mode represented by this choice.</param>
             public ThemeChoice(
                 string text,
                 string mode)
@@ -70,11 +88,18 @@ namespace WallpaperControl
                 Mode = mode;
             }
 
-            /// <summary>Returns the label displayed by the selector.</summary>
+            /// <summary>
+            /// Returns the label displayed by the selector.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() =>
                 Text;
         }
-        /// <summary>Rebuilds the shared widget style options without changing selection event ordering.</summary>
+        /// <summary>
+        /// Rebuilds the shared widget style options without changing selection event ordering.
+        /// </summary>
+        /// <param name="comboBox">The widget-style selector to populate, when it has been created.</param>
+        /// <param name="selectedStyle">The widget style to keep selected.</param>
         private void RefreshWidgetStyleChoices(ComboBox? comboBox, SystemWidgetStyle selectedStyle)
         {
             if (comboBox == null) return;

@@ -28,14 +28,19 @@ namespace WallpaperControl
             [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public bool ShowSeconds { get; set; }
 
-            /// <summary>Enables flicker-free rendering and the style-selection cursor.</summary>
+            /// <summary>
+            /// Enables flicker-free rendering and the style-selection cursor.
+            /// </summary>
             public ClockStyleCard()
             {
                 Cursor = Cursors.Hand;
                 DoubleBuffered = true;
             }
 
-            /// <summary>Paints the clock sample with its current style and selection appearance.</summary>
+            /// <summary>
+            /// Paints the clock sample with its current style and selection appearance.
+            /// </summary>
+            /// <param name="e">The event data supplied by WinForms or the event source.</param>
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
@@ -71,10 +76,15 @@ namespace WallpaperControl
             [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public string LanguageCode { get; set; } = "de";
 
-            /// <summary>Enables flicker-free rendering of the enlarged clock sample.</summary>
+            /// <summary>
+            /// Enables flicker-free rendering of the enlarged clock sample.
+            /// </summary>
             public ClockSettingsPreview() { DoubleBuffered = true; }
 
-            /// <summary>Paints the clock sample with its current style and selection appearance.</summary>
+            /// <summary>
+            /// Paints the clock sample with its current style and selection appearance.
+            /// </summary>
+            /// <param name="e">The event data supplied by WinForms or the event source.</param>
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
@@ -91,6 +101,11 @@ namespace WallpaperControl
         /// <summary>
         /// Draws the clock style sample used by the selection cards and enlarged preview.
         /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="bounds">The rectangle used for drawing or visibility checks.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="seconds">True to include seconds in the rendered time.</param>
+        /// <param name="large">Whether to render the enlarged clock sample.</param>
         private static void DrawMiniClock(Graphics g, Rectangle bounds, ClockWidgetStyle style, bool seconds, bool large = false)
         {
             string time = DateTime.Now.ToString(seconds ? "HH:mm:ss" : "HH:mm");

@@ -6,6 +6,11 @@ namespace WallpaperControl
 {
     internal static class WallpaperFileActions
     {
+        /// <summary>
+        /// Checks whether the path identifies a supported image for shell actions.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>True when the path is an accepted image path; otherwise, false.</returns>
         internal static bool IsSupportedImagePath(string path)
         {
             if (string.IsNullOrWhiteSpace(path) ||
@@ -27,6 +32,10 @@ namespace WallpaperControl
                    extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Opens a supported image through its registered Windows application.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal static void OpenImage(string path)
         {
             if (!IsSupportedImagePath(path))
@@ -42,6 +51,10 @@ namespace WallpaperControl
                 });
         }
 
+        /// <summary>
+        /// Opens an existing folder in Windows Explorer.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal static void OpenFolder(string path)
         {
             if (string.IsNullOrWhiteSpace(path) ||
@@ -62,6 +75,10 @@ namespace WallpaperControl
             Process.Start(startInfo);
         }
 
+        /// <summary>
+        /// Opens Explorer with the requested image selected.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal static void RevealInExplorer(string path)
         {
             if (!IsSupportedImagePath(path))

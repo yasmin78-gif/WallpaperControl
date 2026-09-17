@@ -18,16 +18,32 @@ namespace WallpaperControl
         internal static string LogFilePath =>
             Path.Combine(LogDirectory, "wallpaper-control.log");
 
+        /// <summary>
+        /// Records an application error with its context and exception details.
+        /// </summary>
+        /// <param name="context">The operation context recorded alongside the exception.</param>
+        /// <param name="exception">The exception to include in the diagnostic entry.</param>
         internal static void Error(string context, Exception exception)
         {
             Write("ERROR", context, exception);
         }
 
+        /// <summary>
+        /// Records a recoverable problem with its context and exception details.
+        /// </summary>
+        /// <param name="context">The operation context recorded alongside the exception.</param>
+        /// <param name="exception">The exception to include in the diagnostic entry.</param>
         internal static void Warning(string context, Exception exception)
         {
             Write("WARN", context, exception);
         }
 
+        /// <summary>
+        /// Appends a timestamped diagnostic entry without allowing logging failures to disrupt the application.
+        /// </summary>
+        /// <param name="level">The diagnostic severity written to the log.</param>
+        /// <param name="context">The operation context recorded alongside the exception.</param>
+        /// <param name="exception">The exception to include in the diagnostic entry.</param>
         private static void Write(string level, string context, Exception exception)
         {
             try
@@ -55,6 +71,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Rotates the log when it reaches the configured size limit.
+        /// </summary>
         private static void RotateIfNeeded()
         {
             if (!File.Exists(LogFilePath))

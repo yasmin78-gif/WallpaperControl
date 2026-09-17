@@ -5,7 +5,11 @@ namespace WallpaperControl
 {
     internal static class WidgetDrawing
     {
-        /// <summary>Returns the shared weather/calendar colors for a widget style.</summary>
+        /// <summary>
+        /// Returns the shared weather/calendar colors for a widget style.
+        /// </summary>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <returns>The shared panel, border, title, text, muted, and accent colors for the style.</returns>
         internal static (Color panel, Color border, Color title, Color text, Color muted, Color accent) GetPalette(SystemWidgetStyle style)
         {
             return style switch
@@ -22,7 +26,15 @@ namespace WallpaperControl
             };
         }
 
-        /// <summary>Draws the shared text glow without retaining GDI resources.</summary>
+        /// <summary>
+        /// Draws the shared text glow without retaining GDI resources.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="font">The font used to draw the text.</param>
+        /// <param name="x">The horizontal coordinate.</param>
+        /// <param name="y">The vertical coordinate.</param>
+        /// <param name="color">The foreground drawing color.</param>
         internal static void DrawGlowText(Graphics g, string text, Font font, float x, float y, Color color)
         {
             using SolidBrush glow1 = new(Color.FromArgb(40, color));
@@ -35,7 +47,13 @@ namespace WallpaperControl
             g.DrawString(text, font, core, x, y);
         }
 
-        /// <summary>Builds a rounded path; callers retain their existing policy for empty bounds.</summary>
+        /// <summary>
+        /// Builds a rounded path; callers retain their existing policy for empty bounds.
+        /// </summary>
+        /// <param name="rect">The bounds of the rounded shape.</param>
+        /// <param name="radius">The requested corner radius in drawing units.</param>
+        /// <param name="skipEmptyBounds">True to return an empty path for nonpositive bounds; false to retain the calendar behavior.</param>
+        /// <returns>A new rounded path that the caller must dispose, possibly empty under the requested policy.</returns>
         internal static GraphicsPath RoundedRectangle(RectangleF rect, float radius, bool skipEmptyBounds = true)
         {
             if (skipEmptyBounds && (rect.Width <= 0 || rect.Height <= 0))

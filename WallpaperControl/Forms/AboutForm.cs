@@ -14,6 +14,11 @@ namespace WallpaperControl
         private readonly bool darkMode;
         private readonly PictureBox iconBox;
 
+        /// <summary>
+        /// Builds the application information dialog using the selected theme and opacity.
+        /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="windowOpacityPercent">The window opacity as a percentage.</param>
         public AboutForm(
             bool darkMode,
             int windowOpacityPercent)
@@ -213,6 +218,10 @@ namespace WallpaperControl
 
 
 
+        /// <summary>
+        /// Applies the native title-bar theme after the window handle is created.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
@@ -227,6 +236,10 @@ namespace WallpaperControl
                 sizeof(int));
         }
 
+        /// <summary>
+        /// Formats the Windows version using recognized build ranges without guessing future release names.
+        /// </summary>
+        /// <returns>The recognized Windows version label, including the available version or build information.</returns>
         private static string GetFriendlyWindowsVersion()
         {
             if (!OperatingSystem.IsWindows())
@@ -255,6 +268,13 @@ namespace WallpaperControl
             return $"Microsoft Windows {version.Major}.{version.Minor} (Build {build})";
         }
 
+        /// <summary>
+        /// Creates a font and tracks it for disposal with the form.
+        /// </summary>
+        /// <param name="familyName">The name of the font family to create.</param>
+        /// <param name="emSize">The font size in the units used by the drawing operation.</param>
+        /// <param name="style">The weight and decoration applied to the font.</param>
+        /// <returns>The font owned by the form; it is released when the form is disposed.</returns>
         private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
         {
             Font font = new Font(familyName, emSize, style);
@@ -262,6 +282,10 @@ namespace WallpaperControl
             return font;
         }
 
+        /// <summary>
+        /// Releases the resources owned by this about form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -280,6 +304,10 @@ namespace WallpaperControl
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Loads the embedded application icon, with an executable-icon fallback when necessary.
+        /// </summary>
+        /// <returns>A bitmap of the application logo, or null when no image can be loaded.</returns>
         private static Bitmap? LoadApplicationLogo()
         {
             Assembly assembly =
@@ -306,6 +334,12 @@ namespace WallpaperControl
             return icon.ToBitmap();
         }
 
+        /// <summary>
+        /// Reads the requested assembly metadata attribute for the application information dialog.
+        /// </summary>
+        /// <typeparam name="T">The assembly attribute type to retrieve.</typeparam>
+        /// <param name="assembly">The assembly whose metadata is inspected.</param>
+        /// <returns>The requested assembly attribute, or null when it is absent.</returns>
         private static T? GetAttribute<T>(
             Assembly assembly)
             where T : Attribute
@@ -313,6 +347,11 @@ namespace WallpaperControl
             return assembly.GetCustomAttribute<T>();
         }
 
+        /// <summary>
+        /// Applies the selected palette to the information dialog and its close button.
+        /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="closeButton">The close action to style with the dialog.</param>
         private void ApplyTheme(
             bool darkMode,
             Button closeButton)
@@ -355,6 +394,14 @@ namespace WallpaperControl
                 AppTheme.ControlPressed(darkMode);
         }
 
+        /// <summary>
+        /// Sets a Desktop Window Manager attribute on the specified native window.
+        /// </summary>
+        /// <param name="hwnd">The native window handle used by the operation.</param>
+        /// <param name="attribute">The native Desktop Window Manager attribute identifier.</param>
+        /// <param name="attributeValue">The value supplied for the native window attribute.</param>
+        /// <param name="attributeSize">The size of the attribute value in bytes.</param>
+        /// <returns>The HRESULT status code; zero indicates success.</returns>
         [DllImport("dwmapi.dll")]
         private static extern int
             DwmSetWindowAttribute(

@@ -20,17 +20,31 @@ namespace WallpaperControl
         private readonly CancellationTokenSource cancellation = new();
         private Task? listenerTask;
 
+        /// <summary>
+        /// Configures the local named-pipe listener and the callback for accepted commands.
+        /// </summary>
+        /// <param name="commandHandler">The callback invoked for a complete accepted command.</param>
+        /// <param name="pipeName">An optional pipe name, allowing tests to isolate their connections.</param>
         internal RemoteCommandServer(Action<string> commandHandler, string? pipeName = null)
         {
             this.commandHandler = commandHandler;
             this.pipeName = pipeName ?? PipeName;
         }
 
+        /// <summary>
+        /// Starts listening for commands from secondary application instances.
+        /// </summary>
         internal void Start()
         {
             listenerTask = Task.Run(ListenAsync);
         }
 
+        /// <summary>
+        /// Attempts to deliver a command to the primary instance within the connection timeout.
+        /// </summary>
+        /// <param name="command">The supported command to send or dispatch.</param>
+        /// <param name="pipeName">An optional pipe name, allowing tests to isolate their connections.</param>
+        /// <returns>True when the command was sent to the pipe; otherwise, false.</returns>
         internal static bool TrySend(string command, string? pipeName = null)
         {
             try
@@ -57,6 +71,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Accepts pipe connections and dispatches bounded commands until shutdown is requested.
+        /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ListenAsync()
         {
             while (!cancellation.IsCancellationRequested)
@@ -97,6 +115,12 @@ namespace WallpaperControl
 
         // Bound the complete command, including slow or silent clients. EOF
         // without a line terminator is incomplete and must not execute a command.
+        /// <summary>
+        /// Reads one bounded command line with a deadline and caller-controlled cancellation.
+        /// </summary>
+        /// <param name="stream">The input stream supplying one remote command.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result is a complete bounded command, or null for incomplete, oversized, or timed-out input.</returns>
         internal static async Task<string?> ReadCommandAsync(Stream stream, CancellationToken cancellationToken)
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -123,6 +147,9 @@ namespace WallpaperControl
                 return null;
             }
         }
+        /// <summary>
+        /// Cancels the listener and releases its shutdown resources.
+        /// </summary>
         public void Dispose()
         {
             cancellation.Cancel();

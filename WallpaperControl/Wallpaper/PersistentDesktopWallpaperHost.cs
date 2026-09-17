@@ -38,6 +38,9 @@ namespace WallpaperControl
 
         public string? CurrentWallpaperPath { get; private set; }
 
+        /// <summary>
+        /// Configures the persistent desktop window and its animation timer.
+        /// </summary>
         public PersistentDesktopWallpaperHost()
         {
             Screen screen = Screen.PrimaryScreen ?? Screen.AllScreens[0];
@@ -73,6 +76,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Attaches the empty host to the desktop before loading a frame at its final dimensions.
+        /// </summary>
+        /// <param name="wallpaperPath">The wallpaper image path to load or record.</param>
+        /// <returns>True when the host was initialized with the requested wallpaper; otherwise, false.</returns>
         public bool Initialize(string wallpaperPath)
         {
             if (!File.Exists(wallpaperPath))
@@ -120,7 +128,7 @@ namespace WallpaperControl
                 SWP_FRAMECHANGED);
 
             // Force WinForms to observe the final child-window dimensions
-            // before allocating the 3440x1440 render surface.
+            // before allocating the render surface for the actual desktop size.
             PerformLayout();
             Update();
 
@@ -144,6 +152,10 @@ namespace WallpaperControl
             return true;
         }
 
+        /// <summary>
+        /// Updates the image layout and refreshes rendered frames for the desktop surface.
+        /// </summary>
+        /// <param name="position">The Windows wallpaper scaling and placement mode.</param>
         public void SetWallpaperPosition(DesktopWallpaperPosition position)
         {
             wallpaperPosition = position;
@@ -161,6 +173,16 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Loads the next image and runs the selected animation with cancellation and suspension support.
+        /// </summary>
+        /// <param name="nextWallpaperPath">The image path to display next.</param>
+        /// <param name="kind">The transition effect to animate.</param>
+        /// <param name="milliseconds">The animation duration in milliseconds.</param>
+        /// <param name="direction">The requested direction of the animated wallpaper transition.</param>
+        /// <param name="requestedZoomMode">The zoom mode requested for this transition.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         public Task TransitionToAsync(
             string nextWallpaperPath,
             WallpaperTransitionKind kind,
@@ -255,12 +277,21 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Stops or resumes the animation clock and timer without discarding an in-progress transition.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             activitySuspended = suspended;
             if (suspended) { animationTimer.Stop(); stopwatch.Stop(); }
             else if (completionSource != null) { stopwatch.Start(); animationTimer.Start(); }
         }
+        /// <summary>
+        /// Advances animation progress and completes the transition when its duration has elapsed.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void AnimationTimer_Tick(object? sender, EventArgs e)
         {
             progress = Math.Clamp(
@@ -291,17 +322,28 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Records the wallpaper path that the host now presents as current.
+        /// </summary>
+        /// <param name="wallpaperPath">The wallpaper image path to load or record.</param>
         public void CommitCurrentPath(string wallpaperPath)
         {
             CurrentWallpaperPath = wallpaperPath;
         }
 
+        /// <summary>
+        /// Stops timing and cleans up the active transition&apos;s completion and cancellation state.
+        /// </summary>
         private void StopAnimation()
         {
             animationTimer.Stop();
             stopwatch.Stop();
         }
 
+        /// <summary>
+        /// Draws the current frame or the active transition on the desktop surface.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -357,6 +399,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Chooses a concrete movement direction when a random direction is requested.
+        /// </summary>
+        /// <param name="direction">The requested direction of the animated wallpaper transition.</param>
+        /// <returns>A concrete movement direction for the animation.</returns>
         private WallpaperTransitionDirection ResolveDirection(
             WallpaperTransitionDirection direction)
         {
@@ -374,6 +421,11 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Reveals the next frame along the selected direction using the current animation progress.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
+        /// <param name="direction">The requested direction of the animated wallpaper transition.</param>
         private void DrawWipeTransition(
             Graphics graphics,
             WallpaperTransitionDirection direction)
@@ -434,6 +486,11 @@ namespace WallpaperControl
             graphics.DrawImage(nextFrame, reveal, reveal, GraphicsUnit.Pixel);
         }
 
+        /// <summary>
+        /// Draws the moving frames for the directional slide animation.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
+        /// <param name="direction">The requested direction of the animated wallpaper transition.</param>
         private void DrawSlideTransition(
             Graphics graphics,
             WallpaperTransitionDirection direction)
@@ -490,6 +547,10 @@ namespace WallpaperControl
             graphics.DrawImageUnscaled(nextFrame, nextX, nextY);
         }
 
+        /// <summary>
+        /// Blends the current and next frames using the animation progress.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
         private void DrawFadeTransition(Graphics graphics)
         {
             if (currentFrame == null)
@@ -549,6 +610,10 @@ namespace WallpaperControl
                 attributes);
         }
 
+        /// <summary>
+        /// Draws the zoom-and-fade effect for the selected zoom mode.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
         private void DrawZoomFadeTransition(Graphics graphics)
         {
             if (currentFrame == null)
@@ -627,6 +692,10 @@ namespace WallpaperControl
                 attributes);
         }
 
+        /// <summary>
+        /// Reveals the next frame by separating the visible regions of the current frame.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
         private void DrawSplitTransition(Graphics graphics)
         {
             if (currentFrame == null)
@@ -660,6 +729,10 @@ namespace WallpaperControl
             graphics.DrawImage(nextFrame, right, right, GraphicsUnit.Pixel);
         }
 
+        /// <summary>
+        /// Slides both halves of the old frame outward while retaining their visible image content.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
         private void DrawCurtainTransition(Graphics graphics)
         {
             if (currentFrame == null || nextFrame == null)
@@ -667,7 +740,7 @@ namespace WallpaperControl
                 return;
             }
 
-            // Das neue Bild liegt bereits vollständig dahinter.
+            // The complete new image has already been drawn behind the old image.
             graphics.DrawImageUnscaled(nextFrame, 0, 0);
 
             int halfWidth =
@@ -705,10 +778,10 @@ namespace WallpaperControl
                     ClientSize.Width - halfWidth,
                     ClientSize.Height);
 
-            // Anders als beim Split werden die beiden Hälften des alten
-            // Wallpapers tatsächlich nach außen geschoben. Dadurch bleibt
-            // ihr Bildinhalt sichtbar in Bewegung, statt nur abgeschnitten
-            // zu werden.
+            // Unlike the split effect, the curtain moves both halves of the old
+            // wallpaper outward. Their image content therefore moves visibly
+            // instead of being revealed only by clipping the old image.
+            // The new wallpaper remains stationary underneath.
             graphics.DrawImage(
                 currentFrame,
                 leftDestination,
@@ -722,6 +795,10 @@ namespace WallpaperControl
                 GraphicsUnit.Pixel);
         }
 
+        /// <summary>
+        /// Shrinks and fades the old frame over the already prepared next image.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
         private void DrawZoomOutFadeTransition(Graphics graphics)
         {
             if (currentFrame == null)
@@ -776,6 +853,11 @@ namespace WallpaperControl
                 attributes);
         }
 
+        /// <summary>
+        /// Loads a wallpaper into a bitmap sized and positioned for the requested desktop layout.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>The rendered wallpaper bitmap, whose ownership passes to the caller.</returns>
         private Bitmap LoadFrame(string path)
         {
             Screen screen =
@@ -788,6 +870,13 @@ namespace WallpaperControl
                 wallpaperPosition);
         }
 
+        /// <summary>
+        /// Loads a wallpaper into a bitmap sized and positioned for the requested desktop layout.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <param name="targetSize">The target surface dimensions in pixels.</param>
+        /// <param name="position">The Windows wallpaper scaling and placement mode.</param>
+        /// <returns>The rendered wallpaper bitmap, whose ownership passes to the caller.</returns>
         private static Bitmap LoadFrame(
             string path,
             Size targetSize,
@@ -843,6 +932,13 @@ namespace WallpaperControl
         }
 
 
+        /// <summary>
+        /// Calculates an aspect-preserving fit or fill rectangle for the source image.
+        /// </summary>
+        /// <param name="sourceSize">The source image dimensions in pixels.</param>
+        /// <param name="targetSize">The target surface dimensions in pixels.</param>
+        /// <param name="fill">True to cover the target by cropping; false to fit the entire source image.</param>
+        /// <returns>The destination rectangle that preserves the source aspect ratio.</returns>
         private static Rectangle GetAspectRectangle(
             Size sourceSize,
             Size targetSize,
@@ -864,6 +960,11 @@ namespace WallpaperControl
                 height);
         }
 
+        /// <summary>
+        /// Replaces an owned frame and disposes the previous bitmap.
+        /// </summary>
+        /// <param name="target">The owned bitmap reference to replace after releasing its previous image.</param>
+        /// <param name="replacement">The new bitmap whose ownership replaces the current frame.</param>
         private static void ReplaceBitmap(
             ref Bitmap? target,
             Bitmap replacement)
@@ -873,6 +974,10 @@ namespace WallpaperControl
             old?.Dispose();
         }
 
+        /// <summary>
+        /// Finds the appropriate Explorer desktop surface and attaches the wallpaper host to it.
+        /// </summary>
+        /// <returns>True when the host could attach to the expected desktop surface.</returns>
         private bool TryAttachToRaisedDesktop()
         {
             IntPtr progman = FindWindow("Progman", null);
@@ -949,6 +1054,10 @@ namespace WallpaperControl
             return positioned;
         }
 
+        /// <summary>
+        /// Restores the host&apos;s required placement relative to Explorer&apos;s desktop windows.
+        /// </summary>
+        /// <returns>True when the host was successfully positioned behind the desktop icons.</returns>
         public bool EnsureDesktopPlacement()
         {
             if (!IsHandleCreated || IsDisposed)
@@ -1038,6 +1147,10 @@ namespace WallpaperControl
             return positioned;
         }
 
+        /// <summary>
+        /// Releases the resources owned by this persistent desktop wallpaper host.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -1064,9 +1177,23 @@ namespace WallpaperControl
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Finds a top-level native window by class name and caption.
+        /// </summary>
+        /// <param name="lpClassName">The native window class to match, or null to match any class.</param>
+        /// <param name="lpWindowName">The window caption to match, or null to match any caption.</param>
+        /// <returns>The matching window handle, or zero when no window matches.</returns>
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
 
+        /// <summary>
+        /// Finds a child native window after the specified sibling.
+        /// </summary>
+        /// <param name="hWndParent">The parent window whose children are searched.</param>
+        /// <param name="hWndChildAfter">The sibling after which to continue the child-window search.</param>
+        /// <param name="lpszClass">The child-window class to match, or null to match any class.</param>
+        /// <param name="lpszWindow">The child-window caption to match, or null to match any caption.</param>
+        /// <returns>The matching child window handle, or zero when no window matches.</returns>
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr FindWindowEx(
             IntPtr hWndParent,
@@ -1074,12 +1201,31 @@ namespace WallpaperControl
             string? lpszClass,
             string? lpszWindow);
 
+        /// <summary>
+        /// Retrieves a native window&apos;s parent or owner.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <returns>The parent or owner handle, or zero when none exists.</returns>
         [DllImport("user32.dll")]
         private static extern IntPtr GetParent(IntPtr hWnd);
 
+        /// <summary>
+        /// Changes a native window&apos;s parent to the requested desktop surface.
+        /// </summary>
+        /// <param name="hWndChild">The child window whose parent is changed.</param>
+        /// <param name="hWndNewParent">The new parent window handle, or zero to detach from a parent.</param>
+        /// <returns>The previous parent handle; zero may also indicate failure.</returns>
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
+        /// <summary>
+        /// Updates the color-key or alpha attributes of a layered native window.
+        /// </summary>
+        /// <param name="hwnd">The native window handle used by the operation.</param>
+        /// <param name="crKey">The native color key used by the layered-window operation.</param>
+        /// <param name="bAlpha">The constant opacity value from zero to 255.</param>
+        /// <param name="dwFlags">The option flags defined by the invoked native API.</param>
+        /// <returns>True when the attributes were applied; otherwise, false.</returns>
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetLayeredWindowAttributes(
@@ -1088,6 +1234,17 @@ namespace WallpaperControl
             byte bAlpha,
             uint dwFlags);
 
+        /// <summary>
+        /// Changes native window bounds, visibility, or Z-order according to the supplied flags.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="hWndInsertAfter">The window or special Z-order handle used for placement.</param>
+        /// <param name="X">The requested native window X coordinate.</param>
+        /// <param name="Y">The requested native window Y coordinate.</param>
+        /// <param name="cx">The requested native window width in pixels.</param>
+        /// <param name="cy">The requested native window height in pixels.</param>
+        /// <param name="uFlags">The native placement flags controlling which bounds and Z-order changes are applied.</param>
+        /// <returns>True when the requested operation succeeds; otherwise, false.</returns>
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetWindowPos(
@@ -1099,6 +1256,17 @@ namespace WallpaperControl
             int cy,
             uint uFlags);
 
+        /// <summary>
+        /// Sends a native window message with a bounded wait.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="Msg">The native window message identifier.</param>
+        /// <param name="wParam">The message-specific first parameter.</param>
+        /// <param name="lParam">The message-specific second parameter.</param>
+        /// <param name="fuFlags">The native message-send behavior flags.</param>
+        /// <param name="uTimeout">The maximum native message wait in milliseconds.</param>
+        /// <param name="lpdwResult">Receives the result produced by the native message handler.</param>
+        /// <returns>A nonzero value on success, or zero on failure or timeout.</returns>
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SendMessageTimeout(
             IntPtr hWnd,
@@ -1109,29 +1277,68 @@ namespace WallpaperControl
             uint uTimeout,
             out IntPtr lpdwResult);
 
+        /// <summary>
+        /// Reads a pointer-sized window attribute in a 64-bit process.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <returns>The value stored at the requested native window attribute index.</returns>
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
         private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
 
+        /// <summary>
+        /// Reads a window attribute through the 32-bit Windows API.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <returns>The value stored at the requested attribute index.</returns>
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
         private static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
 
+        /// <summary>
+        /// Reads a native window attribute using the API appropriate for the process architecture.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <returns>The pointer-sized value stored at the requested attribute index.</returns>
         private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex) =>
             IntPtr.Size == 8
                 ? GetWindowLongPtr64(hWnd, nIndex)
                 : GetWindowLong32(hWnd, nIndex);
 
+        /// <summary>
+        /// Writes a pointer-sized window attribute in a 64-bit process.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <param name="dwNewLong">The pointer-sized value to store at the native attribute index.</param>
+        /// <returns>The previous attribute value; zero may also indicate failure.</returns>
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
         private static extern IntPtr SetWindowLongPtr64(
             IntPtr hWnd,
             int nIndex,
             IntPtr dwNewLong);
 
+        /// <summary>
+        /// Writes a native window attribute through the 32-bit Windows API.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <param name="dwNewLong">The pointer-sized value to store at the native attribute index.</param>
+        /// <returns>The previous attribute value; zero may also indicate failure.</returns>
         [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
         private static extern IntPtr SetWindowLong32(
             IntPtr hWnd,
             int nIndex,
             IntPtr dwNewLong);
 
+        /// <summary>
+        /// Writes a native window attribute using the API appropriate for the process architecture.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nIndex">The index of the native window attribute to read or write.</param>
+        /// <param name="value">The native window attribute value to write.</param>
+        /// <returns>The previous pointer-sized attribute value; zero may also indicate failure.</returns>
         private static IntPtr SetWindowLongPtr(
             IntPtr hWnd,
             int nIndex,

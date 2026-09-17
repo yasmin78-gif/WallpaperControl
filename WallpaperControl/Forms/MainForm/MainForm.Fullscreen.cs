@@ -12,8 +12,9 @@ namespace WallpaperControl
     public partial class MainForm
     {
         /// <summary>
-        /// Coordinates automatic fullscreen suspension without changing the user's manual pause state.
+        /// Coordinates automatic fullscreen suspension without changing the user&apos;s manual pause state.
         /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task UpdateFullscreenPauseAsync()
         {
             if (fullscreenUpdateRunning || IsDisposed) return;

@@ -222,6 +222,8 @@ namespace WallpaperControl
         /// <summary>
         /// Applies the selected image layout to Windows and the persistent desktop renderer.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void PositionComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -293,6 +295,8 @@ namespace WallpaperControl
         /// <summary>
         /// Applies a user interval change when loading and pause guards allow it.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void IntervalComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -314,6 +318,8 @@ namespace WallpaperControl
         /// <summary>
         /// Applies a user shuffle change when loading and pause guards allow it.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ShuffleCheckBox_CheckedChanged(
             object? sender,
             EventArgs e)
@@ -396,6 +402,7 @@ namespace WallpaperControl
         /// <summary>
         /// Displays the current Windows slideshow interval in the active language.
         /// </summary>
+        /// <param name="milliseconds">The Windows slideshow interval in milliseconds.</param>
         private void UpdateWindowsIntervalLabel(
             uint milliseconds)
         {

@@ -6,7 +6,13 @@ namespace WallpaperControl
     /// <summary>Draws the next-wallpaper button independently of its click and drag behavior.</summary>
     internal static class NextWidgetRenderer
     {
-        /// <summary>Draws Minimal, Clean, or Glow, retaining the original geometry and Minimal colors.</summary>
+        /// <summary>
+        /// Draws Minimal, Clean, or Glow, retaining the original geometry and Minimal colors.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
+        /// <param name="size">The widget dimensions in pixels.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="hover">True to render the pointer-hover appearance.</param>
         internal static void Draw(Graphics graphics, Size size, SystemWidgetStyle style, bool hover)
         {
             graphics.Clear(Color.Transparent);

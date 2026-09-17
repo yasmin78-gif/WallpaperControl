@@ -16,6 +16,15 @@ namespace WallpaperControl
     {
         private readonly bool darkMode;
 
+        /// <summary>
+        /// Builds the release-check result dialog using the requested language, theme, and version details.
+        /// </summary>
+        /// <param name="kind">The result category that determines the dialog content and actions.</param>
+        /// <param name="currentVersion">The version of the running application displayed in the dialog.</param>
+        /// <param name="latestVersion">The discovered release version, when available.</param>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="windowOpacityPercent">The window opacity as a percentage.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
         public UpdateDialog(
             UpdateDialogKind kind,
             string currentVersion,
@@ -26,6 +35,7 @@ namespace WallpaperControl
         {
             this.darkMode = darkMode;
 
+            // Reads a localized update-dialog label.
             string Get(string key) =>
                 languageCode == null
                     ? Localization.Get(key)
@@ -159,6 +169,14 @@ namespace WallpaperControl
             Shown += (_, _) => ApplyTitleBarTheme();
         }
 
+        /// <summary>
+        /// Creates a themed dialog action with the requested bounds and visual emphasis.
+        /// </summary>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="width">The width in pixels.</param>
+        /// <param name="primary">Whether the button should use the primary-action styling.</param>
+        /// <returns>The configured action button owned by the dialog.</returns>
         private Button CreateButton(
             string text,
             Point location,
@@ -186,6 +204,9 @@ namespace WallpaperControl
             return button;
         }
 
+        /// <summary>
+        /// Applies the current theme to the native update dialog title bar.
+        /// </summary>
         private void ApplyTitleBarTheme()
         {
             WindowsTheme.ApplyTitleBar(this, darkMode);

@@ -16,6 +16,7 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    // Records an assertion result and reports the named regression check.
     void Check(bool ok, string name)
     {
         if (!ok) throw new Exception("FAIL: " + name);
@@ -31,6 +32,7 @@ try
     var root = Path.Combine(AppContext.BaseDirectory, "test-data", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(root);
     var path = Path.Combine(root, "statistics.json");
+    // Creates a statistics fixture containing one wallpaper with the requested view count.
     PersistentStatisticsData Data(int views) => new()
     {
         Wallpapers = new() { new() { Path = @"C:\wallpapers\test.jpg", Views = views } }
@@ -64,6 +66,7 @@ try
     }
     Check(StatisticsStorage.Load(path).Wallpapers.Single().Views == 5 && Directory.GetFiles(root, "*.tmp").Length == 0,
         "Failed save retains original and cleans temporary file");
+    // Runs a child process to verify single-instance ownership and returns its exit code.
     int Probe()
     {
         using var child = Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { ArgumentList = { "--probe", instanceName }, UseShellExecute = false })!;
@@ -75,6 +78,7 @@ try
         Check(primary.IsPrimary && Probe() == 20, "Second process cannot own instance lock");
     }
     Check(Probe() == 10, "Lock released after primary exits");
+    // Parses a command from an in-memory UTF-8 stream.
     string? Parse(string text)
     {
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
@@ -114,6 +118,7 @@ try
     using (var server = new RemoteCommandServer(received.Add, pipeName))
     {
         server.Start();
+        // Verifies that the command pipe delivers the expected next-wallpaper request.
         void ExpectNext(string label)
         {
             bool sent = false;
@@ -124,6 +129,7 @@ try
             }
             Check(sent && received.TryTake(out var command, 3000) && command == "next", label);
         }
+        // Connects a test client to the command pipe with a bounded timeout.
         NamedPipeClientStream Connect()
         {
             var client = new NamedPipeClientStream(".", pipeName, PipeDirection.Out);
@@ -168,15 +174,47 @@ internal sealed class SilentStream : Stream
     public override bool CanWrite => false;
     public override long Length => throw new NotSupportedException();
     public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+    /// <summary>
+    /// Simulates a client that sends no data until the read is canceled.
+    /// </summary>
+    /// <param name="buffer">The destination or source buffer for the stream operation.</param>
+    /// <param name="cancellationToken">The token used to cancel the operation.</param>
+    /// <returns>A pending read task that completes by cancellation rather than receiving data.</returns>
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
         await Task.Delay(Timeout.Infinite, cancellationToken);
         return 0;
     }
+    /// <summary>
+    /// Rejects synchronous reads because this fixture models an asynchronous silent connection.
+    /// </summary>
+    /// <param name="buffer">The destination or source buffer for the stream operation.</param>
+    /// <param name="offset">The offset required by the stream operation.</param>
+    /// <param name="count">The maximum number of bytes or characters to process.</param>
+    /// <returns>No value; synchronous reads are not supported by this test fixture.</returns>
     public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    /// <summary>
+    /// Performs no work because the fixture has no output buffer.
+    /// </summary>
     public override void Flush() => throw new NotSupportedException();
+    /// <summary>
+    /// Rejects seeking on the non-seekable test stream.
+    /// </summary>
+    /// <param name="offset">The offset required by the stream operation.</param>
+    /// <param name="origin">The reference point for the requested seek operation.</param>
+    /// <returns>No value; seeking is not supported by this test fixture.</returns>
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+    /// <summary>
+    /// Rejects length changes on the read-only test stream.
+    /// </summary>
+    /// <param name="value">The requested stream length required by the stream contract.</param>
     public override void SetLength(long value) => throw new NotSupportedException();
+    /// <summary>
+    /// Rejects writes on the read-only test stream.
+    /// </summary>
+    /// <param name="buffer">The destination or source buffer for the stream operation.</param>
+    /// <param name="offset">The offset required by the stream operation.</param>
+    /// <param name="count">The maximum number of bytes or characters to process.</param>
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 }
 
@@ -184,6 +222,11 @@ namespace WallpaperControl
 {
     internal static class AppLogger
     {
+        /// <summary>
+        /// Records a recoverable problem with its context and exception details.
+        /// </summary>
+        /// <param name="message">The warning message to append to the application log.</param>
+        /// <param name="ex">The exception associated with the failure.</param>
         internal static void Warning(string message, Exception ex) => Console.WriteLine("Diagnostic: " + message + " " + ex.Message);
     }
 }

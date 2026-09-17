@@ -29,6 +29,20 @@ namespace WallpaperControl
         private const int WidgetWidth = 330;
         private const int WS_EX_LAYERED = 0x00080000;
 
+        /// <summary>
+        /// Creates the system widget with selected metrics, refresh timing, and a position callback.
+        /// </summary>
+        /// <param name="locked">True to prevent the widget from being moved.</param>
+        /// <param name="refreshSeconds">The requested refresh interval in seconds.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="showCpu">True to display CPU readings.</param>
+        /// <param name="showRam">True to display physical-memory readings.</param>
+        /// <param name="showGpu">True to display GPU readings.</param>
+        /// <param name="showVram">True to display video-memory readings.</param>
+        /// <param name="showNetwork">True to display network transfer rates.</param>
+        /// <param name="showDrives">True to display drive usage.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
         public SystemWidgetForm(
             bool locked,
             int refreshSeconds,
@@ -71,12 +85,20 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Processes native window messages while preventing mouse interaction from activating the widget.
+        /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(ref Message m)
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 
+        /// <summary>
+        /// Starts system sampling and periodic updates when the widget becomes visible.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
@@ -84,6 +106,18 @@ namespace WallpaperControl
             if (!activitySuspended) timer.Start();
         }
 
+        /// <summary>
+        /// Applies the system widget&apos;s style, metric visibility, locking, and refresh preferences.
+        /// </summary>
+        /// <param name="isLocked">The widget&apos;s updated position-lock preference.</param>
+        /// <param name="refreshSeconds">The requested refresh interval in seconds.</param>
+        /// <param name="newStyle">The updated widget style.</param>
+        /// <param name="cpu">True to enable the CPU section.</param>
+        /// <param name="ram">True to enable the physical-memory section.</param>
+        /// <param name="gpu">True to enable the GPU section.</param>
+        /// <param name="vram">True to enable the video-memory section.</param>
+        /// <param name="network">True to enable the network section.</param>
+        /// <param name="drives">True to enable the drive section.</param>
         public void Apply(
             bool isLocked,
             int refreshSeconds,
@@ -115,6 +149,10 @@ namespace WallpaperControl
             if (IsHandleCreated && !IsDisposed) RenderLayeredWindow();
         }
 
+        /// <summary>
+        /// Calculates the widget height needed for the enabled system metrics.
+        /// </summary>
+        /// <returns>The height required by the current metric selection.</returns>
         private int CalculateHeight()
         {
             int height = 58;
@@ -127,6 +165,9 @@ namespace WallpaperControl
             return Math.Max(108, height + 12);
         }
 
+        /// <summary>
+        /// Samples hardware asynchronously without overlapping refreshes and redraws only while active.
+        /// </summary>
         private async void RefreshSnapshot()
         {
             if (activitySuspended || refreshInProgress || disposingWidget || IsDisposed)
@@ -159,6 +200,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Draws the latest system snapshot into a transparent bitmap while the widget is active.
+        /// </summary>
         private void RenderLayeredWindow()
         {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
@@ -260,6 +304,10 @@ namespace WallpaperControl
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
+        /// <summary>
+        /// Selects the system widget&apos;s panel, text, and accent colors for its current style.
+        /// </summary>
+        /// <returns>The panel, border, and text colors for the current style.</returns>
         private (Color panel, Color border, Color title, Color text, Color muted, Color accent, Color barBack) GetPalette()
         {
             return style switch
@@ -291,6 +339,21 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Draws a system metric row with its values and optional usage bar, then advances the layout cursor.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="rowFont">The font used for primary metric text.</param>
+        /// <param name="smallFont">The font used for secondary metric text.</param>
+        /// <param name="textBrush">The brush used for primary text.</param>
+        /// <param name="mutedBrush">The brush used for secondary text.</param>
+        /// <param name="accentBrush">The brush used for highlighted values and usage bars.</param>
+        /// <param name="barBackBrush">The brush used for the unfilled portion of a usage bar.</param>
+        /// <param name="label">The display label for the value or test check.</param>
+        /// <param name="percent">The optional usage percentage used to draw a bar.</param>
+        /// <param name="value">The formatted value to display.</param>
+        /// <param name="extra">The secondary value or unit text shown for the metric.</param>
+        /// <param name="y">The vertical coordinate.</param>
         private void DrawPerformanceRow(
             Graphics g,
             Font rowFont,
@@ -330,6 +393,16 @@ namespace WallpaperControl
             y += 38;
         }
 
+        /// <summary>
+        /// Draws a label/value row and advances the vertical layout cursor.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="font">The font used to draw the text.</param>
+        /// <param name="textBrush">The brush used for primary text.</param>
+        /// <param name="mutedBrush">The brush used for secondary text.</param>
+        /// <param name="label">The display label for the value or test check.</param>
+        /// <param name="value">The formatted value to display.</param>
+        /// <param name="y">The vertical coordinate.</param>
         private static void DrawTextPair(Graphics g, Font font, Brush textBrush, Brush mutedBrush, string label, string value, ref int y)
         {
             g.DrawString(label, font, textBrush, 16, y);
@@ -337,12 +410,44 @@ namespace WallpaperControl
             y += 23;
         }
 
+        /// <summary>
+        /// Formats an available percentage or the missing-reading placeholder.
+        /// </summary>
+        /// <param name="value">The optional percentage measurement to display.</param>
+        /// <returns>The formatted percentage or the missing-reading placeholder.</returns>
         private static string FormatPercent(float? value) => value.HasValue ? $"{value.Value:0}%" : "--%";
+        /// <summary>
+        /// Formats a temperature in degrees Celsius or the missing-reading placeholder.
+        /// </summary>
+        /// <param name="value">The optional temperature measurement in degrees Celsius.</param>
+        /// <returns>The temperature caption in degrees Celsius or the missing-reading placeholder.</returns>
         private static string FormatTemperature(float? value) => value.HasValue ? $"{value.Value:0} °C" : "-- °C";
+        /// <summary>
+        /// Formats used and total memory in gigabytes when both readings are available.
+        /// </summary>
+        /// <param name="used">The measured amount of used memory, when available.</param>
+        /// <param name="total">The measured total memory, when available.</param>
+        /// <returns>The used/total memory caption or the missing-reading placeholder.</returns>
         private static string FormatMemory(float? used, float? total) => used.HasValue && total.HasValue ? $"{used.Value:0.0}/{total.Value:0.0} GB" : "--";
+        /// <summary>
+        /// Formats memory usage as a percentage when the total is valid.
+        /// </summary>
+        /// <param name="used">The measured amount of used memory, when available.</param>
+        /// <param name="total">The measured total memory, when available.</param>
+        /// <returns>The percentage caption or the missing-reading placeholder when readings are invalid.</returns>
         private static string FormatMemoryPercent(float? used, float? total) => used.HasValue && total > 0 ? $"{used.Value / total.Value * 100f:0}%" : "--%";
+        /// <summary>
+        /// Converts a byte count to binary gigabytes for memory display.
+        /// </summary>
+        /// <param name="bytes">The size in bytes.</param>
+        /// <returns>The byte count divided by 1024 cubed.</returns>
         private static double BytesToGb(long bytes) => bytes / 1024d / 1024d / 1024d;
 
+        /// <summary>
+        /// Formats a network transfer rate using byte, kilobyte, or megabyte units per second.
+        /// </summary>
+        /// <param name="bytesPerSecond">The network transfer rate in bytes per second.</param>
+        /// <returns>The transfer-rate caption with an appropriate unit per second.</returns>
         private static string FormatRate(double bytesPerSecond)
         {
             if (bytesPerSecond >= 1024d * 1024d) return $"{bytesPerSecond / 1024d / 1024d:0.0} MB/s";
@@ -351,6 +456,10 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Stops system refreshes during automatic suspension and requests a fresh snapshot when resumed.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             if (activitySuspended == suspended || IsDisposed) return;
@@ -358,6 +467,10 @@ namespace WallpaperControl
             if (suspended) timer.Stop(); else timer.Start();
             if (!suspended) RefreshSnapshot();
         }
+        /// <summary>
+        /// Releases the resources owned by this system widget form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

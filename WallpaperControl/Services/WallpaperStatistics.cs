@@ -12,6 +12,11 @@ namespace WallpaperControl
         private readonly Func<DateTime> clock;
         private readonly Action? saveOverride;
 
+        /// <summary>
+        /// Initializes in-memory tracking with optional clock and persistence substitutes for testing.
+        /// </summary>
+        /// <param name="clock">An optional clock used to make tracking timestamps deterministic.</param>
+        /// <param name="saveOverride">An optional persistence callback used by tests.</param>
         internal WallpaperStatistics(Func<DateTime>? clock = null, Action? saveOverride = null)
         {
             this.clock = clock ?? (() => DateTime.Now);
@@ -57,6 +62,10 @@ namespace WallpaperControl
 
         private string? lastCountedWallpaperPath;
 
+        /// <summary>
+        /// Restores counters and tracking timestamps from supplied or persisted statistics.
+        /// </summary>
+        /// <param name="loadedData">An optional snapshot to load instead of reading persistent storage.</param>
         internal void Load(PersistentStatisticsData? loadedData = null)
         {
             PersistentStatisticsData data =
@@ -137,6 +146,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists the current counters and duplicate-suppression state.
+        /// </summary>
         internal void Save()
         {
             if (saveOverride != null)
@@ -157,6 +169,10 @@ namespace WallpaperControl
                 lastCountedWallpaperPath);
         }
 
+        /// <summary>
+        /// Removes a wallpaper from all counters and persists the updated tracking state.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal void Remove(
             string path)
         {
@@ -177,6 +193,10 @@ namespace WallpaperControl
             Save();
         }
 
+        /// <summary>
+        /// Clears tracking data while retaining the current image as already displayed until a real change occurs.
+        /// </summary>
+        /// <param name="currentWallpaperPath">The currently displayed wallpaper path, when known.</param>
         internal void Reset(string? currentWallpaperPath)
         {
             wallpaperViewCounts.Clear();
@@ -194,15 +214,19 @@ namespace WallpaperControl
             recurrenceStatisticsStartedAt =
                 statisticsStartedAt;
 
-            // Nach einem Reset soll die Anzeige wirklich bei 0 beginnen.
-            // Das aktuell sichtbare Wallpaper gilt als bereits vorhanden
-            // und wird erst nach einem echten Wechsel wieder gezählt.
+            // Reset must leave the displayed count at zero.
+            // Treat the currently visible wallpaper as already present and count
+            // it again only after an actual wallpaper change.
             lastCountedWallpaperPath =
                 currentWallpaperPath;
 
             Save();
         }
 
+        /// <summary>
+        /// Records a genuine image change, updating daily and recurrence statistics while suppressing consecutive duplicates.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal void RecordView(
             string path)
         {

@@ -14,6 +14,7 @@ namespace WallpaperControl
         /// <summary>
         /// Handles commands forwarded by another application instance on the UI thread.
         /// </summary>
+        /// <param name="command">The supported command to send or dispatch.</param>
         internal void ExecuteRemoteCommand(string command)
         {
             if (IsDisposed || Disposing)
@@ -75,6 +76,7 @@ namespace WallpaperControl
         /// <summary>
         /// Builds the native hotkey registrations from the current preferences.
         /// </summary>
+        /// <returns>The configured application actions and their keyboard shortcuts.</returns>
         private HotkeyBinding[] GetHotkeyBindings() => new[]
         {
             new HotkeyBinding(HOTKEY_NEXT, hotkeyNextModifiers, hotkeyNextKey, Localization.Get("SettingsHotkeyNext")),
@@ -86,6 +88,7 @@ namespace WallpaperControl
         /// <summary>
         /// Registers configured shortcuts and optionally reports conflicts.
         /// </summary>
+        /// <param name="showErrors">True to display collected errors to the user.</param>
         private void RegisterHotKeys(bool showErrors)
         {
             ShowHotkeyErrors(hotkeyManager.Register(Handle, GetHotkeyBindings()), showErrors);
@@ -94,6 +97,11 @@ namespace WallpaperControl
         /// <summary>
         /// Updates only changed shortcut registrations and optionally reports conflicts.
         /// </summary>
+        /// <param name="nextChanged">Whether the next-wallpaper shortcut changed.</param>
+        /// <param name="pauseChanged">Whether the pause shortcut changed.</param>
+        /// <param name="explorerChanged">Whether the Explorer shortcut changed.</param>
+        /// <param name="rejectChanged">Whether the rejection shortcut changed.</param>
+        /// <param name="showErrors">True to display collected errors to the user.</param>
         private void ReRegisterChangedHotKeys(
             bool nextChanged, bool pauseChanged, bool explorerChanged, bool rejectChanged, bool showErrors)
         {
@@ -105,6 +113,8 @@ namespace WallpaperControl
         /// <summary>
         /// Displays registration failures when interactive error reporting is enabled.
         /// </summary>
+        /// <param name="failures">The shortcut registration errors collected so far.</param>
+        /// <param name="showErrors">True to display collected errors to the user.</param>
         private void ShowHotkeyErrors(IReadOnlyList<string> failures, bool showErrors)
         {
             if (!showErrors || failures.Count == 0) return;
@@ -126,6 +136,7 @@ namespace WallpaperControl
         /// <summary>
         /// Dispatches native hotkey messages before passing other messages to the base window.
         /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(
             ref Message m)
         {

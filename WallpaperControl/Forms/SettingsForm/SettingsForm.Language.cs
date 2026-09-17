@@ -12,6 +12,8 @@ namespace WallpaperControl
         /// <summary>
         /// Applies the selected language to the dialog and widget previews.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void LanguageComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -30,6 +32,7 @@ namespace WallpaperControl
         /// <summary>
         /// Refreshes translated controls and choices while guarding against recursive preview events.
         /// </summary>
+        /// <param name="languageCode">The language code used for localized text.</param>
         private void ApplyPreviewLocalization(
             string languageCode)
         {
@@ -143,6 +146,7 @@ namespace WallpaperControl
         /// <summary>
         /// Recursively applies resource-key translations to tagged controls.
         /// </summary>
+        /// <param name="controls">The controls to style or localize recursively.</param>
         private void ApplyLocalizedText(
             Control.ControlCollection controls)
         {
@@ -168,6 +172,7 @@ namespace WallpaperControl
         /// <summary>
         /// Rebuilds the list of available languages and restores the requested selection.
         /// </summary>
+        /// <param name="selectedLanguage">The language code to keep selected.</param>
         private void RefreshLanguageChoices(
             string selectedLanguage)
         {
@@ -199,6 +204,7 @@ namespace WallpaperControl
         /// <summary>
         /// Selects an available language code or the existing fallback choice.
         /// </summary>
+        /// <param name="languageCode">The language code used for localized text.</param>
         private void SelectLanguage(
             string languageCode)
         {

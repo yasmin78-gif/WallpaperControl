@@ -12,6 +12,7 @@ namespace WallpaperControl
         /// <summary>
         /// Selects a clock style and refreshes its cards and preview.
         /// </summary>
+        /// <param name="style">The visual style used to render the widget.</param>
         private void SelectClockStyle(ClockWidgetStyle style)
         {
             int index = Math.Clamp((int)style, 0, 4);
@@ -51,6 +52,7 @@ namespace WallpaperControl
         /// <summary>
         /// Rebuilds localized clock-style choices while retaining the selected style.
         /// </summary>
+        /// <param name="selectedStyle">The widget style to keep selected.</param>
         private void RefreshClockStyleChoices(ClockWidgetStyle selectedStyle)
         {
             if (clockStyleComboBox == null) return;
@@ -70,6 +72,7 @@ namespace WallpaperControl
         /// <summary>
         /// Returns the selected clock style with a safe fallback for an empty selector.
         /// </summary>
+        /// <returns>The selected clock widget style, with the default used for an invalid selection.</returns>
         private ClockWidgetStyle GetSelectedClockStyle()
         {
             int index = clockStyleComboBox?.SelectedIndex ?? (int)ClockWidgetStyle.Chrome;

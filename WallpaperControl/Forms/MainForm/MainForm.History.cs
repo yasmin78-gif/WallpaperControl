@@ -14,6 +14,7 @@ namespace WallpaperControl
         /// <summary>
         /// Applies an image selected in the statistics dialog and updates slideshow state.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private async void SetWallpaperFromStatistics(
             string path)
         {
@@ -38,9 +39,9 @@ namespace WallpaperControl
                     null,
                     path);
 
-                // Eine gezielte Auswahl aus der Statistik soll sichtbar
-                // bleiben. War vorher eine Diashow aktiv, behandeln wir
-                // die Auswahl daher wie eine Sitzungspause.
+                // An image explicitly selected from statistics should remain visible.
+                // If a slideshow was active, treat this selection as a pause for the
+                // current application session.
                 slideshowPaused =
                     slideshowWasActive;
 
@@ -78,7 +79,7 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Refreshes the history button's enabled state and entry count.
+        /// Refreshes the history button&apos;s enabled state and entry count.
         /// </summary>
         private void UpdateHistoryButton()
         {
@@ -100,6 +101,7 @@ namespace WallpaperControl
         /// <summary>
         /// Adds a wallpaper to the bounded history while avoiding duplicate entries.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void AddWallpaperToHistory(
             string path)
         {
@@ -127,6 +129,8 @@ namespace WallpaperControl
         /// <summary>
         /// Builds and opens the wallpaper history menu.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void HistoryButton_Click(
             object? sender,
             EventArgs e)
@@ -216,6 +220,8 @@ namespace WallpaperControl
         /// <summary>
         /// Shows a preview for the hovered history entry.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void HistoryItem_MouseEnter(
             object? sender,
             EventArgs e)
@@ -233,6 +239,8 @@ namespace WallpaperControl
         /// <summary>
         /// Hides the history preview when the pointer leaves an entry.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void HistoryItem_MouseLeave(
             object? sender,
             EventArgs e)
@@ -243,6 +251,7 @@ namespace WallpaperControl
         /// <summary>
         /// Loads and positions a preview beside the selected history menu item.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void ShowHistoryWallpaperPreview(
             string path)
         {
@@ -303,6 +312,8 @@ namespace WallpaperControl
         /// <summary>
         /// Opens an existing history image using the registered default application.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void HistoryItem_Click(
             object? sender,
             EventArgs e)
@@ -332,6 +343,8 @@ namespace WallpaperControl
         /// <summary>
         /// Opens wallpaper statistics and connects image-selection and reset actions.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsButton_Click(
             object? sender,
             EventArgs e)

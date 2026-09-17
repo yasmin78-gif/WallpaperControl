@@ -20,6 +20,16 @@ namespace WallpaperControl
         private Point dragMouseStart;
         private Point dragFormStart;
 
+        /// <summary>
+        /// Creates the desktop clock with its style, size, language, and position callback.
+        /// </summary>
+        /// <param name="clockSize">The requested clock size in logical pixels.</param>
+        /// <param name="locked">True to prevent the widget from being moved.</param>
+        /// <param name="showSeconds">True to display seconds in the clock.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
         public ClockWidgetForm(
             int clockSize,
             bool locked,
@@ -63,6 +73,10 @@ namespace WallpaperControl
 
         protected override bool ShowWithoutActivation => true;
 
+        /// <summary>
+        /// Processes native window messages while preventing mouse interaction from activating the widget.
+        /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(ref Message m)
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
@@ -82,6 +96,14 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Applies the clock&apos;s display and locking preferences and refreshes its size and appearance.
+        /// </summary>
+        /// <param name="size">The clock size in pixels.</param>
+        /// <param name="isLocked">The widget&apos;s updated position-lock preference.</param>
+        /// <param name="secondsVisible">True to display the seconds component.</param>
+        /// <param name="currentStyle">The selected clock style.</param>
+        /// <param name="currentLanguageCode">The language code used by the clock.</param>
         public void Apply(int size, bool isLocked, bool secondsVisible, ClockWidgetStyle currentStyle, string currentLanguageCode)
         {
             clockSize = Math.Clamp(size, 70, 240);
@@ -94,6 +116,10 @@ namespace WallpaperControl
             Invalidate();
         }
 
+        /// <summary>
+        /// Draws the current time and date using the selected clock style.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -143,6 +169,12 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Formats the clock&apos;s date using the supplied culture and language-specific layout.
+        /// </summary>
+        /// <param name="value">The date to format using the clock language.</param>
+        /// <param name="culture">The culture used to format the date.</param>
+        /// <returns>The date formatted with the clock&apos;s language-specific layout.</returns>
         private static string FormatDate(DateTime value, CultureInfo culture)
         {
             string language = culture.TwoLetterISOLanguageName;
@@ -159,6 +191,20 @@ namespace WallpaperControl
         }
 
 
+        /// <summary>
+        /// Draws one of the lightweight clock styles with its requested font and decorations.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="time">The already formatted time shown by the clock.</param>
+        /// <param name="date">The formatted date text to draw.</param>
+        /// <param name="scale">The size multiplier applied to the clock&apos;s layout and effects.</param>
+        /// <param name="centerX">The horizontal center of the text layout.</param>
+        /// <param name="fontName">The font family used for the clock text.</param>
+        /// <param name="fontStyle">The font emphasis used for the clock text.</param>
+        /// <param name="color">The foreground drawing color.</param>
+        /// <param name="divider">Whether to draw a divider below the clock time.</param>
+        /// <param name="glow">Whether to draw a glow around the text.</param>
+        /// <param name="classic">Whether to use the classic clock presentation.</param>
         private void DrawSimpleStyle(Graphics g, string time, string date, float scale, float centerX, string fontName, FontStyle fontStyle, Color color, bool divider, bool glow, bool classic)
         {
             float timeY = -54f * scale;
@@ -230,6 +276,13 @@ namespace WallpaperControl
             g.FillPath(dateBrush, datePath);
         }
 
+        /// <summary>
+        /// Draws the main time text with the clock&apos;s layered visual treatment.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="scale">The size multiplier applied to the clock&apos;s layout and effects.</param>
+        /// <param name="centerX">The horizontal center of the text layout.</param>
         private void DrawTime(
             Graphics g,
             string text,
@@ -313,6 +366,12 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Draws the clock&apos;s scaled horizontal divider.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="scale">The size multiplier applied to the clock&apos;s layout and effects.</param>
+        /// <param name="centerX">The horizontal center of the text layout.</param>
         private void DrawDivider(
             Graphics g,
             float scale,
@@ -410,6 +469,13 @@ namespace WallpaperControl
             g.DrawPolygon(diamondBorder, diamond);
         }
 
+        /// <summary>
+        /// Draws the localized date below the clock&apos;s time display.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="scale">The size multiplier applied to the clock&apos;s layout and effects.</param>
+        /// <param name="centerX">The horizontal center of the text layout.</param>
         private void DrawDate(
             Graphics g,
             string text,
@@ -470,6 +536,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Creates the centered text layout used by the clock renderer.
+        /// </summary>
+        /// <returns>A new centered text format that the caller must dispose.</returns>
         private static StringFormat CreateCenteredFormat()
         {
             return new StringFormat(StringFormat.GenericTypographic)
@@ -480,6 +550,15 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Builds a vector path for rendering the requested text with the clock effects.
+        /// </summary>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="family">The font family used to construct the glyph outlines.</param>
+        /// <param name="emSize">The font size in the units used by the drawing operation.</param>
+        /// <param name="layout">The text layout rectangle.</param>
+        /// <param name="format">The text alignment and layout options.</param>
+        /// <returns>A new glyph-outline path that the caller must dispose.</returns>
         private static GraphicsPath CreateTextPath(
             string text,
             FontFamily family,
@@ -498,6 +577,9 @@ namespace WallpaperControl
             return path;
         }
 
+        /// <summary>
+        /// Applies the current clock size to the widget window.
+        /// </summary>
         private void SetSize()
         {
             ClientSize = new Size(
@@ -505,6 +587,11 @@ namespace WallpaperControl
                 (int)Math.Round(260 * clockSize / 150d));
         }
 
+        /// <summary>
+        /// Starts an unlocked clock drag and stores its cursor and window origins.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void BeginDrag(object? sender, MouseEventArgs e)
         {
             if (locked || e.Button != MouseButtons.Left)
@@ -517,6 +604,11 @@ namespace WallpaperControl
             dragFormStart = Location;
         }
 
+        /// <summary>
+        /// Moves the clock relative to the stored drag origins.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ContinueDrag(object? sender, MouseEventArgs e)
         {
             if (!dragging)
@@ -530,6 +622,11 @@ namespace WallpaperControl
                 dragFormStart.Y + now.Y - dragMouseStart.Y);
         }
 
+        /// <summary>
+        /// Ends a clock drag and reports the final window position.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void EndDrag(object? sender, MouseEventArgs e)
         {
             if (!dragging)
@@ -543,6 +640,10 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Stops periodic clock repaints during automatic suspension and refreshes when resumed.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             if (activitySuspended == suspended || IsDisposed) return;
@@ -550,6 +651,10 @@ namespace WallpaperControl
             if (suspended) timer.Stop(); else timer.Start();
             if (!suspended) Invalidate();
         }
+        /// <summary>
+        /// Releases the resources owned by this clock widget form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

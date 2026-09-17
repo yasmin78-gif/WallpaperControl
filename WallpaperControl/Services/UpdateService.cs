@@ -14,6 +14,13 @@ namespace WallpaperControl
         Failed
     }
 
+    /// <summary>
+    /// Describes a release check without downloading or installing an update.
+    /// </summary>
+    /// <param name="Status">Whether the application is current, an update exists, or the check failed.</param>
+    /// <param name="CurrentVersion">The running application version.</param>
+    /// <param name="LatestVersion">The discovered release version, or null when unavailable.</param>
+    /// <param name="ReleaseUri">The release page address, or null when unavailable.</param>
     internal sealed record UpdateCheckResult(
         UpdateCheckStatus Status,
         Version CurrentVersion,
@@ -32,6 +39,9 @@ namespace WallpaperControl
         private readonly HttpClient httpClient;
         private readonly bool ownsHttpClient;
 
+        /// <summary>
+        /// Configures release checks with an owned default HTTP client or an injected client.
+        /// </summary>
         public UpdateService()
         {
             HttpClientHandler handler = new()
@@ -54,6 +64,10 @@ namespace WallpaperControl
             ownsHttpClient = true;
         }
 
+        /// <summary>
+        /// Configures release checks with an owned default HTTP client or an injected client.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to use; the caller retains ownership.</param>
         internal UpdateService(HttpClient httpClient)
         {
             this.httpClient =
@@ -61,6 +75,11 @@ namespace WallpaperControl
             ownsHttpClient = false;
         }
 
+        /// <summary>
+        /// Compares the running version with the latest release and reports request or parsing failures as a result.
+        /// </summary>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result reports whether an update is available, the application is current, or the check failed.</returns>
         public async Task<UpdateCheckResult> CheckAsync(
             CancellationToken cancellationToken = default)
         {
@@ -128,6 +147,10 @@ namespace WallpaperControl
                 null);
         }
 
+        /// <summary>
+        /// Reads the running application&apos;s version from assembly metadata with supported fallbacks.
+        /// </summary>
+        /// <returns>The running application&apos;s normalized version.</returns>
         internal static Version GetCurrentVersion()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -144,6 +167,11 @@ namespace WallpaperControl
             return assembly.GetName().Version ?? new Version(0, 0, 0);
         }
 
+        /// <summary>
+        /// Extracts a release version from the final release URL when its format is recognized.
+        /// </summary>
+        /// <param name="releaseUri">The final release URL after HTTP redirection.</param>
+        /// <returns>The release version, or null when the URL is not recognized.</returns>
         internal static Version? TryGetVersionFromReleaseUri(Uri? releaseUri)
         {
             if (releaseUri == null)
@@ -162,6 +190,11 @@ namespace WallpaperControl
             return ParseVersion(tag);
         }
 
+        /// <summary>
+        /// Parses a release or assembly version after normalizing supported prefixes and suffixes.
+        /// </summary>
+        /// <param name="value">The version or release-tag text to parse.</param>
+        /// <returns>The parsed version, or null when the input does not contain a valid version.</returns>
         internal static Version? ParseVersion(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -185,6 +218,9 @@ namespace WallpaperControl
                 : null;
         }
 
+        /// <summary>
+        /// Releases the HTTP client only when it was created by this service.
+        /// </summary>
         public void Dispose()
         {
             if (ownsHttpClient)

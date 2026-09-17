@@ -96,12 +96,20 @@ namespace WallpaperControl
                 DesignerSerializationVisibility.Hidden)]
             public string Title { get; set; } = string.Empty;
 
+            /// <summary>
+            /// Configures flicker-free rendering for the top-wallpaper chart.
+            /// </summary>
             public TopWallpaperChart()
             {
                 DoubleBuffered = true;
                 BorderStyle = BorderStyle.FixedSingle;
             }
 
+            /// <summary>
+            /// Replaces the chart entries and its empty-state caption, then schedules a repaint.
+            /// </summary>
+            /// <param name="values">The wallpaper names and counts to plot.</param>
+            /// <param name="noDataText">The localized caption shown when there are no chart values.</param>
             public void SetData(
                 IEnumerable<KeyValuePair<string, int>> values,
                 string noDataText)
@@ -121,6 +129,10 @@ namespace WallpaperControl
                 Invalidate();
             }
 
+            /// <summary>
+            /// Updates the chart palette and schedules a repaint.
+            /// </summary>
+            /// <param name="useDarkMode">True to select the dark palette.</param>
             public void SetTheme(bool useDarkMode)
             {
                 darkMode = useDarkMode;
@@ -129,6 +141,10 @@ namespace WallpaperControl
                 Invalidate();
             }
 
+            /// <summary>
+            /// Draws the ranked wallpaper bars or the localized empty-state message.
+            /// </summary>
+            /// <param name="e">The event data supplied by WinForms or the event source.</param>
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
@@ -233,6 +249,9 @@ namespace WallpaperControl
             public Label ValueLabel { get; }
             public Label DetailLabel { get; }
 
+            /// <summary>
+            /// Builds the value and detail labels used by a statistics dashboard card.
+            /// </summary>
             public MetricCard()
             {
                 Size = new Size(205, 88);
@@ -272,6 +291,10 @@ namespace WallpaperControl
                 Controls.Add(DetailLabel);
             }
 
+            /// <summary>
+            /// Releases the resources owned by this metric card.
+            /// </summary>
+            /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -284,6 +307,12 @@ namespace WallpaperControl
                 base.Dispose(disposing);
             }
 
+            /// <summary>
+            /// Applies the dashboard card&apos;s background, value, and detail colors.
+            /// </summary>
+            /// <param name="background">The background color to apply.</param>
+            /// <param name="foreground">The primary foreground color to apply.</param>
+            /// <param name="muted">The secondary text color.</param>
             public void SetColors(
                 Color background,
                 Color foreground,
@@ -316,6 +345,11 @@ namespace WallpaperControl
             public string Text { get; }
             public StatisticsPeriod Period { get; }
 
+            /// <summary>
+            /// Pairs a statistics period with the label displayed in the period selector.
+            /// </summary>
+            /// <param name="text">The text to display, format, or parse.</param>
+            /// <param name="period">The statistics period to display or aggregate.</param>
             public PeriodChoice(
                 string text,
                 StatisticsPeriod period)
@@ -324,6 +358,10 @@ namespace WallpaperControl
                 Period = period;
             }
 
+            /// <summary>
+            /// Returns the localized display label for this selection item.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() => Text;
         }
 
@@ -333,6 +371,12 @@ namespace WallpaperControl
             public int? MaxItems { get; }
             public bool NeglectedOnly { get; }
 
+            /// <summary>
+            /// Stores the filter label, optional result limit, and neglected-wallpaper mode.
+            /// </summary>
+            /// <param name="text">The text to display, format, or parse.</param>
+            /// <param name="maxItems">The optional maximum number of rows to show.</param>
+            /// <param name="neglectedOnly">Whether to limit results to wallpapers with low or missing view counts.</param>
             public FilterChoice(
                 string text,
                 int? maxItems,
@@ -343,6 +387,10 @@ namespace WallpaperControl
                 NeglectedOnly = neglectedOnly;
             }
 
+            /// <summary>
+            /// Returns the localized display label for this selection item.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() => Text;
         }
 
@@ -355,6 +403,14 @@ namespace WallpaperControl
             public int PopularityRank { get; }
             public bool Exists { get; }
 
+            /// <summary>
+            /// Captures one wallpaper&apos;s path, count, last display time, share, and popularity rank.
+            /// </summary>
+            /// <param name="path">The image or folder path to process.</param>
+            /// <param name="views">The number of views recorded for the wallpaper.</param>
+            /// <param name="lastShown">The most recent display timestamp for this wallpaper.</param>
+            /// <param name="share">The wallpaper&apos;s share of the selected display counts.</param>
+            /// <param name="popularityRank">The wallpaper&apos;s position in the popularity ordering.</param>
             public RowData(
                 string path,
                 int views,
@@ -373,6 +429,9 @@ namespace WallpaperControl
 
         private sealed class DoubleBufferedListView : ListView
         {
+            /// <summary>
+            /// Enables double buffering to reduce flicker in the statistics list.
+            /// </summary>
             public DoubleBufferedListView()
             {
                 DoubleBuffered = true;
@@ -388,6 +447,10 @@ namespace WallpaperControl
         {
             private readonly bool dark;
 
+            /// <summary>
+            /// Stores the theme used to paint the statistics context menu.
+            /// </summary>
+            /// <param name="dark">True to use dark menu colors.</param>
             public StatisticsMenuColorTable(
                 bool dark)
             {
@@ -448,6 +511,23 @@ namespace WallpaperControl
                 MenuItemSelected;
         }
 
+        /// <summary>
+        /// Builds the statistics dashboard from the supplied counters and connects optional wallpaper actions.
+        /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="windowOpacityPercent">The window opacity as a percentage.</param>
+        /// <param name="wallpaperViewCounts">The total display count for each wallpaper.</param>
+        /// <param name="wallpaperLastShown">The last display time recorded for each wallpaper.</param>
+        /// <param name="wallpaperDailyViewCounts">The per-day display counts for each wallpaper.</param>
+        /// <param name="wallpaperRecurrenceCounts">The number of recorded repeat appearances for each wallpaper.</param>
+        /// <param name="wallpaperRecurrenceSeconds">The accumulated intervals between repeat appearances, in seconds.</param>
+        /// <param name="wallpaperFolder">The current source folder used to find wallpaper images.</param>
+        /// <param name="statisticsStartedAt">The start of the overall statistics period.</param>
+        /// <param name="dailyStatisticsStartedAt">The start of per-day statistics.</param>
+        /// <param name="recurrenceStatisticsStartedAt">The start of recurrence statistics.</param>
+        /// <param name="removeFromStatistics">The optional callback that removes one image&apos;s tracking data.</param>
+        /// <param name="setWallpaper">The optional callback that displays a selected wallpaper.</param>
+        /// <param name="resetStatistics">The optional callback that clears tracking data.</param>
         public StatisticsForm(
             bool darkMode,
             int windowOpacityPercent,
@@ -979,6 +1059,13 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        /// <summary>
+        /// Creates a font and tracks it for disposal with the form.
+        /// </summary>
+        /// <param name="familyName">The name of the font family to create.</param>
+        /// <param name="emSize">The font size in the units used by the drawing operation.</param>
+        /// <param name="style">The weight and decoration applied to the font.</param>
+        /// <returns>The font owned by the form; it is released when the form is disposed.</returns>
         private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
         {
             Font font = new Font(familyName, emSize, style);
@@ -986,6 +1073,12 @@ namespace WallpaperControl
             return font;
         }
 
+        /// <summary>
+        /// Creates a font and tracks it for disposal with the form.
+        /// </summary>
+        /// <param name="prototype">The existing font whose family and size are reused.</param>
+        /// <param name="style">The weight and decoration applied to the font.</param>
+        /// <returns>The font owned by the form; it is released when the form is disposed.</returns>
         private Font CreateOwnedFont(Font prototype, FontStyle style)
         {
             Font font = new Font(prototype, style);
@@ -993,6 +1086,10 @@ namespace WallpaperControl
             return font;
         }
 
+        /// <summary>
+        /// Applies the native title-bar theme after the window handle is created.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnHandleCreated(
             EventArgs e)
         {
@@ -1000,6 +1097,10 @@ namespace WallpaperControl
             ApplyTitleBarTheme();
         }
 
+        /// <summary>
+        /// Cancels pending thumbnail work and releases preview, menu, image, and font resources.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnFormClosed(
             FormClosedEventArgs e)
         {
@@ -1033,6 +1134,11 @@ namespace WallpaperControl
             base.OnFormClosed(e);
         }
 
+        /// <summary>
+        /// Refreshes statistics after the user selects a different result filter.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void FilterComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -1073,6 +1179,9 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        /// <summary>
+        /// Rebuilds filtered statistics rows, totals, and dashboard values from the current tracking data.
+        /// </summary>
         private void RefreshStatistics()
         {
             PeriodChoice periodChoice =
@@ -1401,6 +1510,10 @@ namespace WallpaperControl
             hoveredItemIndex = -1;
         }
 
+        /// <summary>
+        /// Collects supported images from the current wallpaper folder for statistics comparisons.
+        /// </summary>
+        /// <returns>The supported wallpaper paths discovered in the source folder.</returns>
         private List<string> GetCurrentFolderWallpapers()
         {
             if (string.IsNullOrWhiteSpace(
@@ -1433,6 +1546,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Aggregates wallpaper view counts for the selected tracking period.
+        /// </summary>
+        /// <param name="period">The statistics period to display or aggregate.</param>
+        /// <returns>The per-wallpaper counts for the selected period.</returns>
         private Dictionary<string, int> GetViewCountsForPeriod(
             StatisticsPeriod period)
         {
@@ -1530,6 +1648,11 @@ namespace WallpaperControl
             return result;
         }
 
+        /// <summary>
+        /// Formats the elapsed time between repeated wallpaper displays for the statistics interface.
+        /// </summary>
+        /// <param name="duration">The average interval between wallpaper appearances.</param>
+        /// <returns>The recurrence duration formatted for display.</returns>
         private static string FormatRecurrenceDuration(
             TimeSpan duration)
         {
@@ -1569,6 +1692,12 @@ namespace WallpaperControl
                     duration.TotalSeconds));
         }
 
+        /// <summary>
+        /// Refreshes the dashboard metrics for the current counts and selected period.
+        /// </summary>
+        /// <param name="activeViewCounts">The display counts for the currently selected period.</param>
+        /// <param name="totalViews">The total number of recorded views in the selected data.</param>
+        /// <param name="average">The average number of views per wallpaper in the selected data.</param>
         private void UpdateDashboardCards(
             IReadOnlyDictionary<string, int> activeViewCounts,
             int totalViews,
@@ -1673,6 +1802,12 @@ namespace WallpaperControl
                     "StatisticsMetricFairnessDetail"));
         }
 
+        /// <summary>
+        /// Sets the main value and explanatory detail on a dashboard card.
+        /// </summary>
+        /// <param name="card">The dashboard metric card to update.</param>
+        /// <param name="value">The formatted value to display.</param>
+        /// <param name="detail">The explanatory caption shown below the metric value.</param>
         private static void SetMetricCard(
             MetricCard card,
             string value,
@@ -1682,6 +1817,12 @@ namespace WallpaperControl
             card.DetailLabel.Text = detail;
         }
 
+        /// <summary>
+        /// Calculates how evenly wallpaper views are distributed across the supplied counts.
+        /// </summary>
+        /// <param name="viewCounts">The wallpaper display counts used by the calculation or snapshot.</param>
+        /// <param name="totalViews">The total number of recorded views in the selected data.</param>
+        /// <returns>The calculated percentage score describing the distribution of views.</returns>
         private static double CalculateFairnessScore(
             IEnumerable<int> viewCounts,
             int totalViews)
@@ -1738,6 +1879,11 @@ namespace WallpaperControl
                 100.0);
         }
 
+        /// <summary>
+        /// Orders statistics rows by the selected column and direction.
+        /// </summary>
+        /// <param name="items">The filtered statistics rows to order for display.</param>
+        /// <returns>The rows ordered by the active sort selection.</returns>
         private IEnumerable<RowData> ApplySorting(
             IEnumerable<RowData> items)
         {
@@ -1791,6 +1937,11 @@ namespace WallpaperControl
                 nameComparer);
         }
 
+        /// <summary>
+        /// Changes the statistics sort column or toggles its direction, then refreshes the list.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_ColumnClick(
             object? sender,
             ColumnClickEventArgs e)
@@ -1825,6 +1976,9 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        /// <summary>
+        /// Refreshes localized column labels and marks the active sort direction.
+        /// </summary>
         private void UpdateColumnHeaders()
         {
             statisticsList.Columns[2].Text =
@@ -1852,6 +2006,12 @@ namespace WallpaperControl
                     SortColumn.LastShown);
         }
 
+        /// <summary>
+        /// Adds the current sort indicator to the selected column&apos;s caption.
+        /// </summary>
+        /// <param name="text">The text to display, format, or parse.</param>
+        /// <param name="column">The statistics column being sorted or labeled.</param>
+        /// <returns>The caption with an indicator when this is the active sort column.</returns>
         private string BuildSortableHeader(
             string text,
             SortColumn column)
@@ -1863,6 +2023,11 @@ namespace WallpaperControl
                 (sortAscending ? "  ▲" : "  ▼");
         }
 
+        /// <summary>
+        /// Draws a statistics column header using the active theme.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_DrawColumnHeader(
             object? sender,
             DrawListViewColumnHeaderEventArgs e)
@@ -1930,6 +2095,11 @@ namespace WallpaperControl
                 e.Bounds.Bottom - 1);
         }
 
+        /// <summary>
+        /// Draws a statistics cell, including its selection state and column-specific content.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_DrawSubItem(
             object? sender,
             DrawListViewSubItemEventArgs e)
@@ -2051,6 +2221,12 @@ namespace WallpaperControl
                 e.Bounds.Bottom - 1);
         }
 
+        /// <summary>
+        /// Draws a cached image thumbnail or a placeholder within the supplied cell bounds.
+        /// </summary>
+        /// <param name="graphics">The drawing surface used for the operation.</param>
+        /// <param name="bounds">The rectangle used for drawing or visibility checks.</param>
+        /// <param name="row">The wallpaper metadata associated with the row, when available.</param>
         private void DrawThumbnail(
             Graphics graphics,
             Rectangle bounds,
@@ -2138,6 +2314,10 @@ namespace WallpaperControl
                 imageBounds);
         }
 
+        /// <summary>
+        /// Queues uncached thumbnail work while avoiding duplicate requests and respecting shutdown.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void QueueThumbnailLoad(
             string path)
         {
@@ -2209,6 +2389,11 @@ namespace WallpaperControl
                     TaskScheduler.Default);
         }
 
+        /// <summary>
+        /// Loads and crops a wallpaper into the fixed-size thumbnail used by the statistics list.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>The owned thumbnail bitmap, or null when the source cannot be loaded.</returns>
         private static Bitmap? CreateThumbnail(
             string path)
         {
@@ -2255,6 +2440,14 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Calculates the source crop that fills the target thumbnail while preserving the aspect ratio.
+        /// </summary>
+        /// <param name="sourceWidth">The source image width in pixels.</param>
+        /// <param name="sourceHeight">The source image height in pixels.</param>
+        /// <param name="targetWidth">The target image width in pixels.</param>
+        /// <param name="targetHeight">The target image height in pixels.</param>
+        /// <returns>The source rectangle that fills the target aspect ratio.</returns>
         private static Rectangle CalculateCropRectangle(
             int sourceWidth,
             int sourceHeight,
@@ -2303,6 +2496,11 @@ namespace WallpaperControl
                 cropHeight);
         }
 
+        /// <summary>
+        /// Updates hovered-row state and the wallpaper preview as the pointer moves.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_MouseMove(
             object? sender,
             MouseEventArgs e)
@@ -2426,6 +2624,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Clears hover state and hides the wallpaper preview when the pointer leaves the list.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_MouseLeave(
             object? sender,
             EventArgs e)
@@ -2447,6 +2650,11 @@ namespace WallpaperControl
             HideWallpaperPreview();
         }
 
+        /// <summary>
+        /// Selects the row under the pointer before processing its context-menu actions.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_MouseDown(
             object? sender,
             MouseEventArgs e)
@@ -2460,6 +2668,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Opens the selected wallpaper from a list double-click.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void StatisticsList_MouseDoubleClick(
             object? sender,
             MouseEventArgs e)
@@ -2481,6 +2694,10 @@ namespace WallpaperControl
             SetSelectedWallpaper();
         }
 
+        /// <summary>
+        /// Retrieves the wallpaper data associated with the currently selected list row.
+        /// </summary>
+        /// <returns>The selected wallpaper data, or null when no suitable row is selected.</returns>
         private RowData? GetSelectedRow()
         {
             if (statisticsList.SelectedItems.Count == 0)
@@ -2491,6 +2708,9 @@ namespace WallpaperControl
                 .Tag as RowData;
         }
 
+        /// <summary>
+        /// Requests the selected image as the desktop wallpaper through the supplied callback.
+        /// </summary>
         private void SetSelectedWallpaper()
         {
             RowData? row =
@@ -2505,6 +2725,9 @@ namespace WallpaperControl
             setWallpaper(row.Path);
         }
 
+        /// <summary>
+        /// Opens the selected wallpaper with its registered default application.
+        /// </summary>
         private void OpenSelectedWallpaper()
         {
             RowData? row =
@@ -2516,6 +2739,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Opens an existing image and reports failures through the statistics dialog.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private static void OpenWallpaper(
             string path)
         {
@@ -2528,6 +2755,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Reveals the selected wallpaper in Windows Explorer.
+        /// </summary>
         private void OpenSelectedWallpaperFolder()
         {
             RowData? row =
@@ -2555,6 +2785,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Copies the selected image&apos;s path to the clipboard.
+        /// </summary>
         private void CopySelectedWallpaperPath()
         {
             RowData? row =
@@ -2572,6 +2805,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Removes the selected wallpaper&apos;s tracking data and refreshes the dashboard.
+        /// </summary>
         private void RemoveSelectedWallpaperFromStatistics()
         {
             RowData? row =
@@ -2617,6 +2853,11 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        /// <summary>
+        /// Confirms and requests a statistics reset, then refreshes the displayed data.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ResetButton_Click(
             object? sender,
             EventArgs e)
@@ -2662,6 +2903,10 @@ namespace WallpaperControl
             RefreshStatistics();
         }
 
+        /// <summary>
+        /// Loads and positions a preview with metadata for the selected wallpaper.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void UpdateWallpaperPreview(
             string path)
         {
@@ -2705,6 +2950,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Hides the statistics preview window without activating another window.
+        /// </summary>
         private void HideWallpaperPreview()
         {
             previewPath = null;
@@ -2718,6 +2966,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Formats a file size using the statistics dialog&apos;s compact unit labels.
+        /// </summary>
+        /// <param name="bytes">The size in bytes.</param>
+        /// <returns>The size formatted with compact byte, kilobyte, megabyte, or gigabyte units.</returns>
         private static string FormatFileSize(
             long bytes)
         {
@@ -2746,6 +2999,9 @@ namespace WallpaperControl
             return $"{bytes} B";
         }
 
+        /// <summary>
+        /// Applies the selected palette to the statistics dashboard and its controls.
+        /// </summary>
         private void ApplyTheme()
         {
             Color background =
@@ -2878,11 +3134,20 @@ namespace WallpaperControl
             ApplyTitleBarTheme();
         }
 
+        /// <summary>
+        /// Applies the current theme to the native statistics window title bar.
+        /// </summary>
         private void ApplyTitleBarTheme()
         {
             WindowsTheme.ApplyTitleBar(this, darkMode);
         }
 
+        /// <summary>
+        /// Changes the visibility or display state of a native window.
+        /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nCmdShow">The native command controlling visibility and restored or minimized state.</param>
+        /// <returns>True if the window was previously visible; otherwise, false.</returns>
         [DllImport("user32.dll")]
         private static extern bool
             ShowWindow(

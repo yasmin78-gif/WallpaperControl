@@ -15,6 +15,8 @@ namespace WallpaperControl
         /// <summary>
         /// Warms up the desktop renderer before starting widgets and scheduled update checks.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void MainForm_Shown(
             object? sender,
             EventArgs e)
@@ -71,6 +73,7 @@ namespace WallpaperControl
         /// <summary>
         /// Restores the native slideshow and releases timers, watchers, widgets, menus, and owned fonts.
         /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -142,6 +145,7 @@ namespace WallpaperControl
         /// <summary>
         /// Applies the title-bar theme and registers global hotkeys for the new window handle.
         /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnHandleCreated(
             EventArgs e)
         {
@@ -189,6 +193,7 @@ namespace WallpaperControl
         /// <summary>
         /// Hides a minimized window to the tray unless a restore operation is in progress.
         /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnResize(
             EventArgs e)
         {
@@ -206,6 +211,7 @@ namespace WallpaperControl
         /// <summary>
         /// Handles close-to-tray behavior and coordinates slideshow restoration before exiting.
         /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnFormClosing(
             FormClosingEventArgs e)
         {
@@ -259,6 +265,7 @@ namespace WallpaperControl
         /// <summary>
         /// Returns slideshow ownership to Windows before completing an explicit application exit.
         /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ResumeSlideshowAndCloseAsync()
         {
             if (closingAfterPauseResume)

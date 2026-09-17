@@ -197,6 +197,8 @@ namespace WallpaperControl
         /// <summary>
         /// Schedules a debounced count refresh after supported images change.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void WallpaperFolderWatcher_Changed(
             object sender,
             FileSystemEventArgs e)
@@ -210,6 +212,8 @@ namespace WallpaperControl
         /// <summary>
         /// Schedules a count refresh when a rename affects a supported image.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void WallpaperFolderWatcher_Renamed(
             object sender,
             RenamedEventArgs e)
@@ -231,6 +235,7 @@ namespace WallpaperControl
             if (IsDisposed || Disposing)
                 return;
 
+            // Restarts the debounce timer to combine consecutive folder-change notifications.
             void RestartTimer()
             {
                 if (IsDisposed || Disposing)
@@ -259,6 +264,8 @@ namespace WallpaperControl
         /// <summary>
         /// Accepts dragged folders and supported wallpaper files.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void MainForm_DragEnter(
             object? sender,
             DragEventArgs e)
@@ -302,6 +309,8 @@ namespace WallpaperControl
         /// <summary>
         /// Resolves the dropped path and applies its wallpaper source folder.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void MainForm_DragDrop(
             object? sender,
             DragEventArgs e)
@@ -351,6 +360,8 @@ namespace WallpaperControl
         /// <summary>
         /// Validates a dropped file before using its parent folder as a slideshow source.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>True when the path has a supported wallpaper image extension.</returns>
         private static bool IsSupportedWallpaperFile(
             string path)
         {
@@ -391,6 +402,7 @@ namespace WallpaperControl
         /// <summary>
         /// Applies a new source folder and refreshes slideshow state and folder observation.
         /// </summary>
+        /// <param name="folder">The wallpaper folder path.</param>
         private void ApplyNewWallpaperFolder(
             string folder)
         {
@@ -428,6 +440,8 @@ namespace WallpaperControl
         /// <summary>
         /// Prompts for a wallpaper source folder and applies the selected path.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void FolderButton_Click(
             object? sender,
             EventArgs e)
@@ -461,6 +475,7 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a shell item collection and assigns it as the native Windows slideshow source.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void SetWallpaperFolder(
             string path)
         {

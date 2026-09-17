@@ -4,6 +4,10 @@ using WallpaperControl;
 
 internal static class SettingsTests
 {
+    /// <summary>
+    /// Runs the settings regression checks using the supplied assertion callback.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     internal static void Run(Action<bool, string> check)
     {
         // Every write and the final cleanup target only this unique test key.

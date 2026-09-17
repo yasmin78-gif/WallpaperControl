@@ -3,13 +3,19 @@ using WallpaperControl;
 
 internal static class CalendarTests
 {
+    /// <summary>
+    /// Runs the calendar regression checks using the supplied assertion callback.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     internal static void Run(Action<bool, string> check)
     {
         using var handler = new FeedHandler();
         using var client = new HttpClient(handler);
         using var provider = new IcsCalendarProvider(client);
         provider.SetSource("https://calendar.test/a\nhttps://calendar.test/b");
+        // Refreshes the calendar fixture synchronously for the regression check.
         void Refresh() => provider.RefreshAsync().GetAwaiter().GetResult();
+        // Reads the event titles from the calendar fixture.
         string[] Titles() => provider.GetUpcoming(DateTime.Today, 10, "en").Select(e => e.Title).Order().ToArray();
 
         handler.Fail = true;
@@ -59,6 +65,12 @@ internal static class CalendarTests
     {
         internal bool Fail, FailB, Empty;
         internal string Suffix = "";
+        /// <summary>
+        /// Returns the configured feed response or simulated failure without contacting a real server.
+        /// </summary>
+        /// <param name="request">The HTTP request to handle.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task containing the simulated response, or a simulated request failure.</returns>
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             string name = request.RequestUri!.AbsolutePath.Trim('/');

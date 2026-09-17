@@ -4,7 +4,11 @@ namespace WallpaperControl
 {
     internal static class WallpaperImageInfo
     {
-        /// <summary>Checks extensions accepted by both the slideshow and statistics browser.</summary>
+        /// <summary>
+        /// Checks extensions accepted by both the slideshow and statistics browser.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>True when the extension is accepted by the slideshow and statistics browser.</returns>
         internal static bool IsSupportedWallpaperExtension(string path)
         {
             string extension = Path.GetExtension(path);
@@ -19,7 +23,11 @@ namespace WallpaperControl
                    extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>Reads pixel dimensions and returns the localized fallback for unreadable images.</summary>
+        /// <summary>
+        /// Reads pixel dimensions and returns the localized fallback for unreadable images.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>The image dimensions, or the localized unavailable label when loading fails.</returns>
         internal static string GetImageResolutionText(string path)
         {
             try

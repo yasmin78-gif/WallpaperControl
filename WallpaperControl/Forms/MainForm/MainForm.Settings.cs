@@ -57,6 +57,7 @@ namespace WallpaperControl
         /// <summary>
         /// Adds or removes the Windows autostart entry for the current executable.
         /// </summary>
+        /// <param name="enabled">True to register this executable for Windows startup; false to remove the entry.</param>
         private void SetAutostart(
             bool enabled)
         {
@@ -96,6 +97,8 @@ namespace WallpaperControl
         /// <summary>
         /// Opens the application information dialog using the current theme.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void AboutButton_Click(
             object? sender,
             EventArgs e)
@@ -111,6 +114,8 @@ namespace WallpaperControl
         /// <summary>
         /// Previews widget changes and commits accepted preferences, hotkeys, theme, and localization.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void SettingsButton_Click(
             object? sender,
             EventArgs e)

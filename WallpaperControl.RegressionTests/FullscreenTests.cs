@@ -3,6 +3,10 @@ using WallpaperControl;
 
 internal static class FullscreenTests
 {
+    /// <summary>
+    /// Runs the fullscreen regression checks using the supplied assertion callback.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     internal static void Run(Action<bool, string> check)
     {
         var monitor = new Rectangle(0, 0, 1920, 1080);

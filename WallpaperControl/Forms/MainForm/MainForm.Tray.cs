@@ -14,6 +14,8 @@ namespace WallpaperControl
         /// <summary>
         /// Toggles manual slideshow pause from the tray menu.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void TrayPauseItem_Click(
             object? sender,
             EventArgs e)
@@ -77,7 +79,7 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Updates the tray action text to match the user's manual pause state.
+        /// Updates the tray action text to match the user&apos;s manual pause state.
         /// </summary>
         private void UpdateTrayPauseText()
         {

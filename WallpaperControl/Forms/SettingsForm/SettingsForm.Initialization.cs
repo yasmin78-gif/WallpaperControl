@@ -13,6 +13,25 @@ namespace WallpaperControl
         /// <summary>
         /// Builds the settings pages and subscriptions in dependency order, then initializes live previews.
         /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="themeMode">The light, dark, or system theme preference.</param>
+        /// <param name="nextModifiers">The modifier flags for the next-wallpaper shortcut.</param>
+        /// <param name="nextKey">The virtual key for the next-wallpaper shortcut.</param>
+        /// <param name="pauseModifiers">The modifier flags for the pause shortcut.</param>
+        /// <param name="pauseKey">The virtual key for the pause shortcut.</param>
+        /// <param name="explorerModifiers">The modifier flags for the Explorer shortcut.</param>
+        /// <param name="explorerKey">The virtual key for the Explorer shortcut.</param>
+        /// <param name="rejectModifiers">The modifier flags for the rejection shortcut.</param>
+        /// <param name="rejectKey">The virtual key for the rejection shortcut.</param>
+        /// <param name="rejectRootFolder">The configured root folder for rejected wallpapers.</param>
+        /// <param name="rejectUseSubfolder">Whether rejection uses a subfolder of the wallpaper source.</param>
+        /// <param name="autostartEnabled">Whether Windows should start the application at sign-in.</param>
+        /// <param name="closeToTrayEnabled">Whether closing the window should hide it to the tray.</param>
+        /// <param name="automaticUpdateCheckEnabled">Whether automatic release checks are enabled.</param>
+        /// <param name="pauseOnFullscreen">Whether foreground fullscreen applications should suspend background activity.</param>
+        /// <param name="windowOpacityPercent">The window opacity as a percentage.</param>
+        /// <param name="widgetSettings">The widget preferences used to initialize the dialog.</param>
+        /// <param name="widgetPreviewChanged">The optional callback that applies uncommitted widget preferences.</param>
         public SettingsForm(
             bool darkMode,
             string themeMode,

@@ -12,6 +12,8 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a tab page with a localized caption and its resource key.
         /// </summary>
+        /// <param name="resourceKey">The localization resource key used for the caption.</param>
+        /// <returns>The newly configured settings tab page.</returns>
         private TabPage CreateSettingsPage(string resourceKey)
         {
             return new TabPage
@@ -24,6 +26,14 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a sidebar action linked to a settings page and tracks its selection state.
         /// </summary>
+        /// <param name="navigationPanel">The sidebar panel that owns the navigation actions.</param>
+        /// <param name="tabControl">The tab control containing the settings pages.</param>
+        /// <param name="page">The settings page associated with the navigation action.</param>
+        /// <param name="icon">The glyph displayed before the navigation label.</param>
+        /// <param name="resourceKey">The localization resource key used for the caption.</param>
+        /// <param name="y">The vertical coordinate.</param>
+        /// <param name="extraLeftPadding">The additional indentation used for a nested navigation action.</param>
+        /// <returns>The navigation button added to the settings sidebar.</returns>
         private Button AddSettingsNavigationButton(
             Panel navigationPanel,
             TabControl tabControl,

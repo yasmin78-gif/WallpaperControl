@@ -56,6 +56,8 @@ namespace WallpaperControl
         /// <summary>
         /// Resolves the rejection destination using the root-folder and subfolder preferences.
         /// </summary>
+        /// <param name="sourceFolder">The wallpaper folder path.</param>
+        /// <returns>The rejection folder selected by the configured root and subfolder preferences.</returns>
         private string GetRejectedFolder(
             string sourceFolder)
         {
@@ -95,6 +97,8 @@ namespace WallpaperControl
         /// <summary>
         /// Starts the asynchronous rejection of the current wallpaper.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void RejectButton_Click(
             object? sender,
             EventArgs e)
@@ -105,6 +109,7 @@ namespace WallpaperControl
         /// <summary>
         /// Advances away from the current image and moves it to the rejection folder.
         /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task RejectCurrentWallpaperAsync()
         {
             if (slideshowPaused || fullscreenPolicy.IsPaused)
@@ -206,6 +211,8 @@ namespace WallpaperControl
         /// <summary>
         /// Restores the last rejected wallpaper from the undo action.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void UndoRejectButton_Click(
             object? sender,
             EventArgs e)
@@ -280,6 +287,9 @@ namespace WallpaperControl
         /// <summary>
         /// Finds an unused destination filename without overwriting an existing rejected image.
         /// </summary>
+        /// <param name="folder">The wallpaper folder path.</param>
+        /// <param name="fileName">The original filename to preserve or suffix when a collision exists.</param>
+        /// <returns>A destination path with a numeric suffix when the original filename already exists.</returns>
         private static string GetUniqueDestinationPath(
             string folder,
             string fileName)

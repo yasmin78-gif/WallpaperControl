@@ -15,6 +15,7 @@ namespace WallpaperControl
         /// <summary>
         /// Releases a non-null COM wrapper after desktop or shell operations.
         /// </summary>
+        /// <param name="comObject">The COM wrapper to release when it is non-null and managed by COM interop.</param>
         private static void ReleaseComObject(
             object? comObject)
         {
@@ -29,6 +30,9 @@ namespace WallpaperControl
         /// <summary>
         /// Changes the native window visibility or restore state.
         /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <param name="nCmdShow">The native command controlling visibility and restored or minimized state.</param>
+        /// <returns>True if the window was previously visible; otherwise, false.</returns>
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool ShowWindow(
@@ -38,6 +42,8 @@ namespace WallpaperControl
         /// <summary>
         /// Requests foreground activation for the specified native window.
         /// </summary>
+        /// <param name="hWnd">The native window handle used by the operation.</param>
+        /// <returns>True if the window was brought to the foreground; otherwise, false.</returns>
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetForegroundWindow(
@@ -46,6 +52,11 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a shell item for a filesystem path.
         /// </summary>
+        /// <param name="pszPath">The filesystem path to parse into a shell item.</param>
+        /// <param name="pbc">The optional shell binding context, or zero when no context is supplied.</param>
+        /// <param name="riid">The interface identifier requested from the shell operation.</param>
+        /// <param name="ppv">Receives the requested shell object or interface pointer.</param>
+        /// <returns>The HRESULT status code; zero indicates success.</returns>
         [DllImport(
             "shell32.dll",
             CharSet = CharSet.Unicode,
@@ -61,6 +72,10 @@ namespace WallpaperControl
         /// <summary>
         /// Wraps a shell item in the collection required by the Windows slideshow API.
         /// </summary>
+        /// <param name="psi">The shell item to compare or wrap in a collection.</param>
+        /// <param name="riid">The interface identifier requested from the shell operation.</param>
+        /// <param name="ppv">Receives the requested shell object or interface pointer.</param>
+        /// <returns>The HRESULT status code; zero indicates success.</returns>
         [DllImport(
             "shell32.dll",
             PreserveSig = true)]

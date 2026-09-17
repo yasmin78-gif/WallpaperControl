@@ -142,6 +142,8 @@ namespace WallpaperControl
         /// <summary>
         /// Shows the inactive-slideshow warning and optionally offers activation.
         /// </summary>
+        /// <param name="message">The status message to display while the slideshow is inactive.</param>
+        /// <param name="canActivate">Whether the inactive slideshow can be activated from the current configuration.</param>
         private void ShowInactiveStatus(
             string message,
             bool canActivate)

@@ -12,6 +12,8 @@ namespace WallpaperControl
         /// <summary>
         /// Prompts for the root folder used to store rejected wallpapers.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void RejectRootBrowseButton_Click(
             object? sender,
             EventArgs e)

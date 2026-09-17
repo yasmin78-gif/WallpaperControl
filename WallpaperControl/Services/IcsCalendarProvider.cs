@@ -25,18 +25,36 @@ namespace WallpaperControl
         public string StatusResourceKey { get; private set; } = "CalendarStatusNoSource";
         public DateTime? LastRefresh { get; private set; }
 
+        /// <summary>
+        /// Initializes calendar fetching with an owned HTTP client and a 15-second request timeout.
+        /// </summary>
         public IcsCalendarProvider() : this(new HttpClient { Timeout = TimeSpan.FromSeconds(15) })
         {
             ownsHttpClient = true;
         }
 
+        /// <summary>
+        /// Initializes calendar fetching with an HTTP client owned by the caller.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to use; the caller retains ownership.</param>
         internal IcsCalendarProvider(HttpClient httpClient)
         {
             this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
+        /// <summary>
+        /// Updates the appointment feed configuration through the shared source-management path.
+        /// </summary>
+        /// <param name="urls">The configured calendar feed values.</param>
+        /// <returns>True when the configured source set changed; otherwise, false.</returns>
         public bool SetSource(string? urls) => SetSources(urls, null);
 
+        /// <summary>
+        /// Updates appointment and holiday feeds and invalidates cached data when sources change.
+        /// </summary>
+        /// <param name="normalUrls">The appointment calendar feed values.</param>
+        /// <param name="holidayUrls">The holiday calendar feed values.</param>
+        /// <returns>True when appointment or holiday source configuration changed.</returns>
         public bool SetSources(string? normalUrls, string? holidayUrls)
         {
             List<CalendarSource> normalized = SplitSources(normalUrls)
@@ -57,6 +75,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Refreshes configured feeds while retaining cached events for sources that temporarily fail.
+        /// </summary>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
             if (disposed) return;
@@ -144,6 +167,13 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Downloads and expands one iCalendar feed into application calendar events.
+        /// </summary>
+        /// <param name="uri">The calendar feed URI to fetch.</param>
+        /// <param name="sourceName">The source label attached to the resulting events.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result contains the events expanded from the feed.</returns>
         private async Task<IReadOnlyList<CalendarEvent>> LoadSourceAsync(
             Uri uri,
             string sourceName,
@@ -172,6 +202,13 @@ namespace WallpaperControl
                 .ToList();
         }
 
+        /// <summary>
+        /// Selects upcoming entries by occupied calendar days, including daily expansion of multi-day events.
+        /// </summary>
+        /// <param name="from">The reference time used to select upcoming events.</param>
+        /// <param name="maxEntries">The maximum number of occupied calendar days to include.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <returns>The entries belonging to the requested number of occupied upcoming calendar days.</returns>
         public IReadOnlyList<CalendarEvent> GetUpcoming(DateTime from, int maxEntries, string languageCode)
         {
             lock (sync)
@@ -201,6 +238,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Splits configured calendar feed text into individual source values.
+        /// </summary>
+        /// <param name="value">The configured calendar source text to split into individual addresses or paths.</param>
+        /// <returns>The individual configured feed values after splitting and normalization.</returns>
         private static List<string> SplitSources(string? value)
         {
             return (value ?? string.Empty)
@@ -210,6 +252,11 @@ namespace WallpaperControl
                 .ToList();
         }
 
+        /// <summary>
+        /// Expands a multi-day event into the day entries used by the calendar widget.
+        /// </summary>
+        /// <param name="calendarEvent">The event to expand into daily display entries.</param>
+        /// <returns>The daily entries used to display the supplied event.</returns>
         private static IEnumerable<CalendarEvent> ExpandForDailyDisplay(CalendarEvent calendarEvent)
         {
             if (!calendarEvent.IsAllDay)
@@ -234,6 +281,12 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Converts an iCalendar occurrence into the application&apos;s calendar event model.
+        /// </summary>
+        /// <param name="occurrence">The expanded iCalendar occurrence to convert.</param>
+        /// <param name="sourceName">The source label attached to the resulting events.</param>
+        /// <returns>The converted application event, or null when the occurrence cannot be represented.</returns>
         private static CalendarEvent? ToCalendarEvent(Occurrence occurrence, string sourceName)
         {
             if (occurrence.Source is not IcalCalendarEvent source) return null;
@@ -253,6 +306,12 @@ namespace WallpaperControl
             return new WallpaperControl.CalendarEvent(start, end, allDay, title, location, sourceName);
         }
 
+        /// <summary>
+        /// Converts a calendar date to local display time while retaining all-day date semantics.
+        /// </summary>
+        /// <param name="value">The calendar timestamp to convert to local time.</param>
+        /// <param name="allDay">Whether the calendar value represents an all-day date rather than a timed event.</param>
+        /// <returns>The local event time or the unchanged date for an all-day value.</returns>
         private static DateTime ToLocalDateTime(CalDateTime value, bool allDay)
         {
             if (allDay || !value.HasTime) return value.Value.Date;
@@ -260,8 +319,16 @@ namespace WallpaperControl
             return value.AsUtc.ToLocalTime();
         }
 
+        /// <summary>
+        /// Identifies a configured feed and whether its entries should use holiday presentation.
+        /// </summary>
+        /// <param name="Url">The private calendar feed address used for retrieval and caching.</param>
+        /// <param name="IsHoliday">True to mark entries from this feed as holidays.</param>
         private readonly record struct CalendarSource(string Url, bool IsHoliday);
 
+        /// <summary>
+        /// Releases refresh coordination resources and the HTTP client when this provider owns it.
+        /// </summary>
         public void Dispose()
         {
             if (disposed) return;

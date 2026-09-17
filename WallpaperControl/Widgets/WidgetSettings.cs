@@ -48,7 +48,11 @@ namespace WallpaperControl
         public string CalendarHolidayIcsUrl { get; set; } = string.Empty;
         public Point CalendarLocation { get; set; } = new(740, 400);
 
-        /// <summary>Loads widget preferences; an alternate registry path isolates persistence tests.</summary>
+        /// <summary>
+        /// Loads widget preferences; an alternate registry path isolates persistence tests.
+        /// </summary>
+        /// <param name="registryPath">The registry subkey containing these preferences; tests use an isolated subkey.</param>
+        /// <returns>The loaded widget preferences with safe defaults for unavailable values.</returns>
         public static WidgetSettings Load(string registryPath = RegistryPath)
         {
             WidgetSettings result = new();
@@ -107,7 +111,10 @@ namespace WallpaperControl
             return result;
         }
 
-        /// <summary>Saves widget preferences to the application key or an explicitly supplied test key.</summary>
+        /// <summary>
+        /// Saves widget preferences to the application key or an explicitly supplied test key.
+        /// </summary>
+        /// <param name="registryPath">The registry subkey containing these preferences; tests use an isolated subkey.</param>
         public void Save(string registryPath = RegistryPath)
         {
             try
@@ -162,6 +169,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Copies all widget preferences and locations into an independent settings object.
+        /// </summary>
+        /// <returns>An independent settings object containing the same preferences and positions.</returns>
         public WidgetSettings Clone() => new()
         {
             ClockEnabled = ClockEnabled,
@@ -204,6 +215,12 @@ namespace WallpaperControl
             CalendarLocation = CalendarLocation
         };
 
+        /// <summary>
+        /// Keeps a widget at its saved position when visible or moves it into an available monitor&apos;s working area.
+        /// </summary>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="size">The widget dimensions in pixels.</param>
+        /// <returns>The saved position when visible, or a position inside an available screen area.</returns>
         public static Point EnsureVisible(Point location, Size size)
         {
             Rectangle candidate = new(location, size);
@@ -218,12 +235,33 @@ namespace WallpaperControl
             return new Point(area.Left + 30, area.Top + 30);
         }
 
+        /// <summary>
+        /// Reads a widget boolean preference with a fallback for unavailable or invalid values.
+        /// </summary>
+        /// <param name="key">The registry key containing the setting.</param>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
+        /// <returns>The stored boolean or the supplied fallback.</returns>
         private static bool ReadBool(RegistryKey key, string name, bool fallback) =>
             key.GetValue(name) is object value ? Convert.ToInt32(value) != 0 : fallback;
 
+        /// <summary>
+        /// Reads an integer widget preference with a fallback for unavailable or invalid values.
+        /// </summary>
+        /// <param name="key">The registry key containing the setting.</param>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
+        /// <returns>The stored integer or the supplied fallback.</returns>
         private static int ReadInt(RegistryKey key, string name, int fallback) =>
             key.GetValue(name) is object value ? Convert.ToInt32(value) : fallback;
 
+        /// <summary>
+        /// Reads a defined clock-style value or returns the supplied fallback.
+        /// </summary>
+        /// <param name="key">The registry key containing the setting.</param>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
+        /// <returns>A defined clock style or the supplied fallback.</returns>
         private static ClockWidgetStyle ReadClockStyle(RegistryKey key, string name, ClockWidgetStyle fallback)
         {
             int value = ReadInt(key, name, (int)fallback);
@@ -232,6 +270,13 @@ namespace WallpaperControl
                 : fallback;
         }
 
+        /// <summary>
+        /// Reads a defined shared widget-style value or returns the supplied fallback.
+        /// </summary>
+        /// <param name="key">The registry key containing the setting.</param>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
+        /// <returns>A defined widget style or the supplied fallback.</returns>
         private static SystemWidgetStyle ReadSystemStyle(RegistryKey key, string name, SystemWidgetStyle fallback)
         {
             int value = ReadInt(key, name, (int)fallback);

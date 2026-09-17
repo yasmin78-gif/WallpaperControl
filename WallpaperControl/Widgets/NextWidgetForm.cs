@@ -19,6 +19,15 @@ namespace WallpaperControl
         private Point dragFormStart;
         private const int WS_EX_LAYERED = 0x00080000;
 
+        /// <summary>
+        /// Creates the next-wallpaper button with its style, click action, and position callback.
+        /// </summary>
+        /// <param name="locked">True to prevent the widget from being moved.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="next">The callback that requests the next wallpaper.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
         public NextWidgetForm(
             bool locked,
             SystemWidgetStyle style,
@@ -68,12 +77,20 @@ namespace WallpaperControl
 
         protected override bool ShowWithoutActivation => true;
 
+        /// <summary>
+        /// Draws the current next-widget appearance when the window becomes visible.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
             RenderLayeredWindow();
         }
 
+        /// <summary>
+        /// Processes native window messages while preventing mouse interaction from activating the widget.
+        /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(ref Message m)
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
@@ -96,7 +113,12 @@ namespace WallpaperControl
             }
         }
 
-        /// <summary>Applies preview or saved preferences and redraws the selected style immediately.</summary>
+        /// <summary>
+        /// Applies preview or saved preferences and redraws the selected style immediately.
+        /// </summary>
+        /// <param name="isLocked">The widget&apos;s updated position-lock preference.</param>
+        /// <param name="newStyle">The updated widget style.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
         public void Apply(bool isLocked, SystemWidgetStyle newStyle, string languageCode)
         {
             locked = isLocked;
@@ -105,6 +127,10 @@ namespace WallpaperControl
             RenderLayeredWindow();
         }
 
+        /// <summary>
+        /// Applies the tooltip text for the selected widget language.
+        /// </summary>
+        /// <param name="languageCode">The language code used for localized text.</param>
         private void UpdateToolTip(string languageCode)
         {
             toolTip.SetToolTip(
@@ -114,6 +140,10 @@ namespace WallpaperControl
                     languageCode));
         }
 
+        /// <summary>
+        /// Releases the resources owned by this next widget form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -124,7 +154,9 @@ namespace WallpaperControl
             base.Dispose(disposing);
         }
 
-        /// <summary>Renders the current style and hover state without altering click or drag handling.</summary>
+        /// <summary>
+        /// Renders the current style and hover state without altering click or drag handling.
+        /// </summary>
         private void RenderLayeredWindow()
         {
             if (!IsHandleCreated || IsDisposed) return;
@@ -136,6 +168,11 @@ namespace WallpaperControl
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
+        /// <summary>
+        /// Records a left-button press and enables dragging only when the widget is unlocked.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void BeginPointer(
             object? sender,
             MouseEventArgs e)
@@ -151,6 +188,11 @@ namespace WallpaperControl
             dragFormStart = Location;
         }
 
+        /// <summary>
+        /// Moves an unlocked widget after the pointer exceeds the click-versus-drag threshold.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ContinuePointer(
             object? sender,
             MouseEventArgs e)
@@ -178,6 +220,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Completes a drag or requests the next wallpaper, then restores desktop placement.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void EndPointer(
             object? sender,
             MouseEventArgs e)

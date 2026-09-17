@@ -15,7 +15,14 @@ namespace WallpaperControl
         private Point mouseStart;
         private Point formStart;
 
-        /// <summary>Connects dragging to one widget; the optional cursor reader supports deterministic checks.</summary>
+        /// <summary>
+        /// Connects dragging to one widget; the optional cursor reader supports deterministic checks.
+        /// </summary>
+        /// <param name="widget">The widget whose mouse interaction or rendering is coordinated.</param>
+        /// <param name="isLocked">The callback that reports whether widget dragging is currently locked.</param>
+        /// <param name="render">The callback that redraws the widget after movement.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
+        /// <param name="cursorPosition">An optional screen-coordinate reader used for deterministic drag tests.</param>
         internal WidgetDragHandler(Control widget, Func<bool> isLocked, Action render,
             Action<Point> locationChanged, Func<Point>? cursorPosition = null)
         {
@@ -29,7 +36,11 @@ namespace WallpaperControl
             widget.MouseUp += EndDrag;
         }
 
-        /// <summary>Starts an unlocked left-button drag and retains its screen-space origin.</summary>
+        /// <summary>
+        /// Starts an unlocked left-button drag and retains its screen-space origin.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void BeginDrag(object? sender, MouseEventArgs e)
         {
             if (isLocked() || e.Button != MouseButtons.Left) return;
@@ -39,7 +50,11 @@ namespace WallpaperControl
             widget.Capture = true;
         }
 
-        /// <summary>Moves the widget relative to the drag origin and redraws its layered surface.</summary>
+        /// <summary>
+        /// Moves the widget relative to the drag origin and redraws its layered surface.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ContinueDrag(object? sender, MouseEventArgs e)
         {
             if (!dragging) return;
@@ -48,7 +63,11 @@ namespace WallpaperControl
             render();
         }
 
-        /// <summary>Ends a left-button drag and publishes the final position exactly once.</summary>
+        /// <summary>
+        /// Ends a left-button drag and publishes the final position exactly once.
+        /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void EndDrag(object? sender, MouseEventArgs e)
         {
             if (!dragging || e.Button != MouseButtons.Left) return;
@@ -57,7 +76,9 @@ namespace WallpaperControl
             locationChanged(widget.Location);
         }
 
-        /// <summary>Disconnects mouse handlers and releases any capture still owned by this drag.</summary>
+        /// <summary>
+        /// Disconnects mouse handlers and releases any capture still owned by this drag.
+        /// </summary>
         public void Dispose()
         {
             widget.MouseDown -= BeginDrag;

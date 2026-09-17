@@ -10,6 +10,11 @@ using System.Threading;
 
 namespace WallpaperControl
 {
+    /// <summary>
+    /// Associates a supported culture code with its localized language-name resource.
+    /// </summary>
+    /// <param name="Code">The supported language code.</param>
+    /// <param name="DisplayNameResourceKey">The resource key for the language's display name.</param>
     internal sealed record SupportedLanguage(
         string Code,
         string DisplayNameResourceKey);
@@ -55,6 +60,9 @@ namespace WallpaperControl
             CultureInfo.GetCultureInfo(
                 CurrentLanguage);
 
+        /// <summary>
+        /// Loads available translations and applies the saved language or a supported fallback.
+        /// </summary>
         public static void Initialize()
         {
             RefreshAvailableLanguages();
@@ -84,6 +92,9 @@ namespace WallpaperControl
 #endif
         }
 
+        /// <summary>
+        /// Rebuilds the language list from resource sets available in the current installation.
+        /// </summary>
         public static void RefreshAvailableLanguages()
         {
             availableLanguages.Clear();
@@ -99,8 +110,8 @@ namespace WallpaperControl
                 }
             }
 
-            // Deutsch ist die Neutral-/Fallback-Ressource.
-            // Falls die neutrale Resource existiert, muss de immer verfügbar sein.
+            // German is the neutral resource and the fallback language.
+            // When neutral resources exist, de must always be available.
             if (HasNeutralResources() &&
                 !availableLanguages.Exists(
                     x => x.Code == "de"))
@@ -113,6 +124,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Checks whether the requested language has an available resource set.
+        /// </summary>
+        /// <param name="language">The requested language or culture code.</param>
+        /// <returns>True when the normalized language has an available resource set.</returns>
         public static bool IsLanguageAvailable(
             string? language)
         {
@@ -140,6 +156,10 @@ namespace WallpaperControl
             return false;
         }
 
+        /// <summary>
+        /// Applies and persists the requested language using the supported fallback rules.
+        /// </summary>
+        /// <param name="language">The requested language or culture code.</param>
         public static void SetLanguage(
             string language)
         {
@@ -160,6 +180,11 @@ namespace WallpaperControl
                 save: true);
         }
 
+        /// <summary>
+        /// Looks up a localized string using the requested or current language and the resource fallback rules.
+        /// </summary>
+        /// <param name="key">The localization resource key.</param>
+        /// <returns>The localized string or the existing fallback for a missing resource.</returns>
         public static string Get(
             string key)
         {
@@ -168,6 +193,12 @@ namespace WallpaperControl
                 CurrentLanguage);
         }
 
+        /// <summary>
+        /// Looks up a localized string using the requested or current language and the resource fallback rules.
+        /// </summary>
+        /// <param name="key">The localization resource key.</param>
+        /// <param name="language">The requested language or culture code.</param>
+        /// <returns>The localized string or the existing fallback for a missing resource.</returns>
         public static string Get(
             string key,
             string language)
@@ -196,6 +227,11 @@ namespace WallpaperControl
                    key;
         }
 
+        /// <summary>
+        /// Updates the active language and culture, optionally persisting the choice.
+        /// </summary>
+        /// <param name="language">The requested language or culture code.</param>
+        /// <param name="save">True to persist the selected language.</param>
         private static void ApplyLanguage(
             string language,
             bool save)
@@ -221,6 +257,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Reads the saved language preference when the application registry key is available.
+        /// </summary>
+        /// <returns>The stored language code, or null when no preference can be read.</returns>
         private static string LoadSavedLanguage()
         {
             try
@@ -240,6 +280,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists the language choice without interrupting the interface if the registry is unavailable.
+        /// </summary>
+        /// <param name="language">The requested language or culture code.</param>
         private static void SaveLanguage(
             string language)
         {
@@ -259,6 +303,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Chooses an available fallback language for missing or unsupported preferences.
+        /// </summary>
+        /// <returns>An available fallback language code.</returns>
         private static string GetFallbackLanguage()
         {
             if (availableLanguages.Exists(
@@ -275,6 +323,11 @@ namespace WallpaperControl
             return "de";
         }
 
+        /// <summary>
+        /// Normalizes a language or culture name to its supported two-letter language code.
+        /// </summary>
+        /// <param name="language">The requested language or culture code.</param>
+        /// <returns>The normalized two-letter language code or the existing fallback for empty input.</returns>
         private static string NormalizeLanguageCode(
             string? language)
         {
@@ -310,6 +363,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Checks translated resources and format placeholders against the neutral resource set in debug builds.
+        /// </summary>
         private static void ValidateResources()
         {
             ResourceSet? neutralSet =
@@ -423,6 +479,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Extracts the format-placeholder signature used to compare translated resource strings.
+        /// </summary>
+        /// <param name="value">The resource text whose composite-format placeholders are inspected.</param>
+        /// <returns>The normalized sequence of format placeholders used to validate translation compatibility.</returns>
         private static string GetPlaceholderSignature(
             string value)
         {
@@ -447,6 +508,11 @@ namespace WallpaperControl
                 placeholders);
         }
 
+        /// <summary>
+        /// Checks whether the requested language has its own resource set without parent fallback.
+        /// </summary>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <returns>True when the requested language has a resource set without parent fallback.</returns>
         private static bool HasResourcesForLanguage(string languageCode)
         {
             string code =
@@ -478,6 +544,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Checks whether the assembly contains the neutral translation resources.
+        /// </summary>
+        /// <returns>True when neutral translation resources are available.</returns>
         private static bool HasNeutralResources()
         {
             try

@@ -12,6 +12,11 @@ namespace WallpaperControl
         /// <summary>
         /// Creates the modifier and key selectors for one shortcut and connects their enabled state.
         /// </summary>
+        /// <param name="parent">The control that owns the new child controls.</param>
+        /// <param name="labelResourceKey">The localization key for the shortcut row label.</param>
+        /// <param name="y">The vertical coordinate.</param>
+        /// <param name="modifierCombo">The selector containing shortcut modifier choices.</param>
+        /// <param name="keyCombo">The selector containing virtual-key choices.</param>
         private void CreateHotkeyRow(
             Control parent,
             string labelResourceKey,
@@ -81,6 +86,7 @@ namespace WallpaperControl
         /// <summary>
         /// Builds localized modifier combinations, including the disabled-shortcut option.
         /// </summary>
+        /// <returns>The supported modifier combinations and their display labels.</returns>
         private Choice[] GetModifierChoices() =>
             new[]
             {
@@ -124,6 +130,7 @@ namespace WallpaperControl
         /// <summary>
         /// Builds the available shortcut keys.
         /// </summary>
+        /// <returns>The supported keyboard key choices and their display labels.</returns>
         private static Choice[] GetKeyChoices()
         {
             List<Choice> choices = new();
@@ -167,6 +174,10 @@ namespace WallpaperControl
         /// <summary>
         /// Selects a stored shortcut combination and updates whether the key selector is enabled.
         /// </summary>
+        /// <param name="modifierCombo">The selector containing shortcut modifier choices.</param>
+        /// <param name="keyCombo">The selector containing virtual-key choices.</param>
+        /// <param name="modifiers">The shortcut&apos;s modifier flags.</param>
+        /// <param name="key">The virtual-key code for the keyboard shortcut.</param>
         private static void SetComboValues(
             ComboBox modifierCombo,
             ComboBox keyCombo,
@@ -203,6 +214,8 @@ namespace WallpaperControl
         /// <summary>
         /// Selects the numeric choice matching the requested value.
         /// </summary>
+        /// <param name="combo">The selector whose options or selection are updated.</param>
+        /// <param name="value">The underlying key or modifier value to select.</param>
         private static void SelectChoice(
             ComboBox combo,
             uint value)
@@ -223,6 +236,8 @@ namespace WallpaperControl
         /// <summary>
         /// Rebuilds localized modifier choices while preserving the current shortcut value.
         /// </summary>
+        /// <param name="combo">The selector whose options or selection are updated.</param>
+        /// <param name="selectedValue">The numeric value that should remain selected.</param>
         private void RebuildModifierChoices(
             ComboBox combo,
             uint selectedValue)
@@ -380,6 +395,11 @@ namespace WallpaperControl
         /// <summary>
         /// Checks whether two enabled shortcut combinations use the same modifiers and key.
         /// </summary>
+        /// <param name="modifiers1">The first shortcut&apos;s modifier flags.</param>
+        /// <param name="key1">The first shortcut&apos;s virtual key.</param>
+        /// <param name="modifiers2">The second shortcut&apos;s modifier flags.</param>
+        /// <param name="key2">The second shortcut&apos;s virtual key.</param>
+        /// <returns>True when the enabled keyboard shortcut duplicates another configured shortcut.</returns>
         private static bool IsDuplicate(
             uint modifiers1,
             uint key1,
@@ -395,6 +415,10 @@ namespace WallpaperControl
         /// <summary>
         /// Reads a shortcut combination from its selectors, honoring the disabled option.
         /// </summary>
+        /// <param name="modifierCombo">The selector containing shortcut modifier choices.</param>
+        /// <param name="keyCombo">The selector containing virtual-key choices.</param>
+        /// <param name="modifiers">The shortcut&apos;s modifier flags.</param>
+        /// <param name="key">The virtual-key code for the keyboard shortcut.</param>
         private static void GetComboValues(
             ComboBox modifierCombo,
             ComboBox keyCombo,

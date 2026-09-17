@@ -112,8 +112,9 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Marshals the background timer callback to the window's UI thread.
+        /// Marshals the background timer callback to the window&apos;s UI thread.
         /// </summary>
+        /// <param name="state">The unused state supplied by the threading timer.</param>
         private void CustomSlideshowPreciseTimerCallback(
             object? state)
         {
@@ -203,6 +204,9 @@ namespace WallpaperControl
         /// <summary>
         /// Returns the next interval boundary measured from the start of the supplied day.
         /// </summary>
+        /// <param name="now">The current time used for the scheduling or pause decision.</param>
+        /// <param name="intervalMilliseconds">The slideshow interval in milliseconds.</param>
+        /// <returns>The first interval boundary strictly after the supplied time, aligned to midnight.</returns>
         private static DateTime GetNextAlignedChange(
             DateTime now,
             uint intervalMilliseconds)
@@ -221,6 +225,8 @@ namespace WallpaperControl
         /// <summary>
         /// Reads the selected interval in milliseconds when a valid option is selected.
         /// </summary>
+        /// <param name="milliseconds">Receives the selected interval in milliseconds, or zero when no valid selection exists.</param>
+        /// <returns>True when a valid interval is selected; otherwise, false.</returns>
         private bool TryGetSelectedInterval(out uint milliseconds)
         {
             milliseconds = 0;

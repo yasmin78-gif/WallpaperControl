@@ -27,6 +27,18 @@ namespace WallpaperControl
         private int refreshMinutes;
         private string languageCode = "de";
 
+        /// <summary>
+        /// Creates the calendar widget with its provider, display preferences, and position callback.
+        /// </summary>
+        /// <param name="locked">True to prevent the widget from being moved.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="maxEntries">The requested limit for the calendar display.</param>
+        /// <param name="showLocation">True to display event locations in the calendar.</param>
+        /// <param name="refreshMinutes">The requested refresh interval in minutes.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <param name="calendarProvider">The source of calendar entries and refresh status.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
         public CalendarWidgetForm(
             bool locked,
             SystemWidgetStyle style,
@@ -66,12 +78,20 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Processes native window messages while preventing mouse interaction from activating the widget.
+        /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(ref Message m)
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 
+        /// <summary>
+        /// Refreshes calendar content and starts periodic updates when the widget becomes visible.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
@@ -80,6 +100,10 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Suspends calendar refreshes and resumes fetching when automatic suspension ends.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             if (activitySuspended == suspended || IsDisposed) return;
@@ -87,6 +111,10 @@ namespace WallpaperControl
             if (suspended) refreshTimer.Stop(); else refreshTimer.Start();
             if (suspended) refreshCancellation?.Cancel(); else { var previous = refreshCancellation; refreshCancellation = new CancellationTokenSource(); previous?.Dispose(); RefreshCalendar(); }
         }
+        /// <summary>
+        /// Releases the resources owned by this calendar widget form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -105,6 +133,15 @@ namespace WallpaperControl
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Applies calendar display preferences, refresh timing, and localized content.
+        /// </summary>
+        /// <param name="isLocked">The widget&apos;s updated position-lock preference.</param>
+        /// <param name="newStyle">The updated widget style.</param>
+        /// <param name="newMaxEntries">The updated limit for the calendar display.</param>
+        /// <param name="newShowLocation">True to display event locations in the calendar.</param>
+        /// <param name="newRefreshMinutes">The updated refresh interval in minutes.</param>
+        /// <param name="newLanguageCode">The updated widget language code.</param>
         public void Apply(
             bool isLocked,
             SystemWidgetStyle newStyle,
@@ -131,6 +168,9 @@ namespace WallpaperControl
                 RenderLayeredWindow();
         }
 
+        /// <summary>
+        /// Draws the calendar into a transparent bitmap unless rendering is currently suspended.
+        /// </summary>
         private void RenderLayeredWindow()
         {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
@@ -258,6 +298,9 @@ namespace WallpaperControl
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
+        /// <summary>
+        /// Refreshes cached calendar data and redraws the widget while respecting cancellation and suspension.
+        /// </summary>
         public async void RefreshCalendar()
         {
             if (activitySuspended || IsDisposed) return;
@@ -293,6 +336,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Formats the heading for a calendar day in the widget&apos;s selected language.
+        /// </summary>
+        /// <param name="date">The date to display using the selected language.</param>
+        /// <returns>The localized heading for the requested calendar day.</returns>
         private string FormatDayHeading(DateTime date)
         {
             if (date.Date == DateTime.Today)
@@ -302,6 +350,11 @@ namespace WallpaperControl
             return FormatDate(date);
         }
 
+        /// <summary>
+        /// Formats a calendar date using the widget language and its date-layout rules.
+        /// </summary>
+        /// <param name="date">The date to display using the selected language.</param>
+        /// <returns>The date formatted for the widget language.</returns>
         private string FormatDate(DateTime date)
         {
             try
@@ -323,6 +376,12 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Creates the calendar panel path while retaining its existing empty-bounds policy.
+        /// </summary>
+        /// <param name="rect">The bounds of the rounded shape.</param>
+        /// <param name="radius">The requested corner radius in drawing units.</param>
+        /// <returns>A new rounded path that the caller must dispose.</returns>
         private static GraphicsPath RoundedRectangle(RectangleF rect, float radius)
         {
             return WidgetDrawing.RoundedRectangle(rect, radius, skipEmptyBounds: false);

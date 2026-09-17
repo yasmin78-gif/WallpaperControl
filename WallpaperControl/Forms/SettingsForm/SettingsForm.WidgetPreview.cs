@@ -17,7 +17,11 @@ namespace WallpaperControl
             if (widgetPreviewChanged != null)
                 widgetPreviewChanged(ReadWidgetSettings(applySaveDefaults: false));
         }
-        /// <summary>Reads editable widget values into a clone, preserving positions and unexposed settings.</summary>
+        /// <summary>
+        /// Reads editable widget values into a clone, preserving positions and unexposed settings.
+        /// </summary>
+        /// <param name="applySaveDefaults">True to apply save-only defaults; false to retain live-preview values.</param>
+        /// <returns>A settings snapshot built from the controls, optionally applying save-time defaults.</returns>
         private WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();

@@ -6,6 +6,13 @@ using System.Collections.Generic;
 
 namespace WallpaperControl
 {
+    /// <summary>
+    /// Holds transition preferences after legacy registry values have been normalized.
+    /// </summary>
+    /// <param name="KindIndex">The transition effect selection index.</param>
+    /// <param name="DurationMilliseconds">The animation duration in milliseconds.</param>
+    /// <param name="DirectionIndex">The movement-direction selection index.</param>
+    /// <param name="ZoomMode">The zoom-mode selection index.</param>
     internal sealed record TransitionSettings(int KindIndex, int DurationMilliseconds, int DirectionIndex, int ZoomMode);
 
     internal sealed class HotkeySettings
@@ -31,10 +38,18 @@ namespace WallpaperControl
     internal sealed class AppSettingsStore
     {
         private readonly string registryPath;
+        /// <summary>
+        /// Selects the application registry key or an isolated key supplied by a test.
+        /// </summary>
+        /// <param name="registryPath">The registry subkey containing these preferences; tests use an isolated subkey.</param>
         internal AppSettingsStore(string registryPath = @"Software\WallpaperControl")
         {
             this.registryPath = registryPath;
         }
+        /// <summary>
+        /// Reads the fullscreen suspension preference, enabled by default.
+        /// </summary>
+        /// <returns>The stored preference, or true when no valid preference is available.</returns>
         internal bool LoadPauseOnFullscreen()
         {
             try
@@ -45,7 +60,15 @@ namespace WallpaperControl
             }
             catch { return true; }
         }
+        /// <summary>
+        /// Persists whether fullscreen applications automatically suspend background activity.
+        /// </summary>
+        /// <param name="enabled">True to suspend wallpaper activity during fullscreen applications.</param>
         internal void SavePauseOnFullscreen(bool enabled) => WriteValue("PauseOnFullscreen", enabled ? 1 : 0, RegistryValueKind.DWord);
+        /// <summary>
+        /// Persists the most recently selected wallpaper source folder.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         internal void SaveLastWallpaperFolder(
             string path)
         {
@@ -65,6 +88,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Reads the saved wallpaper source folder when available.
+        /// </summary>
+        /// <returns>The saved wallpaper folder, or null when no value can be read.</returns>
         internal string? LoadLastWallpaperFolder()
         {
             try
@@ -83,6 +110,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Reads whether closing the main window should hide it to the tray.
+        /// </summary>
+        /// <returns>The stored close-to-tray preference, with its default when unavailable.</returns>
         internal bool LoadCloseToTraySetting()
         {
             try
@@ -105,6 +136,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists the close-to-tray preference.
+        /// </summary>
+        /// <param name="enabled">True to hide the main window in the tray when it is closed.</param>
         internal void SaveCloseToTraySetting(
             bool enabled)
         {
@@ -124,6 +159,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Reads whether automatic release checks are enabled.
+        /// </summary>
+        /// <returns>The stored update-check preference, with its default when unavailable.</returns>
         internal bool LoadAutomaticUpdateCheckSetting()
         {
             try
@@ -146,6 +185,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists the preference for automatic release checks.
+        /// </summary>
+        /// <param name="enabled">True to allow automatic update checks.</param>
         internal void SaveAutomaticUpdateCheckSetting(
             bool enabled)
         {
@@ -165,6 +208,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Loads a supported theme name, falling back to the Windows system theme.
+        /// </summary>
+        /// <returns>The normalized light, dark, or system theme name.</returns>
         internal string LoadThemeMode()
         {
             try
@@ -187,6 +234,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Normalizes and persists the selected theme mode.
+        /// </summary>
+        /// <param name="value">The theme name to persist.</param>
         internal void SaveThemeMode(
             string value)
         {
@@ -206,6 +257,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Normalizes dark and light theme names and maps other values to system mode.
+        /// </summary>
+        /// <param name="value">The stored theme name to validate.</param>
+        /// <returns>The normalized dark or light name, or system for other input.</returns>
         internal static string NormalizeThemeMode(
             string? value)
         {
@@ -217,6 +273,10 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Reads the saved window opacity and applies the supported bounds.
+        /// </summary>
+        /// <returns>The saved opacity clamped to its supported percentage range.</returns>
         internal int LoadWindowOpacityPercent()
         {
             try
@@ -244,6 +304,10 @@ namespace WallpaperControl
             return 92;
         }
 
+        /// <summary>
+        /// Clamps and persists the window opacity percentage.
+        /// </summary>
+        /// <param name="value">The window opacity percentage to persist.</param>
         internal void SaveWindowOpacityPercent(
             int value)
         {
@@ -263,6 +327,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Loads shortcut combinations with compatible defaults for missing or invalid registry values.
+        /// </summary>
+        /// <returns>The loaded shortcut combinations with defaults for missing or invalid entries.</returns>
         internal HotkeySettings LoadHotkeySettings()
         {
             var settings = new HotkeySettings();
@@ -331,6 +399,13 @@ namespace WallpaperControl
             return settings;
         }
 
+        /// <summary>
+        /// Reads an unsigned shortcut value while tolerating supported legacy registry representations.
+        /// </summary>
+        /// <param name="key">The registry key containing the setting.</param>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="defaultValue">The fallback when the stored value is missing or invalid.</param>
+        /// <returns>The unsigned value, or the supplied default when it cannot be read.</returns>
         internal static uint ReadRegistryUInt(
             RegistryKey key,
             string name,
@@ -354,6 +429,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists all configured global shortcut combinations.
+        /// </summary>
+        /// <param name="settings">The settings to persist.</param>
         internal void SaveHotkeySettings(HotkeySettings settings)
         {
             try
@@ -407,6 +486,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Loads the rejection root folder and subfolder preference.
+        /// </summary>
+        /// <returns>The loaded rejection folder preferences.</returns>
         internal RejectSettings LoadRejectSettings()
         {
             var settings = new RejectSettings();
@@ -446,6 +529,11 @@ namespace WallpaperControl
             return settings;
         }
 
+        /// <summary>
+        /// Normalizes a configured rejection folder or falls back when its path is invalid.
+        /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
+        /// <returns>The normalized rejection folder or an empty fallback for invalid input.</returns>
         internal static string NormalizeRejectRootFolder(
             string path)
         {
@@ -471,6 +559,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Persists the validated rejection folder preferences.
+        /// </summary>
+        /// <param name="settings">The settings to persist.</param>
         internal void SaveRejectSettings(RejectSettings settings)
         {
             try
@@ -493,6 +585,10 @@ namespace WallpaperControl
             {
             }
         }
+        /// <summary>
+        /// Loads transition preferences while supporting legacy effect indices and fallback durations.
+        /// </summary>
+        /// <returns>The transition preferences with legacy mappings and supported fallbacks applied.</returns>
         internal TransitionSettings LoadTransitionSettings()
         {
             int transitionIndex = 0;
@@ -616,6 +712,11 @@ namespace WallpaperControl
             return new TransitionSettings(transitionIndex, duration, directionIndex, zoomMode);
         }
 
+        /// <summary>
+        /// Maps a transition effect to its compatibility index in the effect selector.
+        /// </summary>
+        /// <param name="kind">The transition effect to map to a selection index.</param>
+        /// <returns>The effect&apos;s compatibility index in the transition selector.</returns>
         internal static int TransitionKindToIndex(
             WallpaperTransitionKind kind)
         {
@@ -631,11 +732,33 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Persists the selected transition effect in the supported registry representation.
+        /// </summary>
+        /// <param name="kind">The wallpaper transition effect to persist.</param>
         internal void SaveTransitionKind(WallpaperTransitionKind kind) => WriteValue("TransitionKind", kind.ToString(), RegistryValueKind.String);
+        /// <summary>
+        /// Persists the selected transition duration in milliseconds.
+        /// </summary>
+        /// <param name="duration">The transition duration in milliseconds.</param>
         internal void SaveTransitionDuration(int duration) => WriteValue("TransitionDurationMilliseconds", duration, RegistryValueKind.DWord);
+        /// <summary>
+        /// Persists the selected direction index.
+        /// </summary>
+        /// <param name="index">The selected transition-direction index.</param>
         internal void SaveTransitionDirection(int index) => WriteValue("TransitionDirection", Math.Clamp(index, 0, 4), RegistryValueKind.DWord);
+        /// <summary>
+        /// Persists the selected zoom-mode index.
+        /// </summary>
+        /// <param name="mode">The selected zoom-mode index.</param>
         internal void SaveTransitionZoomMode(int mode) => WriteValue("TransitionZoomMode", mode == 1 ? 1 : 0, RegistryValueKind.DWord);
 
+        /// <summary>
+        /// Writes a typed application preference while handling registry failures consistently.
+        /// </summary>
+        /// <param name="name">The registry value name.</param>
+        /// <param name="value">The setting value to persist.</param>
+        /// <param name="kind">The registry data type used to store the value.</param>
         private void WriteValue(string name, object value, RegistryValueKind kind)
         {
             try
@@ -646,6 +769,10 @@ namespace WallpaperControl
             catch { }
         }
 
+        /// <summary>
+        /// Persists the main window&apos;s screen coordinates.
+        /// </summary>
+        /// <param name="position">The window location in screen coordinates.</param>
         internal void SaveWindowPosition(Point position)
         {
             try
@@ -657,6 +784,10 @@ namespace WallpaperControl
             catch { }
         }
 
+        /// <summary>
+        /// Reads the saved window position when both coordinates are valid.
+        /// </summary>
+        /// <returns>The saved position, or null when either coordinate is unavailable or invalid.</returns>
         internal Point? LoadWindowPosition()
         {
             try
@@ -669,6 +800,12 @@ namespace WallpaperControl
             return null;
         }
 
+        /// <summary>
+        /// Checks whether enough of a saved window overlaps a connected monitor&apos;s working area.
+        /// </summary>
+        /// <param name="bounds">The rectangle used for drawing or visibility checks.</param>
+        /// <param name="workingAreas">The usable screen rectangles of the connected monitors.</param>
+        /// <returns>True when the required portion of the window intersects a connected working area.</returns>
         internal static bool IsWindowPositionVisible(Rectangle bounds, IEnumerable<Rectangle> workingAreas)
         {
             foreach (var area in workingAreas)

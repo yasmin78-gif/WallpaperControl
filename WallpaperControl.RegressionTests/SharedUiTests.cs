@@ -13,7 +13,10 @@ internal static class SharedUiTests
     private static readonly Assembly App = typeof(WallpaperApp::WallpaperControl.MainForm).Assembly;
     private const BindingFlags Methods = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
 
-    /// <summary>Runs WinForms checks on an STA thread and forwards failures to the console test runner.</summary>
+    /// <summary>
+    /// Runs WinForms checks on an STA thread and forwards failures to the console test runner.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     internal static void Run(Action<bool, string> check)
     {
         Exception? failure = null;
@@ -28,13 +31,47 @@ internal static class SharedUiTests
         if (failure != null) ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
+    /// <summary>
+    /// Finds an internal application type through the aliased production assembly.
+    /// </summary>
+    /// <param name="name">The application type name to resolve through reflection.</param>
+    /// <returns>The requested application type; missing types cause the check to fail.</returns>
     private static Type Type(string name) => App.GetType("WallpaperControl." + name, throwOnError: true)!;
+    /// <summary>
+    /// Invokes a shared application helper through reflection without starting MainForm.
+    /// </summary>
+    /// <param name="type">The application type name containing the static method.</param>
+    /// <param name="method">The name of the shared helper to invoke.</param>
+    /// <param name="args">The arguments passed to the reflected helper.</param>
+    /// <returns>The reflected method&apos;s result, or null for a void method.</returns>
     private static object? Call(string type, string method, params object?[] args) => Type(type).GetMethod(method, Methods)!.Invoke(null, args);
+    /// <summary>
+    /// Reads a public settings property from a reflected application object.
+    /// </summary>
+    /// <param name="instance">The object whose reflected member is inspected or modified.</param>
+    /// <param name="property">The name of the public property to inspect or assign.</param>
+    /// <returns>The current value of the requested public property.</returns>
     private static object Value(object instance, string property) => instance.GetType().GetProperty(property)!.GetValue(instance)!;
+    /// <summary>
+    /// Assigns a public settings property on a reflected application object.
+    /// </summary>
+    /// <param name="instance">The object whose reflected member is inspected or modified.</param>
+    /// <param name="property">The name of the public property to inspect or assign.</param>
+    /// <param name="value">The value to assign through reflection.</param>
     private static void Set(object instance, string property, object value) => instance.GetType().GetProperty(property)!.SetValue(instance, value);
+    /// <summary>
+    /// Retrieves a named dialog control for the hidden-window regression checks.
+    /// </summary>
+    /// <typeparam name="T">The expected type of the reflected property value.</typeparam>
+    /// <param name="form">The window whose native state or test controls are accessed.</param>
+    /// <param name="field">The name of the dialog field holding the requested control.</param>
+    /// <returns>The control stored in the requested dialog field.</returns>
     private static T Control<T>(Form form, string field) => (T)form.GetType().GetField(field, Methods)!.GetValue(form)!;
 
-    /// <summary>Checks every editable widget property, cloning, and the save-only empty-location fallback.</summary>
+    /// <summary>
+    /// Checks every editable widget property, cloning, and the save-only empty-location fallback.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     private static void CheckSettings(Action<bool, string> check)
     {
         object settings = Activator.CreateInstance(Type("WidgetSettings"))!;
@@ -42,6 +79,7 @@ internal static class SharedUiTests
         Set(settings, "WeatherLocationName", "Original city");
         using Form form = (Form)Activator.CreateInstance(Type("SettingsForm"),
             false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, settings, null)!;
+        // Reads widget settings from the form using preview or save behavior.
         object Read(bool save) => form.GetType().GetMethod("ReadWidgetSettings", Methods)!.Invoke(form, new object[] { save })!;
         var expected = new Dictionary<string, object>();
         foreach (var (field, property) in new[]
@@ -101,9 +139,13 @@ internal static class SharedUiTests
             "Settings still open on General");
     }
 
-    /// <summary>Checks next-widget style persistence, settings previews, reset behavior, and distinct rendering.</summary>
+    /// <summary>
+    /// Checks next-widget style persistence, settings previews, reset behavior, and distinct rendering.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     private static void CheckNextStyles(Action<bool, string> check)
     {
+        // Creates a widget-style enum value in the application assembly.
         object Style(int value) => Enum.ToObject(Type("SystemWidgetStyle"), value);
         string registryPath = @"Software\WallpaperControl.RegressionTests-" + Guid.NewGuid().ToString("N");
         try
@@ -166,7 +208,10 @@ internal static class SharedUiTests
         check(normalColors.Distinct().Count() == 3, "Minimal, Clean, and Glow render distinct next-widget surfaces");
     }
 
-    /// <summary>Checks accepted extensions and real image metadata without touching wallpaper files.</summary>
+    /// <summary>
+    /// Checks accepted extensions and real image metadata without touching wallpaper files.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     private static void CheckImages(Action<bool, string> check)
     {
         check(new[] { ".jpg", ".JPEG", ".png", ".bmp", ".gif", ".tif", ".tiff", ".webp" }
@@ -184,7 +229,10 @@ internal static class SharedUiTests
         finally { if (File.Exists(path)) File.Delete(path); }
     }
 
-    /// <summary>Checks path geometry and repeated native bitmap uploads to a window that is never shown.</summary>
+    /// <summary>
+    /// Checks path geometry and repeated native bitmap uploads to a window that is never shown.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     private static void CheckDrawing(Action<bool, string> check)
     {
         using var empty = (GraphicsPath)Call("WidgetDrawing", "RoundedRectangle", RectangleF.Empty, 4f, true)!;
@@ -201,6 +249,7 @@ internal static class SharedUiTests
         using var window = new ProbeWindow();
         using var bitmap = new Bitmap(32, 32);
         using (Graphics g = Graphics.FromImage(bitmap)) g.Clear(Color.FromArgb(100, 20, 40, 60));
+        // Uploads the test bitmap to the layered window to exercise native resource cleanup.
         void Upload() => Call("LayeredWidgetBitmap", "Update", window.Handle, window.Location, bitmap);
         Upload();
         int before = GetGuiResources(System.Diagnostics.Process.GetCurrentProcess().Handle, 0);
@@ -210,7 +259,10 @@ internal static class SharedUiTests
             "Repeated hidden bitmap uploads release native GDI resources and retain the caller's bitmap");
     }
 
-    /// <summary>Checks drag guards, position deltas, completion callbacks, and handler disposal.</summary>
+    /// <summary>
+    /// Checks drag guards, position deltas, completion callbacks, and handler disposal.
+    /// </summary>
+    /// <param name="check">The assertion callback that records a passing check or throws on failure.</param>
     private static void CheckDragging(Action<bool, string> check)
     {
         using var window = new ProbeWindow { Location = new Point(100, 100) };
@@ -230,6 +282,12 @@ internal static class SharedUiTests
         check(rendered == 1 && positions.Count == 1, "Disposed drag handlers no longer react to mouse events");
     }
 
+    /// <summary>
+    /// Queries the number of GUI resources owned by a process.
+    /// </summary>
+    /// <param name="process">The native process handle whose GUI resources are queried.</param>
+    /// <param name="flags">The native GUI resource category to count.</param>
+    /// <returns>The resource count for the requested category, or zero on failure.</returns>
     [DllImport("user32.dll")]
     private static extern int GetGuiResources(IntPtr process, int flags);
 
@@ -239,8 +297,19 @@ internal static class SharedUiTests
         {
             get { var value = base.CreateParams; value.ExStyle |= 0x00080000 | 0x00000080; return value; }
         }
+        /// <summary>
+        /// Raises a synthetic mouse-down event on the hidden test window.
+        /// </summary>
+        /// <param name="button">The mouse button to simulate.</param>
         internal void Down(MouseButtons button) => OnMouseDown(new MouseEventArgs(button, 1, 0, 0, 0));
+        /// <summary>
+        /// Raises a synthetic mouse-move event without moving the real pointer.
+        /// </summary>
         internal void MoveMouse() => OnMouseMove(new MouseEventArgs(MouseButtons.Left, 0, 0, 0, 0));
+        /// <summary>
+        /// Raises a synthetic mouse-up event on the hidden test window.
+        /// </summary>
+        /// <param name="button">The mouse button to simulate.</param>
         internal void Up(MouseButtons button) => OnMouseUp(new MouseEventArgs(button, 1, 0, 0, 0));
     }
 }

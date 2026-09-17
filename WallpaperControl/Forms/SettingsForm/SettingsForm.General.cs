@@ -13,6 +13,8 @@ namespace WallpaperControl
         /// <summary>
         /// Checks for a release on request and displays the result while preventing repeated clicks.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void CheckForUpdatesButton_Click(
             object? sender,
             EventArgs e)

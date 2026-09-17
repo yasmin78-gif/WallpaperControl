@@ -29,6 +29,17 @@ namespace WallpaperControl
         private const int WidgetWidth = 330;
         private const int WS_EX_LAYERED = 0x00080000;
 
+        /// <summary>
+        /// Creates the weather widget with its location, display preferences, and position callback.
+        /// </summary>
+        /// <param name="locked">True to prevent the widget from being moved.</param>
+        /// <param name="refreshMinutes">The requested refresh interval in minutes.</param>
+        /// <param name="style">The visual style used to render the widget.</param>
+        /// <param name="locationName">The city or location query used for weather lookup.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <param name="showForecast">True to include the weather forecast.</param>
+        /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="locationChanged">The callback that receives the widget&apos;s final position after a drag.</param>
         public WeatherWidgetForm(
             bool locked,
             int refreshMinutes,
@@ -68,12 +79,20 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Processes native window messages while preventing mouse interaction from activating the widget.
+        /// </summary>
+        /// <param name="m">The native window message to inspect and process.</param>
         protected override void WndProc(ref Message m)
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
         }
 
+        /// <summary>
+        /// Loads weather data and starts periodic refreshes when the widget becomes visible.
+        /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
@@ -81,6 +100,15 @@ namespace WallpaperControl
             if (!activitySuspended) timer.Start();
         }
 
+        /// <summary>
+        /// Applies weather location, style, language, forecast, and refresh preferences.
+        /// </summary>
+        /// <param name="isLocked">The widget&apos;s updated position-lock preference.</param>
+        /// <param name="newRefreshMinutes">The updated refresh interval in minutes.</param>
+        /// <param name="newStyle">The updated widget style.</param>
+        /// <param name="newLocationName">The updated weather location query.</param>
+        /// <param name="newLanguageCode">The updated widget language code.</param>
+        /// <param name="newShowForecast">True to include the forecast after applying the new preferences.</param>
         public void Apply(
             bool isLocked,
             int newRefreshMinutes,
@@ -112,6 +140,10 @@ namespace WallpaperControl
                 _ = RefreshWeatherAsync();
         }
 
+        /// <summary>
+        /// Refreshes weather data asynchronously while preventing overlap and honoring cancellation.
+        /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task RefreshWeatherAsync()
         {
             if (activitySuspended || IsDisposed)
@@ -164,6 +196,9 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Draws current conditions and the optional forecast while widget rendering is active.
+        /// </summary>
         private void RenderLayeredWindow()
         {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
@@ -275,6 +310,17 @@ namespace WallpaperControl
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 
+        /// <summary>
+        /// Draws one weather label/value pair at the requested location.
+        /// </summary>
+        /// <param name="g">The drawing surface used for the operation.</param>
+        /// <param name="font">The font used to draw the text.</param>
+        /// <param name="textBrush">The brush used for primary text.</param>
+        /// <param name="mutedBrush">The brush used for secondary text.</param>
+        /// <param name="label">The display label for the value or test check.</param>
+        /// <param name="value">The formatted value to display.</param>
+        /// <param name="x">The horizontal coordinate.</param>
+        /// <param name="y">The vertical coordinate.</param>
         private static void DrawInfo(Graphics g, Font font, Brush textBrush, Brush mutedBrush, string label, string value, int x, int y)
         {
             g.DrawString(label, font, mutedBrush, x, y);
@@ -282,6 +328,11 @@ namespace WallpaperControl
             g.DrawString(value, font, textBrush, x + Math.Max(64f, labelSize.Width + 7f), y);
         }
 
+        /// <summary>
+        /// Maps a weather condition code to the glyph used by the widget.
+        /// </summary>
+        /// <param name="code">The weather condition code returned by the forecast provider.</param>
+        /// <returns>The display glyph associated with the weather condition code.</returns>
         private static string GetWeatherGlyph(int code)
         {
             if (code == 0) return "☀";
@@ -296,6 +347,11 @@ namespace WallpaperControl
             return "☁";
         }
 
+        /// <summary>
+        /// Maps a weather condition code to its localized description resource key.
+        /// </summary>
+        /// <param name="code">The weather condition code returned by the forecast provider.</param>
+        /// <returns>The resource key for the condition&apos;s localized description.</returns>
         private static string GetWeatherDescriptionKey(int code)
         {
             if (code == 0) return "WeatherClear";
@@ -310,6 +366,12 @@ namespace WallpaperControl
             return "WeatherCloudy";
         }
 
+        /// <summary>
+        /// Formats an abbreviated forecast day name in the selected language.
+        /// </summary>
+        /// <param name="date">The date to display using the selected language.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <returns>The abbreviated day name in the requested language.</returns>
         private static string GetShortDayName(DateTime date, string languageCode)
         {
             try
@@ -331,6 +393,10 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Cancels weather fetching and stops periodic refreshes until automatic suspension ends.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             if (activitySuspended == suspended || IsDisposed) return;
@@ -338,6 +404,10 @@ namespace WallpaperControl
             if (suspended) timer.Stop(); else timer.Start();
             if (suspended) refreshCts?.Cancel(); else _ = RefreshWeatherAsync();
         }
+        /// <summary>
+        /// Releases the resources owned by this weather widget form.
+        /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

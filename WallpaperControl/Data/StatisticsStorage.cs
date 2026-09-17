@@ -6,20 +6,28 @@ using System.Text.Json;
 
 namespace WallpaperControl
 {
+    /// <summary>
+    /// Defines the persisted JSON statistics document; property names are part of the file format.
+    /// </summary>
     internal sealed class PersistentStatisticsData
     {
         public DateTime StartedAt { get; set; }
         public DateTime DailyTrackingStartedAt { get; set; }
         public DateTime RecurrenceTrackingStartedAt { get; set; }
+        // Retain this path across restarts so the already visible image is not counted twice.
         public string? LastCountedWallpaperPath { get; set; }
         public List<PersistentWallpaperStatistics> Wallpapers { get; set; } = new();
     }
 
+    /// <summary>
+    /// Stores one wallpaper's view counts and accumulated repeat-appearance intervals.
+    /// </summary>
     internal sealed class PersistentWallpaperStatistics
     {
         public string Path { get; set; } = "";
         public int Views { get; set; }
         public DateTime LastShown { get; set; }
+        // Keys are local calendar dates formatted as yyyy-MM-dd, independent of UI language.
         public Dictionary<string, int> DailyViews { get; set; } = new();
         public int RecurrenceCount { get; set; }
         public double TotalRecurrenceSeconds { get; set; }
@@ -44,8 +52,17 @@ namespace WallpaperControl
                 StatisticsDirectory,
                 "statistics.json");
 
+        /// <summary>
+        /// Loads persistent statistics, recovering a valid backup when the primary file is damaged.
+        /// </summary>
+        /// <returns>The recovered or loaded statistics snapshot, or initialized empty data when no valid snapshot exists.</returns>
         public static PersistentStatisticsData Load() => Load(StatisticsFilePath);
 
+        /// <summary>
+        /// Loads persistent statistics, recovering a valid backup when the primary file is damaged.
+        /// </summary>
+        /// <param name="path">The path to the persistent statistics file.</param>
+        /// <returns>The recovered or loaded statistics snapshot, or initialized empty data when no valid snapshot exists.</returns>
         internal static PersistentStatisticsData Load(string path)
         {
             foreach (string candidate in new[] { path, path + ".bak" })
@@ -68,6 +85,11 @@ namespace WallpaperControl
             return CreateEmpty();
         }
 
+        /// <summary>
+        /// Deserializes and validates one statistics file before it can become application state.
+        /// </summary>
+        /// <param name="path">The path to the persistent statistics file.</param>
+        /// <returns>The deserialized and validated statistics snapshot.</returns>
         private static PersistentStatisticsData ReadData(string path)
         {
             var data = JsonSerializer.Deserialize<PersistentStatisticsData>(
@@ -85,12 +107,21 @@ namespace WallpaperControl
             return data;
         }
 
+        /// <summary>
+        /// Keeps a timestamped copy of damaged statistics for recovery and diagnosis.
+        /// </summary>
+        /// <param name="path">The path to the persistent statistics file.</param>
         private static void PreserveDamagedFile(string path)
         {
             File.Move(path, path + ".corrupt-" +
                 DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffffff") + "-" + Guid.NewGuid().ToString("N"));
         }
 
+        /// <summary>
+        /// Writes statistics through a temporary file and retains the last valid version as a backup.
+        /// </summary>
+        /// <param name="path">The path to the persistent statistics file.</param>
+        /// <param name="data">The statistics snapshot to persist.</param>
         internal static void SaveData(string path, PersistentStatisticsData data)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
@@ -132,6 +163,18 @@ namespace WallpaperControl
                 if (File.Exists(tempPath)) File.Delete(tempPath);
             }
         }
+        /// <summary>
+        /// Builds and persists a statistics snapshot without interrupting wallpaper operations on failure.
+        /// </summary>
+        /// <param name="startedAt">The start of the overall tracking period.</param>
+        /// <param name="dailyTrackingStartedAt">The start of per-day tracking.</param>
+        /// <param name="viewCounts">The wallpaper display counts used by the calculation or snapshot.</param>
+        /// <param name="lastShown">The most recent display timestamp for each tracked wallpaper.</param>
+        /// <param name="dailyViews">The per-day display counts for each wallpaper.</param>
+        /// <param name="recurrenceCounts">The recurrence count for each wallpaper.</param>
+        /// <param name="recurrenceSeconds">The accumulated recurrence duration for each wallpaper, in seconds.</param>
+        /// <param name="recurrenceTrackingStartedAt">The start of recurrence tracking.</param>
+        /// <param name="lastCountedWallpaperPath">The image already counted most recently, used to suppress duplicate views.</param>
         public static void Save(
             DateTime startedAt,
             DateTime dailyTrackingStartedAt,
@@ -233,6 +276,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Creates an empty statistics snapshot with initialized tracking timestamps and collections.
+        /// </summary>
+        /// <returns>A new empty statistics snapshot.</returns>
         private static PersistentStatisticsData CreateEmpty()
         {
             return new PersistentStatisticsData

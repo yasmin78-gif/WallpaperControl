@@ -11,7 +11,7 @@ namespace WallpaperControl
     internal sealed partial class SettingsForm : Form
     {
         /// <summary>
-        /// Restores the dialog's default values and refreshes appearance and widget previews.
+        /// Restores the dialog&apos;s default values and refreshes appearance and widget previews.
         /// </summary>
         private void ResetAllSettings()
         {
@@ -221,6 +221,7 @@ namespace WallpaperControl
         /// <summary>
         /// Applies the current preview theme to the newly created native title bar.
         /// </summary>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         protected override void OnHandleCreated(
             EventArgs e)
         {
@@ -233,6 +234,10 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a font owned by the dialog and tracked for disposal.
         /// </summary>
+        /// <param name="familyName">The name of the font family to create.</param>
+        /// <param name="emSize">The font size in the units used by the drawing operation.</param>
+        /// <param name="style">The weight and decoration applied to the font.</param>
+        /// <returns>The font owned by the form; it is released when the form is disposed.</returns>
         private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
         {
             Font font = new Font(familyName, emSize, style);
@@ -243,6 +248,7 @@ namespace WallpaperControl
         /// <summary>
         /// Unsubscribes from Windows preference changes and releases dialog-owned fonts.
         /// </summary>
+        /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(
             bool disposing)
         {

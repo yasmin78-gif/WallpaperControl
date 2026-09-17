@@ -149,9 +149,18 @@ namespace WallpaperControl
         private int windowOpacityPercent = 92;
 
         // Localized selector values
+        /// <summary>
+        /// Keeps a selector's underlying value independent from its localized display text.
+        /// </summary>
+        /// <typeparam name="T">The type of the underlying selection value.</typeparam>
+        /// <param name="Value">The value applied when this option is selected.</param>
+        /// <param name="Text">The localized label displayed in the selector.</param>
         private sealed record DisplayOption<T>(T Value, string Text)
         {
-            /// <summary>Returns the localized label displayed by a selector.</summary>
+            /// <summary>
+            /// Returns the localized label displayed by a selector.
+            /// </summary>
+            /// <returns>The display label shown in the selection control.</returns>
             public override string ToString() => Text;
         }
 

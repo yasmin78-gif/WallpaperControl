@@ -15,6 +15,10 @@ namespace WallpaperControl
         /// <summary>
         /// Creates a font whose lifetime is owned by this form and ended during disposal.
         /// </summary>
+        /// <param name="familyName">The name of the font family to create.</param>
+        /// <param name="emSize">The font size in the units used by the drawing operation.</param>
+        /// <param name="style">The weight and decoration applied to the font.</param>
+        /// <returns>The font owned by the form; it is released when the form is disposed.</returns>
         private Font CreateOwnedFont(string familyName, float emSize, FontStyle style = FontStyle.Regular)
         {
             Font font = new Font(familyName, emSize, style);
@@ -25,6 +29,8 @@ namespace WallpaperControl
         /// <summary>
         /// Refreshes the theme after Windows personalization changes, marshaling back to the UI thread.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void SystemEvents_UserPreferenceChanged(
             object sender,
             UserPreferenceChangedEventArgs e)
@@ -246,6 +252,9 @@ namespace WallpaperControl
         /// <summary>
         /// Applies foreground, background, and border colors to a main-window button.
         /// </summary>
+        /// <param name="button">The button whose appearance is updated.</param>
+        /// <param name="background">The background color to apply.</param>
+        /// <param name="foreground">The primary foreground color to apply.</param>
         private void StyleButton(
             Button button,
             Color background,
@@ -282,16 +291,20 @@ namespace WallpaperControl
         /// <summary>
         /// Reserves space for a warning and, when needed, the activation button.
         /// </summary>
+        /// <param name="showActivateButton">Whether the warning layout should include the activation action.</param>
         private void SetWarningLayout(bool showActivateButton) => ArrangeMainForm(showActivateButton ? 76 : 40);
 
         /// <summary>
         /// Positions the main-window controls using the requested warning-area offset.
         /// </summary>
+        /// <param name="offset">The vertical layout offset in logical pixels.</param>
         private void ArrangeMainForm(int offset)
         {
             SuspendLayout();
             float scale = DeviceDpi / 96f;
+            // Scales a logical layout dimension for the current display density.
             int Px(int value) => (int)Math.Round(value * scale);
+            // Positions and sizes a control using the scaled main-window layout coordinates.
             void Place(Control control, int x, int y, int width, int height)
             {
                 if (control is Label label) label.AutoSize = false;

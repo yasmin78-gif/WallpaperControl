@@ -12,8 +12,10 @@ namespace WallpaperControl
     public partial class MainForm
     {
         /// <summary>
-        /// Toggles the user's manual pause state and refreshes the current wallpaper display.
+        /// Toggles the user's manual pause state from the main-window pause button.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void PauseButton_Click(
             object? sender,
             EventArgs e)
@@ -87,6 +89,8 @@ namespace WallpaperControl
         /// <summary>
         /// Restores the configured slideshow, optionally reporting failures to the user.
         /// </summary>
+        /// <param name="showError">True to show a user-facing error if the operation fails.</param>
+        /// <returns>A task whose result is true when the slideshow was resumed; otherwise, false.</returns>
         private async Task<bool> ResumeSlideshowAsync(
             bool showError)
         {
@@ -148,6 +152,8 @@ namespace WallpaperControl
         /// <summary>
         /// Keeps the current wallpaper as a fixed image and updates slideshow state.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void PinButton_Click(
             object? sender,
             EventArgs e)
@@ -208,6 +214,8 @@ namespace WallpaperControl
         /// <summary>
         /// Activates the selected folder and starts application-controlled slideshow scheduling.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void ActivateButton_Click(
             object? sender,
             EventArgs e)
@@ -239,6 +247,7 @@ namespace WallpaperControl
         /// <summary>
         /// Queries whether Windows currently reports an active slideshow.
         /// </summary>
+        /// <returns>True when Windows reports both the Enabled and Slideshow flags; false if the query fails.</returns>
         private bool IsSlideshowCurrentlyActive()
         {
             IDesktopWallpaper? wallpaper = null;
@@ -268,7 +277,11 @@ namespace WallpaperControl
                 ReleaseComObject(wallpaper);
             }
         }
-        /// <summary>Toggles manual pause and optionally refreshes displays used by tray and hotkey actions.</summary>
+        /// <summary>
+        /// Toggles manual pause and optionally refreshes displays used by tray and hotkey actions.
+        /// </summary>
+        /// <param name="refreshDisplay">True to refresh the wallpaper label and tray action after toggling pause.</param>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ToggleSlideshowPauseAsync(bool refreshDisplay)
         {
             if (slideshowPaused)

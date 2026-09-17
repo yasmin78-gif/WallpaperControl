@@ -14,6 +14,8 @@ namespace WallpaperControl
         /// <summary>
         /// Applies the selected theme to the dialog preview without committing it.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ThemeComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -35,6 +37,8 @@ namespace WallpaperControl
         /// <summary>
         /// Refreshes the preview after Windows personalization changes on the UI thread.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void SystemEvents_UserPreferenceChanged(
             object sender,
             UserPreferenceChangedEventArgs e)
@@ -67,6 +71,7 @@ namespace WallpaperControl
         /// <summary>
         /// Resolves the preview theme, consulting Windows when system mode is selected.
         /// </summary>
+        /// <returns>True when the preview should use the dark palette.</returns>
         private bool ResolvePreviewDarkMode()
         {
             return AppSettingsStore.NormalizeThemeMode(
@@ -81,6 +86,7 @@ namespace WallpaperControl
         /// <summary>
         /// Rebuilds localized theme choices while preserving the requested selection.
         /// </summary>
+        /// <param name="selectedMode">The theme mode to keep selected.</param>
         private void RefreshThemeChoices(
             string selectedMode)
         {
@@ -174,6 +180,7 @@ namespace WallpaperControl
         /// <summary>
         /// Applies preview colors to the dialog, its controls, navigation, and title bar.
         /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
         private void ApplyTheme(
             bool darkMode)
         {
@@ -221,6 +228,12 @@ namespace WallpaperControl
         /// <summary>
         /// Recursively styles supported control types for the selected light or dark theme.
         /// </summary>
+        /// <param name="controls">The controls to style or localize recursively.</param>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
+        /// <param name="background">The background color to apply.</param>
+        /// <param name="foreground">The primary foreground color to apply.</param>
+        /// <param name="inputBackground">The background color used by editable controls.</param>
+        /// <param name="buttonBackground">The background color used by action buttons.</param>
         private static void ApplyThemeToControls(
             Control.ControlCollection controls,
             bool darkMode,
@@ -339,6 +352,7 @@ namespace WallpaperControl
         /// <summary>
         /// Sets the native title-bar theme when the window handle is available.
         /// </summary>
+        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
         private void ApplyTitleBarTheme(
             bool darkMode)
         {

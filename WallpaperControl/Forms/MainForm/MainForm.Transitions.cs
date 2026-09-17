@@ -40,6 +40,8 @@ namespace WallpaperControl
         /// <summary>
         /// Updates and persists the selected transition effect and its dependent controls.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void TransitionComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -72,6 +74,8 @@ namespace WallpaperControl
         /// <summary>
         /// Maps the direction selector index to its transition direction.
         /// </summary>
+        /// <param name="index">The transition-direction selection index.</param>
+        /// <returns>The transition direction corresponding to the selection index.</returns>
         private WallpaperTransitionDirection DirectionFromIndex(int index)
         {
             return index switch
@@ -162,6 +166,8 @@ namespace WallpaperControl
         /// <summary>
         /// Persists the selected transition direction or zoom mode.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void TransitionDirectionComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)
@@ -200,6 +206,8 @@ namespace WallpaperControl
         /// <summary>
         /// Persists the selected transition duration when a valid option is chosen.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void TransitionDurationComboBox_SelectedIndexChanged(
             object? sender,
             EventArgs e)

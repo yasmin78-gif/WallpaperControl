@@ -15,6 +15,10 @@ namespace WallpaperControl
         private CalendarWidgetForm? calendarWidget;
         private bool previewMode;
 
+        /// <summary>
+        /// Loads widget preferences and stores the callback used by the next-wallpaper widget.
+        /// </summary>
+        /// <param name="next">The callback that requests the next wallpaper.</param>
         public WidgetManager(Action next)
         {
             this.next = next;
@@ -23,12 +27,19 @@ namespace WallpaperControl
 
         public WidgetSettings Settings => settings.Clone();
 
+        /// <summary>
+        /// Creates or updates widgets from saved preferences outside settings-preview mode.
+        /// </summary>
         public void Start()
         {
             previewMode = false;
             ApplyVisualState(settings, restoreLocations: true);
         }
 
+        /// <summary>
+        /// Applies uncommitted widget preferences while preserving positions changed during the live preview.
+        /// </summary>
+        /// <param name="previewSettings">The uncommitted widget preferences to preview.</param>
         public void Preview(WidgetSettings previewSettings)
         {
             previewMode = true;
@@ -73,6 +84,10 @@ namespace WallpaperControl
             ApplyVisualState(settings, restoreLocations: false);
         }
 
+        /// <summary>
+        /// Persists accepted widget preferences while retaining positions collected during live preview.
+        /// </summary>
+        /// <param name="committedSettings">The accepted widget preferences to persist.</param>
         public void CommitPreview(WidgetSettings committedSettings)
         {
             // Preserve locations collected by the live preview. The dialog only
@@ -96,6 +111,10 @@ namespace WallpaperControl
             ApplyVisualState(settings, restoreLocations: true);
         }
 
+        /// <summary>
+        /// Restores the original widget settings and removes widgets enabled only for preview.
+        /// </summary>
+        /// <param name="originalSettings">The preferences to restore when preview is canceled.</param>
         public void CancelPreview(WidgetSettings originalSettings)
         {
             previewMode = false;
@@ -107,6 +126,11 @@ namespace WallpaperControl
             ApplyVisualState(settings, restoreLocations: true);
         }
 
+        /// <summary>
+        /// Creates, updates, or disposes widget windows to match the requested settings and preview mode.
+        /// </summary>
+        /// <param name="target">The settings instance that receives the current widget positions and visual state.</param>
+        /// <param name="restoreLocations">True to restore saved positions as well as visual preferences.</param>
         private void ApplyVisualState(WidgetSettings target, bool restoreLocations)
         {
             // Preview mode keeps the widget windows interactive even though the
@@ -394,6 +418,10 @@ namespace WallpaperControl
             SetActivitySuspended(activitySuspended);
         }
 
+        /// <summary>
+        /// Stores and persists the clock widget&apos;s position according to the current preview state.
+        /// </summary>
+        /// <param name="p">The window location in screen coordinates.</param>
         private void SaveClockLocation(Point p)
         {
             settings.ClockLocation = p;
@@ -403,6 +431,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Stores and persists the next-wallpaper widget&apos;s position according to the current preview state.
+        /// </summary>
+        /// <param name="p">The window location in screen coordinates.</param>
         private void SaveNextLocation(Point p)
         {
             settings.NextLocation = p;
@@ -412,6 +444,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Stores and persists the system widget&apos;s position according to the current preview state.
+        /// </summary>
+        /// <param name="p">The window location in screen coordinates.</param>
         private void SaveSystemLocation(Point p)
         {
             settings.SystemLocation = p;
@@ -421,6 +457,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Stores and persists the weather widget&apos;s position according to the current preview state.
+        /// </summary>
+        /// <param name="p">The window location in screen coordinates.</param>
         private void SaveWeatherLocation(Point p)
         {
             settings.WeatherLocation = p;
@@ -430,6 +470,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Stores and persists the calendar widget&apos;s position according to the current preview state.
+        /// </summary>
+        /// <param name="p">The window location in screen coordinates.</param>
         private void SaveCalendarLocation(Point p)
         {
             settings.CalendarLocation = p;
@@ -440,6 +484,10 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        /// <summary>
+        /// Forwards automatic suspension to the widgets that perform periodic background work.
+        /// </summary>
+        /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
             activitySuspended = suspended;
@@ -448,6 +496,9 @@ namespace WallpaperControl
             weatherWidget?.SetActivitySuspended(suspended);
             calendarWidget?.SetActivitySuspended(suspended);
         }
+        /// <summary>
+        /// Closes widget windows and releases their services and calendar provider.
+        /// </summary>
         public void Dispose()
         {
             clock?.Close();

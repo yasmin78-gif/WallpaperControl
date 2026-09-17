@@ -9,6 +9,9 @@ using System.Runtime.InteropServices;
 
 namespace WallpaperControl
 {
+    /// <summary>
+    /// Captures one sampling cycle; nullable readings distinguish unavailable sensors from zero usage.
+    /// </summary>
     internal sealed class SystemMonitorSnapshot
     {
         public float? CpuLoad { get; init; }
@@ -25,6 +28,12 @@ namespace WallpaperControl
         public IReadOnlyList<DriveSnapshot> Drives { get; init; } = Array.Empty<DriveSnapshot>();
     }
 
+    /// <summary>
+    /// Captures the capacity and available space of a ready drive.
+    /// </summary>
+    /// <param name="Name">The drive name shown by the widget.</param>
+    /// <param name="FreeBytes">The available free space in bytes.</param>
+    /// <param name="TotalBytes">The total drive capacity in bytes.</param>
     internal sealed record DriveSnapshot(string Name, long FreeBytes, long TotalBytes);
 
     internal sealed class SystemMonitorService : IDisposable
@@ -37,6 +46,9 @@ namespace WallpaperControl
         private bool disposed;
         private readonly object syncRoot = new();
 
+        /// <summary>
+        /// Configures hardware monitoring and initializes the counters used for system snapshots.
+        /// </summary>
         public SystemMonitorService()
         {
             computer = new Computer
@@ -49,6 +61,10 @@ namespace WallpaperControl
             computer.Open();
         }
 
+        /// <summary>
+        /// Serializes hardware sampling and returns the current system snapshot.
+        /// </summary>
+        /// <returns>The system readings collected for this sampling cycle.</returns>
         public SystemMonitorSnapshot Sample()
         {
             lock (syncRoot)
@@ -60,6 +76,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Collects hardware, memory, network, and drive readings into one snapshot.
+        /// </summary>
+        /// <returns>The hardware, memory, network, and drive snapshot.</returns>
         private SystemMonitorSnapshot SampleCore()
         {
             float? cpuLoad = null;
@@ -169,6 +189,10 @@ namespace WallpaperControl
             };
         }
 
+        /// <summary>
+        /// Enumerates monitored hardware and its nested devices.
+        /// </summary>
+        /// <returns>The monitored hardware devices, including nested devices.</returns>
         private IEnumerable<IHardware> EnumerateHardware()
         {
             foreach (IHardware hardware in computer.Hardware)
@@ -179,6 +203,11 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Recursively enumerates a device&apos;s child hardware.
+        /// </summary>
+        /// <param name="hardware">The monitored device whose child hardware is inspected.</param>
+        /// <returns>The recursively discovered child devices.</returns>
         private static IEnumerable<IHardware> EnumerateChildren(IHardware hardware)
         {
             foreach (IHardware child in hardware.SubHardware)
@@ -189,6 +218,10 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Calculates transfer rates from the previous network sample and elapsed time.
+        /// </summary>
+        /// <returns>The current receive and send rates calculated from the previous sample.</returns>
         private (double Down, double Up) ReadNetworkRates()
         {
             long received = 0;
@@ -225,6 +258,10 @@ namespace WallpaperControl
             return (down, up);
         }
 
+        /// <summary>
+        /// Collects capacity and free-space information for available drives.
+        /// </summary>
+        /// <returns>The available drive capacity and free-space readings.</returns>
         private static List<DriveSnapshot> ReadDrives()
         {
             List<DriveSnapshot> result = new();
@@ -254,10 +291,22 @@ namespace WallpaperControl
             public ulong ullAvailExtendedVirtual;
         }
 
+        /// <summary>
+        /// Reads the Windows physical-memory status into the supplied native structure.
+        /// </summary>
+        /// <param name="lpBuffer">Receives the physical-memory counters; its structure size must be initialized.</param>
+        /// <returns>True when the memory query succeeds; otherwise, false.</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
 
+        /// <summary>
+        /// Reads physical-memory load and capacities through the Windows memory API.
+        /// </summary>
+        /// <param name="load">Receives the physical-memory load percentage.</param>
+        /// <param name="usedGb">Receives the amount of used physical memory in gigabytes.</param>
+        /// <param name="totalGb">Receives the total physical memory in gigabytes.</param>
+        /// <returns>True when Windows supplied valid memory counters; otherwise, false.</returns>
         private static bool TryReadWindowsMemory(out float load, out float usedGb, out float totalGb)
         {
             MEMORYSTATUSEX status = new() { dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>() };
@@ -274,9 +323,22 @@ namespace WallpaperControl
             return true;
         }
 
+        /// <summary>
+        /// Clamps an available sensor reading to a percentage while retaining missing values.
+        /// </summary>
+        /// <param name="value">The optional sensor percentage to constrain to the display range.</param>
+        /// <returns>The value limited to zero through 100, or null when the reading is absent.</returns>
         private static float? ClampPercent(float? value) =>
             value.HasValue ? Math.Clamp(value.Value, 0f, 100f) : null;
 
+        /// <summary>
+        /// Prefers an available sensor whose name matches the requested label.
+        /// </summary>
+        /// <param name="current">The previously selected sensor reading, when available.</param>
+        /// <param name="candidate">The sensor reading currently being considered.</param>
+        /// <param name="name">The name of the candidate hardware sensor.</param>
+        /// <param name="preferred">The preferred sensor-name pattern or patterns.</param>
+        /// <returns>The preferred available reading or the previously selected value.</returns>
         private static float? PreferNamed(float? current, float? candidate, string name, string preferred)
         {
             if (!candidate.HasValue) return current;
@@ -284,6 +346,13 @@ namespace WallpaperControl
             return current;
         }
 
+        /// <summary>
+        /// Prefers a representative CPU package temperature over unrelated or missing sensor readings.
+        /// </summary>
+        /// <param name="current">The previously selected sensor reading, when available.</param>
+        /// <param name="candidate">The sensor reading currently being considered.</param>
+        /// <param name="name">The name of the candidate hardware sensor.</param>
+        /// <returns>The chosen CPU temperature, or null when neither reading is available.</returns>
         private static float? PickCpuTemperature(float? current, float? candidate, string name)
         {
             if (!candidate.HasValue) return current;
@@ -296,13 +365,21 @@ namespace WallpaperControl
                 return current ?? candidate;
 
             // Sample() starts with null and hardware sensors are normally enumerated in a stable order.
-            // Package is the preferred value; once found, keep it.
+            // A package reading replaces the current value; other readings fill an empty slot.
             if (name.Contains("Package", StringComparison.OrdinalIgnoreCase))
                 return candidate;
 
             return current ?? candidate;
         }
 
+        /// <summary>
+        /// Chooses an available temperature reading, favoring the supplied sensor-name patterns.
+        /// </summary>
+        /// <param name="current">The previously selected sensor reading, when available.</param>
+        /// <param name="candidate">The sensor reading currently being considered.</param>
+        /// <param name="name">The name of the candidate hardware sensor.</param>
+        /// <param name="preferred">The preferred sensor-name pattern or patterns.</param>
+        /// <returns>The chosen available temperature reading.</returns>
         private static float? PickTemperature(float? current, float? candidate, string name, params string[] preferred)
         {
             if (!candidate.HasValue) return current;
@@ -310,9 +387,18 @@ namespace WallpaperControl
             return current ?? candidate;
         }
 
+        /// <summary>
+        /// Converts small-data memory readings to gigabytes while retaining readings already in that unit.
+        /// </summary>
+        /// <param name="value">The raw memory measurement to convert to gigabytes.</param>
+        /// <param name="type">The sensor type that determines the memory unit.</param>
+        /// <returns>The memory reading expressed in gigabytes.</returns>
         private static float NormalizeMemoryGb(float value, SensorType type) =>
             type == SensorType.SmallData ? value / 1024f : value;
 
+        /// <summary>
+        /// Stops hardware monitoring under the sampling lock and prevents repeated cleanup.
+        /// </summary>
         public void Dispose()
         {
             lock (syncRoot)

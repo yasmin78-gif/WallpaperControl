@@ -1,5 +1,8 @@
 namespace WallpaperControl
 {
+    /// <summary>
+    /// Identifies shared widget appearances; numeric values are persisted in the registry and must remain stable.
+    /// </summary>
     internal enum SystemWidgetStyle
     {
         Minimal = 0,

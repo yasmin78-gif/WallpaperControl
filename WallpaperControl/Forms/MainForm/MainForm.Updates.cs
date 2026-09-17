@@ -20,6 +20,8 @@ namespace WallpaperControl
         /// <summary>
         /// Starts a scheduled asynchronous release check.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private async void AutomaticUpdateCheckTimer_Tick(
             object? sender,
             EventArgs e)
@@ -30,6 +32,7 @@ namespace WallpaperControl
         /// <summary>
         /// Checks for a new release while deferring network work and notifications during fullscreen activity.
         /// </summary>
+        /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task CheckForUpdatesAutomaticallyAsync()
         {
             if (pauseOnFullscreen && (fullscreenPolicy.IsPaused || FullscreenActivityDetector.IsFullscreenActive()))

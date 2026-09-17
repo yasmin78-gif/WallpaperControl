@@ -14,6 +14,8 @@ namespace WallpaperControl
         /// <summary>
         /// Shows the current wallpaper preview when the pointer enters its label.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void CurrentWallpaperLabel_MouseEnter(
             object? sender,
             EventArgs e)
@@ -24,6 +26,8 @@ namespace WallpaperControl
         /// <summary>
         /// Hides the preview when the pointer leaves the current wallpaper label.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void CurrentWallpaperLabel_MouseLeave(
             object? sender,
             EventArgs e)
@@ -108,6 +112,7 @@ namespace WallpaperControl
         /// <summary>
         /// Replaces the preview image and displays its file metadata.
         /// </summary>
+        /// <param name="path">The image or folder path to process.</param>
         private void UpdateWallpaperPreview(
             string? path)
         {
@@ -159,6 +164,8 @@ namespace WallpaperControl
         /// <summary>
         /// Formats a file size for the wallpaper preview.
         /// </summary>
+        /// <param name="bytes">The size in bytes.</param>
+        /// <returns>The file size formatted with a readable unit.</returns>
         private static string FormatFileSize(
             long bytes)
         {
@@ -196,6 +203,8 @@ namespace WallpaperControl
         /// <summary>
         /// Shows the current wallpaper in Explorer from the toolbar action.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void ExplorerButton_Click(
             object? sender,
             EventArgs e)
@@ -250,6 +259,8 @@ namespace WallpaperControl
         /// <summary>
         /// Opens the current wallpaper using the registered default application.
         /// </summary>
+        /// <param name="sender">The object that raised the event.</param>
+        /// <param name="e">The event data supplied by WinForms or the event source.</param>
         private void CurrentWallpaperLabel_Click(object? sender, EventArgs e)
         {
             string? path =

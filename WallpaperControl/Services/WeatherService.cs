@@ -37,6 +37,13 @@ namespace WallpaperControl
             Timeout = TimeSpan.FromSeconds(12)
         };
 
+        /// <summary>
+        /// Resolves the location and downloads its current weather and forecast in the requested language.
+        /// </summary>
+        /// <param name="locationName">The city or location query used for weather lookup.</param>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result contains the resolved location, current conditions, and forecast.</returns>
         public async Task<WeatherSnapshot> FetchAsync(string locationName, string languageCode, CancellationToken cancellationToken)
         {
             string query = (locationName ?? "").Trim();
@@ -101,6 +108,13 @@ namespace WallpaperControl
         }
 
 
+        /// <summary>
+        /// Finds geographic coordinates and display details for the requested location.
+        /// </summary>
+        /// <param name="query">The city or location search text.</param>
+        /// <param name="language">The requested language or culture code.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result contains the matched location and geographic coordinates.</returns>
         private async Task<JsonElement> ResolveLocationAsync(string query, string language, CancellationToken cancellationToken)
         {
             // Open-Meteo uses exact matching for two-character searches. Some Japanese
@@ -136,6 +150,11 @@ namespace WallpaperControl
             throw new InvalidOperationException("Weather location was not found.");
         }
 
+        /// <summary>
+        /// Detects Japanese character ranges used when choosing a geocoding language.
+        /// </summary>
+        /// <param name="value">The text to inspect for Japanese characters.</param>
+        /// <returns>True when the text contains a character in the checked Japanese or CJK ranges.</returns>
         private static bool IsJapaneseText(string value)
         {
             foreach (char c in value)
@@ -149,6 +168,12 @@ namespace WallpaperControl
             return false;
         }
 
+        /// <summary>
+        /// Downloads a weather-service response and parses its JSON while honoring cancellation.
+        /// </summary>
+        /// <param name="url">The service URL to download.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <returns>A task whose result is a JSON document that the caller must dispose.</returns>
         private async Task<JsonDocument> GetJsonAsync(string url, CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
@@ -157,6 +182,11 @@ namespace WallpaperControl
             return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Maps a language preference to a supported weather-service language.
+        /// </summary>
+        /// <param name="languageCode">The language code used for localized text.</param>
+        /// <returns>A supported weather language code, or en when the input is unsupported.</returns>
         private static string NormalizeLanguage(string? languageCode)
         {
             string value = (languageCode ?? "en").Trim().ToLowerInvariant();
@@ -165,12 +195,27 @@ namespace WallpaperControl
             return value is "de" or "en" or "fr" or "es" or "ja" ? value : "en";
         }
 
+        /// <summary>
+        /// Reads a string property from a JSON object with the service&apos;s missing-value fallback.
+        /// </summary>
+        /// <param name="element">The JSON object containing the requested property.</param>
+        /// <param name="propertyName">The name of the JSON property to read.</param>
+        /// <returns>The string property value, or null when it is missing or not a string.</returns>
         private static string? GetString(JsonElement element, string propertyName) =>
             element.TryGetProperty(propertyName, out JsonElement value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
+        /// <summary>
+        /// Reads a numeric property from a JSON object with the service&apos;s missing-value fallback.
+        /// </summary>
+        /// <param name="element">The JSON object containing the requested property.</param>
+        /// <param name="propertyName">The name of the JSON property to read.</param>
+        /// <returns>The numeric property value, or zero when it is missing or not numeric.</returns>
         private static double GetDouble(JsonElement element, string propertyName) =>
             element.TryGetProperty(propertyName, out JsonElement value) && value.ValueKind == JsonValueKind.Number ? value.GetDouble() : 0d;
 
+        /// <summary>
+        /// Disposes the weather service&apos;s HTTP client.
+        /// </summary>
         public void Dispose() => httpClient.Dispose();
     }
 }
