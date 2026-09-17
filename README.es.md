@@ -62,72 +62,72 @@ Amplía las funciones estándar de fondos de escritorio de Windows con su propio
   - Los comandos `--next` se envían de forma segura a la instancia en ejecución del usuario actual
   - Expone el estado del widget de reloj nativo para aplicaciones y scripts externos
 
-- 📊 **Statistics dashboard**
-  - Persistent wallpaper statistics across application restarts
-  - Tracks views and when each wallpaper was last displayed
-  - Time-based statistics for Today, Yesterday, Last 7 Days and Last 30 Days
-  - Top 10, Top 25 and complete statistics views
-  - Dashboard metrics for most viewed, least viewed and average views
+- 📊 **Panel de estadísticas**
+  - Estadísticas persistentes de los fondos incluso después de reiniciar la aplicación
+  - Registra las visualizaciones y cuándo se mostró por última vez cada fondo
+  - Estadísticas por periodo: hoy, ayer, últimos 7 días y últimos 30 días
+  - Vistas de Top 10, Top 25 y estadísticas completas
+  - Métricas del panel para los fondos más vistos, menos vistos y el promedio de visualizaciones
   - Uniformidad de distribución metric
-  - Top 10 wallpaper chart
-  - Average wallpaper recurrence time
-  - Neglected wallpaper analysis
-  - Detects wallpapers that have never been displayed
-  - Search and sortable columns
-  - Wallpaper thumbnails and hover previews
-  - Set a wallpaper directly from the statistics window
-  - Open wallpapers or their folders from the context menu
-  - Remove individual entries or reset all statistics
-  - Automatic backup and recovery if the main statistics file cannot be loaded
-  - Damaged statistics files are preserved for possible recovery
+  - Gráfico Top 10 de fondos
+  - Tiempo medio de reaparición de los fondos
+  - Análisis de fondos poco mostrados
+  - Detecta fondos que nunca se han mostrado
+  - Búsqueda y columnas ordenables
+  - Miniaturas de los fondos y vista previa al pasar el cursor
+  - Establece un fondo directamente desde la ventana de estadísticas
+  - Abre los fondos o sus carpetas desde el menú contextual
+  - Elimina entradas individuales o restablece todas las estadísticas
+  - Copia de seguridad y recuperación automáticas si no puede cargarse el archivo principal de estadísticas
+  - Los archivos de estadísticas dañados se conservan para una posible recuperación
 
-- 🗑️ **Quick wallpaper rejection**
-  - Move unwanted wallpapers to an `Aussortiert` folder with one click
-  - Wallpaper rejection is temporarily disabled while a wallpaper transition is running
-  - The next wallpaper is fully displayed before the rejected wallpaper is moved
-  - Optional global rejection folder
-  - Optional subfolders for individual wallpaper collections
-  - Undo the last rejection
+- 🗑️ **Descarte rápido de fondos**
+  - Mueve los fondos no deseados a una carpeta `Aussortiert` con un solo clic
+  - El descarte de fondos se desactiva temporalmente mientras se ejecuta una transición
+  - El siguiente fondo se muestra por completo antes de mover el fondo descartado
+  - Carpeta global de descartes opcional
+  - Subcarpetas opcionales para colecciones individuales de fondos
+  - Deshace el último descarte
 
-- 📜 **Wallpaper history**
-  - Keeps track of recently displayed wallpapers during the current session
-  - Open wallpapers directly in your default image viewer
-  - Hover previews for quick identification
+- 📜 **Historial de fondos**
+  - Registra los fondos mostrados recientemente durante la sesión actual
+  - Abre los fondos directamente en el visor de imágenes predeterminado
+  - Vista previa al pasar el cursor para identificarlos rápidamente
 
-- ⌨️ **Global hotkeys**
-  - Next wallpaper
-  - Pause / Resume
-  - Show current wallpaper in your file manager
-  - Reject current wallpaper
-  - Hotkeys can be customized or disabled
-  - Detects duplicate hotkey assignments
-  - Warns when Windows cannot register a selected hotkey
-  - Hotkeys can be swapped between actions without conflicts from previous assignments
-  - Unchanged hotkeys remain registered when other shortcuts are modified
-  - Default Reject hotkey: `Ctrl+Alt+Shift+R`
+- ⌨️ **Atajos de teclado globales**
+  - Siguiente fondo
+  - Pausar / Reanudar
+  - Mostrar el fondo actual en el gestor de archivos
+  - Descartar el fondo actual
+  - Los atajos pueden personalizarse o desactivarse
+  - Detecta asignaciones de atajos duplicadas
+  - Avisa cuando Windows no puede registrar un atajo seleccionado
+  - Los atajos pueden intercambiarse entre acciones sin conflictos con asignaciones anteriores
+  - Los atajos no modificados permanecen registrados cuando se cambian otros
+  - Atajo predeterminado para descartar: `Ctrl+Alt+Shift+R`
 
-- 🔔 **System tray support**
-  - Wallpaper Control can continue running in the notification area
-  - Double-click the tray icon to restore the window
-  - Optional **Close to Tray** behavior when clicking the window's X button
-  - Exit the application directly from the tray menu
+- 🔔 **Compatibilidad con el área de notificación**
+  - Wallpaper Control puede seguir ejecutándose en el área de notificación
+  - Haz doble clic en el icono del área de notificación para restaurar la ventana
+  - Comportamiento opcional de **cerrar al área de notificación** al pulsar el botón X de la ventana
+  - Cierra la aplicación directamente desde el menú del área de notificación
 
-- 🎨 **Interface & appearance**
-  - Redesigned Settings interface
-  - Main application redesigned to match the Settings interface
-  - Consistent modern appearance across the application
-  - System, Dark and Light theme selection
-  - System theme automatically follows the Windows app theme
-  - Adjustable window opacity
-  - Remembers window position
-  - Drag & drop support
-  - Reorganized settings interface
-  - Settings always open on the **General** tab
-  - Refreshed main window with clearer grouping and improved visual hierarchy
-  - Dark dropdowns and improved readability for disabled controls
-  - Improved keyboard tab order and consistent spacing
-  - Separate appearance reset
-  - Localized interface
+- 🎨 **Interfaz y apariencia**
+  - Interfaz de Configuración rediseñada
+  - Aplicación principal rediseñada para coincidir con la interfaz de Configuración
+  - Apariencia moderna y coherente en toda la aplicación
+  - Selección de temas Sistema, Oscuro y Claro
+  - El tema Sistema sigue automáticamente el tema de aplicaciones de Windows
+  - Opacidad de la ventana ajustable
+  - Recuerda la posición de la ventana
+  - Compatible con arrastrar y soltar
+  - Interfaz de Configuración reorganizada
+  - Configuración siempre se abre en la pestaña **General**
+  - Ventana principal renovada con agrupación más clara y una jerarquía visual mejorada
+  - Listas desplegables oscuras y mejor legibilidad de los controles desactivados
+  - Orden de tabulación mejorado y espaciado uniforme
+  - Restablecimiento independiente de la apariencia
+  - Interfaz localizada
 
 ## 🎮 Pausa a pantalla completa
 
@@ -238,7 +238,7 @@ Incluye:
 - Visualización opcional de la ubicación del evento
 - Tamaño automático del widget según las citas mostradas
 - Intervalo de actualización configurable
-- **Minimal**, **Clean** and **Glow** styles
+- Estilos **Minimal**, **Clean** y **Glow**
 - Posicionamiento y bloqueo independientes
 
 Las direcciones ICS privadas se almacenan cifradas mediante **Windows Data Protection API (DPAPI)** para el usuario actual de Windows.
@@ -312,7 +312,7 @@ WallpaperControl.exe --next
 
 Esto envía una solicitud a la instancia de Wallpaper Control en ejecución y cambia inmediatamente al siguiente fondo.
 
-Wallpaper Control runs as a single instance for the current Windows user. Starting it again normally brings the existing main window to the foreground. Command communication such as `--next` is restricted to the current user, and malformed, oversized or stalled requests are rejected without blocking subsequent commands.
+Wallpaper Control se ejecuta como una única instancia para el usuario actual de Windows. Si se vuelve a iniciar normalmente, la ventana principal existente pasa al primer plano. La comunicación de comandos como `--next` está restringida al usuario actual y las solicitudes mal formadas, demasiado grandes o bloqueadas se rechazan sin impedir los comandos posteriores.
 
 Las solicitudes externas utilizan la misma lógica de presentación, programación y transición que los cambios iniciados directamente desde Wallpaper Control.
 
@@ -382,7 +382,7 @@ Los textos y el formato de fecha de los widgets siguen el idioma seleccionado.
 - Windows de 64 bits
 - No se requiere una instalación independiente de .NET
 
-## 🚀 Installation
+## 🚀 Instalación
 
 El **método oficial de instalación** de Wallpaper Control es el instalador Windows x64 incluido con cada versión.
 
@@ -416,7 +416,7 @@ Algunas funciones opcionales requieren conexión a Internet:
 - El **widget Calendario** se conecta a las direcciones iCalendar / ICS configuradas para obtener datos.
 - La **comprobación de actualizaciones** opcional se conecta a GitHub Releases para determinar si existe una versión más reciente. Las comprobaciones automáticas pueden desactivarse y Wallpaper Control nunca descarga ni instala actualizaciones automáticamente.
 
-Private ICS addresses configured for the Calendar widget are stored encrypted using the Windows Data Protection API (DPAPI) for the current Windows user.
+Las direcciones ICS privadas configuradas para el widget Calendario se almacenan cifradas mediante Windows Data Protection API (DPAPI) para el usuario actual de Windows.
 
 El acceso al calendario es de solo lectura. Wallpaper Control no modifica citas ni datos del calendario.
 
@@ -427,7 +427,7 @@ Los registros de diagnóstico se almacenan localmente y solo se crean cuando son
 - C#
 - .NET 10
 - Windows Forms
-- Native Windows APIs / COM integration
+- API nativas de Windows / integración COM
 - Open-Meteo
 - iCalendar / ICS
 

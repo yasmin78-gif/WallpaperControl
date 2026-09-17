@@ -62,72 +62,72 @@ Windows 標準の壁紙機能を、時刻に同期した独自のスライドシ
   - `--next` コマンドは現在の Windows ユーザーで実行中のインスタンスへ安全に転送
   - ネイティブ時計ウィジェットの有効状態を外部アプリやスクリプトから取得可能
 
-- 📊 **Statistics dashboard**
-  - Persistent wallpaper statistics across application restarts
-  - Tracks views and when each wallpaper was last displayed
-  - Time-based statistics for Today, Yesterday, Last 7 Days and Last 30 Days
-  - Top 10, Top 25 and complete statistics views
-  - Dashboard metrics for most viewed, least viewed and average views
+- 📊 **統計ダッシュボード**
+  - アプリケーションを再起動しても保持される壁紙統計
+  - 表示回数と各壁紙が最後に表示された日時を記録
+  - 今日、昨日、過去 7 日間、過去 30 日間の期間別統計
+  - Top 10、Top 25、全統計の表示
+  - 最多表示、最少表示、平均表示回数のダッシュボード指標
   - 表示分布の均等性 metric
-  - Top 10 wallpaper chart
-  - Average wallpaper recurrence time
-  - Neglected wallpaper analysis
-  - Detects wallpapers that have never been displayed
-  - Search and sortable columns
-  - Wallpaper thumbnails and hover previews
-  - Set a wallpaper directly from the statistics window
-  - Open wallpapers or their folders from the context menu
-  - Remove individual entries or reset all statistics
-  - Automatic backup and recovery if the main statistics file cannot be loaded
-  - Damaged statistics files are preserved for possible recovery
+  - 壁紙 Top 10 チャート
+  - 壁紙の平均再表示時間
+  - 長期間表示されていない壁紙の分析
+  - 一度も表示されていない壁紙を検出
+  - 検索と列の並べ替え
+  - 壁紙のサムネイルとホバー時のプレビュー
+  - 統計ウィンドウから直接壁紙に設定
+  - コンテキストメニューから壁紙またはそのフォルダーを開く
+  - 個別の項目を削除、またはすべての統計をリセット
+  - メインの統計ファイルを読み込めない場合の自動バックアップと復旧
+  - 破損した統計ファイルは復旧の可能性に備えて保持
 
-- 🗑️ **Quick wallpaper rejection**
-  - Move unwanted wallpapers to an `Aussortiert` folder with one click
-  - Wallpaper rejection is temporarily disabled while a wallpaper transition is running
-  - The next wallpaper is fully displayed before the rejected wallpaper is moved
-  - Optional global rejection folder
-  - Optional subfolders for individual wallpaper collections
-  - Undo the last rejection
+- 🗑️ **壁紙のクイック除外**
+  - 不要な壁紙をワンクリックで `Aussortiert` フォルダーへ移動
+  - 壁紙トランジション実行中は除外機能を一時的に無効化
+  - 除外した壁紙を移動する前に次の壁紙を完全に表示
+  - オプションのグローバル除外フォルダー
+  - 壁紙コレクションごとのオプションのサブフォルダー
+  - 直前の除外を元に戻す
 
-- 📜 **Wallpaper history**
-  - Keeps track of recently displayed wallpapers during the current session
-  - Open wallpapers directly in your default image viewer
-  - Hover previews for quick identification
+- 📜 **壁紙履歴**
+  - 現在のセッション中に最近表示された壁紙を記録
+  - 既定の画像ビューアーで壁紙を直接開く
+  - ホバー時のプレビューで素早く確認
 
-- ⌨️ **Global hotkeys**
-  - Next wallpaper
-  - Pause / Resume
-  - Show current wallpaper in your file manager
-  - Reject current wallpaper
-  - Hotkeys can be customized or disabled
-  - Detects duplicate hotkey assignments
-  - Warns when Windows cannot register a selected hotkey
-  - Hotkeys can be swapped between actions without conflicts from previous assignments
-  - Unchanged hotkeys remain registered when other shortcuts are modified
-  - Default Reject hotkey: `Ctrl+Alt+Shift+R`
+- ⌨️ **グローバルホットキー**
+  - 次の壁紙
+  - 一時停止 / 再開
+  - 現在の壁紙をファイルマネージャーで表示
+  - 現在の壁紙を除外
+  - ホットキーはカスタマイズまたは無効化可能
+  - 重複したホットキー割り当てを検出
+  - 選択したホットキーを Windows が登録できない場合に警告
+  - 以前の割り当てとの競合なしにアクション間でホットキーを入れ替え可能
+  - 他のショートカットを変更しても、変更していないホットキーは登録状態を維持
+  - 除外の既定ホットキー: `Ctrl+Alt+Shift+R`
 
-- 🔔 **System tray support**
-  - Wallpaper Control can continue running in the notification area
-  - Double-click the tray icon to restore the window
-  - Optional **Close to Tray** behavior when clicking the window's X button
-  - Exit the application directly from the tray menu
+- 🔔 **システムトレイ対応**
+  - Wallpaper Control を通知領域で継続実行可能
+  - トレイアイコンをダブルクリックしてウィンドウを復元
+  - ウィンドウの X ボタンをクリックした際に任意で**トレイへ最小化して閉じる**動作を使用可能
+  - トレイメニューからアプリケーションを直接終了
 
-- 🎨 **Interface & appearance**
-  - Redesigned Settings interface
-  - Main application redesigned to match the Settings interface
-  - Consistent modern appearance across the application
-  - System, Dark and Light theme selection
-  - System theme automatically follows the Windows app theme
-  - Adjustable window opacity
-  - Remembers window position
-  - Drag & drop support
-  - Reorganized settings interface
-  - Settings always open on the **General** tab
-  - Refreshed main window with clearer grouping and improved visual hierarchy
-  - Dark dropdowns and improved readability for disabled controls
-  - Improved keyboard tab order and consistent spacing
-  - Separate appearance reset
-  - Localized interface
+- 🎨 **インターフェースと外観**
+  - 再設計された設定画面
+  - 設定画面に合わせてメインアプリケーションも再設計
+  - アプリケーション全体で統一されたモダンな外観
+  - System、Dark、Light テーマを選択可能
+  - System テーマは Windows のアプリテーマに自動追従
+  - ウィンドウの不透明度を調整可能
+  - ウィンドウ位置を記憶
+  - ドラッグ＆ドロップ対応
+  - 設定画面を再構成
+  - 設定画面は常に **General** タブで開く
+  - グループ分けを明確にし、視覚的な階層を改善したメインウィンドウ
+  - ダークなドロップダウンと、無効化されたコントロールの視認性向上
+  - キーボードの Tab 移動順と余白の一貫性を改善
+  - 外観設定のみを個別にリセット可能
+  - ローカライズされたインターフェース
 
 ## 🎮 フルスクリーン時の一時停止
 
@@ -238,7 +238,7 @@ Wallpaper Control には Windows デスクトップへ直接統合されるネ�
 - イベント場所を任意で表示
 - 表示する予定に応じてウィジェットサイズを自動調整
 - 更新間隔を設定可能
-- **Minimal**, **Clean** and **Glow** styles
+- **Minimal**、**Clean**、**Glow** スタイル
 - 個別の配置と位置ロック
 
 プライベートな ICS アドレスは、現在の Windows ユーザー向けに **Windows Data Protection API (DPAPI)** を使用して暗号化保存されます。
@@ -312,7 +312,7 @@ WallpaperControl.exe --next
 
 実行中の Wallpaper Control インスタンスへ要求を送り、すぐに次の壁紙へ切り替えます。
 
-Wallpaper Control runs as a single instance for the current Windows user. Starting it again normally brings the existing main window to the foreground. Command communication such as `--next` is restricted to the current user, and malformed, oversized or stalled requests are rejected without blocking subsequent commands.
+Wallpaper Control は現在の Windows ユーザーに対して単一インスタンスで動作します。通常どおり再度起動すると、既存のメインウィンドウが前面に表示されます。`--next` などのコマンド通信は現在のユーザーに制限され、不正な形式、過大なサイズ、または停止した要求は、後続のコマンドを妨げることなく拒否されます。
 
 外部要求でも、Wallpaper Control から直接変更した場合と同じスライドショー、スケジュール、トランジション処理が使用されます。
 
@@ -382,7 +382,7 @@ Wallpaper Control は現在、次の言語に対応しています:
 - 64 ビット版 Windows
 - .NET の個別インストールは不要
 
-## 🚀 Installation
+## 🚀 インストール
 
 Wallpaper Control の**公式インストール方法**は、各リリースで提供される Windows x64 インストーラーです。
 
