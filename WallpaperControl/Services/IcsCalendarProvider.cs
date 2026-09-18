@@ -1,4 +1,6 @@
 ﻿using Ical.Net;
+using Ical.Net.Evaluation;
+using System.Diagnostics;
 using IcalCalendarEvent = Ical.Net.CalendarComponents.CalendarEvent;
 using Ical.Net.DataTypes;
 using System;
@@ -20,6 +22,7 @@ namespace WallpaperControl
         private Dictionary<CalendarSource, IReadOnlyList<CalendarEvent>> sourceCache = new();
         private List<CalendarSource> sources = new();
         private bool disposed;
+        private int activeRefreshes;
 
         public string ProviderName => "iCalendar";
         public string StatusResourceKey { get; private set; } = "CalendarStatusNoSource";
@@ -82,8 +85,26 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
-            if (disposed) return;
+            lock (sync)
+            {
+                if (disposed) return;
+                activeRefreshes++;
+            }
+            try
+            {
+                await RefreshCoreAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                lock (sync)
+                {
+                    if (--activeRefreshes == 0 && disposed) refreshLock.Dispose();
+                }
+            }
+        }
 
+        private async Task RefreshCoreAsync(CancellationToken cancellationToken)
+        {
             await refreshLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
@@ -91,6 +112,7 @@ namespace WallpaperControl
                 Dictionary<CalendarSource, IReadOnlyList<CalendarEvent>> refreshedCache;
                 lock (sync)
                 {
+                    if (disposed) return;
                     currentSources = sources.ToList();
                     if (currentSources.Count == 0) return;
                     refreshedCache = new(sourceCache);
@@ -101,7 +123,7 @@ namespace WallpaperControl
                 int invalidCount = 0;
                 bool hasStaleData = false;
 
-                for (int index = 0; index < currentSources.Count; index++)
+                for (int index = 0; index < Math.Min(currentSources.Count, CalendarFeedLimits.MaxSources); index++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     CalendarSource calendarSource = currentSources[index];
@@ -141,15 +163,17 @@ namespace WallpaperControl
 
                 lock (sync)
                 {
-                    if (!sources.SequenceEqual(currentSources)) return;
+                    if (disposed || !sources.SequenceEqual(currentSources)) return;
 
                     sourceCache = refreshedCache;
-                    cachedEvents = refreshedCache.Values.SelectMany(events => events).OrderBy(e => e.Start).ToList();
+                    bool limited = refreshedCache.Values.Sum(events => events.Count) > CalendarFeedLimits.MaxOccurrences;
+                    cachedEvents = refreshedCache.Values.SelectMany(events => events).OrderBy(e => e.Start)
+                        .Take(CalendarFeedLimits.MaxOccurrences).ToList();
 
                     if (successCount > 0)
                     {
                         LastRefresh = DateTime.Now;
-                        StatusResourceKey = successCount == currentSources.Count
+                        StatusResourceKey = successCount == currentSources.Count && !limited
                             ? "CalendarStatusConnected"
                             : hasStaleData ? "CalendarStatusStale" : "CalendarStatusPartial";
                     }
@@ -179,27 +203,44 @@ namespace WallpaperControl
             string sourceName,
             CancellationToken cancellationToken)
         {
-            using HttpResponseMessage response = await httpClient.GetAsync(uri, cancellationToken).ConfigureAwait(false);
+            using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(15));
+            using HttpResponseMessage response = await httpClient.GetAsync(uri,
+                HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            string icsText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            string text = await CalendarFeedLimits.ReadResponseAsync(response.Content, timeout.Token).ConfigureAwait(false);
+            // Never parse a synchronous/cached response on the WinForms event thread.
+            return await Task.Run(() => ParseSource(text, sourceName, DateTime.Today, timeout.Token),
+                timeout.Token).ConfigureAwait(false);
+        }
 
-            Calendar? calendar = Calendar.Load(icsText);
+        internal static IReadOnlyList<CalendarEvent> ParseSource(string text, string sourceName,
+            DateTime today, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Stopwatch budget = Stopwatch.StartNew();
+            DateTime from = today.Date.AddDays(-1);
+            DateTime until = today.Date.AddDays(CalendarFeedLimits.HorizonDays);
+            text = CalendarFeedLimits.Prepare(text, until, cancellationToken);
+            Calendar? calendar = Calendar.Load(text);
             if (calendar == null) throw new InvalidOperationException("The iCalendar feed could not be parsed.");
-
-            DateTime from = DateTime.Now.Date.AddDays(-1);
-            DateTime until = DateTime.Now.Date.AddDays(90);
+            cancellationToken.ThrowIfCancellationRequested();
             CalDateTime calFrom = new(DateTime.SpecifyKind(from, DateTimeKind.Unspecified), true);
             CalDateTime calUntil = new(DateTime.SpecifyKind(until, DateTimeKind.Unspecified), true);
-
-            return calendar
-                .GetOccurrences(calFrom)
-                .TakeWhileBefore(calUntil)
-                .Where(o => o.Source is IcalCalendarEvent)
-                .Select(o => ToCalendarEvent(o, sourceName))
-                .Where(e => e != null)
-                .Select(e => e!)
-                .OrderBy(e => e.Start)
-                .ToList();
+            List<CalendarEvent> events = new();
+            int examined = 0;
+            foreach (Occurrence occurrence in calendar.GetOccurrences<IcalCalendarEvent>(calFrom,
+                new EvaluationOptions { MaxUnmatchedIncrementsLimit = 128 }).TakeWhileBefore(calUntil))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (budget.Elapsed > TimeSpan.FromSeconds(2))
+                    throw new InvalidOperationException("Calendar processing budget exceeded.");
+                if (++examined > CalendarFeedLimits.MaxOccurrences)
+                    throw new InvalidOperationException("Calendar occurrence limit exceeded.");
+                CalendarEvent? item = ToCalendarEvent(occurrence, sourceName);
+                if (item != null) events.Add(item);
+            }
+            return events;
         }
 
         /// <summary>
@@ -214,8 +255,10 @@ namespace WallpaperControl
             lock (sync)
             {
                 List<CalendarEvent> upcoming = cachedEvents
-                    .Where(e => e.IsAllDay ? e.End.Date > from.Date : e.End > from)
-                    .SelectMany(ExpandForDailyDisplay)
+                    .Where(e => e.Start < from.Date.AddDays(CalendarFeedLimits.HorizonDays) &&
+                        (e.IsAllDay ? e.End.Date > from.Date : e.End > from))
+                    .SelectMany(e => ExpandForDailyDisplay(e, from.Date, from.Date.AddDays(CalendarFeedLimits.HorizonDays))
+                        .Take(Math.Clamp(maxEntries, 1, 9)))
                     .Where(e => e.IsAllDay ? e.Start.Date >= from.Date : e.End > from)
                     .OrderBy(e => e.Start.Date)
                     .ThenByDescending(e => e.SourceName.StartsWith("Holiday:", StringComparison.Ordinal))
@@ -234,6 +277,7 @@ namespace WallpaperControl
 
                 return upcoming
                     .Where(e => selectedDays.Contains(e.Start.Date))
+                    .Take(CalendarFeedLimits.MaxDisplayRows + 1) // extra row signals overflow
                     .ToList();
             }
         }
@@ -257,7 +301,7 @@ namespace WallpaperControl
         /// </summary>
         /// <param name="calendarEvent">The event to expand into daily display entries.</param>
         /// <returns>The daily entries used to display the supplied event.</returns>
-        private static IEnumerable<CalendarEvent> ExpandForDailyDisplay(CalendarEvent calendarEvent)
+        private static IEnumerable<CalendarEvent> ExpandForDailyDisplay(CalendarEvent calendarEvent, DateTime from, DateTime until)
         {
             if (!calendarEvent.IsAllDay)
             {
@@ -265,9 +309,9 @@ namespace WallpaperControl
                 yield break;
             }
 
-            DateTime firstDay = calendarEvent.Start.Date;
+            DateTime firstDay = calendarEvent.Start.Date < from ? from : calendarEvent.Start.Date;
             DateTime exclusiveEnd = calendarEvent.End.Date;
-            if (exclusiveEnd <= firstDay) exclusiveEnd = firstDay.AddDays(1);
+            if (exclusiveEnd > until) exclusiveEnd = until;
 
             for (DateTime day = firstDay; day < exclusiveEnd; day = day.AddDays(1))
             {
@@ -331,10 +375,13 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
-            if (disposed) return;
-            disposed = true;
+            lock (sync)
+            {
+                if (disposed) return;
+                disposed = true;
+                if (activeRefreshes == 0) refreshLock.Dispose();
+            }
             if (ownsHttpClient) httpClient.Dispose();
-            refreshLock.Dispose();
         }
     }
 }

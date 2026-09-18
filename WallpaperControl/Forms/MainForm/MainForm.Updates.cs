@@ -103,15 +103,14 @@ namespace WallpaperControl
                 DialogResult answer =
                     updateDialog.ShowDialog(this);
 
-                if (answer == DialogResult.Yes &&
-                    result.ReleaseUri != null)
+                UpdateDialog.OpenReleaseIfAccepted(answer, result.ReleaseUri, releaseUri =>
                 {
                     try
                     {
                         Process.Start(
                             new ProcessStartInfo
                             {
-                                FileName = result.ReleaseUri.AbsoluteUri,
+                                FileName = releaseUri.AbsoluteUri,
                                 UseShellExecute = true
                             });
                     }
@@ -121,7 +120,7 @@ namespace WallpaperControl
                             "Could not open update release page.",
                             ex);
                     }
-                }
+                });
             }
             finally
             {

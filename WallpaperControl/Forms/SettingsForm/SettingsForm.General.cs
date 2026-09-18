@@ -59,16 +59,15 @@ namespace WallpaperControl
 
                     DialogResult answer = updateAvailableDialog.ShowDialog(this);
 
-                    if (answer == DialogResult.Yes &&
-                        result.ReleaseUri != null)
+                    UpdateDialog.OpenReleaseIfAccepted(answer, result.ReleaseUri, releaseUri =>
                     {
                         Process.Start(
                             new ProcessStartInfo
                             {
-                                FileName = result.ReleaseUri.AbsoluteUri,
+                                FileName = releaseUri.AbsoluteUri,
                                 UseShellExecute = true
                             });
-                    }
+                    });
 
                     return;
                 }

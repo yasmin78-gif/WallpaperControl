@@ -141,6 +141,7 @@ namespace WallpaperControl
                 DesktopWallpaperPosition current =
                     wallpaper.GetPosition();
 
+                PersistentDesktopTransitionManager.SetWallpaperPosition(current);
                 lastWallpaperPosition = current;
 
                 foreach (var item in positions)
@@ -182,6 +183,7 @@ namespace WallpaperControl
                 if (lastWallpaperPosition == current)
                     return;
 
+                PersistentDesktopTransitionManager.SetWallpaperPosition(current);
                 lastWallpaperPosition = current;
 
                 foreach (var item in positions)

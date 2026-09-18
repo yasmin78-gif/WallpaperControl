@@ -14,6 +14,11 @@ namespace WallpaperControl
 
     internal sealed class UpdateDialog : Form
     {
+        internal const DialogResult ReleaseActionResult = DialogResult.OK;
+        internal static void OpenReleaseIfAccepted(DialogResult answer, Uri? releaseUri, Action<Uri> open)
+        {
+            if (answer == ReleaseActionResult && releaseUri != null) open(releaseUri);
+        }
         private readonly bool darkMode;
 
         /// <summary>
@@ -147,7 +152,7 @@ namespace WallpaperControl
                     new Point(388, 18),
                     112,
                     true);
-                releaseButton.DialogResult = DialogResult.OK;
+                releaseButton.DialogResult = ReleaseActionResult;
                 buttonPanel.Controls.Add(releaseButton);
 
                 AcceptButton = releaseButton;

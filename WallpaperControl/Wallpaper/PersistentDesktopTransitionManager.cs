@@ -6,55 +6,92 @@ namespace WallpaperControl
 {
     internal static class PersistentDesktopTransitionManager
     {
-        private static PersistentDesktopWallpaperHost? persistentHost;
+        private static IPersistentWallpaperHost? persistentHost;
+        private static readonly object initializationLock = new();
+        private static Task compositionReady = Task.CompletedTask;
+        private static bool initializing;
+        private static int generation;
         private static bool activitySuspended;
         private static DesktopWallpaperPosition wallpaperPosition =
             DesktopWallpaperPosition.Fill;
 
         /// <summary>
-        /// Creates and places the persistent wallpaper host before allowing Explorer&apos;s initial composition to settle.
+        /// Acquires a ready renderer before the caller disables native scheduling.
         /// </summary>
         /// <param name="currentWallpaperPath">The currently displayed wallpaper path, when known.</param>
-        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        /// <param name="takeOwnership">The native scheduling ownership action.</param>
+        /// <param name="createHost">Optional native-host factory for isolated failure-path verification.</param>
         /// <returns>A task whose result is true when a usable desktop host is available.</returns>
+        // All production callers run on the UI thread. The lock also serializes
+        // concurrent requests; the guard rejects native message-loop reentrancy.
+        internal static bool TryStartSession(string currentWallpaperPath, Action takeOwnership,
+            Func<IPersistentWallpaperHost>? createHost = null)
+        {
+            lock (initializationLock)
+            {
+                if (!TryInitializeHost(currentWallpaperPath, createHost)) return false;
+                try { takeOwnership(); return true; }
+                catch { Shutdown(); throw; }
+            }
+        }
+
+        private static bool TryInitializeHost(string? path, Func<IPersistentWallpaperHost>? createHost = null)
+        {
+            if (initializing) return false;
+            if (persistentHost is { IsDisposed: false } && persistentHost.EnsureDesktopPlacement()) return true;
+            persistentHost?.Dispose();
+            persistentHost = null;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+
+            initializing = true;
+            int initialGeneration = generation;
+            IPersistentWallpaperHost? candidate = null;
+            try
+            {
+                candidate = createHost != null ? createHost() : new PersistentDesktopWallpaperHost();
+                candidate.SetActivitySuspended(activitySuspended);
+                candidate.SetWallpaperPosition(wallpaperPosition);
+                if (!candidate.Initialize(path) || !candidate.EnsureDesktopPlacement()) return false;
+                if (initialGeneration != generation) return false;
+                candidate.SetActivitySuspended(activitySuspended);
+                candidate.SetWallpaperPosition(wallpaperPosition);
+                // Publish only after attachment, image decoding and final placement succeed.
+                persistentHost = candidate;
+                candidate = null;
+                compositionReady = Task.Delay(1500);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("Could not initialize the desktop renderer; retaining native scheduling.", ex);
+                return false;
+            }
+            finally
+            {
+                candidate?.Dispose();
+                initializing = false;
+            }
+        }
+
         public static async Task<bool> InitializeHostAsync(
             string? currentWallpaperPath,
             CancellationToken cancellationToken = default)
         {
-            if (persistentHost != null &&
-                !persistentHost.IsDisposed)
+            IPersistentWallpaperHost? host;
+            Task ready;
+            lock (initializationLock)
             {
-                return true;
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!TryInitializeHost(currentWallpaperPath)) return false;
+                host = persistentHost;
+                ready = compositionReady;
             }
-
-            if (string.IsNullOrWhiteSpace(currentWallpaperPath) ||
-                !File.Exists(currentWallpaperPath))
+            await ready.WaitAsync(cancellationToken);
+            lock (initializationLock)
             {
-                return false;
+                return ReferenceEquals(host, persistentHost) &&
+                    host is { IsDisposed: false } && host.EnsureDesktopPlacement();
             }
-
-            persistentHost =
-                new PersistentDesktopWallpaperHost();
-            persistentHost.SetActivitySuspended(activitySuspended);
-            persistentHost.SetWallpaperPosition(wallpaperPosition);
-
-            if (!persistentHost.Initialize(
-                    currentWallpaperPath))
-            {
-                persistentHost.Dispose();
-                persistentHost = null;
-                return false;
-            }
-
-            // Explorer/DWM needs a short settling period when the desktop layer
-            // is first inserted and the desktop composition is rebuilt.
-            await Task.Delay(
-                1500,
-                cancellationToken);
-
-            persistentHost.EnsureDesktopPlacement();
-
-            return true;
         }
 
         /// <summary>
@@ -68,30 +105,44 @@ namespace WallpaperControl
         /// <param name="zoomMode">The requested direction of the zoom effect.</param>
         /// <param name="cancellationToken">The token used to cancel the operation.</param>
         /// <returns>A task representing completion of the asynchronous operation.</returns>
-        public static async Task ApplyAsync(
+        public static Task ApplyAsync(
+            string? currentWallpaperPath, string nextWallpaperPath, WallpaperTransitionKind transitionKind,
+            int durationMilliseconds, WallpaperTransitionDirection direction, WallpaperZoomMode zoomMode,
+            CancellationToken cancellationToken = default) =>
+            ApplyCoreAsync(currentWallpaperPath, nextWallpaperPath, transitionKind, durationMilliseconds,
+                direction, zoomMode, null, cancellationToken);
+
+        internal static async Task ApplyCoreAsync(
             string? currentWallpaperPath,
             string nextWallpaperPath,
             WallpaperTransitionKind transitionKind,
             int durationMilliseconds,
             WallpaperTransitionDirection direction,
             WallpaperZoomMode zoomMode,
-            CancellationToken cancellationToken = default)
+            Func<string, CancellationToken, Task>? directFallback,
+            CancellationToken cancellationToken)
         {
             if (!File.Exists(nextWallpaperPath))
             {
-                return;
+                throw new FileNotFoundException("Wallpaper file not found.", nextWallpaperPath);
             }
 
             if (!await InitializeHostAsync(
                     currentWallpaperPath,
                     cancellationToken))
             {
+                // The shell may disappear after startup. Remove a stale overlay and
+                // retain a working direct rendering path for the custom scheduler.
+                Shutdown();
+                if (directFallback != null) await directFallback(nextWallpaperPath, cancellationToken);
+                else await new DirectWallpaperTransition().ApplyAsync(currentWallpaperPath,
+                    nextWallpaperPath, durationMilliseconds, direction, zoomMode, cancellationToken);
                 return;
             }
 
-            persistentHost!.EnsureDesktopPlacement();
+            IPersistentWallpaperHost host = persistentHost!;
 
-            await persistentHost.TransitionToAsync(
+            await host.TransitionToAsync(
                 nextWallpaperPath,
                 transitionKind,
                 Math.Clamp(
@@ -102,7 +153,7 @@ namespace WallpaperControl
                 zoomMode,
                 cancellationToken);
 
-            persistentHost.CommitCurrentPath(
+            host.CommitCurrentPath(
                 nextWallpaperPath);
 
             // Avoid SetWallpaper() while the custom renderer owns the session.
@@ -147,13 +198,13 @@ namespace WallpaperControl
         /// </summary>
         public static void Shutdown()
         {
-            if (persistentHost == null)
+            lock (initializationLock)
             {
-                return;
+                generation++;
+                persistentHost?.Dispose();
+                persistentHost = null;
+                compositionReady = Task.CompletedTask;
             }
-
-            persistentHost.Dispose();
-            persistentHost = null;
         }
     }
 }

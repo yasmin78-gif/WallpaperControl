@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace WallpaperControl
 {
-    internal sealed class PersistentDesktopWallpaperHost : Form
+    internal sealed class PersistentDesktopWallpaperHost : Form, IPersistentWallpaperHost
     {
         private const uint WM_SPAWN_WORKER = 0x052C;
         private const int WS_CHILD = 0x40000000;
@@ -21,6 +21,7 @@ namespace WallpaperControl
 
         private Bitmap? currentFrame;
         private Bitmap? nextFrame;
+        private string? nextWallpaperPath;
         private readonly System.Windows.Forms.Timer animationTimer;
         private readonly System.Diagnostics.Stopwatch stopwatch = new();
         private TaskCompletionSource<bool>? completionSource;
@@ -158,19 +159,23 @@ namespace WallpaperControl
         /// <param name="position">The Windows wallpaper scaling and placement mode.</param>
         public void SetWallpaperPosition(DesktopWallpaperPosition position)
         {
-            wallpaperPosition = position;
-
-            if (!string.IsNullOrWhiteSpace(CurrentWallpaperPath) &&
-                File.Exists(CurrentWallpaperPath) &&
-                ClientSize.Width > 0 &&
-                ClientSize.Height > 0)
+            if (wallpaperPosition == position) return;
+            Bitmap? current = null;
+            Bitmap? next = null;
+            try
             {
-                ReplaceBitmap(
-                    ref currentFrame,
-                    LoadFrame(CurrentWallpaperPath, ClientSize, wallpaperPosition));
+                if (currentFrame != null && CurrentWallpaperPath != null)
+                    current = LoadFrame(CurrentWallpaperPath, ClientSize, position);
+                if (nextFrame != null && nextWallpaperPath != null)
+                    next = LoadFrame(nextWallpaperPath, ClientSize, position);
+                // Swap both frames atomically on the UI thread, retaining progress.
+                if (current != null) { ReplaceBitmap(ref currentFrame, current); current = null; }
+                if (next != null) { ReplaceBitmap(ref nextFrame, next); next = null; }
+                wallpaperPosition = position;
                 Invalidate(true);
                 Update();
             }
+            finally { current?.Dispose(); next?.Dispose(); }
         }
 
         /// <summary>
@@ -210,6 +215,7 @@ namespace WallpaperControl
                 ref nextFrame,
                 LoadFrame(nextWallpaperPath, ClientSize, wallpaperPosition));
 
+            this.nextWallpaperPath = nextWallpaperPath;
             transitionKind = kind;
             transitionDirection =
                 ResolveDirection(direction);
@@ -281,7 +287,7 @@ namespace WallpaperControl
         /// Stops or resumes the animation clock and timer without discarding an in-progress transition.
         /// </summary>
         /// <param name="suspended">True to pause background activity; false to resume it.</param>
-        internal void SetActivitySuspended(bool suspended)
+        public void SetActivitySuspended(bool suspended)
         {
             activitySuspended = suspended;
             if (suspended) { animationTimer.Stop(); stopwatch.Stop(); }
@@ -308,6 +314,8 @@ namespace WallpaperControl
                 Bitmap? old = currentFrame;
                 currentFrame = nextFrame;
                 nextFrame = null;
+                CurrentWallpaperPath = nextWallpaperPath;
+                nextWallpaperPath = null;
                 old?.Dispose();
 
                 progress = 1.0;

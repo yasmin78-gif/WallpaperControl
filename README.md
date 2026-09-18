@@ -422,6 +422,8 @@ Diagnostic logs are stored locally and are only created when needed for troubles
 
 ## 🛠️ Built With
 
+Developer verification: run `pwsh -File ./Test.ps1` from the repository root for the complete regression suite. See [TESTING.md](TESTING.md) for release/analyzer commands, calendar limits and the manual Windows checklist.
+
 - C#
 - .NET 10
 - Windows Forms

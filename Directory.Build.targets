@@ -1,0 +1,7 @@
+<Project>
+  <!-- This repository uses an executable regression harness, not test discovery.
+       Fail closed rather than let dotnet test produce a zero-test green result. -->
+  <Target Name="RequireRegressionEntryPoint" BeforeTargets="VSTest">
+    <Error Text="Run pwsh -File ./Test.ps1 for the complete regression suite. This repository does not use VSTest discovery." />
+  </Target>
+</Project>

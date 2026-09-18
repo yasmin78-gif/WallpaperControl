@@ -95,20 +95,31 @@ namespace WallpaperControl
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
+            if (lifetimeEnded || IsDisposed || Disposing) return;
+            shown = true;
+            UpdateRefreshScheduling();
             RenderLayeredWindow();
             RefreshCalendar();
         }
 
         private bool activitySuspended;
+        private bool shown;
+        private bool lifetimeEnded;
+
+        private void UpdateRefreshScheduling()
+        {
+            if (lifetimeEnded || IsDisposed || Disposing) return;
+            refreshTimer.Enabled = shown && !activitySuspended;
+        }
         /// <summary>
         /// Suspends calendar refreshes and resumes fetching when automatic suspension ends.
         /// </summary>
         /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
-            if (activitySuspended == suspended || IsDisposed) return;
+            if (activitySuspended == suspended || lifetimeEnded || IsDisposed || Disposing) return;
             activitySuspended = suspended;
-            if (suspended) refreshTimer.Stop(); else refreshTimer.Start();
+            UpdateRefreshScheduling();
             if (suspended) refreshCancellation?.Cancel(); else { var previous = refreshCancellation; refreshCancellation = new CancellationTokenSource(); previous?.Dispose(); RefreshCalendar(); }
         }
         /// <summary>
@@ -117,8 +128,10 @@ namespace WallpaperControl
         /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !lifetimeEnded)
             {
+                lifetimeEnded = true;
+                shown = false;
                 dragHandler.Dispose();
                 refreshTimer.Stop();
                 refreshTimer.Dispose();
@@ -150,6 +163,7 @@ namespace WallpaperControl
             int newRefreshMinutes,
             string newLanguageCode)
         {
+            if (lifetimeEnded || IsDisposed || Disposing) return;
             locked = isLocked;
             style = newStyle;
             maxEntries = newMaxEntries switch { <= 3 => 3, >= 9 => 9, _ => 5 };
@@ -157,7 +171,7 @@ namespace WallpaperControl
             refreshMinutes = Math.Clamp(newRefreshMinutes, 15, 120);
             languageCode = string.IsNullOrWhiteSpace(newLanguageCode) ? Localization.CurrentLanguage : newLanguageCode;
             refreshTimer.Interval = refreshMinutes * 60 * 1000;
-            if (IsHandleCreated && !refreshTimer.Enabled && !activitySuspended) refreshTimer.Start();
+            UpdateRefreshScheduling();
 
             // Final height depends on how many appointments occur on the selected
             // occupied days and is calculated by RenderLayeredWindow().
@@ -173,9 +187,36 @@ namespace WallpaperControl
         /// </summary>
         private void RenderLayeredWindow()
         {
+            try { RenderCalendar(); }
+            catch (Exception ex)
+            {
+                // Provider/native failures must not escape an async-void UI callback.
+                // Do not include provider messages, which may contain private URLs.
+                AppLogger.Warning("Calendar rendering failed.", new InvalidOperationException(ex.GetType().Name));
+            }
+        }
+
+        private void RenderCalendar()
+        {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
-            IReadOnlyList<CalendarEvent> entries = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
+            IReadOnlyList<CalendarEvent> available = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
+            // Bound even alternative providers, and fit rows to the current work area.
+            int heightLimit = Math.Clamp(Screen.FromControl(this).WorkingArea.Height,
+                120, CalendarFeedLimits.MaxWidgetHeight);
+            List<CalendarEvent> entries = new();
+            int usedHeight = 79;
+            DateTime? previousDay = null;
+            foreach (CalendarEvent entry in available.Take(CalendarFeedLimits.MaxDisplayRows))
+            {
+                int rowHeight = 21 + (showLocation && !string.IsNullOrWhiteSpace(entry.Location) ? 13 : 0)
+                    + (previousDay != entry.Start.Date ? 32 : 0);
+                if (usedHeight + rowHeight > heightLimit) break;
+                usedHeight += rowHeight;
+                entries.Add(entry);
+                previousDay = entry.Start.Date;
+            }
+            bool truncated = available.Count > entries.Count;
             int occupiedDays = entries.Select(e => e.Start.Date).Distinct().Count();
             int locationLineCount = showLocation
                 ? entries.Count(e => !string.IsNullOrWhiteSpace(e.Location))
@@ -183,7 +224,7 @@ namespace WallpaperControl
             int contentHeight = entries.Count == 0
                 ? 120
                 : 79 + occupiedDays * 32 + entries.Count * 21 + locationLineCount * 13;
-            int desiredHeight = Math.Max(120, contentHeight);
+            int desiredHeight = Math.Clamp(contentHeight, 120, heightLimit);
             if (ClientSize.Width != WidgetWidth || ClientSize.Height != desiredHeight)
                 ClientSize = new Size(WidgetWidth, desiredHeight);
 
@@ -289,7 +330,7 @@ namespace WallpaperControl
                     g.DrawString(emptyText, subjectFont, mutedBrush, 16, 65);
                 }
 
-                string status = Localization.Get(calendarProvider.StatusResourceKey, languageCode);
+                string status = (truncated ? "… · " : "") + Localization.Get(calendarProvider.StatusResourceKey, languageCode);
                 using Font statusFont = new("Segoe UI", 7.2f, FontStyle.Italic);
                 SizeF statusSize = g.MeasureString(status, statusFont);
                 g.DrawString(status, statusFont, mutedBrush, Width - statusSize.Width - 16, Height - 20);
@@ -303,7 +344,7 @@ namespace WallpaperControl
         /// </summary>
         public async void RefreshCalendar()
         {
-            if (activitySuspended || IsDisposed) return;
+            if (!shown || lifetimeEnded || activitySuspended || IsDisposed || Disposing) return;
 
             CancellationTokenSource? cancellation = Volatile.Read(ref refreshCancellation);
             if (cancellation == null) return;
@@ -324,8 +365,12 @@ namespace WallpaperControl
             {
                 return;
             }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("Calendar refresh failed.", new InvalidOperationException(ex.GetType().Name));
+            }
 
-            if (IsDisposed || !IsHandleCreated) return;
+            if (lifetimeEnded || activitySuspended || IsDisposed || !IsHandleCreated) return;
             if (InvokeRequired)
             {
                 try { BeginInvoke((Action)RenderLayeredWindow); } catch { }

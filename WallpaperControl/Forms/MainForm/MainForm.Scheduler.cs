@@ -43,7 +43,12 @@ namespace WallpaperControl
                     new DesktopWallpaper();
 
                 // Stop native Windows scheduling while retaining the visible image.
-                wallpaper.SetWallpaper(null, current);
+                if (!PersistentDesktopTransitionManager.TryStartSession(
+                        current, () => wallpaper.SetWallpaper(null, current)))
+                {
+                    customSlideshowEngineActive = false;
+                    return;
+                }
 
                 customSlideshowEngineActive = true;
                 slideshowPaused = false;
@@ -190,7 +195,7 @@ namespace WallpaperControl
                 $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
 
             _ = AdvanceCustomWallpaperAsync(
-                DesktopSlideshowDirection.Forward);
+                DesktopSlideshowDirection.Forward, automatic: true);
 
             // Derive the next deadline from the intended boundary to avoid timing drift.
             customSlideshowNextChange =

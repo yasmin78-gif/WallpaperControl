@@ -1255,7 +1255,7 @@ namespace WallpaperControl
                 Text = Localization.Get("SettingsCalendarWidgetTitle", previewLanguageCode),
                 Tag = "SettingsCalendarWidgetTitle",
                 Location = new Point(18, 58),
-                Size = new Size(620, 535)
+                Size = new Size(630, 535)
             };
 
             calendarWidgetEnabledCheckBox = new CheckBox
@@ -1284,15 +1284,11 @@ namespace WallpaperControl
                 AutoSize = true
             };
 
-            calendarIcsUrlTextBox = new TextBox
+            calendarIcsUrlTextBox = new PrivateCalendarTextBox
             {
                 Location = new Point(18, 132),
                 Size = new Size(390, 44),
-                Text = initialWidgetSettings.CalendarIcsUrl,
-                Multiline = true,
-                AcceptsReturn = true,
-                ScrollBars = ScrollBars.Vertical,
-                UseSystemPasswordChar = true
+                Text = initialWidgetSettings.CalendarIcsUrl
             };
 
             Label calendarHolidaySourceLabel = new Label
@@ -1303,15 +1299,11 @@ namespace WallpaperControl
                 AutoSize = true
             };
 
-            calendarHolidayIcsUrlTextBox = new TextBox
+            calendarHolidayIcsUrlTextBox = new PrivateCalendarTextBox
             {
                 Location = new Point(18, 208),
                 Size = new Size(390, 44),
-                Text = initialWidgetSettings.CalendarHolidayIcsUrl,
-                Multiline = true,
-                AcceptsReturn = true,
-                ScrollBars = ScrollBars.Vertical,
-                UseSystemPasswordChar = true
+                Text = initialWidgetSettings.CalendarHolidayIcsUrl
             };
 
             Button calendarShowSourceButton = new Button
@@ -1327,14 +1319,22 @@ namespace WallpaperControl
                 Text = Localization.Get("SettingsCalendarApplySource", previewLanguageCode),
                 Tag = "SettingsCalendarApplySource",
                 Location = new Point(506, 130),
-                Size = new Size(96, 31)
+                Size = new Size(110, 31)
             };
 
             calendarShowSourceButton.Click += (_, _) =>
             {
-                calendarIcsUrlTextBox.UseSystemPasswordChar = !calendarIcsUrlTextBox.UseSystemPasswordChar;
-                calendarHolidayIcsUrlTextBox.UseSystemPasswordChar = calendarIcsUrlTextBox.UseSystemPasswordChar;
-                string key = calendarIcsUrlTextBox.UseSystemPasswordChar ? "SettingsCalendarShowSource" : "SettingsCalendarHideSource";
+                if (calendarIcsUrlTextBox.SourcesHidden)
+                {
+                    calendarIcsUrlTextBox.RevealSources();
+                    calendarHolidayIcsUrlTextBox.RevealSources();
+                }
+                else
+                {
+                    calendarIcsUrlTextBox.HideSources();
+                    calendarHolidayIcsUrlTextBox.HideSources();
+                }
+                string key = calendarIcsUrlTextBox.SourcesHidden ? "SettingsCalendarShowSource" : "SettingsCalendarHideSource";
                 calendarShowSourceButton.Tag = key;
                 calendarShowSourceButton.Text = Localization.Get(key, previewLanguageCode);
             };

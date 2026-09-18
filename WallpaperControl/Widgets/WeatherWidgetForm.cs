@@ -96,8 +96,11 @@ namespace WallpaperControl
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
+            if (lifetimeEnded || IsDisposed || Disposing) return;
+            shown = true;
+            UpdateRefreshScheduling();
             await RefreshWeatherAsync();
-            if (!activitySuspended) timer.Start();
+
         }
 
         /// <summary>
@@ -117,6 +120,7 @@ namespace WallpaperControl
             string newLanguageCode,
             bool newShowForecast)
         {
+            if (lifetimeEnded || IsDisposed || Disposing) return;
             string normalizedLocation = string.IsNullOrWhiteSpace(newLocationName) ? "Karlsruhe" : newLocationName.Trim();
             bool mustRefresh = !string.Equals(locationName, normalizedLocation, StringComparison.OrdinalIgnoreCase) ||
                                !string.Equals(languageCode, newLanguageCode, StringComparison.OrdinalIgnoreCase);
@@ -133,7 +137,7 @@ namespace WallpaperControl
             if (Size != newSize)
                 ClientSize = newSize;
 
-            if (Visible && !timer.Enabled && !activitySuspended) timer.Start();
+            UpdateRefreshScheduling();
             if (IsHandleCreated && !IsDisposed) RenderLayeredWindow();
 
             if (mustRefresh && Visible && IsHandleCreated)
@@ -146,7 +150,7 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task RefreshWeatherAsync()
         {
-            if (activitySuspended || IsDisposed)
+            if (!shown || lifetimeEnded || activitySuspended || IsDisposed || Disposing)
                 return;
 
             CancellationTokenSource cts = new();
@@ -161,7 +165,7 @@ namespace WallpaperControl
                 RenderLayeredWindow();
 
                 WeatherSnapshot newSnapshot = await weatherService.FetchAsync(locationName, languageCode, cts.Token);
-                if (IsDisposed || cts.IsCancellationRequested || refreshCts != cts)
+                if (lifetimeEnded || IsDisposed || cts.IsCancellationRequested || refreshCts != cts)
                     return;
 
                 snapshot = newSnapshot;
@@ -173,7 +177,7 @@ namespace WallpaperControl
             }
             catch (InvalidOperationException ex)
             {
-                if (cts.IsCancellationRequested || refreshCts != cts) return;
+                if (lifetimeEnded || IsDisposed || cts.IsCancellationRequested || refreshCts != cts) return;
                 statusKey = ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
                     ? "WeatherLocationNotFound"
                     : "WeatherUnavailable";
@@ -181,7 +185,7 @@ namespace WallpaperControl
             }
             catch (Exception ex)
             {
-                if (cts.IsCancellationRequested || refreshCts != cts) return;
+                if (lifetimeEnded || IsDisposed || cts.IsCancellationRequested || refreshCts != cts) return;
                 AppLogger.Warning("Weather widget could not load weather data.", ex);
                 statusKey = "WeatherUnavailable";
                 if (IsHandleCreated && !IsDisposed) RenderLayeredWindow();
@@ -393,15 +397,23 @@ namespace WallpaperControl
         }
 
         private bool activitySuspended;
+        private bool shown;
+        private bool lifetimeEnded;
+
+        private void UpdateRefreshScheduling()
+        {
+            if (lifetimeEnded || IsDisposed || Disposing) return;
+            timer.Enabled = shown && !activitySuspended;
+        }
         /// <summary>
         /// Cancels weather fetching and stops periodic refreshes until automatic suspension ends.
         /// </summary>
         /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
-            if (activitySuspended == suspended || IsDisposed) return;
+            if (activitySuspended == suspended || lifetimeEnded || IsDisposed || Disposing) return;
             activitySuspended = suspended;
-            if (suspended) timer.Stop(); else timer.Start();
+            UpdateRefreshScheduling();
             if (suspended) refreshCts?.Cancel(); else _ = RefreshWeatherAsync();
         }
         /// <summary>
@@ -410,11 +422,15 @@ namespace WallpaperControl
         /// <param name="disposing">True when managed resources should be released during explicit disposal.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !lifetimeEnded)
             {
+                lifetimeEnded = true;
+                shown = false;
                 dragHandler.Dispose();
                 refreshCts?.Cancel();
                 refreshCts?.Dispose();
+                refreshCts = null;
+                timer.Stop();
                 timer.Dispose();
                 weatherService.Dispose();
             }

@@ -138,7 +138,7 @@ namespace WallpaperControl
         /// <param name="direction">Whether to move forward or backward in the slideshow.</param>
         /// <returns>A task whose result is true when the selected wallpaper became the current wallpaper; false when blocked, unavailable, or unsuccessful.</returns>
         private async Task<bool> AdvanceCustomWallpaperAsync(
-            DesktopSlideshowDirection direction)
+            DesktopSlideshowDirection direction, bool automatic = false)
         {
             await UpdateFullscreenPauseAsync();
             if (fullscreenPolicy.IsPaused) return false;
@@ -170,60 +170,32 @@ namespace WallpaperControl
                     return false;
 
                 string? current = GetCurrentWallpaperPath();
-                string next;
-
-                if (shuffleCheckBox.Checked && files.Length > 1)
-                {
-                    string[] candidates = files
-                        .Where(path => !string.Equals(
-                            path,
-                            current,
-                            StringComparison.OrdinalIgnoreCase))
-                        .ToArray();
-
-                    next = candidates[customSlideshowRandom.Next(candidates.Length)];
-                }
-                else
-                {
-                    int currentIndex = Array.FindIndex(
-                        files,
-                        path => string.Equals(
-                            path,
-                            current,
-                            StringComparison.OrdinalIgnoreCase));
-
-                    if (direction == DesktopSlideshowDirection.Backward)
+                string? next = await WallpaperCandidateRunner.TryAdvanceAsync(files, current,
+                    shuffleCheckBox.Checked, direction == DesktopSlideshowDirection.Backward,
+                    customSlideshowRandom, async candidate =>
                     {
-                        int previousIndex = currentIndex <= 0
-                            ? files.Length - 1
-                            : currentIndex - 1;
-
-                        next = files[previousIndex];
-                    }
-                    else
-                    {
-                        int nextIndex = currentIndex < 0
-                            ? 0
-                            : (currentIndex + 1) % files.Length;
-
-                        next = files[nextIndex];
-                    }
-                }
-
-                await wallpaperTransitionService.ApplyAsync(
-                    current,
-                    next,
-                    selectedTransitionKind,
-                    selectedTransitionDurationMilliseconds,
-                    selectedTransitionDirection,
-                    selectedZoomMode);
-
+                        if (exitRequested || IsDisposed || Disposing) return false;
+                        try
+                        {
+                            // Validate using the same Windows decoder even for the direct path.
+                            using (Image image = Image.FromFile(candidate)) { _ = image.Width; }
+                            await wallpaperTransitionService.ApplyAsync(current, candidate,
+                                selectedTransitionKind, selectedTransitionDurationMilliseconds,
+                                selectedTransitionDirection, selectedZoomMode);
+                            return string.Equals(GetCurrentWallpaperPath(), candidate,
+                                StringComparison.OrdinalIgnoreCase);
+                        }
+                        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+                            or ArgumentException or OutOfMemoryException or System.Runtime.InteropServices.ExternalException)
+                        {
+                            // GDI+ also reports invalid image data as OutOfMemoryException.
+                            AppLogger.Warning("Skipping an unreadable wallpaper candidate.", ex);
+                            return false;
+                        }
+                    });
+                if (next == null) return false;
                 _ = RefreshCurrentWallpaperSoonAsync();
-
-                return string.Equals(
-                    GetCurrentWallpaperPath(),
-                    next,
-                    StringComparison.OrdinalIgnoreCase);
+                return true;
             }
             catch (Exception ex)
             {
@@ -231,6 +203,12 @@ namespace WallpaperControl
                     IsDisposed ||
                     Disposing)
                 {
+                    return false;
+                }
+
+                if (automatic)
+                {
+                    AppLogger.Warning("Automatic wallpaper advance failed.", ex);
                     return false;
                 }
 
@@ -246,7 +224,7 @@ namespace WallpaperControl
             finally
             {
                 customSlideshowChangeRunning = false;
-                UpdateCurrentWallpaperDisplay();
+                if (!exitRequested && !IsDisposed && !Disposing) UpdateCurrentWallpaperDisplay();
             }
         }
 
