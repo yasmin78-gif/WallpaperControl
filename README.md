@@ -6,7 +6,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.3**
+**Current release: v1.8.4**
 
 ## ✨ Features
 
@@ -242,6 +242,8 @@ Features include:
 - Independent positioning and locking
 
 Private ICS addresses are stored encrypted using **Windows Data Protection API (DPAPI)** for the current Windows user.
+
+Private calendar URLs are concealed by default in Settings and can be explicitly revealed for viewing or editing.
 
 Wallpaper Control only reads calendar feeds and does not modify calendar data.
 

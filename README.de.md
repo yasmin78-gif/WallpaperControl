@@ -6,7 +6,7 @@
 
 Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an der Uhrzeit ausgerichtete Diashow-Engine, direkt auf dem Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei integriert es sich sauber in den Windows-Desktop und stellt beim Beenden der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v1.8.3**
+**Aktuelle Version: v1.8.4**
 
 ## ✨ Funktionen
 
@@ -242,6 +242,8 @@ Zu den Funktionen gehören:
 - Unabhängige Positionierung und Sperre
 
 Private ICS-Adressen werden für den aktuellen Windows-Benutzer verschlüsselt mit der **Windows Data Protection API (DPAPI)** gespeichert.
+
+Private Kalender-URLs werden in den Einstellungen standardmäßig verborgen und können zum Anzeigen oder Bearbeiten gezielt eingeblendet werden.
 
 Wallpaper Control liest Kalender-Feeds ausschließlich und verändert keine Kalenderdaten.
 
