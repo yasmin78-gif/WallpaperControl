@@ -6,7 +6,7 @@
 
 Il enrichit la gestion standard des fonds d’écran de Windows grâce à son propre moteur de diaporama synchronisé sur l’horloge, à des effets de transition rendus directement sur le bureau et à des widgets de bureau optionnels. Il s’intègre proprement au bureau Windows et restaure la gestion native des fonds d’écran lorsque l’application se ferme.
 
-**Version actuelle : v1.8.3**
+**Version actuelle : v1.8.4**
 
 ## ✨ Fonctionnalités
 
@@ -242,6 +242,8 @@ Fonctionnalités :
 - Positionnement et verrouillage indépendants
 
 Les adresses ICS privées sont stockées sous forme chiffrée à l’aide de la **Windows Data Protection API (DPAPI)** pour l’utilisateur Windows actuel.
+
+Les URL de calendriers privés sont masquées par défaut dans les paramètres et peuvent être affichées explicitement pour être consultées ou modifiées.
 
 Wallpaper Control lit uniquement les flux de calendrier et ne modifie aucune donnée.
 

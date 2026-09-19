@@ -6,7 +6,7 @@
 
 Amplía las funciones estándar de fondos de escritorio de Windows con su propio motor de presentación sincronizado con el reloj, efectos de transición renderizados directamente en el escritorio y widgets opcionales. Se integra limpiamente con el escritorio de Windows y restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v1.8.3**
+**Versión actual: v1.8.4**
 
 ## ✨ Funciones
 
@@ -242,6 +242,8 @@ Incluye:
 - Posicionamiento y bloqueo independientes
 
 Las direcciones ICS privadas se almacenan cifradas mediante **Windows Data Protection API (DPAPI)** para el usuario actual de Windows.
+
+Las URL de calendarios privados están ocultas de forma predeterminada en la configuración y pueden mostrarse explícitamente para consultarlas o editarlas.
 
 Wallpaper Control solo lee las fuentes del calendario y no modifica sus datos.
 
