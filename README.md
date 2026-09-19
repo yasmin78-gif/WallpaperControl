@@ -6,7 +6,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.4**
+**Current release: v1.8.5**
 
 ## ✨ Features
 
@@ -226,7 +226,10 @@ Calendar data is loaded using read-only **iCalendar / ICS** feeds.
 
 Features include:
 
+- Manage calendar sources individually with custom names, colors, types and enabled states
 - Support for multiple ICS calendar sources
+- Existing calendar sources are migrated automatically to the new source format
+- Events are color-coded by calendar source
 - Timed appointments
 - All-day events
 - Recurring events
@@ -237,6 +240,10 @@ Features include:
 - Empty days are skipped
 - Optional event location display
 - Automatic widget sizing based on displayed appointments
+- Configurable maximum widget height
+- Scrollable calendar content when the configured maximum height is reached
+- Mouse wheel, draggable scrollbar and page scrolling support
+- Fixed header and footer while scrolling
 - Configurable refresh interval
 - **Minimal**, **Clean** and **Glow** styles
 - Independent positioning and locking

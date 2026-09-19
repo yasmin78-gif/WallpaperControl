@@ -6,7 +6,7 @@
 
 Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an der Uhrzeit ausgerichtete Diashow-Engine, direkt auf dem Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei integriert es sich sauber in den Windows-Desktop und stellt beim Beenden der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v1.8.4**
+**Aktuelle Version: v1.8.5**
 
 ## ✨ Funktionen
 
@@ -226,7 +226,10 @@ Kalenderdaten werden über schreibgeschützte **iCalendar-/ICS**-Feeds geladen.
 
 Zu den Funktionen gehören:
 
+- Kalenderquellen einzeln mit eigenem Namen, eigener Farbe, Typ und Aktivstatus verwalten
 - Unterstützung mehrerer ICS-Kalenderquellen
+- Bestehende Kalenderquellen werden automatisch in das neue Quellenformat übernommen
+- Termine werden in der Farbe ihrer Kalenderquelle dargestellt
 - Termine mit Uhrzeit
 - Ganztägige Ereignisse
 - Wiederkehrende Ereignisse
@@ -237,6 +240,10 @@ Zu den Funktionen gehören:
 - Leere Tage werden übersprungen
 - Optionale Anzeige des Veranstaltungsorts
 - Automatische Widget-Größe anhand der angezeigten Termine
+- Einstellbare maximale Widget-Höhe
+- Scrollbarer Kalenderinhalt, sobald die eingestellte Maximalhöhe erreicht ist
+- Unterstützung für Mausrad, ziehbaren Scrollbalken und seitenweises Scrollen
+- Kopf- und Fußbereich bleiben beim Scrollen stehen
 - Einstellbares Aktualisierungsintervall
 - **Minimal**, **Clean** and **Glow** styles
 - Unabhängige Positionierung und Sperre

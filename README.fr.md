@@ -6,7 +6,7 @@
 
 Il enrichit la gestion standard des fonds d’écran de Windows grâce à son propre moteur de diaporama synchronisé sur l’horloge, à des effets de transition rendus directement sur le bureau et à des widgets de bureau optionnels. Il s’intègre proprement au bureau Windows et restaure la gestion native des fonds d’écran lorsque l’application se ferme.
 
-**Version actuelle : v1.8.4**
+**Version actuelle : v1.8.5**
 
 ## ✨ Fonctionnalités
 
@@ -226,7 +226,10 @@ Les données sont chargées à partir de flux **iCalendar / ICS** en lecture seu
 
 Fonctionnalités :
 
+- Gestion individuelle des sources de calendrier avec nom, couleur, type et état d’activation propres
 - Prise en charge de plusieurs sources de calendrier ICS
+- Migration automatique des sources existantes vers le nouveau format
+- Les événements utilisent la couleur attribuée à leur source de calendrier
 - Rendez-vous avec horaire
 - Événements sur toute la journée
 - Événements récurrents
@@ -237,6 +240,10 @@ Fonctionnalités :
 - Les jours vides sont ignorés
 - Affichage optionnel du lieu de l’événement
 - Dimensionnement automatique du widget selon les rendez-vous affichés
+- Hauteur maximale du widget configurable
+- Contenu du calendrier défilable lorsque la hauteur maximale configurée est atteinte
+- Défilement à la molette, barre de défilement déplaçable et défilement par page
+- En-tête et pied de page fixes pendant le défilement
 - Intervalle d’actualisation configurable
 - Styles **Minimal**, **Clean** et **Glow**
 - Positionnement et verrouillage indépendants
