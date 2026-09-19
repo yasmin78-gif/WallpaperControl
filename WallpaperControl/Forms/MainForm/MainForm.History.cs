@@ -29,23 +29,18 @@ namespace WallpaperControl
             try
             {
                 bool slideshowWasActive =
-                    IsSlideshowCurrentlyActive();
+                    customSlideshowEngineActive || slideshowPaused || IsSlideshowCurrentlyActive();
 
                 wallpaper =
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
-                wallpaper.SetWallpaper(
+                ApplyExplicitWallpaper(() => wallpaper.SetWallpaper(
                     null,
-                    path);
-
-                // An image explicitly selected from statistics should remain visible.
-                // If a slideshow was active, treat this selection as a pause for the
-                // current application session.
-                slideshowPaused =
-                    slideshowWasActive;
+                    path), slideshowWasActive);
 
                 await Task.Delay(250);
+                if (exitRequested || IsDisposed || Disposing) return;
 
                 CheckSlideshowStatus();
 
@@ -68,6 +63,25 @@ namespace WallpaperControl
             {
                 ReleaseComObject(wallpaper);
             }
+        }
+
+        internal void ApplyExplicitWallpaper(Action applyNative, bool pauseAfterSelection)
+        {
+            bool wasPaused = slideshowPaused;
+            slideshowPaused = true;
+            ArmCustomSlideshowPreciseTimer();
+            customWallpaperCancellation?.Cancel();
+            try
+            {
+                PersistentDesktopTransitionManager.ApplyNativeSelection(applyNative);
+                slideshowPaused = pauseAfterSelection;
+            }
+            catch
+            {
+                slideshowPaused = wasPaused;
+                throw;
+            }
+            finally { ArmCustomSlideshowPreciseTimer(); }
         }
 
         /// <summary>

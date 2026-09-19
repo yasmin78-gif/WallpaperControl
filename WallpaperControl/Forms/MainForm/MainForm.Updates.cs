@@ -122,6 +122,10 @@ namespace WallpaperControl
                     }
                 });
             }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("Automatic update result could not be displayed.", ex);
+            }
             finally
             {
                 automaticUpdateCheckRunning = false;

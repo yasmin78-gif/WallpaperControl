@@ -214,7 +214,7 @@ namespace WallpaperControl
                 normalized = normalized[..prereleaseIndex];
 
             return Version.TryParse(normalized, out Version? version)
-                ? version
+                ? (version.Build < 0 ? new Version(version.Major, version.Minor, 0) : version)
                 : null;
         }
 

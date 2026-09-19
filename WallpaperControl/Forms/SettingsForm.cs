@@ -254,6 +254,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                manualUpdateCancellation?.Cancel();
                 calendarMaximumHeightNumeric?.Dispose();
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;

@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1075,4 +1075,5 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="CalendarSourceInvalidAddress" xml:space="preserve"><value>Veuillez saisir une adresse HTTP ou HTTPS valide.</value></data>
   <data name="CalendarSourceNameHint" xml:space="preserve"><value>Sans nom personnalisé, le widget utilise le nom du calendrier ou un libellé numéroté. Enregistrez les paramètres pour conserver les modifications. Choisissez Afficher pour modifier l’adresse.</value></data>
   <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>Hauteur maximale</value></data>
+  <data name="CalendarUntitledEvent" xml:space="preserve"><value>(sans titre)</value></data>
 </root>

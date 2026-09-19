@@ -606,7 +606,7 @@ namespace WallpaperControl
             wallpaperRefreshTimer =
                 new System.Windows.Forms.Timer
                 {
-                    Interval = 1000
+                    Interval = FullscreenPausePolicy.NormalPollingIntervalMilliseconds
                 };
 
             wallpaperRefreshTimer.Tick +=

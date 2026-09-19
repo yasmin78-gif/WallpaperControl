@@ -355,7 +355,7 @@ namespace WallpaperControl
 
             if (end <= start) end = allDay ? start.Date.AddDays(1) : start.AddHours(1);
 
-            string title = string.IsNullOrWhiteSpace(source.Summary) ? "(ohne Titel)" : source.Summary.Trim();
+            string title = source.Summary?.Trim() ?? string.Empty;
             string location = source.Location?.Trim() ?? string.Empty;
             return new WallpaperControl.CalendarEvent(start, end, allDay, title, location, sourceName);
         }

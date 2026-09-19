@@ -14,6 +14,8 @@ namespace WallpaperControl
 {
     internal sealed partial class CalendarWidgetForm : Form
     {
+        internal static string GetEventTitle(string title, string language) =>
+            string.IsNullOrWhiteSpace(title) ? Localization.Get("CalendarUntitledEvent", language) : title;
         private readonly WidgetDragHandler dragHandler;
         private const int WidgetWidth = CalendarViewport.Width;
         private readonly CalendarViewport viewport = new();
@@ -334,12 +336,12 @@ namespace WallpaperControl
                             using SolidBrush holidayTextBrush = new(Color.White);
                             // The colored holiday bar already communicates that this is a
                             // special all-day entry, so omit the redundant "All day" label.
-                            g.DrawString(entry.Title, subjectFont, holidayTextBrush, 16, y - 1);
+                            g.DrawString(GetEventTitle(entry.Title, languageCode), subjectFont, holidayTextBrush, 16, y - 1);
                         }
                         else
                         {
                             g.DrawString(time, timeFont, entry.SourceColorArgb.HasValue ? sourceBrush : mutedBrush, 16, y);
-                            g.DrawString(entry.Title, subjectFont, sourceBrush, 72, y - 1);
+                            g.DrawString(GetEventTitle(entry.Title, languageCode), subjectFont, sourceBrush, 72, y - 1);
                         }
                         y += 21;
 

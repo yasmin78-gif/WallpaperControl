@@ -32,9 +32,9 @@ namespace WallpaperControl
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
-                wallpaper.SetWallpaper(
+                PersistentDesktopTransitionManager.ApplyNativeSelection(() => wallpaper.SetWallpaper(
                     null,
-                    nextWallpaperPath);
+                    nextWallpaperPath));
             }
             finally
             {

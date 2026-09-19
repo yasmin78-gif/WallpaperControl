@@ -182,14 +182,15 @@ namespace WallpaperControl
                     new DesktopWallpaper();
 
                 customSlideshowEngineActive = false;
+                customWallpaperCancellation?.Cancel();
                 customSlideshowPreciseTimer.Change(
                     Timeout.Infinite,
                     Timeout.Infinite);
                 slideshowPaused = false;
 
-                wallpaper.SetWallpaper(
+                PersistentDesktopTransitionManager.ApplyNativeSelection(() => wallpaper.SetWallpaper(
                     null,
-                    wallpaperPath);
+                    wallpaperPath));
 
                 // Allow Windows to switch from slideshow mode to a fixed image.
                 await Task.Delay(300);

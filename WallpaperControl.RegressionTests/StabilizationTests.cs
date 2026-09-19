@@ -30,6 +30,7 @@ internal static class StabilizationTests
                 UpdateAction(check);
                 PositionFrames(check);
                 DesktopRepairResume(check);
+                AuditFixTests.Run(check);
             }
             catch (Exception ex) { failure = ex; }
         });
@@ -56,11 +57,20 @@ internal static class StabilizationTests
         var tick = typeof(App.DesktopShowMonitor).GetMethod("RepairTimer_Tick", Members)!;
         void Tick() => tick.Invoke(monitor, new object?[] { null, EventArgs.Empty });
 
-        manager.SetActivitySuspended(true);
+        var policy = new App.FullscreenPausePolicy();
+        DateTime now = new(2026, 9, 19, 12, 0, 0, DateTimeKind.Utc);
+        policy.Update(true, true, now);
+        manager.SetActivitySuspended(policy.IsPaused);
         monitor.RepairAfterResume();
         for (int i = 0; i < 4; i++) Tick();
         check(skipped == 5 && active == 0, "Desktop repairs can expire during suspension");
-        manager.SetActivitySuspended(false);
+        policy.Update(true, false, now.AddMilliseconds(250));
+        bool changed = policy.Update(true, false, now.AddMilliseconds(500));
+        if (changed) manager.SetActivitySuspended(policy.IsPaused);
+        check(!changed && active == 0, "Exit stability prevents provisional desktop repairs while still fullscreen-paused");
+        changed = policy.Update(true, false, now.AddMilliseconds(750));
+        if (changed) manager.SetActivitySuspended(policy.IsPaused);
+        check(changed && !policy.AllowsSlideshow(true), "Prompt fullscreen resume keeps manual slideshow pause independent");
         check(active == 1 && Field<System.Windows.Forms.Timer>(monitor, "repairTimer").Enabled,
             "Resume immediately starts a fresh desktop repair burst without a shell event");
         manager.SetActivitySuspended(false);
@@ -70,7 +80,13 @@ internal static class StabilizationTests
             "Resumed desktop repair completes its bounded retry burst");
         monitor.Dispose();
         monitor.RepairAfterResume();
+        Tick();
         check(active == 5, "Disposed desktop monitor ignores resume repair");
+        check(!Field<System.Windows.Forms.Timer>(monitor, "stateTimer").Enabled &&
+            !Field<System.Windows.Forms.Timer>(monitor, "repairTimer").Enabled &&
+            Field<IntPtr>(monitor, "hook") == IntPtr.Zero &&
+            Field<NativeWindow>(monitor, "stateWindow").Handle == IntPtr.Zero,
+            "Desktop monitor disposal stops both timers and releases its hook and native state window");
     }
 
     private static T Field<T>(object instance, string name) => (T)instance.GetType().GetField(name, Members)!.GetValue(instance)!;

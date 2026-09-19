@@ -12,6 +12,10 @@ namespace WallpaperControl
         private static bool initializing;
         private static int generation;
         private static bool activitySuspended;
+        private static string? nativeWallpaperAtStart;
+
+        internal static bool SupportsConfiguration(int monitorCount, DesktopWallpaperPosition position) =>
+            monitorCount == 1 && position != DesktopWallpaperPosition.Span;
         private static DesktopWallpaperPosition wallpaperPosition =
             DesktopWallpaperPosition.Fill;
 
@@ -30,7 +34,12 @@ namespace WallpaperControl
             lock (initializationLock)
             {
                 if (!TryInitializeHost(currentWallpaperPath, createHost)) return false;
-                try { takeOwnership(); return true; }
+                try
+                {
+                    takeOwnership();
+                    nativeWallpaperAtStart = currentWallpaperPath;
+                    return true;
+                }
                 catch { Shutdown(); throw; }
             }
         }
@@ -41,6 +50,7 @@ namespace WallpaperControl
             if (persistentHost is { IsDisposed: false } && persistentHost.EnsureDesktopPlacement()) return true;
             persistentHost?.Dispose();
             persistentHost = null;
+            if (createHost == null && !SupportsConfiguration(Screen.AllScreens.Length, wallpaperPosition)) return false;
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
 
             initializing = true;
@@ -57,6 +67,7 @@ namespace WallpaperControl
                 candidate.SetWallpaperPosition(wallpaperPosition);
                 // Publish only after attachment, image decoding and final placement succeed.
                 persistentHost = candidate;
+                nativeWallpaperAtStart ??= path;
                 candidate = null;
                 compositionReady = Task.Delay(1500);
                 return true;
@@ -122,6 +133,7 @@ namespace WallpaperControl
             Func<string, CancellationToken, Task>? directFallback,
             CancellationToken cancellationToken)
         {
+            int requestGeneration = generation;
             if (!File.Exists(nextWallpaperPath))
             {
                 throw new FileNotFoundException("Wallpaper file not found.", nextWallpaperPath);
@@ -131,6 +143,7 @@ namespace WallpaperControl
                     currentWallpaperPath,
                     cancellationToken))
             {
+                if (requestGeneration != generation) throw new OperationCanceledException();
                 // The shell may disappear after startup. Remove a stale overlay and
                 // retain a working direct rendering path for the custom scheduler.
                 Shutdown();
@@ -141,6 +154,7 @@ namespace WallpaperControl
             }
 
             IPersistentWallpaperHost host = persistentHost!;
+            if (requestGeneration != generation) throw new OperationCanceledException();
 
             await host.TransitionToAsync(
                 nextWallpaperPath,
@@ -153,6 +167,8 @@ namespace WallpaperControl
                 zoomMode,
                 cancellationToken);
 
+            cancellationToken.ThrowIfCancellationRequested();
+            if (requestGeneration != generation || host.IsDisposed) throw new OperationCanceledException();
             host.CommitCurrentPath(
                 nextWallpaperPath);
 
@@ -190,7 +206,18 @@ namespace WallpaperControl
         /// <returns>The hosted wallpaper path, or null when no host exists.</returns>
         public static string? GetDisplayedWallpaperPath()
         {
-            return persistentHost?.CurrentWallpaperPath;
+            return persistentHost is { IsDisposed: false } ? persistentHost.CurrentWallpaperPath : null;
+        }
+
+        // Animated images deliberately differ from the native image retained at startup.
+        internal static bool HasExternalWallpaperChange(string? nativePath) =>
+            GetDisplayedWallpaperPath() != null && !string.IsNullOrWhiteSpace(nativePath) &&
+            !string.Equals(nativePath, nativeWallpaperAtStart, StringComparison.OrdinalIgnoreCase);
+
+        internal static void ApplyNativeSelection(Action applyNative)
+        {
+            applyNative();
+            Shutdown();
         }
 
         /// <summary>
@@ -201,6 +228,7 @@ namespace WallpaperControl
             lock (initializationLock)
             {
                 generation++;
+                nativeWallpaperAtStart = null;
                 persistentHost?.Dispose();
                 persistentHost = null;
                 compositionReady = Task.CompletedTask;

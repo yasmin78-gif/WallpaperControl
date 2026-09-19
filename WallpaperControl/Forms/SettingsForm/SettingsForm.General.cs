@@ -10,6 +10,14 @@ namespace WallpaperControl
     // Settings dialog General members. See README.md in this directory for the code map.
     internal sealed partial class SettingsForm
     {
+        private CancellationTokenSource? manualUpdateCancellation;
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            manualUpdateCancellation?.Cancel();
+            base.OnFormClosed(e);
+        }
+
         /// <summary>
         /// Checks for a release on request and displays the result while preventing repeated clicks.
         /// </summary>
@@ -19,13 +27,25 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            await CheckForUpdatesAsync(async token =>
+            {
+                using UpdateService service = new();
+                return await service.CheckAsync(token);
+            });
+        }
+
+        internal async Task CheckForUpdatesAsync(Func<CancellationToken, Task<UpdateCheckResult>> check)
+        {
+            if (manualUpdateCancellation != null || IsDisposed || Disposing) return;
+            using CancellationTokenSource cancellation = new();
+            manualUpdateCancellation = cancellation;
             checkForUpdatesButton.Enabled = false;
 
             try
             {
-                using UpdateService updateService = new();
                 UpdateCheckResult result =
-                    await updateService.CheckAsync();
+                    await check(cancellation.Token);
+                if (cancellation.IsCancellationRequested || IsDisposed || Disposing) return;
 
                 string currentVersion =
                     result.CurrentVersion.ToString(3);
@@ -81,8 +101,10 @@ namespace WallpaperControl
                     previewLanguageCode);
                 failedDialog.ShowDialog(this);
             }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
             catch (Exception ex)
             {
+                if (cancellation.IsCancellationRequested || IsDisposed || Disposing) return;
                 AppLogger.Warning(
                     "Manual update check failed.",
                     ex);
@@ -100,7 +122,8 @@ namespace WallpaperControl
             }
             finally
             {
-                if (!IsDisposed)
+                manualUpdateCancellation = null;
+                if (!cancellation.IsCancellationRequested && !IsDisposed && !Disposing)
                     checkForUpdatesButton.Enabled = true;
             }
         }

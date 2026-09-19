@@ -34,6 +34,7 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
   - Configurable transition duration
   - Desktop icons and desktop tools remain visible above the transition layer
+  - Multiple monitors and Span layouts use native Windows wallpaper handling instead of custom animations
 
 - 🕐 **Native desktop widgets**
   - Clock widget with 5 selectable themes

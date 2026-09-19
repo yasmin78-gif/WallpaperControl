@@ -11,6 +11,7 @@ namespace WallpaperControl
     // Main-window wallpaper responsibilities; see README.md in this directory for the code map.
     public partial class MainForm
     {
+        private CancellationTokenSource? customWallpaperCancellation;
         /// <summary>
         /// Returns the hosted wallpaper path, falling back to the Windows desktop wallpaper API.
         /// </summary>
@@ -19,12 +20,6 @@ namespace WallpaperControl
         {
             string? hostedWallpaper =
                 PersistentDesktopTransitionManager.GetDisplayedWallpaperPath();
-
-            if (!string.IsNullOrWhiteSpace(hostedWallpaper) &&
-                File.Exists(hostedWallpaper))
-            {
-                return hostedWallpaper;
-            }
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -37,21 +32,33 @@ namespace WallpaperControl
                 uint monitorCount =
                     wallpaper.GetMonitorDevicePathCount();
 
-                if (monitorCount > 0)
+                string nativePath = wallpaper.GetWallpaper(monitorCount > 0
+                    ? wallpaper.GetMonitorDevicePathAt(0) : null);
+                if (PersistentDesktopTransitionManager.HasExternalWallpaperChange(nativePath))
                 {
-                    string monitorId =
-                        wallpaper.GetMonitorDevicePathAt(0);
-
-                    return wallpaper.GetWallpaper(
-                        monitorId);
+                    customWallpaperCancellation?.Cancel();
+                    PersistentDesktopTransitionManager.Shutdown();
+                    slideshowPaused = customSlideshowEngineActive || slideshowPaused;
+                    ArmCustomSlideshowPreciseTimer();
+                    return nativePath;
                 }
-
-                return wallpaper.GetWallpaper(null);
+                if (!string.IsNullOrWhiteSpace(hostedWallpaper) && File.Exists(hostedWallpaper))
+                {
+                    if (!PersistentDesktopTransitionManager.SupportsConfiguration(
+                            Screen.AllScreens.Length, wallpaper.GetPosition()))
+                    {
+                        customWallpaperCancellation?.Cancel();
+                        PersistentDesktopTransitionManager.ApplyNativeSelection(
+                            () => wallpaper.SetWallpaper(null, hostedWallpaper));
+                    }
+                    return hostedWallpaper;
+                }
+                return nativePath;
             }
             catch (Exception ex)
             {
                 AppLogger.Warning("Could not read the current Windows wallpaper path.", ex);
-                return null;
+                return hostedWallpaper;
             }
             finally
             {
@@ -144,6 +151,7 @@ namespace WallpaperControl
             if (fullscreenPolicy.IsPaused) return false;
             if (customSlideshowChangeRunning)
                 return false;
+            if (slideshowPaused || !customSlideshowEngineActive) return false;
 
             string folder = folderTextBox.Text;
 
@@ -153,6 +161,8 @@ namespace WallpaperControl
                 return false;
             }
 
+            using CancellationTokenSource cancellation = new();
+            customWallpaperCancellation = cancellation;
             try
             {
                 customSlideshowChangeRunning = true;
@@ -174,14 +184,15 @@ namespace WallpaperControl
                     shuffleCheckBox.Checked, direction == DesktopSlideshowDirection.Backward,
                     customSlideshowRandom, async candidate =>
                     {
-                        if (exitRequested || IsDisposed || Disposing) return false;
+                        if (exitRequested || IsDisposed || Disposing || cancellation.IsCancellationRequested) return false;
                         try
                         {
                             // Validate using the same Windows decoder even for the direct path.
                             using (Image image = Image.FromFile(candidate)) { _ = image.Width; }
                             await wallpaperTransitionService.ApplyAsync(current, candidate,
                                 selectedTransitionKind, selectedTransitionDurationMilliseconds,
-                                selectedTransitionDirection, selectedZoomMode);
+                                selectedTransitionDirection, selectedZoomMode, cancellation.Token);
+                            cancellation.Token.ThrowIfCancellationRequested();
                             return string.Equals(GetCurrentWallpaperPath(), candidate,
                                 StringComparison.OrdinalIgnoreCase);
                         }
@@ -197,6 +208,8 @@ namespace WallpaperControl
                 _ = RefreshCurrentWallpaperSoonAsync();
                 return true;
             }
+            catch (Exception) when (cancellation.IsCancellationRequested) { return false; }
+            catch (OperationCanceledException) { return false; }
             catch (Exception ex)
             {
                 if (exitRequested ||
@@ -223,8 +236,15 @@ namespace WallpaperControl
             }
             finally
             {
+                customWallpaperCancellation = null;
                 customSlideshowChangeRunning = false;
-                if (!exitRequested && !IsDisposed && !Disposing) UpdateCurrentWallpaperDisplay();
+                if (!exitRequested && !IsDisposed && !Disposing)
+                {
+                    if (customSlideshowNextChange <= DateTime.Now && customSlideshowLastInterval > 0)
+                        customSlideshowNextChange = GetNextAlignedChange(DateTime.Now, customSlideshowLastInterval);
+                    ArmCustomSlideshowPreciseTimer();
+                    UpdateCurrentWallpaperDisplay();
+                }
             }
         }
 

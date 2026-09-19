@@ -34,6 +34,7 @@ Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an 
   - Der Zufallsmodus wählt bei jedem Wallpaper-Wechsel einen anderen Effekt und variiert, sofern zutreffend, auch Richtung oder Zoom-Modus
   - Einstellbare Übergangsdauer
   - Desktop-Symbole und Desktop-Tools bleiben über der Übergangsebene sichtbar
+  - Bei mehreren Monitoren oder Span übernimmt Windows die native Wallpaper-Darstellung anstelle der eigenen Animationen
 
 - 🕐 **Native Desktop-Widgets**
   - Uhr-Widget mit 5 wählbaren Designs

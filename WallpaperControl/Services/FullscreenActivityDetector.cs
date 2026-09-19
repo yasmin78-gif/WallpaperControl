@@ -121,7 +121,12 @@ namespace WallpaperControl
 
     internal sealed class FullscreenPausePolicy
     {
+        internal const int NormalPollingIntervalMilliseconds = 1000;
+        internal const int PausedPollingIntervalMilliseconds = 250;
+        internal const int ExitStabilityMilliseconds = 500;
         internal bool IsPaused { get; private set; }
+        internal int PollingIntervalMilliseconds => IsPaused
+            ? PausedPollingIntervalMilliseconds : NormalPollingIntervalMilliseconds;
         /// <summary>
         /// Checks whether neither manual pause nor automatic fullscreen suspension blocks slideshow changes.
         /// </summary>
@@ -144,10 +149,14 @@ namespace WallpaperControl
             else if (fullscreen) { IsPaused = true; clearSince = null; }
             else if (IsPaused)
             {
-                // Wait for two uninterrupted clear seconds so a brief Alt-Tab
-                // does not restart wallpaper transitions or widget refreshes.
+                // Recheck at 250 ms while paused. A single transient negative sample
+                // cannot resume activity; fullscreen returning resets this clear period.
                 clearSince ??= now;
-                if (now - clearSince.Value >= TimeSpan.FromSeconds(2)) IsPaused = false;
+                if (now - clearSince.Value >= TimeSpan.FromMilliseconds(ExitStabilityMilliseconds))
+                {
+                    IsPaused = false;
+                    clearSince = null;
+                }
             }
             return previous != IsPaused;
         }

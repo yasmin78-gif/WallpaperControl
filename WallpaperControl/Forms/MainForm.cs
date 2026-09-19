@@ -78,6 +78,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                customWallpaperCancellation?.Cancel();
                 if (nativeSlideshowAutoPaused && !slideshowPaused)
                 {
                     try { RestoreNativeSlideshowAfterFullscreen(); }

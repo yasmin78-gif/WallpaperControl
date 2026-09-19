@@ -92,6 +92,7 @@ namespace WallpaperControl
         private void ArmCustomSlideshowPreciseTimer()
         {
             if (!customSlideshowEngineActive ||
+                customSlideshowChangeRunning ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowNextChange == DateTime.MaxValue)
             {
@@ -151,6 +152,7 @@ namespace WallpaperControl
         /// </summary>
         private void ProcessPreciseCustomSlideshowTick()
         {
+            if (exitRequested || IsDisposed || Disposing) return;
             _ = UpdateFullscreenPauseAsync();
             if (!customSlideshowEngineActive ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
@@ -194,14 +196,15 @@ namespace WallpaperControl
                 $"callback: {invoked:HH:mm:ss.fff}; " +
                 $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
 
-            _ = AdvanceCustomWallpaperAsync(
-                DesktopSlideshowDirection.Forward, automatic: true);
-
-            // Derive the next deadline from the intended boundary to avoid timing drift.
+            // Alignment is anchored to midnight; skip missed boundaries after sleep
+            // or a clock jump instead of replaying them in a rapid catch-up loop.
             customSlideshowNextChange =
                 GetNextAlignedChange(
-                    target.AddMilliseconds(1),
+                    invoked,
                     milliseconds);
+
+            _ = AdvanceCustomWallpaperAsync(
+                DesktopSlideshowDirection.Forward, automatic: true);
 
             ArmCustomSlideshowPreciseTimer();
         }

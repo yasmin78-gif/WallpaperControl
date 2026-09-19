@@ -24,6 +24,9 @@ namespace WallpaperControl
                 if (!fullscreenPolicy.Update(pauseOnFullscreen,
                     pauseOnFullscreen && FullscreenActivityDetector.IsFullscreenActive(), DateTime.UtcNow)) return;
                 bool paused = fullscreenPolicy.IsPaused;
+                // Reuse the existing UI timer: sample exit more often without
+                // accelerating wallpaper/UI refreshes during normal operation.
+                wallpaperRefreshTimer.Interval = fullscreenPolicy.PollingIntervalMilliseconds;
                 widgetManager.SetActivitySuspended(paused);
                 PersistentDesktopTransitionManager.SetActivitySuspended(paused);
                 if (paused)

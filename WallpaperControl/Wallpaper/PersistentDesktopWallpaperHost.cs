@@ -1068,6 +1068,8 @@ namespace WallpaperControl
         /// <returns>True when the host was successfully positioned behind the desktop icons.</returns>
         public bool EnsureDesktopPlacement()
         {
+            if (!PersistentDesktopTransitionManager.SupportsConfiguration(Screen.AllScreens.Length, wallpaperPosition))
+                return false;
             if (!IsHandleCreated || IsDisposed)
             {
                 return false;

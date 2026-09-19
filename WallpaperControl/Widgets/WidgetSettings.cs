@@ -9,6 +9,7 @@ namespace WallpaperControl
     internal sealed class WidgetSettings
     {
         internal const string RegistryPath = @"Software\WallpaperControl";
+        private bool loadFailed;
 
         public bool ClockEnabled { get; set; }
         public bool ClockLocked { get; set; }
@@ -106,6 +107,7 @@ namespace WallpaperControl
             }
             catch (Exception ex)
             {
+                result.loadFailed = true;
                 AppLogger.Warning("Widget settings could not be loaded.", ex);
             }
             return result;
@@ -117,6 +119,8 @@ namespace WallpaperControl
         /// <param name="registryPath">The registry subkey containing these preferences; tests use an isolated subkey.</param>
         public void Save(string registryPath = RegistryPath)
         {
+            // A partial read must never replace preferences that were not read.
+            if (loadFailed) return;
             try
             {
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
@@ -175,6 +179,7 @@ namespace WallpaperControl
         /// <returns>An independent settings object containing the same preferences and positions.</returns>
         public WidgetSettings Clone() => new()
         {
+            loadFailed = loadFailed,
             ClockEnabled = ClockEnabled,
             ClockLocked = ClockLocked,
             ClockSize = ClockSize,
@@ -243,7 +248,7 @@ namespace WallpaperControl
         /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
         /// <returns>The stored boolean or the supplied fallback.</returns>
         private static bool ReadBool(RegistryKey key, string name, bool fallback) =>
-            key.GetValue(name) is object value ? Convert.ToInt32(value) != 0 : fallback;
+            ReadInt(key, name, fallback ? 1 : 0) != 0;
 
         /// <summary>
         /// Reads an integer widget preference with a fallback for unavailable or invalid values.
@@ -252,8 +257,16 @@ namespace WallpaperControl
         /// <param name="name">The registry value name.</param>
         /// <param name="fallback">The value to use when the saved setting is absent or invalid.</param>
         /// <returns>The stored integer or the supplied fallback.</returns>
-        private static int ReadInt(RegistryKey key, string name, int fallback) =>
-            key.GetValue(name) is object value ? Convert.ToInt32(value) : fallback;
+        private static int ReadInt(RegistryKey key, string name, int fallback)
+        {
+            return key.GetValue(name) switch
+            {
+                int value => value,
+                long value when value >= int.MinValue && value <= int.MaxValue => (int)value,
+                string value when int.TryParse(value, out int parsed) => parsed,
+                _ => fallback
+            };
+        }
 
         /// <summary>
         /// Reads a defined clock-style value or returns the supplied fallback.
