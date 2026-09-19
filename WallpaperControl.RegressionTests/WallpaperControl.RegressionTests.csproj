@@ -14,6 +14,9 @@
     <Compile Include="../WallpaperControl/Services/GlobalHotkeyManager.cs" Link="GlobalHotkeyManager.cs" />
     <Compile Include="../WallpaperControl/Services/WallpaperStatistics.cs" Link="WallpaperStatistics.cs" />
     <PackageReference Include="Ical.Net" Version="5.2.3" />
+    <Compile Include="../WallpaperControl/Models/CalendarSource.cs" Link="CalendarSource.cs" />
+    <Compile Include="../WallpaperControl/Services/CalendarSourceStore.cs" Link="CalendarSourceStore.cs" />
+    <Compile Include="../WallpaperControl/Services/CalendarSourceName.cs" Link="CalendarSourceName.cs" />
     <Compile Include="../WallpaperControl/Services/CalendarFeedLimits.cs" Link="CalendarFeedLimits.cs" />
     <Compile Include="../WallpaperControl/Services/IcsCalendarProvider.cs" Link="IcsCalendarProvider.cs" />
     <Compile Include="../WallpaperControl/Services/ICalendarProvider.cs" Link="ICalendarProvider.cs" />

@@ -56,11 +56,11 @@ namespace WallpaperControl
             preview.CalendarEnabled = calendarWidgetEnabledCheckBox.Checked;
             preview.CalendarLocked = calendarWidgetLockedCheckBox.Checked;
             preview.CalendarStyle = GetSelectedCalendarStyle();
+            preview.CalendarMaximumHeight = (int)calendarMaximumHeightNumeric.Value;
             preview.CalendarMaxEntries = GetCalendarMaxEntries();
             preview.CalendarShowLocation = calendarShowLocationCheckBox.Checked;
             preview.CalendarRefreshMinutes = GetCalendarRefreshMinutes();
-            preview.CalendarIcsUrl = calendarIcsUrlTextBox.Text.Trim();
-            preview.CalendarHolidayIcsUrl = calendarHolidayIcsUrlTextBox.Text.Trim();
+            preview.CalendarSources = new(calendarSources);
 
             return preview;
         }

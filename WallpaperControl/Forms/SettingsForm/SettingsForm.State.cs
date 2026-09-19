@@ -92,8 +92,8 @@ namespace WallpaperControl
         private readonly ComboBox calendarWidgetStyleComboBox;
         private readonly ComboBox calendarMaxEntriesComboBox;
         private readonly CheckBox calendarShowLocationCheckBox;
-        private readonly PrivateCalendarTextBox calendarIcsUrlTextBox;
-        private readonly PrivateCalendarTextBox calendarHolidayIcsUrlTextBox;
+        private readonly NumericUpDown calendarMaximumHeightNumeric;
+        private List<CalendarSource> calendarSources = new();
         private readonly ComboBox calendarRefreshComboBox;
 
         // Original values and live preview coordination

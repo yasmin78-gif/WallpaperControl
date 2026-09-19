@@ -54,9 +54,9 @@ namespace WallpaperControl
             calendarWidgetLockedCheckBox.Checked = false;
             RefreshCalendarStyleChoices(SystemWidgetStyle.Glow);
             calendarMaxEntriesComboBox.SelectedIndex = 2;
+            calendarMaximumHeightNumeric.Value = CalendarViewport.DefaultMaximumHeight;
             calendarRefreshComboBox.SelectedIndex = 1;
-            calendarIcsUrlTextBox.Text = "";
-            calendarHolidayIcsUrlTextBox.Text = "";
+            calendarSources.Clear();
             calendarShowLocationCheckBox.Checked = true;
 
             ApplyPreviewLocalization(
@@ -254,6 +254,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                calendarMaximumHeightNumeric?.Dispose();
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
 

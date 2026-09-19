@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -12,10 +12,13 @@ using System.Windows.Forms;
 
 namespace WallpaperControl
 {
-    internal sealed class CalendarWidgetForm : Form
+    internal sealed partial class CalendarWidgetForm : Form
     {
         private readonly WidgetDragHandler dragHandler;
-        private const int WidgetWidth = 340;
+        private const int WidgetWidth = CalendarViewport.Width;
+        private readonly CalendarViewport viewport = new();
+        private int maximumHeight = CalendarViewport.DefaultMaximumHeight;
+        private IReadOnlyList<CalendarEvent> displayedEvents = Array.Empty<CalendarEvent>();
         private const int WS_EX_LAYERED = 0x00080000;
         private readonly ICalendarProvider calendarProvider;
         private readonly System.Windows.Forms.Timer refreshTimer = new();
@@ -48,10 +51,12 @@ namespace WallpaperControl
             string languageCode,
             ICalendarProvider calendarProvider,
             Point location,
-            Action<Point> locationChanged)
+            Action<Point> locationChanged,
+            int maximumHeight = CalendarViewport.DefaultMaximumHeight)
         {
             this.calendarProvider = calendarProvider ?? throw new ArgumentNullException(nameof(calendarProvider));
 
+            AutoScaleMode = AutoScaleMode.None; // Calendar drawing scales explicitly from 96-DPI coordinates.
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.Manual;
@@ -60,7 +65,7 @@ namespace WallpaperControl
             dragHandler = new WidgetDragHandler(this, () => this.locked, RenderLayeredWindow, locationChanged);
             refreshTimer.Tick += (_, _) => RefreshCalendar();
 
-            Apply(locked, style, maxEntries, showLocation, refreshMinutes, languageCode);
+            Apply(locked, style, maxEntries, showLocation, refreshMinutes, languageCode, maximumHeight);
             Location = WidgetSettings.EnsureVisible(location, Size);
         }
 
@@ -86,6 +91,8 @@ namespace WallpaperControl
         {
             if (DesktopWidgetNative.HandleMouseActivation(ref m)) return;
             base.WndProc(ref m);
+            // Recompute the physical ceiling when Windows changes monitor/work-area settings.
+            if (m.Msg is 0x007E or 0x001A && shown) RenderLayeredWindow();
         }
 
         /// <summary>
@@ -120,6 +127,7 @@ namespace WallpaperControl
             if (activitySuspended == suspended || lifetimeEnded || IsDisposed || Disposing) return;
             activitySuspended = suspended;
             UpdateRefreshScheduling();
+            if (suspended) { thumbDragging = false; Capture = false; }
             if (suspended) refreshCancellation?.Cancel(); else { var previous = refreshCancellation; refreshCancellation = new CancellationTokenSource(); previous?.Dispose(); RefreshCalendar(); }
         }
         /// <summary>
@@ -161,10 +169,12 @@ namespace WallpaperControl
             int newMaxEntries,
             bool newShowLocation,
             int newRefreshMinutes,
-            string newLanguageCode)
+            string newLanguageCode,
+            int newMaximumHeight = CalendarViewport.DefaultMaximumHeight)
         {
             if (lifetimeEnded || IsDisposed || Disposing) return;
             locked = isLocked;
+            maximumHeight = CalendarViewport.NormalizeMaximum(newMaximumHeight);
             style = newStyle;
             maxEntries = newMaxEntries switch { <= 3 => 3, >= 9 => 9, _ => 5 };
             showLocation = newShowLocation;
@@ -175,8 +185,7 @@ namespace WallpaperControl
 
             // Final height depends on how many appointments occur on the selected
             // occupied days and is calculated by RenderLayeredWindow().
-            if (ClientSize.Width != WidgetWidth)
-                ClientSize = new Size(WidgetWidth, ClientSize.Height);
+
 
             if (IsHandleCreated && !IsDisposed)
                 RenderLayeredWindow();
@@ -187,157 +196,201 @@ namespace WallpaperControl
         /// </summary>
         private void RenderLayeredWindow()
         {
-            try { RenderCalendar(); }
+            RenderLayeredWindowCore(updateContent: true);
+        }
+
+        private void RenderLayeredWindowCore(bool updateContent)
+        {
+            if (rendering) return;
+            rendering = true;
+            try { RenderCalendar(updateContent); }
             catch (Exception ex)
             {
                 // Provider/native failures must not escape an async-void UI callback.
                 // Do not include provider messages, which may contain private URLs.
                 AppLogger.Warning("Calendar rendering failed.", new InvalidOperationException(ex.GetType().Name));
             }
+            finally { rendering = false; }
         }
 
-        private void RenderCalendar()
+        private void RenderCalendar(bool updateContent)
         {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
-            IReadOnlyList<CalendarEvent> available = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
-            // Bound even alternative providers, and fit rows to the current work area.
-            int heightLimit = Math.Clamp(Screen.FromControl(this).WorkingArea.Height,
-                120, CalendarFeedLimits.MaxWidgetHeight);
-            List<CalendarEvent> entries = new();
-            int usedHeight = 79;
-            DateTime? previousDay = null;
-            foreach (CalendarEvent entry in available.Take(CalendarFeedLimits.MaxDisplayRows))
-            {
-                int rowHeight = 21 + (showLocation && !string.IsNullOrWhiteSpace(entry.Location) ? 13 : 0)
-                    + (previousDay != entry.Start.Date ? 32 : 0);
-                if (usedHeight + rowHeight > heightLimit) break;
-                usedHeight += rowHeight;
-                entries.Add(entry);
-                previousDay = entry.Start.Date;
-            }
-            bool truncated = available.Count > entries.Count;
-            int occupiedDays = entries.Select(e => e.Start.Date).Distinct().Count();
-            int locationLineCount = showLocation
-                ? entries.Count(e => !string.IsNullOrWhiteSpace(e.Location))
-                : 0;
-            int contentHeight = entries.Count == 0
-                ? 120
-                : 79 + occupiedDays * 32 + entries.Count * 21 + locationLineCount * 13;
-            int desiredHeight = Math.Clamp(contentHeight, 120, heightLimit);
-            if (ClientSize.Width != WidgetWidth || ClientSize.Height != desiredHeight)
-                ClientSize = new Size(WidgetWidth, desiredHeight);
-
-            using Bitmap bitmap = new(ClientSize.Width, ClientSize.Height, PixelFormat.Format32bppPArgb);
-            using (Graphics g = Graphics.FromImage(bitmap))
-            {
-                g.Clear(Color.Transparent);
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.CompositingMode = CompositingMode.SourceOver;
-                g.CompositingQuality = CompositingQuality.HighQuality;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-
-                (Color panelColor, Color borderColor, Color titleColor, Color textColor, Color mutedColor, Color accentColor) = WidgetDrawing.GetPalette(style);
-
-                if (style == SystemWidgetStyle.Glow)
-                {
-                    using Pen outerGlow = new(Color.FromArgb(48, accentColor), 5f);
-                    using GraphicsPath glowPath = RoundedRectangle(new RectangleF(3f, 3f, Width - 6f, Height - 6f), 14f);
-                    g.DrawPath(outerGlow, glowPath);
-                }
-
-                using SolidBrush panel = new(panelColor);
-                using Pen border = new(borderColor, 1f);
-                using GraphicsPath path = RoundedRectangle(new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f), 14f);
-                g.FillPath(panel, path);
-                g.DrawPath(border, path);
-
-                using Font titleFont = new("Segoe UI Semibold", 11f, FontStyle.Bold);
-                using Font dayFont = new("Segoe UI Semibold", 8.5f, FontStyle.Bold);
-                using Font timeFont = new("Segoe UI Semibold", 9.2f, FontStyle.Bold);
-                using Font subjectFont = new("Segoe UI", 9.2f, FontStyle.Regular);
-                using Font locationFont = new("Segoe UI", 7.8f, FontStyle.Regular);
-                using SolidBrush titleBrush = new(titleColor);
-                using SolidBrush textBrush = new(textColor);
-                using SolidBrush mutedBrush = new(mutedColor);
-                using SolidBrush accentBrush = new(accentColor);
-
-                string widgetTitle = Localization.Get("CalendarWidgetTitle", languageCode).ToUpperInvariant();
-                if (style == SystemWidgetStyle.Glow)
-                    WidgetDrawing.DrawGlowText(g, widgetTitle, titleFont, 16, 13, accentColor);
-                else
-                    g.DrawString(widgetTitle, titleFont, titleBrush, 16, 13);
-
-                if (style != SystemWidgetStyle.Minimal)
-                    g.FillRectangle(accentBrush, 16, 40, Width - 32, style == SystemWidgetStyle.Glow ? 2 : 1);
-
-                int y = 54;
-                DateTime? currentDay = null;
-                for (int entryIndex = 0; entryIndex < entries.Count; entryIndex++)
-                {
-                    CalendarEvent entry = entries[entryIndex];
-                    if (currentDay?.Date != entry.Start.Date)
-                    {
-                        currentDay = entry.Start.Date;
-                        string day = FormatDayHeading(entry.Start.Date);
-                        g.DrawString(day.ToUpperInvariant(), dayFont, accentBrush, 16, y);
-                        y += 20;
-                    }
-
-                    string time = entry.IsAllDay ? Localization.Get("CalendarAllDay", languageCode) : entry.Start.ToString("HH:mm", CultureInfo.InvariantCulture);
-                    bool isHoliday = entry.SourceName.StartsWith("Holiday:", StringComparison.Ordinal);
-                    if (isHoliday)
-                    {
-                        RectangleF holidayRect = new(12f, y - 2f, Width - 24f, 20f);
-                        using GraphicsPath holidayPath = RoundedRectangle(holidayRect, 4f);
-                        using SolidBrush holidayBrush = new(Color.FromArgb(style == SystemWidgetStyle.Minimal ? 145 : 190, 190, 74, 72));
-                        g.FillPath(holidayBrush, holidayPath);
-
-                        if (style == SystemWidgetStyle.Glow)
-                        {
-                            using Pen holidayGlow = new(Color.FromArgb(55, 220, 92, 88), 2f);
-                            g.DrawPath(holidayGlow, holidayPath);
-                        }
-
-                        using SolidBrush holidayTextBrush = new(Color.White);
-                        // The colored holiday bar already communicates that this is a
-                        // special all-day entry, so omit the redundant "All day" label.
-                        g.DrawString(entry.Title, subjectFont, holidayTextBrush, 16, y - 1);
-                    }
-                    else
-                    {
-                        g.DrawString(time, timeFont, mutedBrush, 16, y);
-                        g.DrawString(entry.Title, subjectFont, textBrush, 72, y - 1);
-                    }
-                    y += 21;
-
-                    if (showLocation && !string.IsNullOrWhiteSpace(entry.Location))
-                    {
-                        g.DrawString(entry.Location, locationFont, mutedBrush, 72, y - 2);
-                        y += 13;
-                    }
-
-                    bool nextEntryIsSameDay = entryIndex + 1 < entries.Count
-                        && entries[entryIndex + 1].Start.Date == entry.Start.Date;
-                    if (!nextEntryIsSameDay)
-                        y += 12;
-                }
-
-                if (entries.Count == 0)
-                {
-                    string emptyText = Localization.Get("CalendarNoUpcoming", languageCode);
-                    g.DrawString(emptyText, subjectFont, mutedBrush, 16, 65);
-                }
-
-                string status = (truncated ? "… · " : "") + Localization.Get(calendarProvider.StatusResourceKey, languageCode);
-                using Font statusFont = new("Segoe UI", 7.2f, FontStyle.Italic);
-                SizeF statusSize = g.MeasureString(status, statusFont);
-                g.DrawString(status, statusFont, mutedBrush, Width - statusSize.Width - 16, Height - 20);
-            }
-
+            if (updateContent) displayedEvents = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
+            Rectangle workArea = Screen.FromControl(this).WorkingArea;
+            using Bitmap bitmap = RenderBitmap(displayedEvents, workArea.Height, DeviceDpi);
+            if (!widgetDragging && !thumbDragging)
+                Location = new Point(Math.Clamp(Left, workArea.Left, Math.Max(workArea.Left, workArea.Right - Width)),
+                    Math.Clamp(Top, workArea.Top, Math.Max(workArea.Top, workArea.Bottom - Height)));
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
+
+        internal Bitmap RenderBitmap(IReadOnlyList<CalendarEvent> available, int heightLimit, int dpi = 96)
+        {
+            // Keep the existing row/materialization bound, but never discard rows merely to fit height.
+            List<CalendarEvent> entries = available.Take(CalendarFeedLimits.MaxDisplayRows).ToList();
+            bool truncated = available.Count > entries.Count;
+            int occupiedDays = entries.Select(e => e.Start.Date).Distinct().Count();
+            int contentHeight = occupiedDays * 32 + entries.Count * 21
+                + (showLocation ? entries.Count(e => !string.IsNullOrWhiteSpace(e.Location)) * 13 : 0);
+            viewport.Update(contentHeight, maximumHeight, heightLimit, dpi);
+            Size size = new((int)Math.Ceiling(WidgetWidth * viewport.Scale), viewport.PhysicalHeight);
+            if (ClientSize != size) ClientSize = size;
+            float drawingWidth = WidgetWidth;
+            float drawingHeight = viewport.LogicalHeight;
+            Bitmap bitmap = new(size.Width, size.Height, PixelFormat.Format32bppPArgb);
+            bitmap.SetResolution(96, 96);
+            try
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.ScaleTransform(viewport.Scale, viewport.Scale);
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                    (Color panelColor, Color borderColor, Color titleColor, Color textColor, Color mutedColor, Color accentColor) = WidgetDrawing.GetPalette(style);
+
+                    if (style == SystemWidgetStyle.Glow)
+                    {
+                        using Pen outerGlow = new(Color.FromArgb(48, accentColor), 5f);
+                        using GraphicsPath glowPath = RoundedRectangle(new RectangleF(3f, 3f, drawingWidth - 6f, drawingHeight - 6f), 14f);
+                        g.DrawPath(outerGlow, glowPath);
+                    }
+
+                    using SolidBrush panel = new(panelColor);
+                    using Pen border = new(borderColor, 1f);
+                    using GraphicsPath path = RoundedRectangle(new RectangleF(0.5f, 0.5f, drawingWidth - 1f, drawingHeight - 1f), 14f);
+                    g.FillPath(panel, path);
+                    g.DrawPath(border, path);
+
+                    using Font titleFont = new("Segoe UI Semibold", 11f, FontStyle.Bold);
+                    using Font dayFont = new("Segoe UI Semibold", 8.5f, FontStyle.Bold);
+                    using Font timeFont = new("Segoe UI Semibold", 9.2f, FontStyle.Bold);
+                    using Font subjectFont = new("Segoe UI", 9.2f, FontStyle.Regular);
+                    using Font locationFont = new("Segoe UI", 7.8f, FontStyle.Regular);
+                    using SolidBrush titleBrush = new(titleColor);
+                    using SolidBrush textBrush = new(textColor);
+                    using SolidBrush mutedBrush = new(mutedColor);
+                    using SolidBrush accentBrush = new(accentColor);
+
+                    string widgetTitle = Localization.Get("CalendarWidgetTitle", languageCode).ToUpperInvariant();
+                    if (style == SystemWidgetStyle.Glow)
+                        WidgetDrawing.DrawGlowText(g, widgetTitle, titleFont, 16, 13, accentColor);
+                    else
+                        g.DrawString(widgetTitle, titleFont, titleBrush, 16, 13);
+
+                    if (style != SystemWidgetStyle.Minimal)
+                        g.FillRectangle(accentBrush, 16, 40, drawingWidth - 32, style == SystemWidgetStyle.Glow ? 2 : 1);
+
+                    GraphicsState contentState = g.Save();
+                    g.SetClip(viewport.ContentBounds);
+                    g.TranslateTransform(0, -viewport.ScrollOffset);
+                    int y = CalendarViewport.HeaderHeight;
+                    DateTime? currentDay = null;
+                    for (int entryIndex = 0; entryIndex < entries.Count; entryIndex++)
+                    {
+                        CalendarEvent entry = entries[entryIndex];
+                        if (currentDay?.Date != entry.Start.Date)
+                        {
+                            currentDay = entry.Start.Date;
+                            if (y + 20 >= viewport.ContentBounds.Top + viewport.ScrollOffset && y < viewport.ContentBounds.Bottom + viewport.ScrollOffset)
+                            {
+                                string day = FormatDayHeading(entry.Start.Date);
+                                g.DrawString(day.ToUpperInvariant(), dayFont, accentBrush, 16, y);
+                            }
+                            y += 20;
+                        }
+
+                        int rowHeight = 21 + (showLocation && !string.IsNullOrWhiteSpace(entry.Location) ? 13 : 0);
+                        if (y + rowHeight < viewport.ContentBounds.Top + viewport.ScrollOffset || y > viewport.ContentBounds.Bottom + viewport.ScrollOffset)
+                        {
+                            y += rowHeight;
+                            if (entryIndex + 1 == entries.Count || entries[entryIndex + 1].Start.Date != entry.Start.Date) y += 12;
+                            continue; // No text layout/GDI work for wholly off-screen rows.
+                        }
+
+                        string time = entry.IsAllDay ? Localization.Get("CalendarAllDay", languageCode) : entry.Start.ToString("HH:mm", CultureInfo.InvariantCulture);
+                        bool isHoliday = entry.UsesHolidayStyle;
+                        using SolidBrush sourceBrush = new(entry.SourceColorArgb is int argb
+                            ? Color.FromArgb(CalendarSource.ValidateColor(argb)) : textColor);
+                        if (isHoliday)
+                        {
+                            RectangleF holidayRect = new(12f, y - 2f, viewport.ContentBounds.Right - 12f, 20f);
+                            using GraphicsPath holidayPath = RoundedRectangle(holidayRect, 4f);
+                            using SolidBrush holidayBrush = new(Color.FromArgb(style == SystemWidgetStyle.Minimal ? 145 : 190, 190, 74, 72));
+                            g.FillPath(holidayBrush, holidayPath);
+
+                            if (style == SystemWidgetStyle.Glow)
+                            {
+                                using Pen holidayGlow = new(Color.FromArgb(55, 220, 92, 88), 2f);
+                                g.DrawPath(holidayGlow, holidayPath);
+                            }
+
+                            using SolidBrush holidayTextBrush = new(Color.White);
+                            // The colored holiday bar already communicates that this is a
+                            // special all-day entry, so omit the redundant "All day" label.
+                            g.DrawString(entry.Title, subjectFont, holidayTextBrush, 16, y - 1);
+                        }
+                        else
+                        {
+                            g.DrawString(time, timeFont, entry.SourceColorArgb.HasValue ? sourceBrush : mutedBrush, 16, y);
+                            g.DrawString(entry.Title, subjectFont, sourceBrush, 72, y - 1);
+                        }
+                        y += 21;
+
+                        if (showLocation && !string.IsNullOrWhiteSpace(DetailText(entry)))
+                        {
+                            g.DrawString(DetailText(entry), locationFont, !isHoliday && entry.SourceColorArgb.HasValue ? sourceBrush : mutedBrush, 72, y - 2);
+                            y += 13;
+                        }
+
+                        bool nextEntryIsSameDay = entryIndex + 1 < entries.Count
+                            && entries[entryIndex + 1].Start.Date == entry.Start.Date;
+                        if (!nextEntryIsSameDay)
+                            y += 12;
+                    }
+
+                    if (entries.Count == 0)
+                    {
+                        string emptyText = Localization.Get("CalendarNoUpcoming", languageCode);
+                        g.DrawString(emptyText, subjectFont, mutedBrush, 16, 65);
+                    }
+
+                    g.Restore(contentState);
+                    if (viewport.CanScroll)
+                    {
+                        GraphicsState scrollbarState = g.Save();
+                        g.SetClip(new RectangleF(12, CalendarViewport.HeaderHeight, WidgetWidth - 24, viewport.ViewportHeight));
+                        using SolidBrush trackBrush = new(Color.FromArgb(70, titleColor));
+                        using SolidBrush thumbBrush = new(Color.FromArgb(210, titleColor));
+                        using Pen thumbBorder = new(Color.FromArgb(240, titleColor));
+                        g.FillRectangle(trackBrush, viewport.Track);
+                        g.FillRectangle(thumbBrush, viewport.Thumb);
+                        g.DrawRectangle(thumbBorder, viewport.Thumb.X, viewport.Thumb.Y, viewport.Thumb.Width, viewport.Thumb.Height);
+                        g.Restore(scrollbarState);
+                    }
+
+                    string status = (truncated ? "… · " : "") + Localization.Get(calendarProvider.StatusResourceKey, languageCode);
+                    using Font statusFont = new("Segoe UI", 7.2f, FontStyle.Italic);
+                    SizeF statusSize = g.MeasureString(status, statusFont);
+                    g.DrawString(status, statusFont, mutedBrush, drawingWidth - statusSize.Width - 16, drawingHeight - 20);
+                }
+
+                return bitmap;
+            }
+            catch
+            {
+                bitmap.Dispose();
+                throw;
+            }
+        }
+
+        private static string DetailText(CalendarEvent entry) => entry.Location;
 
         /// <summary>
         /// Refreshes cached calendar data and redraws the widget while respecting cancellation and suspension.

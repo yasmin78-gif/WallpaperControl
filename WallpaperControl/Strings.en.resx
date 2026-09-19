@@ -908,12 +908,8 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsCalendarEntries" xml:space="preserve">
     <value>Days with events</value>
   </data>
-  <data name="SettingsCalendarShowLocation" xml:space="preserve">
-    <value>Show location / source</value>
-  </data>
-  <data name="SettingsCalendarHint" xml:space="preserve">
-    <value>Enter one private iCalendar address per line. All sources are read-only and stored together encrypted with Windows DPAPI. They are never written to the log.</value>
-  </data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve"><value>Show location</value></data>
+  <data name="SettingsCalendarHint" xml:space="preserve"><value>Calendar sources are managed separately. Disabled sources remain saved but are not fetched.</value></data>
   <data name="CalendarWidgetTitle" xml:space="preserve">
     <value>Calendar</value>
   </data>
@@ -1058,4 +1054,25 @@ Would you like to open the release page?</value>
   <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Automatically pause for fullscreen apps</value></data>
   <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Pauses wallpaper changes, animations and widget updates when a foreground app fills a monitor. Resumes after leaving fullscreen; manual pauses are preserved.</value></data>
   <data name="StatusFullscreenPaused" xml:space="preserve"><value>Auto-paused: fullscreen active</value></data>
+  <data name="CalendarSourcesManage" xml:space="preserve"><value>Manage calendar sources...</value></data>
+  <data name="CalendarSourcesTitle" xml:space="preserve"><value>Calendar sources</value></data>
+  <data name="CalendarSourceEditorTitle" xml:space="preserve"><value>Edit calendar source</value></data>
+  <data name="CalendarSourceName" xml:space="preserve"><value>Name</value></data>
+  <data name="CalendarSourceAddress" xml:space="preserve"><value>ICS address</value></data>
+  <data name="CalendarSourceType" xml:space="preserve"><value>Type</value></data>
+  <data name="CalendarSourceTypeCalendar" xml:space="preserve"><value>Calendar</value></data>
+  <data name="CalendarSourceTypeHoliday" xml:space="preserve"><value>Holiday calendar</value></data>
+  <data name="CalendarSourceColor" xml:space="preserve"><value>Text color</value></data>
+  <data name="CalendarSourceChooseColor" xml:space="preserve"><value>Choose color...</value></data>
+  <data name="CalendarSourceEnabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="CalendarSourceAdd" xml:space="preserve"><value>Add...</value></data>
+  <data name="CalendarSourceEdit" xml:space="preserve"><value>Edit...</value></data>
+  <data name="CalendarSourceRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="CalendarSourceApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="CalendarSourceCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CalendarSourceFallback" xml:space="preserve"><value>Calendar {0}</value></data>
+  <data name="CalendarSourceHolidayFallback" xml:space="preserve"><value>Holiday Calendar {0}</value></data>
+  <data name="CalendarSourceInvalidAddress" xml:space="preserve"><value>Please enter a valid HTTP or HTTPS address.</value></data>
+  <data name="CalendarSourceNameHint" xml:space="preserve"><value>Without a custom name, the widget uses the calendar’s name or a numbered label. Changes are saved only when Settings is saved. Choose Show to edit the address.</value></data>
+  <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>Maximum height</value></data>
 </root>

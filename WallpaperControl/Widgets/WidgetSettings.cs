@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Drawing;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace WallpaperControl
@@ -41,11 +42,11 @@ namespace WallpaperControl
         public bool CalendarEnabled { get; set; }
         public bool CalendarLocked { get; set; }
         public SystemWidgetStyle CalendarStyle { get; set; } = SystemWidgetStyle.Glow;
+        public int CalendarMaximumHeight { get; set; } = CalendarViewport.DefaultMaximumHeight;
         public int CalendarMaxEntries { get; set; } = 9;
         public bool CalendarShowLocation { get; set; } = true;
         public int CalendarRefreshMinutes { get; set; } = 30;
-        public string CalendarIcsUrl { get; set; } = string.Empty;
-        public string CalendarHolidayIcsUrl { get; set; } = string.Empty;
+        public List<CalendarSource> CalendarSources { get; set; } = new();
         public Point CalendarLocation { get; set; } = new(740, 400);
 
         /// <summary>
@@ -95,13 +96,12 @@ namespace WallpaperControl
                 result.CalendarLocked = ReadBool(key, "CalendarWidgetLocked", false);
                 result.CalendarStyle = ReadSystemStyle(key, "CalendarWidgetStyle", SystemWidgetStyle.Glow);
                 int storedCalendarDays = ReadInt(key, "CalendarWidgetMaxEntries", 9);
+                object? storedMaximum = key.GetValue("CalendarWidgetMaximumHeight");
+                result.CalendarMaximumHeight = storedMaximum is int height ? CalendarViewport.NormalizeMaximum(height) : CalendarViewport.DefaultMaximumHeight;
                 result.CalendarMaxEntries = storedCalendarDays <= 3 ? 3 : storedCalendarDays <= 5 ? 5 : 9;
                 result.CalendarShowLocation = ReadBool(key, "CalendarWidgetShowLocation", true);
                 result.CalendarRefreshMinutes = Math.Clamp(ReadInt(key, "CalendarWidgetRefreshMinutes", 30), 15, 120);
-                string protectedCalendarUrl = Convert.ToString(key.GetValue("CalendarWidgetIcsUrlProtected", "")) ?? "";
-                result.CalendarIcsUrl = WindowsSecretProtector.Unprotect(protectedCalendarUrl);
-                string protectedHolidayCalendarUrl = Convert.ToString(key.GetValue("CalendarWidgetHolidayIcsUrlProtected", "")) ?? "";
-                result.CalendarHolidayIcsUrl = WindowsSecretProtector.Unprotect(protectedHolidayCalendarUrl);
+                result.CalendarSources = CalendarSourceStore.Load(key, registryPath);
                 result.CalendarLocation = new Point(ReadInt(key, "CalendarWidgetX", 740), ReadInt(key, "CalendarWidgetY", 400));
             }
             catch (Exception ex)
@@ -155,17 +155,17 @@ namespace WallpaperControl
                 key.SetValue("CalendarWidgetEnabled", CalendarEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetLocked", CalendarLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetStyle", (int)CalendarStyle, RegistryValueKind.DWord);
+                key.SetValue("CalendarWidgetMaximumHeight", CalendarViewport.NormalizeMaximum(CalendarMaximumHeight), RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetMaxEntries", CalendarMaxEntries <= 3 ? 3 : CalendarMaxEntries <= 5 ? 5 : 9, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetShowLocation", CalendarShowLocation ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetRefreshMinutes", Math.Clamp(CalendarRefreshMinutes, 15, 120), RegistryValueKind.DWord);
-                key.SetValue("CalendarWidgetIcsUrlProtected", WindowsSecretProtector.Protect(CalendarIcsUrl?.Trim() ?? ""), RegistryValueKind.String);
-                key.SetValue("CalendarWidgetHolidayIcsUrlProtected", WindowsSecretProtector.Protect(CalendarHolidayIcsUrl?.Trim() ?? ""), RegistryValueKind.String);
+                CalendarSourceStore.Save(key, CalendarSources);
                 key.SetValue("CalendarWidgetX", CalendarLocation.X, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetY", CalendarLocation.Y, RegistryValueKind.DWord);
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("Widget settings could not be saved.", ex);
+                AppLogger.Warning("Widget settings could not be saved.", new InvalidOperationException(ex.GetType().Name));
             }
         }
 
@@ -208,10 +208,10 @@ namespace WallpaperControl
             CalendarLocked = CalendarLocked,
             CalendarStyle = CalendarStyle,
             CalendarMaxEntries = CalendarMaxEntries,
+            CalendarMaximumHeight = CalendarMaximumHeight,
             CalendarShowLocation = CalendarShowLocation,
             CalendarRefreshMinutes = CalendarRefreshMinutes,
-            CalendarIcsUrl = CalendarIcsUrl,
-            CalendarHolidayIcsUrl = CalendarHolidayIcsUrl,
+            CalendarSources = new(CalendarSources),
             CalendarLocation = CalendarLocation
         };
 

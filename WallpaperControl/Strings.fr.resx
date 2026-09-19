@@ -908,12 +908,8 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="SettingsCalendarEntries" xml:space="preserve">
     <value>Jours avec rendez-vous</value>
   </data>
-  <data name="SettingsCalendarShowLocation" xml:space="preserve">
-    <value>Afficher le lieu / la source</value>
-  </data>
-  <data name="SettingsCalendarHint" xml:space="preserve">
-    <value>Saisissez une adresse iCalendar privée par ligne. Toutes les sources sont en lecture seule et stockées ensemble chiffrées avec Windows DPAPI. Elles ne sont jamais écrites dans le journal.</value>
-  </data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve"><value>Afficher le lieu</value></data>
+  <data name="SettingsCalendarHint" xml:space="preserve"><value>Les sources de calendrier sont gérées séparément. Les sources désactivées restent enregistrées sans être téléchargées.</value></data>
   <data name="CalendarWidgetTitle" xml:space="preserve">
     <value>Calendrier</value>
   </data>
@@ -1058,4 +1054,25 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Pause automatique en plein écran</value></data>
   <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Suspend les changements de fond, les animations et les widgets en plein écran au premier plan. Reprend ensuite automatiquement, en conservant une pause manuelle.</value></data>
   <data name="StatusFullscreenPaused" xml:space="preserve"><value>Pause auto : plein écran</value></data>
+  <data name="CalendarSourcesManage" xml:space="preserve"><value>Gérer les sources de calendrier...</value></data>
+  <data name="CalendarSourcesTitle" xml:space="preserve"><value>Sources de calendrier</value></data>
+  <data name="CalendarSourceEditorTitle" xml:space="preserve"><value>Modifier la source de calendrier</value></data>
+  <data name="CalendarSourceName" xml:space="preserve"><value>Nom</value></data>
+  <data name="CalendarSourceAddress" xml:space="preserve"><value>Adresse ICS</value></data>
+  <data name="CalendarSourceType" xml:space="preserve"><value>Type</value></data>
+  <data name="CalendarSourceTypeCalendar" xml:space="preserve"><value>Calendrier</value></data>
+  <data name="CalendarSourceTypeHoliday" xml:space="preserve"><value>Calendrier des jours fériés</value></data>
+  <data name="CalendarSourceColor" xml:space="preserve"><value>Couleur du texte</value></data>
+  <data name="CalendarSourceChooseColor" xml:space="preserve"><value>Choisir une couleur...</value></data>
+  <data name="CalendarSourceEnabled" xml:space="preserve"><value>Activée</value></data>
+  <data name="CalendarSourceAdd" xml:space="preserve"><value>Ajouter...</value></data>
+  <data name="CalendarSourceEdit" xml:space="preserve"><value>Modifier...</value></data>
+  <data name="CalendarSourceRemove" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="CalendarSourceApply" xml:space="preserve"><value>Appliquer</value></data>
+  <data name="CalendarSourceCancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CalendarSourceFallback" xml:space="preserve"><value>Calendrier {0}</value></data>
+  <data name="CalendarSourceHolidayFallback" xml:space="preserve"><value>Jours fériés {0}</value></data>
+  <data name="CalendarSourceInvalidAddress" xml:space="preserve"><value>Veuillez saisir une adresse HTTP ou HTTPS valide.</value></data>
+  <data name="CalendarSourceNameHint" xml:space="preserve"><value>Sans nom personnalisé, le widget utilise le nom du calendrier ou un libellé numéroté. Enregistrez les paramètres pour conserver les modifications. Choisissez Afficher pour modifier l’adresse.</value></data>
+  <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>Hauteur maximale</value></data>
 </root>

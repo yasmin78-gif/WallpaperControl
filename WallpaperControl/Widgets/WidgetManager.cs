@@ -75,11 +75,11 @@ namespace WallpaperControl
             settings.CalendarEnabled = previewSettings.CalendarEnabled;
             settings.CalendarLocked = previewSettings.CalendarLocked;
             settings.CalendarStyle = previewSettings.CalendarStyle;
+            settings.CalendarMaximumHeight = previewSettings.CalendarMaximumHeight;
             settings.CalendarMaxEntries = previewSettings.CalendarMaxEntries;
             settings.CalendarShowLocation = previewSettings.CalendarShowLocation;
             settings.CalendarRefreshMinutes = previewSettings.CalendarRefreshMinutes;
-            settings.CalendarIcsUrl = previewSettings.CalendarIcsUrl;
-            settings.CalendarHolidayIcsUrl = previewSettings.CalendarHolidayIcsUrl;
+            settings.CalendarSources = new(previewSettings.CalendarSources);
 
             ApplyVisualState(settings, restoreLocations: false);
         }
@@ -359,7 +359,7 @@ namespace WallpaperControl
                 weatherWidget = null;
             }
 
-            bool calendarSourceChanged = calendarProvider.SetSources(target.CalendarIcsUrl, target.CalendarHolidayIcsUrl);
+            bool calendarSourceChanged = calendarProvider.SetSources(target.CalendarSources);
 
             if (target.CalendarEnabled)
             {
@@ -374,7 +374,8 @@ namespace WallpaperControl
                         target.ClockLanguageCode,
                         calendarProvider,
                         target.CalendarLocation,
-                        SaveCalendarLocation);
+                        SaveCalendarLocation,
+                        target.CalendarMaximumHeight);
 
                     calendarWidget.Show();
                     if (!DesktopWidgetNative.AttachToDesktop(calendarWidget, target.CalendarLocation))
@@ -397,7 +398,8 @@ namespace WallpaperControl
                         target.CalendarMaxEntries,
                         target.CalendarShowLocation,
                         target.CalendarRefreshMinutes,
-                        target.ClockLanguageCode);
+                        target.ClockLanguageCode,
+                        target.CalendarMaximumHeight);
                     if (calendarSourceChanged)
                         calendarWidget.RefreshCalendar();
 

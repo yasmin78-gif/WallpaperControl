@@ -195,7 +195,9 @@ internal static class StabilizationTests
         check(timer.Enabled && provider.Refreshes == 1, "M4 initial show starts calendar refresh scheduling");
         check(form.ClientSize.Height <= Math.Min(1800, Screen.FromControl(form).WorkingArea.Height),
             "H4 widget bounds excessive same-day rows to its work area and render height limit");
-        timer.Interval = 10;
+        // Leave enough time for a complete layered frame under analyzer/build load;
+        // a 10-ms timer can keep Application.DoEvents busy indefinitely on a slow host.
+        timer.Interval = 100;
         PumpUntil(() => provider.Refreshes >= 2);
         check(provider.Refreshes >= 2, "M4 calendar refreshes periodically after initial show");
         form.SetActivitySuspended(true);
@@ -312,13 +314,12 @@ internal static class StabilizationTests
         box.HideSources();
         check(box.Text == "https://test/remaining" && !NativeText(box).Contains("remaining", StringComparison.Ordinal),
             "M6 removing a source survives hide and does not disclose the remaining URL");
-        App.WidgetSettings settings = new() { CalendarIcsUrl = original, CalendarHolidayIcsUrl = original };
-        using App.SettingsForm form = new(false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, settings, null);
-        foreach (string field in new[] { "calendarIcsUrlTextBox", "calendarHolidayIcsUrlTextBox" })
+        foreach (App.CalendarSourceType type in Enum.GetValues<App.CalendarSourceType>())
         {
-            App.PrivateCalendarTextBox editor = Field<App.PrivateCalendarTextBox>(form, field);
-            check(editor.Text == original && NativeText(editor) == "********" && editor.AccessibilityObject.Value == "********",
-                "M6 actual SettingsForm conceals " + field);
+            using App.CalendarSourceEditorForm form = new(new App.CalendarSource { Url = original.Split('\r')[0], Type = type }, false, "en");
+            App.PrivateCalendarTextBox editor = form.UrlBox;
+            check(editor.Text == original.Split('\r')[0] && NativeText(editor) == "********" && editor.AccessibilityObject.Value == "********",
+                "M6 actual calendar source editor conceals " + type);
         }
     }
 

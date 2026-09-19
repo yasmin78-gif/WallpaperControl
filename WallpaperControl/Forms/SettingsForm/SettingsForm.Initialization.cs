@@ -56,6 +56,7 @@ namespace WallpaperControl
             #region Window and preview state
 
             initialWidgetSettings = widgetSettings.Clone();
+            calendarSources = new(initialWidgetSettings.CalendarSources);
             this.widgetPreviewChanged = widgetPreviewChanged;
             previewLanguageCode =
                 Localization.CurrentLanguage;
@@ -1255,7 +1256,7 @@ namespace WallpaperControl
                 Text = Localization.Get("SettingsCalendarWidgetTitle", previewLanguageCode),
                 Tag = "SettingsCalendarWidgetTitle",
                 Location = new Point(18, 58),
-                Size = new Size(630, 535)
+                Size = new Size(630, 475)
             };
 
             calendarWidgetEnabledCheckBox = new CheckBox
@@ -1276,83 +1277,21 @@ namespace WallpaperControl
                 Checked = initialWidgetSettings.CalendarLocked
             };
 
-            Label calendarSourceLabel = new Label
+            Button calendarManageSourcesButton = new Button
             {
-                Text = Localization.Get("SettingsCalendarSource", previewLanguageCode),
-                Tag = "SettingsCalendarSource",
+                Text = Localization.Get("CalendarSourcesManage", previewLanguageCode),
+                Tag = "CalendarSourcesManage",
                 Location = new Point(18, 108),
-                AutoSize = true
+                Size = new Size(390, 36)
             };
-
-            calendarIcsUrlTextBox = new PrivateCalendarTextBox
+            calendarManageSourcesButton.Click += (_, _) =>
             {
-                Location = new Point(18, 132),
-                Size = new Size(390, 44),
-                Text = initialWidgetSettings.CalendarIcsUrl
-            };
-
-            Label calendarHolidaySourceLabel = new Label
-            {
-                Text = Localization.Get("SettingsCalendarHolidaySource", previewLanguageCode),
-                Tag = "SettingsCalendarHolidaySource",
-                Location = new Point(18, 184),
-                AutoSize = true
-            };
-
-            calendarHolidayIcsUrlTextBox = new PrivateCalendarTextBox
-            {
-                Location = new Point(18, 208),
-                Size = new Size(390, 44),
-                Text = initialWidgetSettings.CalendarHolidayIcsUrl
-            };
-
-            Button calendarShowSourceButton = new Button
-            {
-                Text = Localization.Get("SettingsCalendarShowSource", previewLanguageCode),
-                Tag = "SettingsCalendarShowSource",
-                Location = new Point(414, 130),
-                Size = new Size(86, 31)
-            };
-
-            Button calendarApplySourceButton = new Button
-            {
-                Text = Localization.Get("SettingsCalendarApplySource", previewLanguageCode),
-                Tag = "SettingsCalendarApplySource",
-                Location = new Point(506, 130),
-                Size = new Size(110, 31)
-            };
-
-            calendarShowSourceButton.Click += (_, _) =>
-            {
-                if (calendarIcsUrlTextBox.SourcesHidden)
+                using CalendarSourcesForm manager = new(calendarSources, ResolvePreviewDarkMode(), previewLanguageCode);
+                manager.Opacity = Opacity;
+                if (manager.ShowDialog(this) == DialogResult.OK)
                 {
-                    calendarIcsUrlTextBox.RevealSources();
-                    calendarHolidayIcsUrlTextBox.RevealSources();
-                }
-                else
-                {
-                    calendarIcsUrlTextBox.HideSources();
-                    calendarHolidayIcsUrlTextBox.HideSources();
-                }
-                string key = calendarIcsUrlTextBox.SourcesHidden ? "SettingsCalendarShowSource" : "SettingsCalendarHideSource";
-                calendarShowSourceButton.Tag = key;
-                calendarShowSourceButton.Text = Localization.Get(key, previewLanguageCode);
-            };
-            calendarApplySourceButton.Click += (_, _) => NotifyWidgetPreviewChanged();
-            calendarIcsUrlTextBox.KeyDown += (_, e) =>
-            {
-                if (e.Control && e.KeyCode == Keys.Enter)
-                {
-                    calendarApplySourceButton.PerformClick();
-                    e.SuppressKeyPress = true;
-                }
-            };
-            calendarHolidayIcsUrlTextBox.KeyDown += (_, e) =>
-            {
-                if (e.Control && e.KeyCode == Keys.Enter)
-                {
-                    calendarApplySourceButton.PerformClick();
-                    e.SuppressKeyPress = true;
+                    calendarSources = new(manager.Sources);
+                    NotifyWidgetPreviewChanged();
                 }
             };
 
@@ -1360,14 +1299,14 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsSystemStyle", previewLanguageCode),
                 Tag = "SettingsSystemStyle",
-                Location = new Point(18, 284),
+                Location = new Point(18, 184),
                 AutoSize = true
             };
 
             calendarWidgetStyleComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Location = new Point(190, 280),
+                Location = new Point(190, 180),
                 Size = new Size(170, 30)
             };
             calendarWidgetStyleComboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
@@ -1379,14 +1318,14 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsCalendarEntries", previewLanguageCode),
                 Tag = "SettingsCalendarEntries",
-                Location = new Point(18, 324),
+                Location = new Point(18, 224),
                 AutoSize = true
             };
 
             calendarMaxEntriesComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Location = new Point(190, 320),
+                Location = new Point(190, 220),
                 Size = new Size(125, 30)
             };
             calendarMaxEntriesComboBox.Items.AddRange(new object[] { "3", "5", "9" });
@@ -1396,14 +1335,14 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsCalendarRefresh", previewLanguageCode),
                 Tag = "SettingsCalendarRefresh",
-                Location = new Point(18, 364),
+                Location = new Point(18, 264),
                 AutoSize = true
             };
 
             calendarRefreshComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Location = new Point(190, 360),
+                Location = new Point(190, 260),
                 Size = new Size(125, 30)
             };
             calendarRefreshComboBox.Items.AddRange(new object[] { "15 min", "30 min", "60 min", "120 min" });
@@ -1413,27 +1352,37 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("SettingsCalendarShowLocation", previewLanguageCode),
                 Tag = "SettingsCalendarShowLocation",
-                Location = new Point(18, 402),
+                Location = new Point(18, 302),
                 AutoSize = true,
                 Checked = initialWidgetSettings.CalendarShowLocation
             };
+
+            Label calendarMaximumHeightLabel = new Label
+            {
+                Text = Localization.Get("SettingsCalendarMaximumHeight", previewLanguageCode),
+                Tag = "SettingsCalendarMaximumHeight", Location = new Point(18, 342), AutoSize = true
+            };
+            calendarMaximumHeightNumeric = new NumericUpDown
+            {
+                Location = new Point(220, 338), Size = new Size(125, 30),
+                Minimum = CalendarViewport.MinimumMaximumHeight, Maximum = CalendarViewport.MaximumMaximumHeight,
+                Increment = 50, Value = CalendarViewport.NormalizeMaximum(initialWidgetSettings.CalendarMaximumHeight)
+            };
+            calendarMaximumHeightNumeric.ValueChanged += (_, _) => NotifyWidgetPreviewChanged();
+            calendarOptions.Controls.Add(calendarMaximumHeightLabel);
+            calendarOptions.Controls.Add(calendarMaximumHeightNumeric);
 
             Label calendarHint = new Label
             {
                 Text = Localization.Get("SettingsCalendarHint", previewLanguageCode),
                 Tag = "SettingsCalendarHint",
-                Location = new Point(18, 438),
+                Location = new Point(18, 378),
                 Size = new Size(575, 58)
             };
 
             calendarOptions.Controls.Add(calendarWidgetEnabledCheckBox);
             calendarOptions.Controls.Add(calendarWidgetLockedCheckBox);
-            calendarOptions.Controls.Add(calendarSourceLabel);
-            calendarOptions.Controls.Add(calendarIcsUrlTextBox);
-            calendarOptions.Controls.Add(calendarHolidaySourceLabel);
-            calendarOptions.Controls.Add(calendarHolidayIcsUrlTextBox);
-            calendarOptions.Controls.Add(calendarShowSourceButton);
-            calendarOptions.Controls.Add(calendarApplySourceButton);
+            calendarOptions.Controls.Add(calendarManageSourcesButton);
             calendarOptions.Controls.Add(calendarStyleLabel);
             calendarOptions.Controls.Add(calendarWidgetStyleComboBox);
             calendarOptions.Controls.Add(calendarEntriesLabel);

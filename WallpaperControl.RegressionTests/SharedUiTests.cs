@@ -118,11 +118,7 @@ internal static class SharedUiTests
             expected[property] = Enum.ToObject(settings.GetType().GetProperty(property)!.PropertyType, 0);
         }
         Control<TextBox>(form, "weatherLocationTextBox").Text = "  Berlin  ";
-        Control<TextBox>(form, "calendarIcsUrlTextBox").Text = "  https://example.invalid/private.ics  ";
-        Control<TextBox>(form, "calendarHolidayIcsUrlTextBox").Text = "  https://example.invalid/holidays.ics  ";
         expected["WeatherLocationName"] = "Berlin";
-        expected["CalendarIcsUrl"] = "https://example.invalid/private.ics";
-        expected["CalendarHolidayIcsUrl"] = "https://example.invalid/holidays.ics";
         expected["ClockLanguageCode"] = form.GetType().GetField("previewLanguageCode", Methods)!.GetValue(form)!;
         object preview = Read(false), saved = Read(true);
         check(expected.All(pair => Equals(Value(preview, pair.Key), pair.Value) && Equals(Value(saved, pair.Key), pair.Value)),

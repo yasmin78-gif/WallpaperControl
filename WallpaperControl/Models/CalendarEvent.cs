@@ -17,5 +17,11 @@ namespace WallpaperControl
         bool IsAllDay,
         string Title,
         string Location,
-        string SourceName = "");
+        string SourceName = "",
+        Guid SourceId = default,
+        int? SourceColorArgb = null,
+        bool IsHoliday = false)
+    {
+        public bool UsesHolidayStyle => IsHoliday || (SourceId == Guid.Empty && SourceName.StartsWith("Holiday:", StringComparison.Ordinal));
+    }
 }

@@ -880,12 +880,8 @@
   <data name="SettingsCalendarEntries" xml:space="preserve">
     <value>予定がある日数</value>
   </data>
-  <data name="SettingsCalendarShowLocation" xml:space="preserve">
-    <value>場所 / ソースを表示</value>
-  </data>
-  <data name="SettingsCalendarHint" xml:space="preserve">
-    <value>非公開 iCalendar アドレスを1行に1件入力します。すべて読み取り専用で使用し、Windows DPAPI でまとめて暗号化して保存します。ログには記録しません。</value>
-  </data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve"><value>場所を表示</value></data>
+  <data name="SettingsCalendarHint" xml:space="preserve"><value>カレンダーのソースは個別に管理します。無効なソースは保存されますが、取得されません。</value></data>
   <data name="CalendarWidgetTitle" xml:space="preserve">
     <value>カレンダー</value>
   </data>
@@ -1030,4 +1026,25 @@
   <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>全画面アプリの使用中は自動的に一時停止</value></data>
   <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>前面のアプリが画面全体を占める間、壁紙の切り替え、アニメーション、ウィジェットの更新を停止します。終了後に再開しますが、手動の一時停止は維持されます。</value></data>
   <data name="StatusFullscreenPaused" xml:space="preserve"><value>自動一時停止：全画面表示中</value></data>
+  <data name="CalendarSourcesManage" xml:space="preserve"><value>カレンダーのソースを管理...</value></data>
+  <data name="CalendarSourcesTitle" xml:space="preserve"><value>カレンダーのソース</value></data>
+  <data name="CalendarSourceEditorTitle" xml:space="preserve"><value>カレンダーのソースを編集</value></data>
+  <data name="CalendarSourceName" xml:space="preserve"><value>名前</value></data>
+  <data name="CalendarSourceAddress" xml:space="preserve"><value>ICS アドレス</value></data>
+  <data name="CalendarSourceType" xml:space="preserve"><value>種類</value></data>
+  <data name="CalendarSourceTypeCalendar" xml:space="preserve"><value>カレンダー</value></data>
+  <data name="CalendarSourceTypeHoliday" xml:space="preserve"><value>祝日カレンダー</value></data>
+  <data name="CalendarSourceColor" xml:space="preserve"><value>文字の色</value></data>
+  <data name="CalendarSourceChooseColor" xml:space="preserve"><value>色を選択...</value></data>
+  <data name="CalendarSourceEnabled" xml:space="preserve"><value>有効</value></data>
+  <data name="CalendarSourceAdd" xml:space="preserve"><value>追加...</value></data>
+  <data name="CalendarSourceEdit" xml:space="preserve"><value>編集...</value></data>
+  <data name="CalendarSourceRemove" xml:space="preserve"><value>削除</value></data>
+  <data name="CalendarSourceApply" xml:space="preserve"><value>適用</value></data>
+  <data name="CalendarSourceCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="CalendarSourceFallback" xml:space="preserve"><value>カレンダー {0}</value></data>
+  <data name="CalendarSourceHolidayFallback" xml:space="preserve"><value>祝日カレンダー {0}</value></data>
+  <data name="CalendarSourceInvalidAddress" xml:space="preserve"><value>有効な HTTP または HTTPS アドレスを入力してください。</value></data>
+  <data name="CalendarSourceNameHint" xml:space="preserve"><value>名前が未入力の場合、ウィジェットはカレンダー内の名前または番号付きの名前を使用します。変更は設定の保存時に保存されます。アドレスを編集するには「表示」を選択してください。</value></data>
+  <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>最大の高さ</value></data>
 </root>

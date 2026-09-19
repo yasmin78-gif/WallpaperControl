@@ -30,6 +30,8 @@ try
     FullscreenTests.Run(Check);
     SharedUiTests.Run(Check);
     StabilizationTests.Run(Check);
+    CalendarSourceTests.Run(Check);
+    CalendarScrollTests.Run(Check);
     var root = Path.Combine(AppContext.BaseDirectory, "test-data", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(root);
     var path = Path.Combine(root, "statistics.json");

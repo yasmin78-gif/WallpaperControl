@@ -1,4 +1,4 @@
-﻿using Ical.Net;
+using Ical.Net;
 using Ical.Net.Evaluation;
 using System.Diagnostics;
 using IcalCalendarEvent = Ical.Net.CalendarComponents.CalendarEvent;
@@ -23,6 +23,7 @@ namespace WallpaperControl
         private List<CalendarSource> sources = new();
         private bool disposed;
         private int activeRefreshes;
+        private CancellationTokenSource? activeConfigurationRefresh;
 
         public string ProviderName => "iCalendar";
         public string StatusResourceKey { get; private set; } = "CalendarStatusNoSource";
@@ -60,15 +61,22 @@ namespace WallpaperControl
         /// <returns>True when appointment or holiday source configuration changed.</returns>
         public bool SetSources(string? normalUrls, string? holidayUrls)
         {
-            List<CalendarSource> normalized = SplitSources(normalUrls)
-                .Select(url => new CalendarSource(url, false))
-                .Concat(SplitSources(holidayUrls).Select(url => new CalendarSource(url, true)))
-                .Distinct()
-                .ToList();
+            // Compatibility entry point for legacy callers; stable IDs are retained for unchanged inputs.
+            List<CalendarSource> legacy = CalendarSourceStore.Migrate(normalUrls ?? "", holidayUrls ?? "");
+            lock (sync)
+            {
+                legacy = legacy.Select(source => sources.FirstOrDefault(old => old.Url == source.Url && old.Type == source.Type) ?? source).ToList();
+            }
+            return SetSources(legacy);
+        }
 
+        public bool SetSources(IEnumerable<CalendarSource> configured)
+        {
+            List<CalendarSource> normalized = configured.Where(source => source.Enabled).ToList();
             lock (sync)
             {
                 if (sources.SequenceEqual(normalized)) return false;
+                activeConfigurationRefresh?.Cancel();
                 sources = normalized;
                 cachedEvents.Clear();
                 sourceCache.Clear();
@@ -116,8 +124,10 @@ namespace WallpaperControl
                     currentSources = sources.ToList();
                     if (currentSources.Count == 0) return;
                     refreshedCache = new(sourceCache);
+                    activeConfigurationRefresh = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     StatusResourceKey = "CalendarStatusLoading";
                 }
+                CancellationToken refreshToken = activeConfigurationRefresh.Token;
 
                 int successCount = 0;
                 int invalidCount = 0;
@@ -125,7 +135,7 @@ namespace WallpaperControl
 
                 for (int index = 0; index < Math.Min(currentSources.Count, CalendarFeedLimits.MaxSources); index++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    refreshToken.ThrowIfCancellationRequested();
                     CalendarSource calendarSource = currentSources[index];
                     string url = calendarSource.Url;
 
@@ -141,13 +151,13 @@ namespace WallpaperControl
                     {
                         IReadOnlyList<CalendarEvent> events = await LoadSourceAsync(
                             uri,
-                            calendarSource.IsHoliday ? $"Holiday:{index + 1}" : $"iCalendar {index + 1}",
-                            cancellationToken).ConfigureAwait(false);
+                            calendarSource,
+                            refreshToken).ConfigureAwait(false);
                         // A successful empty feed replaces old entries too.
                         refreshedCache[calendarSource] = events;
                         successCount++;
                     }
-                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    catch (OperationCanceledException) when (refreshToken.IsCancellationRequested)
                     {
                         throw;
                     }
@@ -185,8 +195,18 @@ namespace WallpaperControl
                     }
                 }
             }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // A changed configuration owns the next refresh and status. Never finish
+                // downloading/processing sources that were just disabled or removed.
+            }
             finally
             {
+                lock (sync)
+                {
+                    activeConfigurationRefresh?.Dispose();
+                    activeConfigurationRefresh = null;
+                }
                 refreshLock.Release();
             }
         }
@@ -200,7 +220,7 @@ namespace WallpaperControl
         /// <returns>A task whose result contains the events expanded from the feed.</returns>
         private async Task<IReadOnlyList<CalendarEvent>> LoadSourceAsync(
             Uri uri,
-            string sourceName,
+            CalendarSource source,
             CancellationToken cancellationToken)
         {
             using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -210,7 +230,16 @@ namespace WallpaperControl
             response.EnsureSuccessStatusCode();
             string text = await CalendarFeedLimits.ReadResponseAsync(response.Content, timeout.Token).ConfigureAwait(false);
             // Never parse a synchronous/cached response on the WinForms event thread.
-            return await Task.Run(() => ParseSource(text, sourceName, DateTime.Today, timeout.Token),
+            return await Task.Run(() =>
+            {
+                text = CalendarFeedLimits.Prepare(text, DateTime.Today.AddDays(CalendarFeedLimits.HorizonDays), timeout.Token);
+                string name = string.IsNullOrWhiteSpace(source.Name) ? CalendarSourceName.Extract(ref text) : source.Name;
+                // Name metadata is optional and stripped independently of event parsing.
+                if (!string.IsNullOrWhiteSpace(source.Name)) CalendarSourceName.Extract(ref text);
+                return (IReadOnlyList<CalendarEvent>)ParseSource(text, name, DateTime.Today, timeout.Token)
+                    .Select(entry => entry with { SourceId = source.Id, SourceColorArgb = source.ColorArgb,
+                        IsHoliday = source.IsHoliday }).ToList();
+            },
                 timeout.Token).ConfigureAwait(false);
         }
 
@@ -261,7 +290,7 @@ namespace WallpaperControl
                         .Take(Math.Clamp(maxEntries, 1, 9)))
                     .Where(e => e.IsAllDay ? e.Start.Date >= from.Date : e.End > from)
                     .OrderBy(e => e.Start.Date)
-                    .ThenByDescending(e => e.SourceName.StartsWith("Holiday:", StringComparison.Ordinal))
+                    .ThenByDescending(e => e.UsesHolidayStyle)
                     .ThenBy(e => e.Start)
                     .ThenByDescending(e => e.IsAllDay)
                     .ToList();
@@ -277,23 +306,10 @@ namespace WallpaperControl
 
                 return upcoming
                     .Where(e => selectedDays.Contains(e.Start.Date))
+                    .Select(e => e.SourceName.Length > 0 ? e : e with { SourceName = sources.FirstOrDefault(s => s.Id == e.SourceId)?.DisplayName(languageCode) ?? "" })
                     .Take(CalendarFeedLimits.MaxDisplayRows + 1) // extra row signals overflow
                     .ToList();
             }
-        }
-
-        /// <summary>
-        /// Splits configured calendar feed text into individual source values.
-        /// </summary>
-        /// <param name="value">The configured calendar source text to split into individual addresses or paths.</param>
-        /// <returns>The individual configured feed values after splitting and normalization.</returns>
-        private static List<string> SplitSources(string? value)
-        {
-            return (value ?? string.Empty)
-                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
         }
 
         /// <summary>
@@ -315,13 +331,7 @@ namespace WallpaperControl
 
             for (DateTime day = firstDay; day < exclusiveEnd; day = day.AddDays(1))
             {
-                yield return new CalendarEvent(
-                    day,
-                    day.AddDays(1),
-                    true,
-                    calendarEvent.Title,
-                    calendarEvent.Location,
-                    calendarEvent.SourceName);
+                yield return calendarEvent with { Start = day, End = day.AddDays(1) };
             }
         }
 
@@ -362,13 +372,6 @@ namespace WallpaperControl
             if (value.IsFloating) return DateTime.SpecifyKind(value.Value, DateTimeKind.Local);
             return value.AsUtc.ToLocalTime();
         }
-
-        /// <summary>
-        /// Identifies a configured feed and whether its entries should use holiday presentation.
-        /// </summary>
-        /// <param name="Url">The private calendar feed address used for retrieval and caching.</param>
-        /// <param name="IsHoliday">True to mark entries from this feed as holidays.</param>
-        private readonly record struct CalendarSource(string Url, bool IsHoliday);
 
         /// <summary>
         /// Releases refresh coordination resources and the HTTP client when this provider owns it.
