@@ -6,7 +6,7 @@
 
 Amplía las funciones estándar de fondos de escritorio de Windows con su propio motor de presentación sincronizado con el reloj, efectos de transición renderizados directamente en el escritorio y widgets opcionales. Se integra limpiamente con el escritorio de Windows y restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v1.8.4**
+**Versión actual: v1.8.5**
 
 ## ✨ Funciones
 
@@ -226,7 +226,10 @@ Los datos se cargan mediante fuentes **iCalendar / ICS** de solo lectura.
 
 Incluye:
 
+- Gestión individual de fuentes de calendario con nombre, color, tipo y estado de activación propios
 - Compatibilidad con varias fuentes de calendario ICS
+- Migración automática de las fuentes existentes al nuevo formato
+- Los eventos se muestran con el color asignado a su fuente de calendario
 - Citas con hora
 - Eventos de todo el día
 - Eventos recurrentes
@@ -237,6 +240,10 @@ Incluye:
 - Se omiten los días vacíos
 - Visualización opcional de la ubicación del evento
 - Tamaño automático del widget según las citas mostradas
+- Altura máxima configurable del widget
+- Contenido del calendario desplazable al alcanzar la altura máxima configurada
+- Desplazamiento con la rueda del ratón, barra arrastrable y desplazamiento por página
+- Cabecera y pie permanecen fijos durante el desplazamiento
 - Intervalo de actualización configurable
 - Estilos **Minimal**, **Clean** y **Glow**
 - Posicionamiento y bloqueo independientes
