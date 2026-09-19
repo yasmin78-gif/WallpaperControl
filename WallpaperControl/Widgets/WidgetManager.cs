@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace WallpaperControl
@@ -7,6 +8,8 @@ namespace WallpaperControl
     {
         private readonly Action next;
         private readonly IcsCalendarProvider calendarProvider = new();
+        private readonly DesktopShowMonitor desktopShowMonitor;
+        private readonly HashSet<Form> desktopWidgets = new();
         private WidgetSettings settings;
         private ClockWidgetForm? clock;
         private NextWidgetForm? nextWidget;
@@ -23,6 +26,7 @@ namespace WallpaperControl
         {
             this.next = next;
             settings = WidgetSettings.Load();
+            desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
         }
 
         public WidgetSettings Settings => settings.Clone();
@@ -152,6 +156,7 @@ namespace WallpaperControl
                         target.ClockLocation,
                         SaveClockLocation);
 
+                    RegisterDesktopWidget(clock);
                     clock.Show();
 
                     if (!DesktopWidgetNative.AttachToDesktop(clock, target.ClockLocation))
@@ -208,6 +213,7 @@ namespace WallpaperControl
                         next,
                         SaveNextLocation);
 
+                    RegisterDesktopWidget(nextWidget);
                     nextWidget.Show();
 
                     if (!DesktopWidgetNative.AttachToDesktop(nextWidget, target.NextLocation))
@@ -267,6 +273,7 @@ namespace WallpaperControl
                         target.SystemLocation,
                         SaveSystemLocation);
 
+                    RegisterDesktopWidget(systemWidget);
                     systemWidget.Show();
                     if (!DesktopWidgetNative.AttachToDesktop(systemWidget, target.SystemLocation))
                     {
@@ -321,6 +328,7 @@ namespace WallpaperControl
                         target.WeatherLocation,
                         SaveWeatherLocation);
 
+                    RegisterDesktopWidget(weatherWidget);
                     weatherWidget.Show();
                     if (!DesktopWidgetNative.AttachToDesktop(weatherWidget, target.WeatherLocation))
                     {
@@ -377,6 +385,7 @@ namespace WallpaperControl
                         SaveCalendarLocation,
                         target.CalendarMaximumHeight);
 
+                    RegisterDesktopWidget(calendarWidget);
                     calendarWidget.Show();
                     if (!DesktopWidgetNative.AttachToDesktop(calendarWidget, target.CalendarLocation))
                     {
@@ -485,6 +494,56 @@ namespace WallpaperControl
             }
         }
 
+        /// <summary>
+        /// Restores all active widget windows to the desktop Z-order band after Windows Show Desktop changes it.
+        /// </summary>
+        private void RestoreDesktopWidgetBand()
+        {
+            if (activitySuspended)
+                return;
+
+            foreach (Form widget in desktopWidgets)
+            {
+                RestoreDesktopWidget(widget);
+            }
+        }
+
+        /// <summary>
+        /// Registers a desktop widget for shared shell/Z-order handling. Future widget types only need
+        /// to register here when their window is created; closed widgets remove themselves automatically.
+        /// </summary>
+        private void RegisterDesktopWidget(Form widget)
+        {
+            if (!desktopWidgets.Add(widget))
+                return;
+
+            widget.FormClosed += DesktopWidget_FormClosed;
+        }
+
+        /// <summary>
+        /// Removes closed widgets from the active desktop-widget collection.
+        /// </summary>
+        private void DesktopWidget_FormClosed(object? sender, FormClosedEventArgs e)
+        {
+            if (sender is not Form widget)
+                return;
+
+            widget.FormClosed -= DesktopWidget_FormClosed;
+            desktopWidgets.Remove(widget);
+        }
+
+        /// <summary>
+        /// Restores one visible widget without changing its parent, owner, position, or rendering model.
+        /// </summary>
+        /// <param name="widget">The widget to restore when it is currently available.</param>
+        private static void RestoreDesktopWidget(Form? widget)
+        {
+            if (widget == null || widget.IsDisposed || !widget.IsHandleCreated || !widget.Visible)
+                return;
+
+            DesktopWidgetNative.KeepOnDesktop(widget);
+        }
+
         private bool activitySuspended;
         /// <summary>
         /// Forwards automatic suspension to the widgets that perform periodic background work.
@@ -503,6 +562,8 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            desktopShowMonitor.Dispose();
+
             clock?.Close();
             clock?.Dispose();
             clock = null;
@@ -523,6 +584,7 @@ namespace WallpaperControl
             calendarWidget?.Dispose();
             calendarWidget = null;
 
+            desktopWidgets.Clear();
             calendarProvider.Dispose();
         }
     }
