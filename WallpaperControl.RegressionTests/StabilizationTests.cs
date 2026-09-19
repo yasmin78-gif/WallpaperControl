@@ -29,6 +29,7 @@ internal static class StabilizationTests
                 PrivateSources(check);
                 UpdateAction(check);
                 PositionFrames(check);
+                DesktopRepairResume(check);
             }
             catch (Exception ex) { failure = ex; }
         });
@@ -36,6 +37,40 @@ internal static class StabilizationTests
         thread.Start();
         if (!thread.Join(TimeSpan.FromSeconds(30))) throw new TimeoutException("Stabilization UI checks timed out.");
         if (failure != null) ExceptionDispatchInfo.Capture(failure).Throw();
+    }
+
+    private static void DesktopRepairResume(Action<bool, string> check)
+    {
+        // Avoid loading user preferences or showing widgets; exercise the real
+        // manager transition and monitor retry lifecycle with an empty widget set.
+        var manager = (App.WidgetManager)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(App.WidgetManager));
+        Set(manager, "desktopWidgets", new HashSet<Form>());
+        int skipped = 0, active = 0;
+        using var monitor = new App.DesktopShowMonitor(() =>
+        {
+            if (Field<bool>(manager, "activitySuspended")) skipped++; else active++;
+            typeof(App.WidgetManager).GetMethod("RestoreDesktopWidgetBand", Members)!.Invoke(manager, null);
+        });
+        Set(manager, "desktopShowMonitor", monitor);
+        Field<System.Windows.Forms.Timer>(monitor, "stateTimer").Stop();
+        var tick = typeof(App.DesktopShowMonitor).GetMethod("RepairTimer_Tick", Members)!;
+        void Tick() => tick.Invoke(monitor, new object?[] { null, EventArgs.Empty });
+
+        manager.SetActivitySuspended(true);
+        monitor.RepairAfterResume();
+        for (int i = 0; i < 4; i++) Tick();
+        check(skipped == 5 && active == 0, "Desktop repairs can expire during suspension");
+        manager.SetActivitySuspended(false);
+        check(active == 1 && Field<System.Windows.Forms.Timer>(monitor, "repairTimer").Enabled,
+            "Resume immediately starts a fresh desktop repair burst without a shell event");
+        manager.SetActivitySuspended(false);
+        check(active == 1, "Repeated active state does not restart desktop repair");
+        for (int i = 0; i < 4; i++) Tick();
+        check(active == 5 && !Field<System.Windows.Forms.Timer>(monitor, "repairTimer").Enabled,
+            "Resumed desktop repair completes its bounded retry burst");
+        monitor.Dispose();
+        monitor.RepairAfterResume();
+        check(active == 5, "Disposed desktop monitor ignores resume repair");
     }
 
     private static T Field<T>(object instance, string name) => (T)instance.GetType().GetField(name, Members)!.GetValue(instance)!;

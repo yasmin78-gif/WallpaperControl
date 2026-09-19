@@ -551,11 +551,14 @@ namespace WallpaperControl
         /// <param name="suspended">True to pause background activity; false to resume it.</param>
         internal void SetActivitySuspended(bool suspended)
         {
+            bool resumed = activitySuspended && !suspended;
             activitySuspended = suspended;
             clock?.SetActivitySuspended(suspended);
             systemWidget?.SetActivitySuspended(suspended);
             weatherWidget?.SetActivitySuspended(suspended);
             calendarWidget?.SetActivitySuspended(suspended);
+            if (resumed)
+                desktopShowMonitor.RepairAfterResume();
         }
         /// <summary>
         /// Closes widget windows and releases their services and calendar provider.

@@ -125,6 +125,13 @@ namespace WallpaperControl
             return false;
         }
 
+        /// <summary>Retries placement after suspension, even if the shell state has not changed.</summary>
+        internal void RepairAfterResume()
+        {
+            if (!disposed)
+                BeginRepairBurst(requireShowDesktop: false);
+        }
+
         private void BeginRepairBurst(bool requireShowDesktop)
         {
             repairRequiresShowDesktop = requireShowDesktop;
