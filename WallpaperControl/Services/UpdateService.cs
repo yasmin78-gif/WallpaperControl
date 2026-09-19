@@ -47,6 +47,7 @@ namespace WallpaperControl
             HttpClientHandler handler = new()
             {
                 AllowAutoRedirect = true,
+                CheckCertificateRevocationList = true,
                 AutomaticDecompression =
                     DecompressionMethods.GZip |
                     DecompressionMethods.Deflate |

@@ -54,7 +54,7 @@ namespace WallpaperControl
                     RotateIfNeeded();
 
                     StringBuilder entry = new();
-                    entry.Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                    entry.Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture));
                     entry.Append(" [");
                     entry.Append(level);
                     entry.Append("] ");

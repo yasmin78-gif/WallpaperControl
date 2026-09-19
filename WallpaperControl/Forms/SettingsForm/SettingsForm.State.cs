@@ -65,7 +65,7 @@ namespace WallpaperControl
         private Button? settingsCalendarNavigationButton;
         private Button? settingsAppearanceNavigationButton;
         private Button? settingsLanguageNavigationButton;
-        private bool settingsWidgetsExpanded = true;
+        private bool settingsWidgetsExpanded;
 
         // Widget page controls
         private readonly CheckBox nextWidgetEnabledCheckBox;

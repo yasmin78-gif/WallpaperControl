@@ -22,7 +22,7 @@ namespace WallpaperControl
             try
             {
                 if (!fullscreenPolicy.Update(pauseOnFullscreen,
-                    pauseOnFullscreen && FullscreenActivityDetector.IsFullscreenActive(), DateTime.UtcNow)) return;
+                    pauseOnFullscreen ? FullscreenActivityDetector.GetFullscreenState() : false, DateTime.UtcNow)) return;
                 bool paused = fullscreenPolicy.IsPaused;
                 // Reuse the existing UI timer: sample exit more often without
                 // accelerating wallpaper/UI refreshes during normal operation.

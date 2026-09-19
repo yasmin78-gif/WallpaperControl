@@ -144,6 +144,10 @@ namespace WallpaperControl
             TabPage systemWidgetPage = CreateSettingsPage("SettingsNavSystem");
             TabPage weatherWidgetPage = CreateSettingsPage("SettingsNavWeather");
             TabPage calendarWidgetPage = CreateSettingsPage("SettingsNavCalendar");
+            TabPage wallpaperInfoPage = CreateSettingsPage("WallpaperInfoTitle");
+            InitializeWallpaperInfoPage(wallpaperInfoPage);
+            TabPage notesPage = CreateSettingsPage("NotesTitle");
+            InitializeNotesPage(notesPage);
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
 
@@ -155,6 +159,8 @@ namespace WallpaperControl
             tabControl.TabPages.Add(systemWidgetPage);
             tabControl.TabPages.Add(weatherWidgetPage);
             tabControl.TabPages.Add(calendarWidgetPage);
+            tabControl.TabPages.Add(wallpaperInfoPage);
+            tabControl.TabPages.Add(notesPage);
             tabControl.TabPages.Add(appearancePage);
             tabControl.TabPages.Add(languagePage);
 
@@ -171,7 +177,7 @@ namespace WallpaperControl
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(10, 0, 0, 0),
                 Cursor = Cursors.Hand,
-                TabStop = false
+                TabStop = true
             };
             settingsWidgetsToggleButton.FlatAppearance.BorderSize = 0;
             settingsWidgetsToggleButton.Click += (_, _) =>
@@ -186,6 +192,10 @@ namespace WallpaperControl
             settingsSystemNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, systemWidgetPage, "▥", "SettingsNavSystem", 338, 14);
             settingsWeatherNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, weatherWidgetPage, "☀", "SettingsNavWeather", 384, 14);
             settingsCalendarNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, calendarWidgetPage, "▣", "SettingsNavCalendar", 430, 14);
+            settingsWallpaperInfoNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, wallpaperInfoPage, "ⓘ", "WallpaperInfoTitle", 476, 14);
+            settingsWallpaperInfoNavigationButton.Font = CreateOwnedFont("Segoe UI", 8.5f);
+            settingsNotesNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, notesPage, "", "NotesTitle", 522, 14);
+            settingsNotesNavigationButton.Font = CreateOwnedFont("Segoe UI", 8.5f);
             settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 490);
             settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 536);
             UpdateWidgetsNavigationLayout();
@@ -1429,6 +1439,8 @@ namespace WallpaperControl
                 UpdateClockStyleSelection();
                 NotifyWidgetPreviewChanged();
             };
+            ConnectNotesPreview();
+            ConnectWallpaperInfoPreview();
             nextWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             nextWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             nextWidgetStyleComboBox.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();

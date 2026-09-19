@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -53,11 +53,17 @@ namespace WallpaperControl
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(10, 0, 0, 0),
                 Cursor = Cursors.Hand,
-                TabStop = false
+                TabStop = true
             };
 
+            if (resourceKey == "NotesTitle") button.UseMnemonic = false;
             button.FlatAppearance.BorderSize = 0;
-            button.Click += (_, _) => tabControl.SelectedTab = page;
+            button.Click += (_, _) =>
+            {
+                // The existing tab pages are exclusive sections. Clicking the selected widget closes it.
+                tabControl.SelectedTab = extraLeftPadding > 0 && tabControl.SelectedTab == page
+                    ? tabControl.TabPages.Cast<TabPage>().First(p => (string?)p.Tag == "SettingsNavGeneral") : page;
+            };
             button.AccessibleDescription = icon;
             settingsNavigationButtons.Add(button);
             settingsNavigationPages[button] = page;
@@ -76,29 +82,24 @@ namespace WallpaperControl
             settingsWidgetsToggleButton.Text =
                 $"{(settingsWidgetsExpanded ? "▾" : "▸")}   {Localization.Get("SettingsTabWidgets", previewLanguageCode)}";
 
-            if (settingsClockNavigationButton != null)
-                settingsClockNavigationButton.Visible = settingsWidgetsExpanded;
-
-            if (settingsNextNavigationButton != null)
-                settingsNextNavigationButton.Visible = settingsWidgetsExpanded;
-
-            if (settingsSystemNavigationButton != null)
-                settingsSystemNavigationButton.Visible = settingsWidgetsExpanded;
-
-            if (settingsWeatherNavigationButton != null)
-                settingsWeatherNavigationButton.Visible = settingsWidgetsExpanded;
-
-            if (settingsCalendarNavigationButton != null)
-                settingsCalendarNavigationButton.Visible = settingsWidgetsExpanded;
-
-            int appearanceY = settingsWidgetsExpanded ? 490 : 252;
-            int languageY = settingsWidgetsExpanded ? 536 : 298;
-
-            if (settingsAppearanceNavigationButton != null)
-                settingsAppearanceNavigationButton.Location = new Point(14, appearanceY);
-
-            if (settingsLanguageNavigationButton != null)
-                settingsLanguageNavigationButton.Location = new Point(14, languageY);
+            Button[] widgets = new[] { settingsClockNavigationButton, settingsNextNavigationButton, settingsSystemNavigationButton,
+                settingsWeatherNavigationButton, settingsCalendarNavigationButton, settingsWallpaperInfoNavigationButton, settingsNotesNavigationButton }
+                .OfType<Button>().OrderBy(button => Localization.Get((string)button.Tag!, previewLanguageCode),
+                    StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo(previewLanguageCode), true)).ToArray();
+            int scaleGap = Math.Max(1, (int)Math.Round(4 * DeviceDpi / 96f));
+            int y = settingsWidgetsToggleButton.Bottom + scaleGap / 2;
+            foreach (Button button in widgets)
+            {
+                button.Visible = settingsWidgetsExpanded;
+                button.Top = y;
+                button.TabIndex = 10 + Array.IndexOf(widgets, button);
+                y += button.Height + scaleGap;
+            }
+            if (!settingsWidgetsExpanded && settingsTabControl != null && widgets.Any(b => settingsNavigationPages[b] == settingsTabControl.SelectedTab))
+                settingsTabControl.SelectedTab = settingsTabControl.TabPages.Cast<TabPage>().First(p => (string?)p.Tag == "SettingsNavGeneral");
+            int appearanceY = settingsWidgetsExpanded ? y + 10 * DeviceDpi / 96 : settingsWidgetsToggleButton.Bottom + 8 * DeviceDpi / 96;
+            if (settingsAppearanceNavigationButton != null) { settingsAppearanceNavigationButton.Top = appearanceY; settingsAppearanceNavigationButton.TabIndex = 20; }
+            if (settingsLanguageNavigationButton != null) { settingsLanguageNavigationButton.Top = appearanceY + 46 * DeviceDpi / 96; settingsLanguageNavigationButton.TabIndex = 21; }
 
             UpdateSettingsNavigationSelection();
         }

@@ -109,6 +109,9 @@ namespace WallpaperControl
                 RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle());
                 RefreshNextStyleChoices(GetSelectedNextStyle());
+                RefreshWidgetStyleChoices(notesStyle, (SystemWidgetStyle)Math.Max(0, notesStyle.SelectedIndex));
+                RefreshWidgetStyleChoices(wallpaperInfoStyle, GetWallpaperInfoStyle());
+                wallpaperInfoSuffix.AccessibleName = Localization.Get("WallpaperInfoSuffix", previewLanguageCode);
                 RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
 
                 SetComboValues(

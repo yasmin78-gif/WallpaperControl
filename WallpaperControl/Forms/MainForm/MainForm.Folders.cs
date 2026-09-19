@@ -75,8 +75,9 @@ namespace WallpaperControl
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not read the Windows slideshow folder.", new InvalidOperationException(ex.GetType().Name));
             }
             finally
             {
@@ -102,6 +103,8 @@ namespace WallpaperControl
         /// <summary>
         /// Counts supported images in the selected folder and updates the count label.
         /// </summary>
+        private int activeWallpaperCount;
+
         private void UpdateWallpaperCount()
         {
             string folder = folderTextBox.Text;
@@ -109,6 +112,8 @@ namespace WallpaperControl
             if (string.IsNullOrWhiteSpace(folder) ||
                 !Directory.Exists(folder))
             {
+                activeWallpaperCount = 0;
+                widgetManager.RefreshWallpaperInfo();
                 wallpaperCountLabel.Text = Localization.Get("WallpaperCountZero");
                 return;
             }
@@ -130,6 +135,8 @@ namespace WallpaperControl
                             Path.GetExtension(file),
                             StringComparer.OrdinalIgnoreCase));
 
+                activeWallpaperCount = count;
+                widgetManager.RefreshWallpaperInfo();
                 wallpaperCountLabel.Text =
                     count == 1
                     ? Localization.Get("WallpaperCountOne")
@@ -139,6 +146,8 @@ namespace WallpaperControl
             }
             catch
             {
+                activeWallpaperCount = 0;
+                widgetManager.RefreshWallpaperInfo();
                 wallpaperCountLabel.Text = Localization.Get("WallpaperCountUnavailable");
             }
         }
@@ -187,8 +196,9 @@ namespace WallpaperControl
 
                 wallpaperFolderWatcher.EnableRaisingEvents = true;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not watch the wallpaper folder.", new InvalidOperationException(ex.GetType().Name));
                 wallpaperFolderWatcher?.Dispose();
                 wallpaperFolderWatcher = null;
             }
@@ -406,6 +416,7 @@ namespace WallpaperControl
         private void ApplyNewWallpaperFolder(
             string folder)
         {
+            if (!SetWallpaperFolder(folder)) return;
             slideshowPaused = false;
 
             lastRejectedSourcePath = null;
@@ -417,12 +428,6 @@ namespace WallpaperControl
             historyButton.Text = Localization.Get("History");
 
             HideWallpaperPreview();
-
-            appSettings.SaveLastWallpaperFolder(
-                folder);
-
-            SetWallpaperFolder(
-                folder);
 
             StartCustomSlideshowEngine();
 
@@ -476,8 +481,10 @@ namespace WallpaperControl
         /// Creates a shell item collection and assigns it as the native Windows slideshow source.
         /// </summary>
         /// <param name="path">The image or folder path to process.</param>
-        private void SetWallpaperFolder(
-            string path)
+        /// <param name="showError">True to show errors from this operation and its option update.</param>
+        /// <returns>True only if the folder was assigned successfully.</returns>
+        private bool SetWallpaperFolder(
+            string path, bool showError = true)
         {
             IShellItem? folderItem = null;
             IShellItemArray? folderArray = null;
@@ -485,6 +492,7 @@ namespace WallpaperControl
 
             try
             {
+                if (!Directory.Exists(path)) throw new DirectoryNotFoundException();
                 Guid shellItemGuid =
                     typeof(IShellItem).GUID;
 
@@ -525,16 +533,19 @@ namespace WallpaperControl
 
                 UpdateWallpaperCount();
                 ConfigureWallpaperFolderWatcher();
-                ApplySlideshowOptions();
+                ApplySlideshowOptions(showError);
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                AppLogger.Warning("Could not assign the wallpaper folder.", new InvalidOperationException(ex.GetType().Name));
+                if (showError) MessageBox.Show(
                     Localization.Get("MsgSetWallpaperFolderFailed") +
                     ex.Message,
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+                return false;
             }
             finally
             {

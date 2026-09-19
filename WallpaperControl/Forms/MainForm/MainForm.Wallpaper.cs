@@ -291,6 +291,8 @@ namespace WallpaperControl
                     AddWallpaperToHistory(path);
                 }
 
+                widgetManager.RefreshWallpaperInfo();
+
                 if (wallpaperPreviewForm.Visible)
                 {
                     UpdateWallpaperPreview(path);

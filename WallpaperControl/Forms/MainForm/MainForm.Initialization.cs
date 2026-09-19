@@ -19,7 +19,9 @@ namespace WallpaperControl
         {
             pauseOnFullscreen = appSettings.LoadPauseOnFullscreen();
             widgetManager = new WidgetManager(() =>
-                AdvanceWallpaper(DesktopSlideshowDirection.Forward));
+                AdvanceWallpaper(DesktopSlideshowDirection.Forward),
+                advanced => WallpaperInfoSnapshot.Create(lastDisplayedWallpaperPath, activeWallpaperCount, statistics.ViewCounts, advanced));
+            statistics.Changed += widgetManager.RefreshWallpaperInfo;
 
             Text = "Wallpaper Control";
 

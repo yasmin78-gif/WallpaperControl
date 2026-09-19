@@ -31,6 +31,18 @@ namespace WallpaperControl
             clockSizeNumeric.Value = 150;
             clockSecondsCheckBox.Checked = false;
             RefreshClockStyleChoices(ClockWidgetStyle.Chrome);
+            WidgetSettings infoDefaults = new();
+            notesEnabled.Checked = infoDefaults.NotesEnabled;
+            notesLocked.Checked = infoDefaults.NotesLocked;
+            notesMaximumHeight.Value = infoDefaults.NotesMaximumHeight;
+            RefreshWidgetStyleChoices(notesStyle, infoDefaults.NotesStyle);
+            wallpaperInfoFontSize.Value = infoDefaults.WallpaperInfoFontSize;
+            wallpaperInfoEnabled.Checked = infoDefaults.WallpaperInfoEnabled;
+            wallpaperInfoLocked.Checked = infoDefaults.WallpaperInfoLocked;
+            wallpaperInfoAdvanced.Checked = infoDefaults.WallpaperInfoShowAdvanced;
+            wallpaperInfoExtension.Checked = infoDefaults.WallpaperInfoShowExtension;
+            wallpaperInfoSuffix.Text = infoDefaults.WallpaperInfoHiddenSuffix;
+            RefreshWidgetStyleChoices(wallpaperInfoStyle, infoDefaults.WallpaperInfoStyle);
             nextWidgetEnabledCheckBox.Checked = false;
             nextWidgetLockedCheckBox.Checked = false;
             RefreshNextStyleChoices(SystemWidgetStyle.Minimal);
@@ -256,6 +268,9 @@ namespace WallpaperControl
             {
                 manualUpdateCancellation?.Cancel();
                 calendarMaximumHeightNumeric?.Dispose();
+                notesManageButton.Dispose();
+                notesEnabled.Dispose(); notesLocked.Dispose(); notesMaximumHeight.Dispose(); notesStyle.Dispose();
+                settingsNotesNavigationButton?.Dispose(); wallpaperInfoFontSize.Dispose();
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
 

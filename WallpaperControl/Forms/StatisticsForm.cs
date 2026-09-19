@@ -65,6 +65,9 @@ namespace WallpaperControl
             new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> thumbnailLoading =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly object thumbnailSync = new();
+        private readonly HashSet<Image> pendingThumbnails = new();
+        private bool resourcesDisposed;
 
         private readonly bool darkMode;
 
@@ -1098,40 +1101,48 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Cancels pending thumbnail work and releases preview, menu, image, and font resources.
+        /// Ends thumbnail ownership and releases preview, menu, image, and font resources.
         /// </summary>
-        /// <param name="e">The event data supplied by WinForms or the event source.</param>
-        protected override void OnFormClosed(
-            FormClosedEventArgs e)
+        /// <param name="disposing">True to release managed resources as well as the native window.</param>
+        protected override void Dispose(bool disposing)
         {
-            HideWallpaperPreview();
-
-            Image? oldPreview =
-                wallpaperPreviewPictureBox.Image;
-
-            wallpaperPreviewPictureBox.Image = null;
-            oldPreview?.Dispose();
-
-            foreach (Image image in
-                thumbnailCache.Values)
+            if (disposing && !resourcesDisposed)
             {
-                image.Dispose();
+                lock (thumbnailSync)
+                {
+                    resourcesDisposed = true;
+                    foreach (Image image in pendingThumbnails) image.Dispose();
+                    pendingThumbnails.Clear();
+                }
+                HideWallpaperPreview();
+
+                Image? oldPreview =
+                    wallpaperPreviewPictureBox.Image;
+
+                wallpaperPreviewPictureBox.Image = null;
+                oldPreview?.Dispose();
+
+                foreach (Image image in
+                    thumbnailCache.Values)
+                {
+                    image.Dispose();
+                }
+
+                thumbnailCache.Clear();
+                thumbnailLoading.Clear();
+
+                rowHeightImageList.Dispose();
+                rowContextMenu.Dispose();
+                dashboardToolTip.Dispose();
+                wallpaperPreviewForm.Dispose();
+
+                foreach (Font font in ownedFonts)
+                {
+                    font.Dispose();
+                }
+                ownedFonts.Clear();
             }
-
-            thumbnailCache.Clear();
-
-            rowHeightImageList.Dispose();
-            rowContextMenu.Dispose();
-            dashboardToolTip.Dispose();
-            wallpaperPreviewForm.Dispose();
-
-            foreach (Font font in ownedFonts)
-            {
-                font.Dispose();
-            }
-            ownedFonts.Clear();
-
-            base.OnFormClosed(e);
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -1208,14 +1219,9 @@ namespace WallpaperControl
                 GetViewCountsForPeriod(
                     periodChoice.Period);
 
-            int totalViews =
-                activeViewCounts.Values.Sum();
-
-            double average =
-                activeViewCounts.Count == 0
-                    ? 0
-                    : (double)totalViews /
-                      activeViewCounts.Count;
+            WallpaperViewSummary summary = WallpaperViewSummary.Calculate(activeViewCounts);
+            int totalViews = summary.TotalViews;
+            double average = summary.AverageViews;
 
             if (periodChoice.Period ==
                 StatisticsPeriod.All)
@@ -2180,16 +2186,9 @@ namespace WallpaperControl
                 flags |= TextFormatFlags.Left;
             }
 
-            Font drawFont = Font;
-
-            if (e.ColumnIndex == 2 &&
-                row?.Exists == false)
-            {
-                drawFont =
-                    new Font(
-                        Font,
-                        FontStyle.Italic);
-            }
+            using Font? ownedDrawFont = e.ColumnIndex == 2 && row?.Exists == false
+                ? new Font(Font, FontStyle.Italic) : null;
+            Font drawFont = ownedDrawFont ?? Font;
 
             TextRenderer.DrawText(
                 e.Graphics,
@@ -2198,13 +2197,6 @@ namespace WallpaperControl
                 textBounds,
                 foreground,
                 flags);
-
-            if (!ReferenceEquals(
-                drawFont,
-                Font))
-            {
-                drawFont.Dispose();
-            }
 
             using Pen separatorPen =
                 new(
@@ -2321,92 +2313,77 @@ namespace WallpaperControl
         private void QueueThumbnailLoad(
             string path)
         {
-            if (thumbnailCache.ContainsKey(path) ||
-                thumbnailLoading.Contains(path))
-            {
-                return;
-            }
-
+            if (resourcesDisposed || thumbnailCache.ContainsKey(path) || thumbnailLoading.Contains(path)) return;
             thumbnailLoading.Add(path);
 
-            _ = Task.Run(
-                () => CreateThumbnail(path))
-                .ContinueWith(
-                    task =>
+            _ = Task.Run(() =>
+            {
+                lock (thumbnailSync)
+                {
+                    if (resourcesDisposed) return null;
+                }
+                return CreateThumbnail(path);
+            }).ContinueWith(task =>
+                DeliverThumbnail(path, task.Status == TaskStatus.RanToCompletion ? task.Result : null),
+                TaskScheduler.Default);
+        }
+
+        // Takes ownership even if closing has already begun or the callback never runs.
+        private void DeliverThumbnail(string path, Image? image)
+        {
+            lock (thumbnailSync)
+            {
+                if (resourcesDisposed || !IsHandleCreated)
+                {
+                    image?.Dispose();
+                    return;
+                }
+                if (image != null) pendingThumbnails.Add(image);
+            }
+            try
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    lock (thumbnailSync)
                     {
-                        if (IsDisposed ||
-                            Disposing ||
-                            !IsHandleCreated)
-                        {
-                            if (task.Status ==
-                                TaskStatus.RanToCompletion)
-                            {
-                                task.Result?.Dispose();
-                            }
-
-                            return;
-                        }
-
-                        try
-                        {
-                            BeginInvoke(
-                                new Action(
-                                    () =>
-                                    {
-                                    thumbnailLoading.Remove(
-                                        path);
-
-                                    if (task.Status !=
-                                            TaskStatus.RanToCompletion ||
-                                        task.Result == null)
-                                    {
-                                        return;
-                                    }
-
-                                    if (!thumbnailCache
-                                        .ContainsKey(path))
-                                    {
-                                        thumbnailCache[path] =
-                                            task.Result;
-                                    }
-                                    else
-                                    {
-                                        task.Result.Dispose();
-                                    }
-
-                                        statisticsList.Invalidate();
-                                    }));
-                        }
-                        catch
-                        {
-                            if (task.Status ==
-                                TaskStatus.RanToCompletion)
-                            {
-                                task.Result?.Dispose();
-                            }
-                        }
-                    },
-                    TaskScheduler.Default);
+                        if (resourcesDisposed) return;
+                        thumbnailLoading.Remove(path);
+                        if (image == null || !pendingThumbnails.Remove(image)) return;
+                        if (!thumbnailCache.TryAdd(path, image)) image.Dispose();
+                    }
+                    statisticsList.Invalidate();
+                }));
+            }
+            catch (InvalidOperationException)
+            {
+                lock (thumbnailSync)
+                {
+                    if (image != null && pendingThumbnails.Remove(image)) image.Dispose();
+                }
+            }
         }
 
         /// <summary>
         /// Loads and crops a wallpaper into the fixed-size thumbnail used by the statistics list.
         /// </summary>
         /// <param name="path">The image or folder path to process.</param>
+        /// <param name="beforeDraw">Optional drawing setup used to exercise failure after allocation.</param>
         /// <returns>The owned thumbnail bitmap, or null when the source cannot be loaded.</returns>
         private static Bitmap? CreateThumbnail(
-            string path)
+            string path, Action<Bitmap>? beforeDraw = null)
         {
+            Bitmap? bitmap = null;
             try
             {
                 using Image source =
                     Image.FromFile(path);
 
-                Bitmap bitmap =
-                    new(80, 45);
+                bitmap = new Bitmap(80, 45);
 
                 using Graphics graphics =
                     Graphics.FromImage(bitmap);
+
+                beforeDraw?.Invoke(bitmap);
 
                 graphics.Clear(Color.Black);
 
@@ -2436,6 +2413,7 @@ namespace WallpaperControl
             }
             catch
             {
+                bitmap?.Dispose();
                 return null;
             }
         }
@@ -2750,8 +2728,11 @@ namespace WallpaperControl
             {
                 WallpaperFileActions.OpenImage(path);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not complete statistics action: OpenWallpaper.", new InvalidOperationException(ex.GetType().Name));
+                MessageBox.Show(Localization.Get("StatisticsActionFailed"), "Wallpaper Control",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2780,8 +2761,11 @@ namespace WallpaperControl
             {
                 WallpaperFileActions.RevealInExplorer(row.Path);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not complete statistics action: OpenSelectedWallpaperFolder.", new InvalidOperationException(ex.GetType().Name));
+                MessageBox.Show(Localization.Get("StatisticsActionFailed"), "Wallpaper Control",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -2800,8 +2784,11 @@ namespace WallpaperControl
             {
                 Clipboard.SetText(row.Path);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.Warning("Could not complete statistics action: CopySelectedWallpaperPath.", new InvalidOperationException(ex.GetType().Name));
+                MessageBox.Show(Localization.Get("StatisticsActionFailed"), "Wallpaper Control",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

@@ -12,6 +12,8 @@ namespace WallpaperControl
         internal const int Width = 340;
         internal const int HeaderHeight = 54;
         internal const int FooterHeight = 25;
+        private readonly int layoutWidth;
+        internal CalendarViewport(int width = Width) { layoutWidth = Math.Max(80, width); }
         private int wheelRemainder;
         internal float Scale { get; private set; } = 1;
         internal int PhysicalHeight { get; private set; }
@@ -21,8 +23,8 @@ namespace WallpaperControl
         internal float ScrollOffset { get; private set; }
         internal float MaxScrollOffset => Math.Max(0, TotalContentHeight - ViewportHeight);
         internal bool CanScroll => MaxScrollOffset > 0 && ViewportHeight > 0;
-        internal RectangleF ContentBounds => new(12, HeaderHeight, Width - (CanScroll ? 42 : 24), ViewportHeight);
-        internal RectangleF Track => CanScroll ? new(Width - 18, HeaderHeight, 6, ViewportHeight) : RectangleF.Empty;
+        internal RectangleF ContentBounds => new(12, HeaderHeight, layoutWidth - (CanScroll ? 42 : 24), ViewportHeight);
+        internal RectangleF Track => CanScroll ? new(layoutWidth - 18, HeaderHeight, 6, ViewportHeight) : RectangleF.Empty;
         internal RectangleF Thumb
         {
             get

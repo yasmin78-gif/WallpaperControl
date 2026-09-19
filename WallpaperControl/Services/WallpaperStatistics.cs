@@ -23,6 +23,8 @@ namespace WallpaperControl
             this.saveOverride = saveOverride;
         }
 
+        internal event Action? Changed;
+
         internal IReadOnlyDictionary<string, int> ViewCounts => wallpaperViewCounts;
         internal IReadOnlyDictionary<string, DateTime> LastShown => wallpaperLastShown;
         internal IReadOnlyDictionary<string, Dictionary<string, int>> DailyViewCounts => wallpaperDailyViewCounts;
@@ -144,6 +146,7 @@ namespace WallpaperControl
                         item.TotalRecurrenceSeconds;
                 }
             }
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -191,6 +194,7 @@ namespace WallpaperControl
             }
 
             Save();
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -221,6 +225,7 @@ namespace WallpaperControl
                 currentWallpaperPath;
 
             Save();
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -324,6 +329,7 @@ namespace WallpaperControl
             }
 
             Save();
+            Changed?.Invoke();
         }
 
     }

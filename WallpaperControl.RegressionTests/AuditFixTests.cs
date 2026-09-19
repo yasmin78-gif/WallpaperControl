@@ -19,6 +19,7 @@ internal static class AuditFixTests
         Renderer(check);
         Updates(check);
         CalendarTitles(check);
+        ActionableAnalyzerTests.Run(check);
     }
 
     private static void RegistryValues(Action<bool, string> check)

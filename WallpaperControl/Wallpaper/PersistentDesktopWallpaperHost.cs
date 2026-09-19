@@ -884,11 +884,13 @@ namespace WallpaperControl
         /// <param name="path">The image or folder path to process.</param>
         /// <param name="targetSize">The target surface dimensions in pixels.</param>
         /// <param name="position">The Windows wallpaper scaling and placement mode.</param>
+        /// <param name="beforeDraw">Optional drawing setup used to exercise failure after allocation.</param>
         /// <returns>The rendered wallpaper bitmap, whose ownership passes to the caller.</returns>
         private static Bitmap LoadFrame(
             string path,
             Size targetSize,
-            DesktopWallpaperPosition position)
+            DesktopWallpaperPosition position,
+            Action<Bitmap>? beforeDraw = null)
         {
             using Image source =
                 Image.FromFile(path);
@@ -899,44 +901,54 @@ namespace WallpaperControl
                     targetSize.Height,
                     System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
 
-            using Graphics g =
-                Graphics.FromImage(result);
-
-            g.InterpolationMode =
-                System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-
-            g.Clear(Color.Black);
-
-            Rectangle targetRectangle = position switch
+            try
             {
-                DesktopWallpaperPosition.Stretch =>
-                    new Rectangle(0, 0, targetSize.Width, targetSize.Height),
-                DesktopWallpaperPosition.Center =>
-                    new Rectangle(
-                        (targetSize.Width - source.Width) / 2,
-                        (targetSize.Height - source.Height) / 2,
-                        source.Width,
-                        source.Height),
-                DesktopWallpaperPosition.Fit =>
-                    GetAspectRectangle(source.Size, targetSize, fill: false),
-                DesktopWallpaperPosition.Fill =>
-                    GetAspectRectangle(source.Size, targetSize, fill: true),
-                DesktopWallpaperPosition.Span =>
-                    GetAspectRectangle(source.Size, targetSize, fill: true),
-                _ => Rectangle.Empty
-            };
+                using Graphics g =
+                    Graphics.FromImage(result);
 
-            if (position == DesktopWallpaperPosition.Tile)
-            {
-                using TextureBrush brush = new TextureBrush(source);
-                g.FillRectangle(brush, new Rectangle(Point.Empty, targetSize));
+                beforeDraw?.Invoke(result);
+
+                g.InterpolationMode =
+                    System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                g.Clear(Color.Black);
+
+                Rectangle targetRectangle = position switch
+                {
+                    DesktopWallpaperPosition.Stretch =>
+                        new Rectangle(0, 0, targetSize.Width, targetSize.Height),
+                    DesktopWallpaperPosition.Center =>
+                        new Rectangle(
+                            (targetSize.Width - source.Width) / 2,
+                            (targetSize.Height - source.Height) / 2,
+                            source.Width,
+                            source.Height),
+                    DesktopWallpaperPosition.Fit =>
+                        GetAspectRectangle(source.Size, targetSize, fill: false),
+                    DesktopWallpaperPosition.Fill =>
+                        GetAspectRectangle(source.Size, targetSize, fill: true),
+                    DesktopWallpaperPosition.Span =>
+                        GetAspectRectangle(source.Size, targetSize, fill: true),
+                    _ => Rectangle.Empty
+                };
+
+                if (position == DesktopWallpaperPosition.Tile)
+                {
+                    using TextureBrush brush = new TextureBrush(source);
+                    g.FillRectangle(brush, new Rectangle(Point.Empty, targetSize));
+                }
+                else
+                {
+                    g.DrawImage(source, targetRectangle);
+                }
+
+                return result;
             }
-            else
+            catch
             {
-                g.DrawImage(source, targetRectangle);
+                result.Dispose();
+                throw;
             }
-
-            return result;
         }
 
 

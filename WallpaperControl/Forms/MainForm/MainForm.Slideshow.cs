@@ -122,7 +122,7 @@ namespace WallpaperControl
 
             try
             {
-                SetWallpaperFolder(folder);
+                if (!SetWallpaperFolder(folder, showError)) return false;
 
                 await Task.Delay(300);
 
@@ -145,6 +145,7 @@ namespace WallpaperControl
                         MessageBoxIcon.Error);
                 }
 
+                AppLogger.Warning("Could not resume the slideshow.", new InvalidOperationException(ex.GetType().Name));
                 return false;
             }
         }
@@ -233,10 +234,8 @@ namespace WallpaperControl
                 return;
             }
 
+            if (!SetWallpaperFolder(folderTextBox.Text)) return;
             slideshowPaused = false;
-
-            SetWallpaperFolder(
-                folderTextBox.Text);
 
             // Windows updates slideshow state asynchronously; delay the UI refresh.
             await Task.Delay(300);

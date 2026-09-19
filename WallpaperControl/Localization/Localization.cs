@@ -298,9 +298,7 @@ namespace WallpaperControl
                     language,
                     RegistryValueKind.String);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist the language preference.", ex); }
         }
 
         /// <summary>

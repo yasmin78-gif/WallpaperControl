@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1076,4 +1076,61 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="CalendarSourceNameHint" xml:space="preserve"><value>Sans nom personnalisé, le widget utilise le nom du calendrier ou un libellé numéroté. Enregistrez les paramètres pour conserver les modifications. Choisissez Afficher pour modifier l’adresse.</value></data>
   <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>Hauteur maximale</value></data>
   <data name="CalendarUntitledEvent" xml:space="preserve"><value>(sans titre)</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Certains paramètres n’ont pas pu être enregistrés et peuvent être perdus après un redémarrage. Veuillez réessayer.</value></data>
+  <data name="StatisticsActionFailed" xml:space="preserve"><value>L’action n’a pas pu être effectuée. Veuillez réessayer.</value></data>
+  <data name="WallpaperInfoTitle" xml:space="preserve">
+    <value>Info du fond d’écran</value>
+  </data>
+  <data name="WallpaperInfoEnabled" xml:space="preserve">
+    <value>Afficher les infos du fond d’écran</value>
+  </data>
+  <data name="WallpaperInfoAdvanced" xml:space="preserve">
+    <value>Afficher les statistiques détaillées</value>
+  </data>
+  <data name="WallpaperInfoExtension" xml:space="preserve">
+    <value>Afficher l’extension du fichier</value>
+  </data>
+  <data name="WallpaperInfoSuffix" xml:space="preserve">
+    <value>Suffixes à masquer (séparés par des virgules)</value>
+  </data>
+  <data name="WallpaperInfoViews" xml:space="preserve">
+    <value>Affichages</value>
+  </data>
+  <data name="WallpaperInfoCount" xml:space="preserve">
+    <value>Fonds d’écran</value>
+  </data>
+  <data name="WallpaperInfoAverage" xml:space="preserve">
+    <value>Moy. affichages</value>
+  </data>
+  <data name="WallpaperInfoTotal" xml:space="preserve">
+    <value>Total affichages</value>
+  </data>
+  <data name="WallpaperInfoRecord" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="NotesTitle" xml:space="preserve"><value>Notes et rappels</value></data>
+  <data name="NotesEnabled" xml:space="preserve"><value>Afficher les notes et rappels</value></data>
+  <data name="NotesManage" xml:space="preserve"><value>Gérer les notes et rappels…</value></data>
+  <data name="NotesNew" xml:space="preserve"><value>Nouvelle entrée</value></data>
+  <data name="NotesEdit" xml:space="preserve"><value>Modifier l’entrée</value></data>
+  <data name="NotesEntryTitle" xml:space="preserve"><value>Titre</value></data>
+  <data name="NotesDescription" xml:space="preserve"><value>Note</value></data>
+  <data name="NotesReminder" xml:space="preserve"><value>Rappel</value></data>
+  <data name="NotesDate" xml:space="preserve"><value>Date</value></data>
+  <data name="NotesTime" xml:space="preserve"><value>Heure</value></data>
+  <data name="NotesUseTime" xml:space="preserve"><value>Utiliser une heure (facultatif)</value></data>
+  <data name="NotesCompleted" xml:space="preserve"><value>Terminé</value></data>
+  <data name="NotesOpen" xml:space="preserve"><value>En cours</value></data>
+  <data name="NotesDelete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="NotesToggle" xml:space="preserve"><value>Terminé / En cours</value></data>
+  <data name="NotesStatus" xml:space="preserve"><value>État</value></data>
+  <data name="NotesUndated" xml:space="preserve"><value>Sans date</value></data>
+  <data name="NotesToday" xml:space="preserve"><value>Aujourd’hui</value></data>
+  <data name="NotesTomorrow" xml:space="preserve"><value>Demain</value></data>
+  <data name="NotesOverdue" xml:space="preserve"><value>En retard</value></data>
+  <data name="NotesEmpty" xml:space="preserve"><value>Aucune entrée en cours</value></data>
+  <data name="NotesTitleRequired" xml:space="preserve"><value>Veuillez saisir un titre.</value></data>
+  <data name="NotesSaveError" xml:space="preserve"><value>L’entrée n’a pas pu être enregistrée. Veuillez réessayer.</value></data>
+  <data name="NotesLoadIssue" xml:space="preserve"><value>Certaines données n’ont pas pu être chargées. Les fichiers endommagés sont conservés ; les versions inconnues restent en lecture seule.</value></data>
+  <data name="WidgetFontSize" xml:space="preserve"><value>Taille du texte</value></data>
 </root>

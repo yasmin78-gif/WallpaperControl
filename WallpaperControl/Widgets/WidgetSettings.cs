@@ -11,6 +11,12 @@ namespace WallpaperControl
         internal const string RegistryPath = @"Software\WallpaperControl";
         private bool loadFailed;
 
+        public bool NotesEnabled { get; set; }
+        public bool NotesLocked { get; set; }
+        public int NotesMaximumHeight { get; set; } = 500;
+        public SystemWidgetStyle NotesStyle { get; set; } = SystemWidgetStyle.Minimal;
+        public Point NotesLocation { get; set; } = new(740, 40);
+        public int WallpaperInfoFontSize { get; set; } = 13;
         public bool ClockEnabled { get; set; }
         public bool ClockLocked { get; set; }
         public int ClockSize { get; set; } = 150;
@@ -18,6 +24,13 @@ namespace WallpaperControl
         public ClockWidgetStyle ClockStyle { get; set; } = ClockWidgetStyle.Chrome;
         public string ClockLanguageCode { get; set; } = Localization.CurrentLanguage;
         public Point ClockLocation { get; set; } = new(40, 40);
+        public bool WallpaperInfoEnabled { get; set; }
+        public bool WallpaperInfoLocked { get; set; }
+        public bool WallpaperInfoShowAdvanced { get; set; }
+        public bool WallpaperInfoShowExtension { get; set; }
+        public string WallpaperInfoHiddenSuffix { get; set; } = "_3440x1440";
+        public SystemWidgetStyle WallpaperInfoStyle { get; set; } = SystemWidgetStyle.Minimal;
+        public Point WallpaperInfoLocation { get; set; } = new(220, 40);
         public bool NextEnabled { get; set; }
         public bool NextLocked { get; set; }
         public SystemWidgetStyle NextStyle { get; set; } = SystemWidgetStyle.Minimal;
@@ -63,6 +76,12 @@ namespace WallpaperControl
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
 
+                result.NotesEnabled = ReadInt(key, "NotesWidgetEnabled", 0) == 1;
+                result.NotesLocked = ReadInt(key, "NotesWidgetLocked", 0) == 1;
+                result.NotesMaximumHeight = Math.Clamp(ReadInt(key, "NotesWidgetMaximumHeight", 500), 300, 1000);
+                result.NotesStyle = ReadSystemStyle(key, "NotesWidgetStyle", SystemWidgetStyle.Minimal);
+                result.NotesLocation = new Point(ReadInt(key, "NotesWidgetX", 740), ReadInt(key, "NotesWidgetY", 40));
+                result.WallpaperInfoFontSize = Math.Clamp(ReadInt(key, "WallpaperInfoWidgetFontSize", 13), 10, 24);
                 result.ClockEnabled = ReadBool(key, "ClockWidgetEnabled", false);
                 result.ClockLocked = ReadBool(key, "ClockWidgetLocked", false);
                 result.ClockSize = Math.Clamp(ReadInt(key, "ClockWidgetSize", 150), 70, 240);
@@ -70,6 +89,13 @@ namespace WallpaperControl
                 result.ClockStyle = ReadClockStyle(key, "ClockWidgetStyle", ClockWidgetStyle.Chrome);
                 result.ClockLanguageCode = Localization.CurrentLanguage;
                 result.ClockLocation = new Point(ReadInt(key, "ClockWidgetX", 40), ReadInt(key, "ClockWidgetY", 40));
+                result.WallpaperInfoEnabled = ReadInt(key, "WallpaperInfoWidgetEnabled", 0) == 1;
+                result.WallpaperInfoLocked = ReadInt(key, "WallpaperInfoWidgetLocked", 0) == 1;
+                result.WallpaperInfoShowAdvanced = ReadInt(key, "WallpaperInfoWidgetShowAdvanced", 0) == 1;
+                result.WallpaperInfoShowExtension = ReadInt(key, "WallpaperInfoWidgetShowExtension", 0) == 1;
+                result.WallpaperInfoHiddenSuffix = key.GetValue("WallpaperInfoWidgetHiddenSuffix") as string ?? "_3440x1440";
+                result.WallpaperInfoStyle = ReadSystemStyle(key, "WallpaperInfoWidgetStyle", SystemWidgetStyle.Minimal);
+                result.WallpaperInfoLocation = new Point(ReadInt(key, "WallpaperInfoWidgetX", 220), ReadInt(key, "WallpaperInfoWidgetY", 40));
                 result.NextEnabled = ReadBool(key, "NextWidgetEnabled", false);
                 result.NextLocked = ReadBool(key, "NextWidgetLocked", false);
                 result.NextStyle = ReadSystemStyle(key, "NextWidgetStyle", SystemWidgetStyle.Minimal);
@@ -120,10 +146,22 @@ namespace WallpaperControl
         public void Save(string registryPath = RegistryPath)
         {
             // A partial read must never replace preferences that were not read.
-            if (loadFailed) return;
+            if (loadFailed)
+            {
+                SettingsPersistence.ReportFailure("Widget settings were not saved after an incomplete load.",
+                    new InvalidOperationException());
+                return;
+            }
             try
             {
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
+                key.SetValue("NotesWidgetEnabled", NotesEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("NotesWidgetLocked", NotesLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("NotesWidgetMaximumHeight", Math.Clamp(NotesMaximumHeight, 300, 1000), RegistryValueKind.DWord);
+                key.SetValue("NotesWidgetStyle", (int)NotesStyle, RegistryValueKind.DWord);
+                key.SetValue("NotesWidgetX", NotesLocation.X, RegistryValueKind.DWord);
+                key.SetValue("NotesWidgetY", NotesLocation.Y, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetFontSize", Math.Clamp(WallpaperInfoFontSize, 10, 24), RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetEnabled", ClockEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetLocked", ClockLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetSize", Math.Clamp(ClockSize, 70, 240), RegistryValueKind.DWord);
@@ -131,6 +169,15 @@ namespace WallpaperControl
                 key.SetValue("ClockWidgetStyle", (int)ClockStyle, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetX", ClockLocation.X, RegistryValueKind.DWord);
                 key.SetValue("ClockWidgetY", ClockLocation.Y, RegistryValueKind.DWord);
+                WallpaperInfoHiddenSuffix = WallpaperInfoHiddenSuffix?.Trim() ?? "";
+                key.SetValue("WallpaperInfoWidgetEnabled", WallpaperInfoEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetLocked", WallpaperInfoLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetShowAdvanced", WallpaperInfoShowAdvanced ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetShowExtension", WallpaperInfoShowExtension ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetHiddenSuffix", WallpaperInfoHiddenSuffix, RegistryValueKind.String);
+                key.SetValue("WallpaperInfoWidgetStyle", (int)WallpaperInfoStyle, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetX", WallpaperInfoLocation.X, RegistryValueKind.DWord);
+                key.SetValue("WallpaperInfoWidgetY", WallpaperInfoLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetEnabled", NextEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetLocked", NextLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NextWidgetStyle", (int)NextStyle, RegistryValueKind.DWord);
@@ -169,7 +216,7 @@ namespace WallpaperControl
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("Widget settings could not be saved.", new InvalidOperationException(ex.GetType().Name));
+                SettingsPersistence.ReportFailure("Widget settings could not be saved.", ex);
             }
         }
 
@@ -180,6 +227,12 @@ namespace WallpaperControl
         public WidgetSettings Clone() => new()
         {
             loadFailed = loadFailed,
+            NotesEnabled = NotesEnabled,
+            NotesLocked = NotesLocked,
+            NotesMaximumHeight = NotesMaximumHeight,
+            NotesStyle = NotesStyle,
+            NotesLocation = NotesLocation,
+            WallpaperInfoFontSize = WallpaperInfoFontSize,
             ClockEnabled = ClockEnabled,
             ClockLocked = ClockLocked,
             ClockSize = ClockSize,
@@ -187,6 +240,13 @@ namespace WallpaperControl
             ClockStyle = ClockStyle,
             ClockLanguageCode = ClockLanguageCode,
             ClockLocation = ClockLocation,
+            WallpaperInfoEnabled = WallpaperInfoEnabled,
+            WallpaperInfoLocked = WallpaperInfoLocked,
+            WallpaperInfoShowAdvanced = WallpaperInfoShowAdvanced,
+            WallpaperInfoShowExtension = WallpaperInfoShowExtension,
+            WallpaperInfoHiddenSuffix = WallpaperInfoHiddenSuffix,
+            WallpaperInfoStyle = WallpaperInfoStyle,
+            WallpaperInfoLocation = WallpaperInfoLocation,
             NextEnabled = NextEnabled,
             NextLocked = NextLocked,
             NextStyle = NextStyle,

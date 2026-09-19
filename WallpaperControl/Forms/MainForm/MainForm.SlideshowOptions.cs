@@ -338,7 +338,8 @@ namespace WallpaperControl
         /// <summary>
         /// Persists interval and shuffle preferences and refreshes the application schedule.
         /// </summary>
-        private void ApplySlideshowOptions()
+        /// <param name="showError">True to show an error; background resume only records diagnostics.</param>
+        private void ApplySlideshowOptions(bool showError = true)
         {
             if (intervalComboBox.SelectedItem
                 is not DisplayOption<uint> selected)
@@ -388,7 +389,8 @@ namespace WallpaperControl
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                AppLogger.Warning("Could not apply slideshow options.", new InvalidOperationException(ex.GetType().Name));
+                if (showError) MessageBox.Show(
                     Localization.Get("MsgSlideshowSettingsFailed") +
                     ex.Message,
                     "Wallpaper Control",

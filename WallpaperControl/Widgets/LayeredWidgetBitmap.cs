@@ -8,6 +8,7 @@ namespace WallpaperControl
         private const byte AC_SRC_OVER = 0x00;
         private const byte AC_SRC_ALPHA = 0x01;
         private const int ULW_ALPHA = 0x00000002;
+        private static int releaseFailureLogged;
 
         /// <summary>
         /// Uploads a transparent bitmap and releases every temporary native drawing resource.
@@ -47,7 +48,10 @@ namespace WallpaperControl
                 if (oldBitmap != IntPtr.Zero) SelectObject(memoryDc, oldBitmap);
                 if (bitmapHandle != IntPtr.Zero) DeleteObject(bitmapHandle);
                 if (memoryDc != IntPtr.Zero) DeleteDC(memoryDc);
-                if (screenDc != IntPtr.Zero) ReleaseDC(IntPtr.Zero, screenDc);
+                if (screenDc != IntPtr.Zero && ReleaseDC(IntPtr.Zero, screenDc) == 0 &&
+                    System.Threading.Interlocked.Exchange(ref releaseFailureLogged, 1) == 0)
+                    AppLogger.Warning("Could not release the widget screen device context.",
+                        new InvalidOperationException("ReleaseDC failed."));
             }
         }
 

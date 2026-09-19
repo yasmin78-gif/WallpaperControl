@@ -145,9 +145,12 @@ namespace WallpaperControl
                     originalWidgetSettings,
                     previewSettings =>
                         widgetManager.Preview(previewSettings));
+            dialog.ConfigureNotesManager(widgetManager.ShowNotesManager);
 
             string languageBefore =
                 Localization.CurrentLanguage;
+
+            long saveRevision = SettingsPersistence.FailureRevision;
 
             if (dialog.ShowDialog(this) !=
                 DialogResult.OK)
@@ -307,6 +310,10 @@ namespace WallpaperControl
             {
                 ApplyLocalization();
             }
+
+            if (saveRevision != SettingsPersistence.FailureRevision)
+                MessageBox.Show(this, Localization.Get("SettingsSaveFailed"), "Wallpaper Control",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }

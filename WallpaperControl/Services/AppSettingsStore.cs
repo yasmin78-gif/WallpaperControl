@@ -83,9 +83,7 @@ namespace WallpaperControl
                     path,
                     RegistryValueKind.String);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveLastWallpaperFolder.", ex); }
         }
 
         /// <summary>
@@ -154,9 +152,7 @@ namespace WallpaperControl
                     enabled ? 1 : 0,
                     RegistryValueKind.DWord);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveCloseToTraySetting.", ex); }
         }
 
         /// <summary>
@@ -203,9 +199,7 @@ namespace WallpaperControl
                     enabled ? 1 : 0,
                     RegistryValueKind.DWord);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveAutomaticUpdateCheckSetting.", ex); }
         }
 
         /// <summary>
@@ -252,9 +246,7 @@ namespace WallpaperControl
                     NormalizeThemeMode(value),
                     RegistryValueKind.String);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveThemeMode.", ex); }
         }
 
         /// <summary>
@@ -322,9 +314,7 @@ namespace WallpaperControl
                     Math.Clamp(value, 80, 100),
                     RegistryValueKind.DWord);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveWindowOpacityPercent.", ex); }
         }
 
         /// <summary>
@@ -481,9 +471,7 @@ namespace WallpaperControl
                     settings.RejectKey,
                     RegistryValueKind.DWord);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveHotkeySettings.", ex); }
         }
 
         /// <summary>
@@ -581,9 +569,7 @@ namespace WallpaperControl
                     settings.UseSubfolder ? 1 : 0,
                     RegistryValueKind.DWord);
             }
-            catch
-            {
-            }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveRejectSettings.", ex); }
         }
         /// <summary>
         /// Loads transition preferences while supporting legacy effect indices and fallback durations.
@@ -766,7 +752,7 @@ namespace WallpaperControl
                 using var key = Registry.CurrentUser.CreateSubKey(registryPath);
                 key.SetValue(name, value, kind);
             }
-            catch { }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist WriteValue.", ex); }
         }
 
         /// <summary>
@@ -781,7 +767,7 @@ namespace WallpaperControl
                 key.SetValue("WindowX", position.X, RegistryValueKind.DWord);
                 key.SetValue("WindowY", position.Y, RegistryValueKind.DWord);
             }
-            catch { }
+            catch (Exception ex) { SettingsPersistence.ReportFailure("Could not persist SaveWindowPosition.", ex); }
         }
 
         /// <summary>

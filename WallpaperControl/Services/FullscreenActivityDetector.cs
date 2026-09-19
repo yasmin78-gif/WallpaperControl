@@ -12,19 +12,24 @@ namespace WallpaperControl
         /// </summary>
         /// <returns>True when an eligible foreground window covers a monitor; otherwise, false.</returns>
         internal static bool IsFullscreenActive()
+            => GetFullscreenState() == true;
+
+        // A failed native query is not evidence that fullscreen has ended.
+        internal static bool? GetFullscreenState()
         {
             IntPtr window = GetForegroundWindow();
-            if (window == IntPtr.Zero || window == GetShellWindow() || window == GetDesktopWindow() || IsIconic(window)) return false;
-            GetWindowThreadProcessId(window, out uint processId);
+            if (window == IntPtr.Zero) return null;
+            if (window == GetShellWindow() || window == GetDesktopWindow() || IsIconic(window)) return false;
+            if (GetWindowThreadProcessId(window, out uint processId) == 0) return null;
             if (processId == Environment.ProcessId) return false;
             var name = new StringBuilder(256);
-            GetClassName(window, name, name.Capacity);
+            if (GetClassName(window, name, name.Capacity) == 0) return null;
             if (name.ToString() is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") return false;
             // A maximized, captioned window is not a fullscreen application.
             if (IsZoomed(window) && (GetWindowLong(window, -16) & 0x00C00000) != 0) return false;
-            if (!GetWindowRect(window, out var bounds)) return false;
+            if (!GetWindowRect(window, out var bounds)) return null;
             var monitor = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
-            if (!GetMonitorInfo(MonitorFromWindow(window, 2), ref monitor)) return false;
+            if (!GetMonitorInfo(MonitorFromWindow(window, 2), ref monitor)) return null;
             return CoversMonitor(bounds.Rectangle, monitor.Monitor.Rectangle);
         }
 
@@ -139,14 +144,15 @@ namespace WallpaperControl
         /// Updates automatic suspension immediately on fullscreen entry and releases it after the clear-period delay.
         /// </summary>
         /// <param name="enabled">True when the user has enabled automatic fullscreen suspension.</param>
-        /// <param name="fullscreen">True when the foreground application currently covers a monitor.</param>
+        /// <param name="fullscreen">True for fullscreen, false for a confirmed clear sample, or null when detection failed.</param>
         /// <param name="now">The current time used for the scheduling or pause decision.</param>
         /// <returns>True only when the automatic suspension state changed.</returns>
-        internal bool Update(bool enabled, bool fullscreen, DateTime now)
+        internal bool Update(bool enabled, bool? fullscreen, DateTime now)
         {
             bool previous = IsPaused;
             if (!enabled) { IsPaused = false; clearSince = null; }
-            else if (fullscreen) { IsPaused = true; clearSince = null; }
+            else if (fullscreen == null) { clearSince = null; }
+            else if (fullscreen == true) { IsPaused = true; clearSince = null; }
             else if (IsPaused)
             {
                 // Recheck at 250 ms while paused. A single transient negative sample

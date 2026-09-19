@@ -25,12 +25,23 @@ namespace WallpaperControl
         private WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.NotesEnabled = notesEnabled.Checked;
+            preview.NotesLocked = notesLocked.Checked;
+            preview.NotesMaximumHeight = (int)notesMaximumHeight.Value;
+            preview.NotesStyle = (SystemWidgetStyle)Math.Max(0, notesStyle.SelectedIndex);
+            preview.WallpaperInfoFontSize = (int)wallpaperInfoFontSize.Value;
             preview.ClockEnabled = clockEnabledCheckBox.Checked;
             preview.ClockLocked = clockLockedCheckBox.Checked;
             preview.ClockSize = (int)clockSizeNumeric.Value;
             preview.ClockShowSeconds = clockSecondsCheckBox.Checked;
             preview.ClockStyle = GetSelectedClockStyle();
             preview.ClockLanguageCode = previewLanguageCode;
+            preview.WallpaperInfoEnabled = wallpaperInfoEnabled.Checked;
+            preview.WallpaperInfoLocked = wallpaperInfoLocked.Checked;
+            preview.WallpaperInfoShowAdvanced = wallpaperInfoAdvanced.Checked;
+            preview.WallpaperInfoShowExtension = wallpaperInfoExtension.Checked;
+            preview.WallpaperInfoHiddenSuffix = applySaveDefaults ? wallpaperInfoSuffix.Text.Trim() : wallpaperInfoSuffix.Text;
+            preview.WallpaperInfoStyle = GetWallpaperInfoStyle();
             preview.NextEnabled = nextWidgetEnabledCheckBox.Checked;
             preview.NextLocked = nextWidgetLockedCheckBox.Checked;
             preview.NextStyle = GetSelectedNextStyle();

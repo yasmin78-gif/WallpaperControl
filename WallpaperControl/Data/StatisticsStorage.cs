@@ -114,7 +114,7 @@ namespace WallpaperControl
         private static void PreserveDamagedFile(string path)
         {
             File.Move(path, path + ".corrupt-" +
-                DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffffff") + "-" + Guid.NewGuid().ToString("N"));
+                DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffffff", System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
         }
 
         /// <summary>

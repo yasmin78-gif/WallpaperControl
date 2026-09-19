@@ -11,6 +11,7 @@
     <Compile Include="../WallpaperControl/Services/FullscreenActivityDetector.cs" Link="FullscreenActivityDetector.cs" />
     <Compile Include="../WallpaperControl/Wallpaper/WallpaperTransitionKind.cs" Link="WallpaperTransitionKind.cs" />
     <Compile Include="../WallpaperControl/Services/AppSettingsStore.cs" Link="AppSettingsStore.cs" />
+    <Compile Include="../WallpaperControl/Services/SettingsPersistence.cs" Link="SettingsPersistence.cs" />
     <Compile Include="../WallpaperControl/Services/GlobalHotkeyManager.cs" Link="GlobalHotkeyManager.cs" />
     <Compile Include="../WallpaperControl/Services/WallpaperStatistics.cs" Link="WallpaperStatistics.cs" />
     <PackageReference Include="Ical.Net" Version="5.2.3" />

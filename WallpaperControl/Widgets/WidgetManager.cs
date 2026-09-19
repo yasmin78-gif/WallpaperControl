@@ -6,7 +6,13 @@ namespace WallpaperControl
 {
     internal sealed class WidgetManager : IDisposable
     {
+        private readonly string registryPath;
+        private readonly NotesStore notesStore;
+        private NotesWidgetForm? notesWidget;
+        private bool notesDialogOpen;
         private readonly Action next;
+        private readonly Func<bool, WallpaperInfoSnapshot>? wallpaperInfoSource;
+        private WallpaperInfoWidgetForm? wallpaperInfoWidget;
         private readonly IcsCalendarProvider calendarProvider = new();
         private readonly DesktopShowMonitor desktopShowMonitor;
         private readonly HashSet<Form> desktopWidgets = new();
@@ -22,10 +28,14 @@ namespace WallpaperControl
         /// Loads widget preferences and stores the callback used by the next-wallpaper widget.
         /// </summary>
         /// <param name="next">The callback that requests the next wallpaper.</param>
-        public WidgetManager(Action next)
+        public WidgetManager(Action next, Func<bool, WallpaperInfoSnapshot>? wallpaperInfoSource = null,
+            string registryPath = WidgetSettings.RegistryPath, NotesStore? notesStore = null)
         {
             this.next = next;
-            settings = WidgetSettings.Load();
+            this.wallpaperInfoSource = wallpaperInfoSource;
+            this.registryPath = registryPath;
+            this.notesStore = notesStore ?? new NotesStore();
+            settings = WidgetSettings.Load(registryPath);
             desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
         }
 
@@ -51,12 +61,23 @@ namespace WallpaperControl
             // Keep locations from the current live widget state. This allows
             // a widget to be moved while the settings dialog is open without
             // every checkbox/size change snapping it back to the old position.
+            settings.NotesEnabled = previewSettings.NotesEnabled;
+            settings.NotesLocked = previewSettings.NotesLocked;
+            settings.NotesMaximumHeight = previewSettings.NotesMaximumHeight;
+            settings.NotesStyle = previewSettings.NotesStyle;
+            settings.WallpaperInfoFontSize = previewSettings.WallpaperInfoFontSize;
             settings.ClockEnabled = previewSettings.ClockEnabled;
             settings.ClockLocked = previewSettings.ClockLocked;
             settings.ClockSize = previewSettings.ClockSize;
             settings.ClockShowSeconds = previewSettings.ClockShowSeconds;
             settings.ClockStyle = previewSettings.ClockStyle;
             settings.ClockLanguageCode = previewSettings.ClockLanguageCode;
+            settings.WallpaperInfoEnabled = previewSettings.WallpaperInfoEnabled;
+            settings.WallpaperInfoLocked = previewSettings.WallpaperInfoLocked;
+            settings.WallpaperInfoShowAdvanced = previewSettings.WallpaperInfoShowAdvanced;
+            settings.WallpaperInfoShowExtension = previewSettings.WallpaperInfoShowExtension;
+            settings.WallpaperInfoHiddenSuffix = previewSettings.WallpaperInfoHiddenSuffix;
+            settings.WallpaperInfoStyle = previewSettings.WallpaperInfoStyle;
             settings.NextEnabled = previewSettings.NextEnabled;
             settings.NextLocked = previewSettings.NextLocked;
             settings.NextStyle = previewSettings.NextStyle;
@@ -97,20 +118,24 @@ namespace WallpaperControl
             // Preserve locations collected by the live preview. The dialog only
             // owns the enable/lock/size values; drag operations belong to the
             // widget windows themselves.
+            Point notesLocation = settings.NotesLocation;
             Point clockLocation = settings.ClockLocation;
+            Point infoLocation = settings.WallpaperInfoLocation;
             Point nextLocation = settings.NextLocation;
             Point systemLocation = settings.SystemLocation;
             Point weatherLocation = settings.WeatherLocation;
             Point calendarLocation = settings.CalendarLocation;
 
             settings = committedSettings.Clone();
+            settings.NotesLocation = notesLocation;
             settings.ClockLocation = clockLocation;
+            settings.WallpaperInfoLocation = infoLocation;
             settings.NextLocation = nextLocation;
             settings.SystemLocation = systemLocation;
             settings.WeatherLocation = weatherLocation;
             settings.CalendarLocation = calendarLocation;
             previewMode = false;
-            settings.Save();
+            settings.Save(registryPath);
 
             ApplyVisualState(settings, restoreLocations: true);
         }
@@ -426,6 +451,70 @@ namespace WallpaperControl
                 calendarWidget?.Dispose();
                 calendarWidget = null;
             }
+            if (target.WallpaperInfoEnabled)
+            {
+                if (wallpaperInfoWidget == null || wallpaperInfoWidget.IsDisposed)
+                {
+                    wallpaperInfoWidget = new WallpaperInfoWidgetForm(target, p =>
+                    {
+                        settings.WallpaperInfoLocation = p;
+                        if (!previewMode) settings.Save(registryPath);
+                    });
+                    wallpaperInfoWidget.SetActivitySuspended(activitySuspended);
+                    RegisterDesktopWidget(wallpaperInfoWidget);
+                    wallpaperInfoWidget.Show();
+                    if (!DesktopWidgetNative.AttachToDesktop(wallpaperInfoWidget, target.WallpaperInfoLocation))
+                    {
+                        wallpaperInfoWidget.Hide();
+                        AppLogger.Warning("Wallpaper info widget could not be attached to the desktop.",
+                            new InvalidOperationException("AttachToDesktop returned false."));
+                    }
+                    else if (previewMode) DesktopWidgetNative.EnableInteraction(wallpaperInfoWidget);
+                }
+                else
+                {
+                    wallpaperInfoWidget.Apply(target);
+                    if (restoreLocations)
+                        wallpaperInfoWidget.Location = WidgetSettings.EnsureVisible(target.WallpaperInfoLocation, wallpaperInfoWidget.Size);
+                    DesktopWidgetNative.KeepOnDesktop(wallpaperInfoWidget);
+                    if (previewMode) DesktopWidgetNative.EnableInteraction(wallpaperInfoWidget);
+                }
+                RefreshWallpaperInfo();
+            }
+            else
+            {
+                wallpaperInfoWidget?.Close();
+                wallpaperInfoWidget?.Dispose();
+                wallpaperInfoWidget = null;
+            }
+            if (target.NotesEnabled)
+            {
+                if (notesWidget == null || notesWidget.IsDisposed)
+                {
+                    notesWidget = new NotesWidgetForm(notesStore, target, p =>
+                    {
+                        settings.NotesLocation = p;
+                        if (!previewMode) settings.Save(registryPath);
+                    }, EditNote);
+                    notesWidget.SetActivitySuspended(activitySuspended);
+                    RegisterDesktopWidget(notesWidget);
+                    notesWidget.Show();
+                    if (!DesktopWidgetNative.AttachToDesktop(notesWidget, target.NotesLocation))
+                    {
+                        notesWidget.Hide();
+                        AppLogger.Warning("Notes widget could not be attached to the desktop.", new InvalidOperationException());
+                    }
+                    else if (previewMode) DesktopWidgetNative.EnableInteraction(notesWidget);
+                }
+                else
+                {
+                    notesWidget.Apply(target);
+                    if (restoreLocations) notesWidget.Location = WidgetSettings.EnsureVisible(target.NotesLocation, notesWidget.Size);
+                    DesktopWidgetNative.KeepOnDesktop(notesWidget);
+                    if (previewMode) DesktopWidgetNative.EnableInteraction(notesWidget);
+                }
+            }
+            else { notesWidget?.Close(); notesWidget?.Dispose(); notesWidget = null; }
             SetActivitySuspended(activitySuspended);
         }
 
@@ -438,7 +527,7 @@ namespace WallpaperControl
             settings.ClockLocation = p;
             if (!previewMode)
             {
-                settings.Save();
+                settings.Save(registryPath);
             }
         }
 
@@ -451,7 +540,7 @@ namespace WallpaperControl
             settings.NextLocation = p;
             if (!previewMode)
             {
-                settings.Save();
+                settings.Save(registryPath);
             }
         }
 
@@ -464,7 +553,7 @@ namespace WallpaperControl
             settings.SystemLocation = p;
             if (!previewMode)
             {
-                settings.Save();
+                settings.Save(registryPath);
             }
         }
 
@@ -477,7 +566,7 @@ namespace WallpaperControl
             settings.WeatherLocation = p;
             if (!previewMode)
             {
-                settings.Save();
+                settings.Save(registryPath);
             }
         }
 
@@ -490,7 +579,7 @@ namespace WallpaperControl
             settings.CalendarLocation = p;
             if (!previewMode)
             {
-                settings.Save();
+                settings.Save(registryPath);
             }
         }
 
@@ -544,6 +633,27 @@ namespace WallpaperControl
             DesktopWidgetNative.KeepOnDesktop(widget);
         }
 
+        /// <summary>Reads a coherent UI-thread snapshot only for an active, unsuspended widget.</summary>
+        internal void RefreshWallpaperInfo()
+        {
+            if (activitySuspended || wallpaperInfoWidget == null || wallpaperInfoWidget.IsDisposed) return;
+            wallpaperInfoWidget.SetData(wallpaperInfoSource?.Invoke(settings.WallpaperInfoShowAdvanced) ?? default);
+        }
+
+        private void EditNote(NoteEntry? entry)
+        {
+            if (notesDialogOpen) return;
+            notesDialogOpen = true;
+            try { using NoteEditorForm editor = new(notesStore, entry, settings.ClockLanguageCode); editor.ShowDialog(); }
+            finally { notesDialogOpen = false; }
+        }
+
+        internal void ShowNotesManager(IWin32Window owner, string language)
+        {
+            using NotesManagerForm manager = new(notesStore, language);
+            manager.ShowDialog(owner);
+        }
+
         private bool activitySuspended;
         /// <summary>
         /// Forwards automatic suspension to the widgets that perform periodic background work.
@@ -553,6 +663,9 @@ namespace WallpaperControl
         {
             bool resumed = activitySuspended && !suspended;
             activitySuspended = suspended;
+            wallpaperInfoWidget?.SetActivitySuspended(suspended);
+            if (resumed) RefreshWallpaperInfo();
+            notesWidget?.SetActivitySuspended(suspended);
             clock?.SetActivitySuspended(suspended);
             systemWidget?.SetActivitySuspended(suspended);
             weatherWidget?.SetActivitySuspended(suspended);
@@ -587,6 +700,13 @@ namespace WallpaperControl
             calendarWidget?.Dispose();
             calendarWidget = null;
 
+            wallpaperInfoWidget?.Close();
+            wallpaperInfoWidget?.Dispose();
+            wallpaperInfoWidget = null;
+
+            notesWidget?.Close();
+            notesWidget?.Dispose();
+            notesWidget = null;
             desktopWidgets.Clear();
             calendarProvider.Dispose();
         }
