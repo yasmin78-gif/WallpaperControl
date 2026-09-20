@@ -83,6 +83,10 @@ namespace WallpaperControl
                 ApplyLocalizedText(
                     Controls);
 
+                // Keep the notes navigation glyph when localized control text is refreshed.
+                if (settingsNotesNavigationButton is Button notesNavigation)
+                    notesNavigation.Text = $"{notesNavigation.AccessibleDescription}   {Localization.Get("NotesTitle", previewLanguageCode)}";
+
                 RebuildModifierChoices(
                     nextModifierCombo,
                     nextModifiers);

@@ -6,29 +6,46 @@ namespace WallpaperControl
     {
         private readonly NotesStore store;
         private readonly string language;
+        private readonly SystemWidgetStyle style;
         private readonly ListView list = new() { View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false, Dock = DockStyle.Fill };
         private readonly Label status = new() { AutoSize = true, Dock = DockStyle.Top, MaximumSize = new Size(800, 0) };
 
-        internal NotesManagerForm(NotesStore store, string language)
+        internal NotesManagerForm(NotesStore store, string language, SystemWidgetStyle style = SystemWidgetStyle.Minimal)
         {
-            this.store = store; this.language = language;
+            this.store = store; this.language = language; this.style = style;
             Text = Localization.Get("NotesManage", language);
             AutoScaleMode = AutoScaleMode.Dpi; AutoScaleDimensions = new SizeF(96, 96);
             ClientSize = new Size(840, 450); MinimumSize = new Size(680, 350);
             StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;
             foreach (var (key, width) in new[] { ("NotesStatus", 140), ("NotesEntryTitle", 390), ("NotesDate", 140), ("NotesTime", 130) })
                 list.Columns.Add(Localization.Get(key, language), width);
-            FlowLayoutPanel actions = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(8) };
+            TableLayoutPanel footer = new() { Dock = DockStyle.Bottom, AutoSize = true, ColumnCount = 2, RowCount = 1, Padding = new Padding(8) };
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            FlowLayoutPanel actions = new() { Dock = DockStyle.Fill, AutoSize = true, Margin = Padding.Empty };
+            Button close = new() { Text = Localization.Get("AboutClose", language), AutoSize = true, MinimumSize = new Size(110, 32), Anchor = AnchorStyles.Right | AnchorStyles.Bottom, DialogResult = DialogResult.Cancel };
+            close.Click += (_, _) => Close();
+            CancelButton = close;
+            footer.Controls.Add(actions, 0, 0); footer.Controls.Add(close, 1, 0);
             AddAction(actions, "NotesNew", () => Edit(null));
             AddAction(actions, "NotesEdit", () => { if (Selected is NoteEntry e) Edit(e); });
             AddAction(actions, "NotesToggle", () => ToggleSelected());
             AddAction(actions, "NotesDelete", () => DeleteSelected());
-            Controls.Add(list); Controls.Add(status); Controls.Add(actions);
+            Controls.Add(list); Controls.Add(status); Controls.Add(footer);
             list.DoubleClick += (_, _) => { if (Selected is NoteEntry e) Edit(e); };
             list.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter && Selected is NoteEntry entry) { Edit(entry); e.Handled = true; } };
             store.Changed += RefreshEntries;
             RefreshEntries();
+            NotesDialogStyle.Apply(this, style);
+            list.ClientSizeChanged += (_, _) => ResizeLastColumn();
+            ResizeLastColumn();
             if (store.LoadIssue) status.Text = Localization.Get("NotesLoadIssue", language);
+        }
+
+        private void ResizeLastColumn()
+        {
+            int fixedWidth = list.Columns.Cast<ColumnHeader>().Take(3).Sum(column => column.Width);
+            list.Columns[3].Width = Math.Max(90 * list.DeviceDpi / 96, list.ClientSize.Width - fixedWidth);
         }
 
         private NoteEntry? Selected => list.SelectedItems.Count == 1 ? list.SelectedItems[0].Tag as NoteEntry : null;
@@ -37,7 +54,7 @@ namespace WallpaperControl
             Button button = new() { Text = Localization.Get(key, language), AutoSize = true, MinimumSize = new Size(110, 32), Enabled = store.CanWrite };
             button.Click += (_, _) => action(); panel.Controls.Add(button);
         }
-        private void Edit(NoteEntry? entry) { using NoteEditorForm editor = new(store, entry, language); editor.ShowDialog(this); }
+        private void Edit(NoteEntry? entry) { using NoteEditorForm editor = new(store, entry, language, style); editor.ShowDialog(this); }
         internal bool ToggleSelected() => Report(Selected is NoteEntry e && store.Complete(e.Id, !e.IsCompleted));
         internal bool DeleteSelected() => Report(Selected is NoteEntry e && store.Delete(e.Id));
         private bool Report(bool success) { if (!success) status.Text = Localization.Get("NotesSaveError", language); return success; }

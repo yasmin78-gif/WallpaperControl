@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -644,13 +644,13 @@ namespace WallpaperControl
         {
             if (notesDialogOpen) return;
             notesDialogOpen = true;
-            try { using NoteEditorForm editor = new(notesStore, entry, settings.ClockLanguageCode); editor.ShowDialog(); }
+            try { using NoteEditorForm editor = new(notesStore, entry, settings.ClockLanguageCode, settings.NotesStyle); editor.ShowDialog(); }
             finally { notesDialogOpen = false; }
         }
 
         internal void ShowNotesManager(IWin32Window owner, string language)
         {
-            using NotesManagerForm manager = new(notesStore, language);
+            using NotesManagerForm manager = new(notesStore, language, settings.NotesStyle);
             manager.ShowDialog(owner);
         }
 

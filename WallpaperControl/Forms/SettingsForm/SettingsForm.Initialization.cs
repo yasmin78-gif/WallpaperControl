@@ -194,7 +194,7 @@ namespace WallpaperControl
             settingsCalendarNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, calendarWidgetPage, "▣", "SettingsNavCalendar", 430, 14);
             settingsWallpaperInfoNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, wallpaperInfoPage, "ⓘ", "WallpaperInfoTitle", 476, 14);
             settingsWallpaperInfoNavigationButton.Font = CreateOwnedFont("Segoe UI", 8.5f);
-            settingsNotesNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, notesPage, "", "NotesTitle", 522, 14);
+            settingsNotesNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, notesPage, "▤", "NotesTitle", 522, 14);
             settingsNotesNavigationButton.Font = CreateOwnedFont("Segoe UI", 8.5f);
             settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 490);
             settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 536);

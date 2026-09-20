@@ -16,7 +16,7 @@ namespace WallpaperControl
         private readonly DateTimePicker time = new() { Format = DateTimePickerFormat.Time, ShowUpDown = true, Width = 160 };
         private readonly Label error = new() { AutoSize = true, ForeColor = Color.Firebrick, MaximumSize = new Size(500, 0) };
 
-        internal NoteEditorForm(NotesStore store, NoteEntry? entry, string language)
+        internal NoteEditorForm(NotesStore store, NoteEntry? entry, string language, SystemWidgetStyle style = SystemWidgetStyle.Minimal)
         {
             this.store = store;
             this.language = language;
@@ -58,6 +58,8 @@ namespace WallpaperControl
             completed.Checked = original.IsCompleted;
             reminder.CheckedChanged += (_, _) => UpdateDateControls(); timed.CheckedChanged += (_, _) => UpdateDateControls();
             UpdateDateControls();
+            NotesDialogStyle.Apply(this, style);
+            error.ForeColor = Color.FromArgb(245, 160, 145);
         }
 
         private void AddLabel(TableLayoutPanel layout, string key) => layout.Controls.Add(new Label { Text = Localization.Get(key, language), AutoSize = true, Margin = new Padding(3, 10, 3, 3) });

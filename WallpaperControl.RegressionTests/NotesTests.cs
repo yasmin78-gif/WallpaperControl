@@ -25,7 +25,7 @@ internal static class NotesTests
     {
         ModelAndTime(check); Storage(check);
         // Run synchronously on an STA thread; Task captures and rethrows assertion failures to the runner.
-        using Task work = new(() => { Dialogs(check); Widget(check); Settings(check); Manager(check); });
+        using Task work = new(() => { Dialogs(check); DialogAppearance(check); Widget(check); Settings(check); Manager(check); });
         Thread thread = new(() => work.RunSynchronously(TaskScheduler.Default));
         thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join(); work.GetAwaiter().GetResult();
     }
@@ -145,9 +145,18 @@ internal static class NotesTests
             using App.NotesManagerForm manager = new(store, language);
             manager.Scale(new SizeF(scale, scale)); manager.PerformLayout();
             ListView managerList = Field<ListView>(manager, "list");
-            FlowLayoutPanel actions = manager.Controls.OfType<FlowLayoutPanel>().Single(); actions.PerformLayout();
+            TableLayoutPanel footer = manager.Controls.OfType<TableLayoutPanel>().Single(); footer.PerformLayout();
+            FlowLayoutPanel actions = footer.Controls.OfType<FlowLayoutPanel>().Single(); actions.PerformLayout();
             check(actions.Controls.Cast<Control>().All(c => c.Bottom <= actions.Height && c.Right <= actions.Width)
-                && managerList.Bottom <= actions.Top, $"Notes manager {language}/{scale} action buttons and list do not overlap");
+                && managerList.Bottom <= footer.Top, $"Notes manager {language}/{scale} action buttons and list do not overlap");
+            Button close = (Button)manager.CancelButton!;
+            check(close.Text == App.Localization.Get("AboutClose", language) && close.Enabled
+                && close.Right <= footer.ClientSize.Width && close.Left >= actions.Right
+                && close.Bottom <= footer.ClientSize.Height,
+                $"Notes manager {language}/{scale} localized Close stays separate at bottom right");
+            check(editor.BackColor == Color.FromArgb(255, App.WidgetDrawing.GetPalette(App.SystemWidgetStyle.Minimal).panel)
+                && manager.BackColor == editor.BackColor && managerList.BackColor != SystemColors.Window,
+                $"Notes dialogs {language}/{scale} inherit the widget palette");
             if (output != null && scale == 1)
             {
                 Directory.CreateDirectory(output); editor.Opacity = 0; editor.Show();
@@ -157,6 +166,22 @@ internal static class NotesTests
                 manager.DrawToBitmap(managerImage, new Rectangle(Point.Empty, managerImage.Size));
                 managerImage.Save(Path.Combine(output, "manager-" + language + ".png"));
             }
+        }
+    }
+
+    private static void DialogAppearance(Action<bool, string> check)
+    {
+        App.NotesStore store = new(FixturePath());
+        foreach (App.SystemWidgetStyle style in Enum.GetValues<App.SystemWidgetStyle>())
+        {
+            using App.NoteEditorForm editor = new(store, null, "de", style);
+            using App.NotesManagerForm manager = new(store, "de", style);
+            Color expected = Color.FromArgb(255, App.WidgetDrawing.GetPalette(style).panel);
+            check(editor.BackColor == expected && manager.BackColor == expected,
+                $"Notes dialogs use selected {style} widget background");
+            manager.Opacity = 0; manager.Show();
+            ((Button)manager.CancelButton!).PerformClick();
+            check(!manager.Visible && store.Entries.Count == 0, $"Notes manager {style} Close dismisses without changing entries");
         }
     }
 
