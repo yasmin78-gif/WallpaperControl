@@ -6,7 +6,7 @@
 
 Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an der Uhrzeit ausgerichtete Diashow-Engine, direkt auf dem Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei integriert es sich sauber in den Windows-Desktop und stellt beim Beenden der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v1.8.5**
+**Aktuelle Version: v1.8.6**
 
 ## ✨ Funktionen
 
@@ -34,13 +34,14 @@ Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an 
   - Der Zufallsmodus wählt bei jedem Wallpaper-Wechsel einen anderen Effekt und variiert, sofern zutreffend, auch Richtung oder Zoom-Modus
   - Einstellbare Übergangsdauer
   - Desktop-Symbole und Desktop-Tools bleiben über der Übergangsebene sichtbar
-  - Bei mehreren Monitoren oder Span übernimmt Windows die native Wallpaper-Darstellung anstelle der eigenen Animationen
 
 - 🕐 **Native Desktop-Widgets**
   - Uhr-Widget mit 5 wählbaren Designs
   - Systemmonitor-Widget
   - Wetter-Widget mit optionaler 3-Tage-Vorhersage
   - Kalender-Widget mit iCalendar-/ICS-Unterstützung
+  - Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen Wallpaper
+  - Notizen-&-Reminder-Widget mit lokaler Aufgaben- und Erinnerungsverwaltung
   - Optionaler Nächstes-Wallpaper-Button
   - Widgets können unabhängig voneinander frei auf dem Desktop positioniert werden
   - Position jedes Widgets kann separat gesperrt werden
@@ -123,6 +124,7 @@ Es erweitert die standardmäßige Windows-Wallpaper-Funktion um eine eigene, an 
   - Speichert die Fensterposition
   - Drag-&-Drop-Unterstützung
   - Neu organisierte Einstellungsoberfläche
+  - Widget-Einstellungen werden alphabetisch nach ihren lokalisierten Namen sortiert und starten eingeklappt
   - Einstellungen öffnen immer auf dem Tab **Allgemein**
   - Überarbeitetes Hauptfenster mit klarerer Gruppierung und verbesserter visueller Hierarchie
   - Dunkle Dropdowns und bessere Lesbarkeit deaktivierter Bedienelemente
@@ -138,7 +140,7 @@ Wallpaper Control kann die Hintergrundaktivität automatisch reduzieren, solange
 - Pausiert automatische Wallpaper-Wechsel und Übergangsanimationen
 - Setzt reguläre Aktualisierungen der Desktop-Widgets vorübergehend aus
 - Verschiebt automatische Update-Prüfungen
-- Setzt die Aktivität fort, nachdem zwei Sekunden lang keine Vollbildanwendung aktiv war
+- Verwendet eine schnellere stabilisierte Vollbild-Ende-Erkennung und stellt Widgets nach der Wiederaufnahme erneut korrekt in der Desktop-Fensterreihenfolge her
 - Kurze Alt-Tab-Wechsel starten pausierte Hintergrundaktivitäten dadurch nicht sofort neu
 - Eine manuell pausierte Diashow bleibt auch nach Ende des Vollbildmodus pausiert
 - Die Vollbilderkennung ist standardmäßig aktiviert und kann in den Einstellungen deaktiviert werden
@@ -264,6 +266,16 @@ Feiertagsereignisse werden visuell hervorgehoben und automatisch vor normalen Te
 Mehrere normale Kalender- und Feiertagsquellen können im selben Kalender-Widget kombiniert werden.
 
 Kalenderaktualisierungen sind robust gegenüber vorübergehenden Feed-Ausfällen. Bereits geladene Ereignisse bleiben sichtbar, wenn eine einzelne Quelle nicht erreichbar ist, während verfügbare Feeds weiterhin aktualisiert werden. Wallpaper Control weist darauf hin, wenn zwischengespeicherte Kalenderdaten möglicherweise veraltet sind, und entfernt die Warnung wieder, sobald alle konfigurierten Feeds erfolgreich aktualisiert wurden. Zwischengespeicherte Ereignisse bleiben für die aktuelle Anwendungssitzung erhalten.
+
+### ℹ️ Wallpaper-Info
+
+Das kompakte Wallpaper-Info-Widget kann den Namen des aktuellen Wallpapers, dessen bisherige Anzeigeanzahl und die Gesamtzahl verfügbarer Wallpaper anzeigen. Eine optionale zweite Zeile ergänzt durchschnittliche Anzeigen, Gesamtanzeigen und Rekord. Die Schriftgröße ist von **10–24 px** einstellbar. Dateiendungen können ausgeblendet werden; außerdem lassen sich mehrere komma-getrennte Suffixe ausschließlich aus dem angezeigten Namen entfernen. Lange Namen werden automatisch gekürzt. Das Widget unterstützt **Minimal**, **Clean** und **Glow**.
+
+### 📝 Notizen & Reminder
+
+Das Notizen-&-Reminder-Widget bietet eine schlanke lokale Aufgaben- und Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel, Beschreibung sowie optional Datum und Uhrzeit enthalten und werden in Ohne Termin, Überfällig, Heute, Morgen und weitere Tage gruppiert. Einträge lassen sich über das Widget und den eigenen Manager erstellen, bearbeiten, abhaken, löschen und wieder öffnen. Unter der festen Kopfzeile ist der Inhalt scrollbar, die Maximalhöhe ist einstellbar und die Bedienelemente bleiben auch bei gesperrter Widgetposition nutzbar. Verwaltung und Editor folgen dem aktuellen Hell-/Dunkel-Design der Anwendung. Die Daten werden lokal als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter Dateien gespeichert. Das Widget unterstützt **Minimal**, **Clean** und **Glow**.
+
+Erinnerungsdatum und -uhrzeit werden im Widget angezeigt. **Windows-Benachrichtigungen sind in v1.8.6 nicht enthalten.**
 
 ### Nächstes Wallpaper
 
@@ -396,7 +408,7 @@ Texte und Datumsformatierung der Desktop-Widgets folgen der ausgewählten Anwend
 
 Der **offizielle Installationsweg** für Wallpaper Control ist der Windows-x64-Installer, der mit jedem Release bereitgestellt wird.
 
-1. Lade `WallpaperControl-1.8.3-Setup-x64.exe` aus dem neuesten GitHub-Release herunter.
+1. Lade `WallpaperControl-1.8.6-Setup-x64.exe` aus dem neuesten GitHub-Release herunter.
 2. Beende eine bereits laufende Wallpaper-Control-Instanz vor der Installation oder Aktualisierung vollständig über das Infobereich-Symbol.
 3. Starte den Installer.
 4. Wähle während der Installation optional eine Desktop-Verknüpfung aus.
@@ -414,7 +426,7 @@ Der Installer ist derzeit **nicht digital signiert**. Windows kann daher beim St
 
 ## 🔒 Datenschutz
 
-Wallpaper Control speichert seine Anwendungseinstellungen und Wallpaper-Statistiken lokal auf deinem Computer.
+Wallpaper Control speichert Anwendungseinstellungen, Wallpaper-Statistiken, Notizen und Reminder lokal auf deinem Computer.
 
 Es ist kein Wallpaper-Control-Konto erforderlich.
 

@@ -6,7 +6,7 @@
 
 Il enrichit la gestion standard des fonds d’écran de Windows grâce à son propre moteur de diaporama synchronisé sur l’horloge, à des effets de transition rendus directement sur le bureau et à des widgets de bureau optionnels. Il s’intègre proprement au bureau Windows et restaure la gestion native des fonds d’écran lorsque l’application se ferme.
 
-**Version actuelle : v1.8.5**
+**Version actuelle : v1.8.6**
 
 ## ✨ Fonctionnalités
 
@@ -40,6 +40,8 @@ Il enrichit la gestion standard des fonds d’écran de Windows grâce à son pr
   - Widget de surveillance du système
   - Widget Météo avec prévisions optionnelles sur 3 jours
   - Widget Calendrier avec prise en charge d’iCalendar / ICS
+  - Widget compact d’informations sur le fond d’écran avec statistiques du fond actuel
+  - Widget Notes et rappels avec gestion locale des tâches et rappels
   - Bouton optionnel Fond d’écran suivant
   - Positionnement indépendant des widgets n’importe où sur le bureau
   - Verrouillage indépendant de la position de chaque widget
@@ -122,6 +124,7 @@ Il enrichit la gestion standard des fonds d’écran de Windows grâce à son pr
   - Mémorisation de la position de la fenêtre
   - Prise en charge du glisser-déposer
   - Interface des paramètres réorganisée
+  - Les paramètres des widgets sont triés selon leurs noms localisés et commencent repliés
   - Les paramètres s’ouvrent toujours sur l’onglet **Général**
   - Fenêtre principale actualisée avec des groupes plus clairs et une meilleure hiérarchie visuelle
   - Listes déroulantes sombres et meilleure lisibilité des contrôles désactivés
@@ -137,7 +140,7 @@ Wallpaper Control peut réduire automatiquement l’activité en arrière-plan l
 - Met en pause les changements automatiques de fond d’écran et les animations de transition
 - Suspend les actualisations régulières des widgets de bureau
 - Reporte les vérifications automatiques de mises à jour
-- Reprend l’activité après deux secondes sans application en plein écran
+- Utilise une détection de sortie du plein écran plus rapide et stabilisée et replace les widgets correctement dans l’ordre du bureau après la reprise
 - Un bref Alt-Tab ne relance donc pas immédiatement l’activité suspendue
 - Un diaporama mis en pause manuellement reste en pause à la fin du mode plein écran
 - La détection du plein écran est activée par défaut et peut être désactivée dans les paramètres
@@ -263,6 +266,16 @@ Les jours fériés sont mis en évidence visuellement et placés automatiquement
 Plusieurs sources de calendriers normaux et de jours fériés peuvent être combinées dans le même widget Calendrier.
 
 Les actualisations du calendrier résistent aux défaillances temporaires des flux. Les événements déjà chargés restent visibles lorsqu’une source devient indisponible, tandis que les flux disponibles continuent d’être actualisés. Wallpaper Control indique lorsque les données mises en cache peuvent être obsolètes et supprime l’avertissement dès que toutes les sources configurées ont été actualisées avec succès. Les événements en cache sont conservés pendant la session actuelle.
+
+### ℹ️ Informations sur le fond d’écran
+
+Le widget compact Informations sur le fond d’écran peut afficher le nom du fond actuel, son nombre d’affichages et le nombre total de fonds disponibles. Une seconde ligne optionnelle ajoute la moyenne, le total des affichages et le record. La taille de police est réglable de **10–24 px**. Les extensions et plusieurs suffixes séparés par des virgules peuvent être masqués uniquement dans le nom affiché. Les noms longs sont automatiquement raccourcis. Le widget prend en charge **Minimal**, **Clean** et **Glow**.
+
+### 📝 Notes et rappels
+
+Le widget Notes et rappels offre une gestion locale légère des tâches et rappels sur le bureau. Les entrées peuvent contenir un titre, une description et une date/heure optionnelles, et sont regroupées en Sans date, En retard, Aujourd’hui, Demain et jours à venir. Elles peuvent être créées, modifiées, terminées, supprimées et rouvertes depuis le widget et son gestionnaire. Le contenu défile sous un en-tête fixe, la hauteur maximale est configurable et les contrôles restent utilisables lorsque la position est verrouillée. Le gestionnaire et l’éditeur suivent le thème Clair/Sombre actuel. Les données sont stockées localement en JSON avec écriture atomique, sauvegarde et protection des fichiers endommagés. Le widget prend en charge **Minimal**, **Clean** et **Glow**.
+
+Les dates et heures sont affichées dans le widget. **Les notifications Windows ne sont pas incluses dans v1.8.6.**
 
 ### Fond d’écran suivant
 
@@ -395,7 +408,7 @@ Les textes et le format des dates des widgets suivent la langue sélectionnée.
 
 La **méthode d’installation officielle** de Wallpaper Control est l’installateur Windows x64 fourni avec chaque version.
 
-1. Téléchargez `WallpaperControl-1.8.3-Setup-x64.exe` depuis la dernière version GitHub.
+1. Téléchargez `WallpaperControl-1.8.6-Setup-x64.exe` depuis la dernière version GitHub.
 2. Fermez complètement toute instance existante de Wallpaper Control depuis la zone de notification avant l’installation ou la mise à niveau.
 3. Lancez l’installateur.
 4. Sélectionnez éventuellement un raccourci sur le Bureau pendant l’installation.
