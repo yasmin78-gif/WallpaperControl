@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -112,7 +112,7 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Previews widget changes and commits accepted preferences, hotkeys, theme, and localization.
+        /// Commits application preferences, hotkeys, theme, and localization.
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The event data supplied by WinForms or the event source.</param>
@@ -120,9 +120,17 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
-            WidgetSettings originalWidgetSettings =
-                widgetManager.Settings;
+            if (!ResolveWidgetNavigation()) return;
+            try { ShowGeneralSettings(); }
+            finally
+            {
+                UpdateWidgetPresentation();
+                if (showingWidgets) widgetEditSession?.Begin();
+            }
+        }
 
+        private void ShowGeneralSettings()
+        {
             using SettingsForm dialog =
                 new SettingsForm(
                     darkMode,
@@ -141,11 +149,7 @@ namespace WallpaperControl
                     closeToTrayEnabled,
                     automaticUpdateCheckEnabled,
                     pauseOnFullscreen,
-                    windowOpacityPercent,
-                    originalWidgetSettings,
-                    previewSettings =>
-                        widgetManager.Preview(previewSettings));
-            dialog.ConfigureNotesManager(widgetManager.ShowNotesManager);
+                    windowOpacityPercent);
 
             string languageBefore =
                 Localization.CurrentLanguage;
@@ -155,8 +159,6 @@ namespace WallpaperControl
             if (dialog.ShowDialog(this) !=
                 DialogResult.OK)
             {
-                widgetManager.CancelPreview(
-                    originalWidgetSettings);
                 return;
             }
 
@@ -223,9 +225,6 @@ namespace WallpaperControl
 
             int newWindowOpacityPercent =
                 dialog.WindowOpacityPercent;
-
-            WidgetSettings newWidgetSettings =
-                dialog.WidgetSettings;
 
             string newThemeMode =
                 AppSettingsStore.NormalizeThemeMode(
@@ -294,7 +293,7 @@ namespace WallpaperControl
                 ApplyWindowsTheme();
             }
 
-            widgetManager.CommitPreview(newWidgetSettings);
+            UpdateWidgetPresentation();
 
             if (IsHandleCreated)
             {
@@ -308,6 +307,9 @@ namespace WallpaperControl
 
             if (languageChanged)
             {
+                WidgetSettings localizedWidgets = widgetManager.Settings;
+                localizedWidgets.ClockLanguageCode = Localization.CurrentLanguage;
+                widgetManager.CommitPreview(localizedWidgets);
                 ApplyLocalization();
             }
 

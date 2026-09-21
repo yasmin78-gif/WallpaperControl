@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -10,7 +10,7 @@ namespace WallpaperControl
     internal sealed partial class SettingsForm
     {
         /// <summary>
-        /// Applies the selected language to the dialog and widget previews.
+        /// Applies the selected language to the application preference preview.
         /// </summary>
         /// <param name="sender">The object that raised the event.</param>
         /// <param name="e">The event data supplied by WinForms or the event source.</param>
@@ -83,10 +83,6 @@ namespace WallpaperControl
                 ApplyLocalizedText(
                     Controls);
 
-                // Keep the notes navigation glyph when localized control text is refreshed.
-                if (settingsNotesNavigationButton is Button notesNavigation)
-                    notesNavigation.Text = $"{notesNavigation.AccessibleDescription}   {Localization.Get("NotesTitle", previewLanguageCode)}";
-
                 RebuildModifierChoices(
                     nextModifierCombo,
                     nextModifiers);
@@ -108,15 +104,6 @@ namespace WallpaperControl
 
                 RefreshThemeChoices(
                     previewThemeMode);
-
-                RefreshClockStyleChoices(GetSelectedClockStyle());
-                RefreshSystemStyleChoices(GetSelectedSystemStyle());
-                RefreshWeatherStyleChoices(GetSelectedWeatherStyle());
-                RefreshNextStyleChoices(GetSelectedNextStyle());
-                RefreshWidgetStyleChoices(notesStyle, (SystemWidgetStyle)Math.Max(0, notesStyle.SelectedIndex));
-                RefreshWidgetStyleChoices(wallpaperInfoStyle, GetWallpaperInfoStyle());
-                wallpaperInfoSuffix.AccessibleName = Localization.Get("WallpaperInfoSuffix", previewLanguageCode);
-                RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
 
                 SetComboValues(
                     nextModifierCombo,
@@ -147,7 +134,7 @@ namespace WallpaperControl
                 updatingLanguagePreview = false;
             }
 
-            NotifyWidgetPreviewChanged();
+            UpdateSettingsNavigationText();
         }
 
         /// <summary>

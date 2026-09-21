@@ -23,6 +23,18 @@ try
         Console.WriteLine("PASS: " + name);
         passed++;
     }
+    if (args.Contains("--wallpaper-layout"))
+    {
+        WallpaperLayoutTests.Run(Check);
+        Console.WriteLine($"All {passed} wallpaper layout checks passed.");
+        return 0;
+    }
+    if (args.Contains("--status-ui"))
+    {
+        SlideshowStatusUiTests.Run(Check);
+        Console.WriteLine($"All {passed} status UI checks passed.");
+        return 0;
+    }
     CalendarTests.Run(Check);
     StatisticsTests.Run(Check);
     HotkeyTests.Run(Check);
@@ -34,6 +46,9 @@ try
     CalendarScrollTests.Run(Check);
     WallpaperInfoTests.Run(Check);
     NotesTests.Run(Check);
+    WidgetNavigationTests.Run(Check);
+    SlideshowStatusUiTests.Run(Check);
+    WallpaperLayoutTests.Run(Check);
     var root = Path.Combine(AppContext.BaseDirectory, "test-data", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(root);
     var path = Path.Combine(root, "statistics.json");

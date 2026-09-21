@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -95,23 +95,7 @@ namespace WallpaperControl
             public override string ToString() =>
                 Text;
         }
-        /// <summary>
-        /// Rebuilds the shared widget style options without changing selection event ordering.
-        /// </summary>
-        /// <param name="comboBox">The widget-style selector to populate, when it has been created.</param>
-        /// <param name="selectedStyle">The widget style to keep selected.</param>
-        private void RefreshWidgetStyleChoices(ComboBox? comboBox, SystemWidgetStyle selectedStyle)
-        {
-            if (comboBox == null) return;
 
-            comboBox.BeginUpdate();
-            comboBox.Items.Clear();
-            comboBox.Items.Add(Localization.Get("ClockStyleMinimal", previewLanguageCode));
-            comboBox.Items.Add(Localization.Get("ClockStyleClean", previewLanguageCode));
-            comboBox.Items.Add(Localization.Get("ClockStyleGlow", previewLanguageCode));
-            comboBox.SelectedIndex = Math.Clamp((int)selectedStyle, 0, 2);
-            comboBox.EndUpdate();
-        }
 
     }
 }

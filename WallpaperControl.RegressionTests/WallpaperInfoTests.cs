@@ -156,14 +156,14 @@ internal static class WallpaperInfoTests
         finally { Registry.CurrentUser.DeleteSubKeyTree(keyPath, false); }
     }
 
-    private static App.SettingsForm NewSettings(App.WidgetSettings value, Action<App.WidgetSettings>? preview = null) =>
-        new(false, "system", 0, 0, 0, 0, 0, 0, 0, 0, "", true, false, true, true, true, 92, value, preview);
+    private static App.WidgetSettingsEditor NewSettings(App.WidgetSettings value, Action<App.WidgetSettings>? preview = null) =>
+        new(value, preview: preview);
 
     private static void Settings(Action<bool, string> check)
     {
         App.WidgetSettings original = new();
         App.WidgetSettings? preview = null;
-        using (App.SettingsForm form = NewSettings(original, value => preview = value))
+        using (App.WidgetSettingsEditor form = NewSettings(original, value => preview = value))
         {
             Field<CheckBox>(form, "wallpaperInfoEnabled").Checked = true;
             Field<CheckBox>(form, "wallpaperInfoAdvanced").Checked = true;
@@ -173,22 +173,21 @@ internal static class WallpaperInfoTests
 #pragma warning restore CA1303
             check(preview is { WallpaperInfoEnabled: true, WallpaperInfoShowAdvanced: true, WallpaperInfoHiddenSuffix: " _a b " }
                 && !original.WallpaperInfoEnabled, "Wallpaper info edits publish independent live previews");
-            Invoke(form, "SaveAndClose");
-            check(form.WidgetSettings.WallpaperInfoHiddenSuffix == "_a b" && form.WidgetSettings.WallpaperInfoEnabled,
+            var acceptedSettings = form.ReadWidgetSettings(true);
+            check(acceptedSettings.WallpaperInfoHiddenSuffix == "_a b" && acceptedSettings.WallpaperInfoEnabled,
                 "Wallpaper info Settings Save accepts and normalizes the draft");
         }
-        using (App.SettingsForm form = NewSettings(original))
+        using (App.WidgetSettingsEditor form = NewSettings(original))
         {
             Field<CheckBox>(form, "wallpaperInfoEnabled").Checked = true;
-            form.DialogResult = DialogResult.Cancel;
-            form.Close();
+            form.Dispose();
             check(!original.WallpaperInfoEnabled && original.WallpaperInfoHiddenSuffix == "_3440x1440",
                 "Wallpaper info Settings Cancel preserves initial preferences");
         }
-        using (App.SettingsForm form = NewSettings(new App.WidgetSettings { WallpaperInfoEnabled = true, WallpaperInfoShowAdvanced = true,
+        using (App.WidgetSettingsEditor form = NewSettings(new App.WidgetSettings { WallpaperInfoEnabled = true, WallpaperInfoShowAdvanced = true,
             WallpaperInfoShowExtension = true, WallpaperInfoLocked = true, WallpaperInfoStyle = App.SystemWidgetStyle.Glow, WallpaperInfoHiddenSuffix = "custom" }))
         {
-            Invoke(form, "ResetAllSettings");
+            form.ResetDefaults();
             var draft = (App.WidgetSettings)Invoke(form, "ReadWidgetSettings", false)!;
             check(!draft.WallpaperInfoEnabled && !draft.WallpaperInfoLocked && !draft.WallpaperInfoShowAdvanced
                 && !draft.WallpaperInfoShowExtension && draft.WallpaperInfoStyle == App.SystemWidgetStyle.Minimal
@@ -197,18 +196,18 @@ internal static class WallpaperInfoTests
         foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
         foreach (float scale in new[] { 1f, 1.5f, 2f })
         {
-            using App.SettingsForm form = NewSettings(original);
-            Invoke(form, "ApplyPreviewLocalization", language);
+            using App.WidgetSettingsEditor form = NewSettings(original);
+            form.ApplyPresentation(false, language);
             Control layout = Field<TextBox>(form, "wallpaperInfoSuffix").Parent!;
-            Button navigation = Field<Button>(form, "settingsWallpaperInfoNavigationButton");
+            Button navigation = Field<FlowLayoutPanel>(form, "navigation").Controls.OfType<Button>().Single(b => b.AccessibleDescription == "ⓘ");
             Size caption = TextRenderer.MeasureText(navigation.Text, navigation.Font);
             check(caption.Width + navigation.Padding.Horizontal <= navigation.ClientSize.Width,
                 $"Wallpaper info {language}/{scale} full sidebar caption fits");
             string? output = Environment.GetEnvironmentVariable("WALLPAPER_INFO_TEST_OUTPUT");
             if (output != null && scale == 1)
             {
-                Field<TabControl>(form, "settingsTabControl").SelectedTab = (TabPage)layout.Parent!;
-                form.Opacity = 0;
+                Field<TabControl>(form, "pages").SelectedTab = (TabPage)layout.Parent!;
+
                 form.Show();
                 using Bitmap settingsImage = new(form.Width, form.Height);
                 form.DrawToBitmap(settingsImage, new Rectangle(Point.Empty, settingsImage.Size));

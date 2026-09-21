@@ -288,35 +288,34 @@ internal static class CalendarScrollTests
     private static void Settings(Action<bool, string> check)
     {
         App.WidgetSettings original = new() { CalendarMaximumHeight = 900 };
-        using (App.SettingsForm form = NewSettings(original))
+        using (App.WidgetSettingsEditor form = NewSettings(original))
         {
             NumericUpDown numeric = Field<NumericUpDown>(form, "calendarMaximumHeightNumeric");
             numeric.Value = 350;
             var draft = (App.WidgetSettings)form.GetType().GetMethod("ReadWidgetSettings", Members)!.Invoke(form, new object[] { false })!;
             check(draft.CalendarMaximumHeight == 350 && original.CalendarMaximumHeight == 900,
                 "Calendar maximum-height draft and manual preview copy preserve the original for Cancel");
-            form.DialogResult = DialogResult.Cancel;
-            form.Close();
+            form.Dispose();
             check(original.CalendarMaximumHeight == 900, "Calendar Settings Cancel retains the original maximum height");
         }
-        using (App.SettingsForm form = NewSettings(original))
+        using (App.WidgetSettingsEditor form = NewSettings(original))
         {
             Field<NumericUpDown>(form, "calendarMaximumHeightNumeric").Value = 1000;
-            Invoke(form, "SaveAndClose");
-            check(form.WidgetSettings.CalendarMaximumHeight == 1000 && original.CalendarMaximumHeight == 900,
+            var acceptedSettings = form.ReadWidgetSettings(true);
+            check(acceptedSettings.CalendarMaximumHeight == 1000 && original.CalendarMaximumHeight == 900,
                 "Calendar Settings Save accepts an independent maximum-height snapshot");
         }
-        using (App.SettingsForm form = NewSettings(original))
+        using (App.WidgetSettingsEditor form = NewSettings(original))
         {
-            Invoke(form, "ResetAllSettings");
+            form.ResetDefaults();
             check(Field<NumericUpDown>(form, "calendarMaximumHeightNumeric").Value == 700,
                 "Calendar Reset restores the logical 700-pixel default");
         }
         foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
         foreach (float scale in new[] { 1f, 1.5f, 2f })
         {
-            using App.SettingsForm form = NewSettings(original);
-            Invoke(form, "ApplyPreviewLocalization", language);
+            using App.WidgetSettingsEditor form = NewSettings(original);
+            form.ApplyPresentation(false, language);
             NumericUpDown numeric = Field<NumericUpDown>(form, "calendarMaximumHeightNumeric");
             Control panel = numeric.Parent!;
             panel.Scale(new SizeF(scale, scale));
@@ -328,6 +327,5 @@ internal static class CalendarScrollTests
         }
     }
 
-    private static App.SettingsForm NewSettings(App.WidgetSettings settings) => new(false, "system", 0u, 0u, 0u, 0u,
-        0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, settings, null);
+    private static App.WidgetSettingsEditor NewSettings(App.WidgetSettings settings) => new(settings, preview: null);
 }

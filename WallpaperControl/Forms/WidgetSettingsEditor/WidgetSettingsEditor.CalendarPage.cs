@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -6,8 +6,8 @@ using System.Windows.Forms;
 
 namespace WallpaperControl
 {
-    // Settings dialog CalendarPage members. See README.md in this directory for the code map.
-    internal sealed partial class SettingsForm
+    // Widget editor CalendarPage members.
+    internal sealed partial class WidgetSettingsEditor
     {
         /// <summary>
         /// Rebuilds localized calendar-widget styles while retaining the selected style.

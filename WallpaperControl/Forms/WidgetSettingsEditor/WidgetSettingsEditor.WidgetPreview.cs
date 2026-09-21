@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -6,15 +6,15 @@ using System.Windows.Forms;
 
 namespace WallpaperControl
 {
-    // Settings dialog WidgetPreview members. See README.md in this directory for the code map.
-    internal sealed partial class SettingsForm
+    // Widget editor WidgetPreview members.
+    internal sealed partial class WidgetSettingsEditor
     {
         /// <summary>
         /// Clones the initial widget settings, applies the dialog values, and publishes a live preview.
         /// </summary>
         private void NotifyWidgetPreviewChanged()
         {
-            if (widgetPreviewChanged != null)
+            if (!loadingControls && widgetPreviewChanged != null)
                 widgetPreviewChanged(ReadWidgetSettings(applySaveDefaults: false));
         }
         /// <summary>
@@ -22,7 +22,7 @@ namespace WallpaperControl
         /// </summary>
         /// <param name="applySaveDefaults">True to apply save-only defaults; false to retain live-preview values.</param>
         /// <returns>A settings snapshot built from the controls, optionally applying save-time defaults.</returns>
-        private WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
+        internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
             preview.NotesEnabled = notesEnabled.Checked;

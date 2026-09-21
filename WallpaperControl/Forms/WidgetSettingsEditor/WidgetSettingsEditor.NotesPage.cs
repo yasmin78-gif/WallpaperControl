@@ -1,11 +1,10 @@
-﻿namespace WallpaperControl
+namespace WallpaperControl
 {
-    internal sealed partial class SettingsForm
+    internal sealed partial class WidgetSettingsEditor
     {
         private Action<IWin32Window, string>? manageNotes;
         private readonly Button notesManageButton = new();
         internal void ConfigureNotesManager(Action<IWin32Window, string> callback) { manageNotes = callback; notesManageButton.Enabled = true; }
-        private Button? settingsNotesNavigationButton;
         private readonly CheckBox notesEnabled = new();
         private readonly CheckBox notesLocked = new();
         private readonly NumericUpDown notesMaximumHeight = new() { Minimum = 300, Maximum = 1000, Increment = 25, Width = 140 };

@@ -3,18 +3,25 @@ namespace WallpaperControl
     /// <summary>Uses the selected notes widget palette on opaque, editable dialog surfaces.</summary>
     internal static class NotesDialogStyle
     {
-        internal static void Apply(Form form, SystemWidgetStyle style)
+        internal static bool ResolveDarkMode() => new AppSettingsStore().LoadThemeMode() switch
         {
+            "light" => false, "dark" => true, _ => WindowsTheme.IsDarkMode()
+        };
+
+        internal static void Apply(Form form, SystemWidgetStyle style, bool? darkMode = null)
+        {
+            bool dark = darkMode ?? ResolveDarkMode();
             var palette = WidgetDrawing.GetPalette(style);
-            Color background = Color.FromArgb(255, palette.panel);
-            Color foreground = Color.FromArgb(255, palette.text);
-            Color accent = Color.FromArgb(255, palette.accent);
+            Color background = dark ? Color.FromArgb(255, palette.panel) : AppTheme.WindowBackground(false);
+            Color foreground = dark ? Color.FromArgb(255, palette.text) : AppTheme.TextPrimary(false);
+            Color accent = dark ? Color.FromArgb(255, palette.accent) : Color.FromArgb(29, 105, 184);
             Color input = Color.FromArgb(Math.Min(255, background.R + 10), Math.Min(255, background.G + 12), Math.Min(255, background.B + 15));
+            if (!dark) input = AppTheme.InputBackground(false);
             form.Font = SystemFonts.MessageBoxFont;
             form.BackColor = background;
             form.ForeColor = foreground;
             ApplyControls(form);
-            form.HandleCreated += (_, _) => WindowsTheme.ApplyTitleBar(form, true);
+            form.HandleCreated += (_, _) => WindowsTheme.ApplyTitleBar(form, dark);
 
             void ApplyControls(Control parent)
             {
@@ -28,8 +35,8 @@ namespace WallpaperControl
                         button.FlatStyle = FlatStyle.Flat;
                         button.BackColor = input;
                         button.FlatAppearance.BorderColor = accent;
-                        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(36, 54, 66);
-                        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(48, 70, 85);
+                        button.FlatAppearance.MouseOverBackColor = dark ? Color.FromArgb(36, 54, 66) : AppTheme.ControlHover(false);
+                        button.FlatAppearance.MouseDownBackColor = dark ? Color.FromArgb(48, 70, 85) : AppTheme.ControlPressed(false);
                     }
                     if (control is CheckBox check) check.FlatStyle = FlatStyle.Standard;
                     if (control is TextBox textBox) textBox.BorderStyle = BorderStyle.FixedSingle;
@@ -39,7 +46,7 @@ namespace WallpaperControl
                         picker.CalendarForeColor = foreground;
                         picker.CalendarTitleBackColor = background;
                         picker.CalendarTitleForeColor = accent;
-                        picker.CalendarTrailingForeColor = Color.FromArgb(255, palette.muted);
+                        picker.CalendarTrailingForeColor = dark ? Color.FromArgb(255, palette.muted) : AppTheme.TextSecondary(false);
                     }
                     if (control is ListView list)
                     {
@@ -55,7 +62,7 @@ namespace WallpaperControl
                         list.DrawItem += (_, e) => { if (list.View != View.Details) e.DrawDefault = true; };
                         list.DrawSubItem += (_, e) =>
                         {
-                            Color fillColor = e.Item?.Selected == true ? Color.FromArgb(43, 66, 82) : input;
+                            Color fillColor = e.Item?.Selected == true ? AppTheme.SelectionBackground(dark) : input;
                             using SolidBrush fill = new(fillColor);
                             e.Graphics.FillRectangle(fill, e.Bounds);
                             TextRenderer.DrawText(e.Graphics, e.SubItem?.Text, list.Font, Inset(e.Bounds, list.DeviceDpi), foreground,

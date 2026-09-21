@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -339,7 +339,7 @@
     <value>Démarrer avec Windows</value>
   </data>
   <data name="SettingsRestoreDefaults" xml:space="preserve">
-    <value>Restablecer</value>
+    <value>Réinitialiser</value>
   </data>
   <data name="SettingsCancel" xml:space="preserve">
     <value>Annuler</value>
@@ -719,9 +719,6 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="SettingsTabWidgets" xml:space="preserve">
     <value>Widgets</value>
   </data>
-  <data name="SettingsWidgetsTitle" xml:space="preserve">
-    <value>Widgets du bureau</value>
-  </data>
   <data name="SettingsClockEnabled" xml:space="preserve">
     <value>Afficher l’horloge du bureau</value>
   </data>
@@ -738,7 +735,7 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Afficher le bouton Suivant</value>
   </data>
   <data name="SettingsWidgetsHint" xml:space="preserve">
-    <value>Les widgets déverrouillés peuvent être déplacés librement à la souris. Les positions sont enregistrées automatiquement.</value>
+    <value>Les modifications et les déplacements sont prévisualisés. Enregistrez-les pour les conserver ou abandonnez-les pour les annuler.</value>
   </data>
   <data name="SettingsClockShowSeconds" xml:space="preserve">
     <value>Afficher les secondes</value>
@@ -1133,4 +1130,10 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="NotesSaveError" xml:space="preserve"><value>L’entrée n’a pas pu être enregistrée. Veuillez réessayer.</value></data>
   <data name="NotesLoadIssue" xml:space="preserve"><value>Certaines données n’ont pas pu être chargées. Les fichiers endommagés sont conservés ; les versions inconnues restent en lecture seule.</value></data>
   <data name="WidgetFontSize" xml:space="preserve"><value>Taille du texte</value></data>
+  <data name="MainNavWallpaper" xml:space="preserve"><value>Fond d’écran</value></data>
+  <data name="WidgetChangesTitle" xml:space="preserve"><value>Modifications des widgets non enregistrées</value></data>
+  <data name="WidgetChangesPrompt" xml:space="preserve"><value>Les paramètres des widgets ont changé. Voulez-vous les enregistrer, les abandonner ou continuer la modification ?</value></data>
+  <data name="WidgetDiscard" xml:space="preserve"><value>Abandonner</value></data>
+  <data name="MainSlideshowHeading" xml:space="preserve"><value>Diaporama</value></data>
+  <data name="MainDisplayHeading" xml:space="preserve"><value>Affichage</value></data>
 </root>

@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -691,9 +691,6 @@
   <data name="SettingsTabWidgets" xml:space="preserve">
     <value>ウィジェット</value>
   </data>
-  <data name="SettingsWidgetsTitle" xml:space="preserve">
-    <value>デスクトップ ウィジェット</value>
-  </data>
   <data name="SettingsClockEnabled" xml:space="preserve">
     <value>デスクトップ時計を表示</value>
   </data>
@@ -710,7 +707,7 @@
     <value>次へボタンを表示</value>
   </data>
   <data name="SettingsWidgetsHint" xml:space="preserve">
-    <value>固定されていないウィジェットはマウスで自由に移動できます。位置は自動的に保存されます。</value>
+    <value>変更や移動した位置はプレビューされます。「保存」で確定し、「破棄」で元に戻します。</value>
   </data>
   <data name="SettingsClockShowSeconds" xml:space="preserve">
     <value>秒を表示</value>
@@ -1105,4 +1102,10 @@
   <data name="NotesSaveError" xml:space="preserve"><value>項目を保存できませんでした。もう一度お試しください。</value></data>
   <data name="NotesLoadIssue" xml:space="preserve"><value>一部のデータを読み込めませんでした。破損ファイルは復旧用に保存され、不明なバージョンは読み取り専用になります。</value></data>
   <data name="WidgetFontSize" xml:space="preserve"><value>文字サイズ</value></data>
+  <data name="MainNavWallpaper" xml:space="preserve"><value>壁紙</value></data>
+  <data name="WidgetChangesTitle" xml:space="preserve"><value>ウィジェットの未保存の変更</value></data>
+  <data name="WidgetChangesPrompt" xml:space="preserve"><value>ウィジェットの設定が変更されました。保存、破棄、または編集を続行しますか？</value></data>
+  <data name="WidgetDiscard" xml:space="preserve"><value>破棄</value></data>
+  <data name="MainSlideshowHeading" xml:space="preserve"><value>スライドショー</value></data>
+  <data name="MainDisplayHeading" xml:space="preserve"><value>表示</value></data>
 </root>

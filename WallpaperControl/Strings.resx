@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -719,9 +719,6 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
   <data name="SettingsTabWidgets" xml:space="preserve">
     <value>Widgets</value>
   </data>
-  <data name="SettingsWidgetsTitle" xml:space="preserve">
-    <value>Desktop-Widgets</value>
-  </data>
   <data name="SettingsClockEnabled" xml:space="preserve">
     <value>Desktop-Uhr anzeigen</value>
   </data>
@@ -738,7 +735,7 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
     <value>Weiter-Button anzeigen</value>
   </data>
   <data name="SettingsWidgetsHint" xml:space="preserve">
-    <value>Nicht fixierte Widgets können mit der Maus frei verschoben werden. Positionen werden automatisch gespeichert.</value>
+    <value>Änderungen und verschobene Positionen werden zunächst nur angezeigt. Mit Speichern übernehmen oder mit Verwerfen zurücksetzen.</value>
   </data>
   <data name="SettingsClockShowSeconds" xml:space="preserve">
     <value>Sekunden anzeigen</value>
@@ -1133,4 +1130,10 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="NotesSaveError" xml:space="preserve"><value>Der Eintrag konnte nicht gespeichert werden. Bitte erneut versuchen.</value></data>
   <data name="NotesLoadIssue" xml:space="preserve"><value>Daten konnten nicht vollständig geladen werden. Beschädigte Dateien wurden zur Wiederherstellung aufbewahrt; unbekannte Versionen bleiben schreibgeschützt.</value></data>
   <data name="WidgetFontSize" xml:space="preserve"><value>Schriftgröße</value></data>
+  <data name="MainNavWallpaper" xml:space="preserve"><value>Wallpaper</value></data>
+  <data name="WidgetChangesTitle" xml:space="preserve"><value>Ungespeicherte Widgetänderungen</value></data>
+  <data name="WidgetChangesPrompt" xml:space="preserve"><value>Die Widget-Einstellungen wurden geändert. Möchtest du sie speichern, verwerfen oder weiter bearbeiten?</value></data>
+  <data name="WidgetDiscard" xml:space="preserve"><value>Verwerfen</value></data>
+  <data name="MainSlideshowHeading" xml:space="preserve"><value>Diashow</value></data>
+  <data name="MainDisplayHeading" xml:space="preserve"><value>Darstellung</value></data>
 </root>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -11,7 +11,7 @@ namespace WallpaperControl
     internal sealed partial class SettingsForm : Form
     {
         /// <summary>
-        /// Restores the dialog&apos;s default values and refreshes appearance and widget previews.
+        /// Restores the dialog&apos;s default values and refreshes appearance preview.
         /// </summary>
         private void ResetAllSettings()
         {
@@ -25,51 +25,6 @@ namespace WallpaperControl
             pauseOnFullscreenCheckBox.Checked = true;
 
             ResetAppearanceSettings();
-
-            clockEnabledCheckBox.Checked = false;
-            clockLockedCheckBox.Checked = false;
-            clockSizeNumeric.Value = 150;
-            clockSecondsCheckBox.Checked = false;
-            RefreshClockStyleChoices(ClockWidgetStyle.Chrome);
-            WidgetSettings infoDefaults = new();
-            notesEnabled.Checked = infoDefaults.NotesEnabled;
-            notesLocked.Checked = infoDefaults.NotesLocked;
-            notesMaximumHeight.Value = infoDefaults.NotesMaximumHeight;
-            RefreshWidgetStyleChoices(notesStyle, infoDefaults.NotesStyle);
-            wallpaperInfoFontSize.Value = infoDefaults.WallpaperInfoFontSize;
-            wallpaperInfoEnabled.Checked = infoDefaults.WallpaperInfoEnabled;
-            wallpaperInfoLocked.Checked = infoDefaults.WallpaperInfoLocked;
-            wallpaperInfoAdvanced.Checked = infoDefaults.WallpaperInfoShowAdvanced;
-            wallpaperInfoExtension.Checked = infoDefaults.WallpaperInfoShowExtension;
-            wallpaperInfoSuffix.Text = infoDefaults.WallpaperInfoHiddenSuffix;
-            RefreshWidgetStyleChoices(wallpaperInfoStyle, infoDefaults.WallpaperInfoStyle);
-            nextWidgetEnabledCheckBox.Checked = false;
-            nextWidgetLockedCheckBox.Checked = false;
-            RefreshNextStyleChoices(SystemWidgetStyle.Minimal);
-            systemWidgetEnabledCheckBox.Checked = false;
-            systemWidgetLockedCheckBox.Checked = false;
-            systemWidgetRefreshComboBox.SelectedIndex = 1;
-            RefreshSystemStyleChoices(SystemWidgetStyle.Glow);
-            systemShowCpuCheckBox.Checked = true;
-            systemShowRamCheckBox.Checked = true;
-            systemShowGpuCheckBox.Checked = true;
-            systemShowVramCheckBox.Checked = true;
-            systemShowNetworkCheckBox.Checked = true;
-            systemShowDrivesCheckBox.Checked = true;
-            weatherWidgetEnabledCheckBox.Checked = false;
-            weatherWidgetLockedCheckBox.Checked = false;
-            weatherLocationTextBox.Text = "Karlsruhe";
-            weatherWidgetRefreshComboBox.SelectedIndex = 1;
-            RefreshWeatherStyleChoices(SystemWidgetStyle.Glow);
-            weatherShowForecastCheckBox.Checked = true;
-            calendarWidgetEnabledCheckBox.Checked = false;
-            calendarWidgetLockedCheckBox.Checked = false;
-            RefreshCalendarStyleChoices(SystemWidgetStyle.Glow);
-            calendarMaxEntriesComboBox.SelectedIndex = 2;
-            calendarMaximumHeightNumeric.Value = CalendarViewport.DefaultMaximumHeight;
-            calendarRefreshComboBox.SelectedIndex = 1;
-            calendarSources.Clear();
-            calendarShowLocationCheckBox.Checked = true;
 
             ApplyPreviewLocalization(
                 Localization.IsLanguageAvailable("de")
@@ -211,7 +166,6 @@ namespace WallpaperControl
                 AppSettingsStore.NormalizeThemeMode(
                     previewThemeMode);
 
-            WidgetSettings = ReadWidgetSettings(applySaveDefaults: true);
 
             if (!Localization.IsLanguageAvailable(
                 previewLanguageCode))
@@ -267,10 +221,6 @@ namespace WallpaperControl
             if (disposing)
             {
                 manualUpdateCancellation?.Cancel();
-                calendarMaximumHeightNumeric?.Dispose();
-                notesManageButton.Dispose();
-                notesEnabled.Dispose(); notesLocked.Dispose(); notesMaximumHeight.Dispose(); notesStyle.Dispose();
-                settingsNotesNavigationButton?.Dispose(); wallpaperInfoFontSize.Dispose();
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
 

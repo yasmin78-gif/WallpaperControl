@@ -32,7 +32,6 @@ namespace WallpaperControl
         /// <param name="icon">The glyph displayed before the navigation label.</param>
         /// <param name="resourceKey">The localization resource key used for the caption.</param>
         /// <param name="y">The vertical coordinate.</param>
-        /// <param name="extraLeftPadding">The additional indentation used for a nested navigation action.</param>
         /// <returns>The navigation button added to the settings sidebar.</returns>
         private Button AddSettingsNavigationButton(
             Panel navigationPanel,
@@ -40,15 +39,14 @@ namespace WallpaperControl
             TabPage page,
             string icon,
             string resourceKey,
-            int y,
-            int extraLeftPadding = 0)
+            int y)
         {
             Button button = new Button
             {
                 Text = $"{icon}   {Localization.Get(resourceKey, previewLanguageCode)}",
                 Tag = resourceKey,
-                Location = new Point(14 + extraLeftPadding, y),
-                Size = new Size(192 - extraLeftPadding, 42),
+                Location = new Point(14, y),
+                Size = new Size(192, 42),
                 FlatStyle = FlatStyle.Flat,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(10, 0, 0, 0),
@@ -56,52 +54,16 @@ namespace WallpaperControl
                 TabStop = true
             };
 
-            if (resourceKey == "NotesTitle") button.UseMnemonic = false;
             button.FlatAppearance.BorderSize = 0;
             button.Click += (_, _) =>
             {
-                // The existing tab pages are exclusive sections. Clicking the selected widget closes it.
-                tabControl.SelectedTab = extraLeftPadding > 0 && tabControl.SelectedTab == page
-                    ? tabControl.TabPages.Cast<TabPage>().First(p => (string?)p.Tag == "SettingsNavGeneral") : page;
+                tabControl.SelectedTab = page;
             };
             button.AccessibleDescription = icon;
             settingsNavigationButtons.Add(button);
             settingsNavigationPages[button] = page;
             navigationPanel.Controls.Add(button);
             return button;
-        }
-
-        /// <summary>
-        /// Expands or collapses widget navigation and repositions the following sidebar entries.
-        /// </summary>
-        private void UpdateWidgetsNavigationLayout()
-        {
-            if (settingsWidgetsToggleButton == null)
-                return;
-
-            settingsWidgetsToggleButton.Text =
-                $"{(settingsWidgetsExpanded ? "▾" : "▸")}   {Localization.Get("SettingsTabWidgets", previewLanguageCode)}";
-
-            Button[] widgets = new[] { settingsClockNavigationButton, settingsNextNavigationButton, settingsSystemNavigationButton,
-                settingsWeatherNavigationButton, settingsCalendarNavigationButton, settingsWallpaperInfoNavigationButton, settingsNotesNavigationButton }
-                .OfType<Button>().OrderBy(button => Localization.Get((string)button.Tag!, previewLanguageCode),
-                    StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo(previewLanguageCode), true)).ToArray();
-            int scaleGap = Math.Max(1, (int)Math.Round(4 * DeviceDpi / 96f));
-            int y = settingsWidgetsToggleButton.Bottom + scaleGap / 2;
-            foreach (Button button in widgets)
-            {
-                button.Visible = settingsWidgetsExpanded;
-                button.Top = y;
-                button.TabIndex = 10 + Array.IndexOf(widgets, button);
-                y += button.Height + scaleGap;
-            }
-            if (!settingsWidgetsExpanded && settingsTabControl != null && widgets.Any(b => settingsNavigationPages[b] == settingsTabControl.SelectedTab))
-                settingsTabControl.SelectedTab = settingsTabControl.TabPages.Cast<TabPage>().First(p => (string?)p.Tag == "SettingsNavGeneral");
-            int appearanceY = settingsWidgetsExpanded ? y + 10 * DeviceDpi / 96 : settingsWidgetsToggleButton.Bottom + 8 * DeviceDpi / 96;
-            if (settingsAppearanceNavigationButton != null) { settingsAppearanceNavigationButton.Top = appearanceY; settingsAppearanceNavigationButton.TabIndex = 20; }
-            if (settingsLanguageNavigationButton != null) { settingsLanguageNavigationButton.Top = appearanceY + 46 * DeviceDpi / 96; settingsLanguageNavigationButton.TabIndex = 21; }
-
-            UpdateSettingsNavigationSelection();
         }
 
         /// <summary>
@@ -116,15 +78,6 @@ namespace WallpaperControl
             Color normal = AppTheme.SidebarBackground(darkMode);
             Color selected = AppTheme.SelectionBackground(darkMode);
             Color foreground = darkMode ? AppTheme.DarkTextPrimary : Color.FromArgb(35, 35, 35);
-
-            if (settingsWidgetsToggleButton != null)
-            {
-                settingsWidgetsToggleButton.BackColor = normal;
-                settingsWidgetsToggleButton.ForeColor = foreground;
-                settingsWidgetsToggleButton.FlatAppearance.MouseOverBackColor =
-                    darkMode ? AppTheme.DarkControlHover : Color.FromArgb(225, 232, 239);
-                settingsWidgetsToggleButton.FlatAppearance.MouseDownBackColor = selected;
-            }
 
             for (int i = 0; i < settingsNavigationButtons.Count; i++)
             {
@@ -148,7 +101,7 @@ namespace WallpaperControl
                 button.Text = $"{icon}   {Localization.Get(resourceKey, previewLanguageCode)}";
             }
 
-            UpdateWidgetsNavigationLayout();
+            UpdateSettingsNavigationSelection();
         }
     }
 }

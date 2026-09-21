@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -11,11 +11,35 @@ namespace WallpaperControl
     // Main-window status responsibilities; see README.md in this directory for the code map.
     public partial class MainForm
     {
+        private readonly Func<DesktopSlideshowState> readNativeSlideshowStatus;
+
+        // Windows can complete SetSlideshow asynchronously. Reconcile on every
+        // normal poll, even when the fullscreen policy itself has not changed.
+        private void RefreshWallpaperUi()
+        {
+            if (fullscreenPolicy.IsPaused || IsDisposed) return;
+            CheckSlideshowStatus();
+            if (servicesEnabled) UpdateWallpaperPositionDisplay();
+        }
+
+        private static DesktopSlideshowState ReadNativeSlideshowStatus()
+        {
+            IDesktopWallpaper? wallpaper = null;
+            try
+            {
+                wallpaper = (IDesktopWallpaper)new DesktopWallpaper();
+                wallpaper.GetStatus(out DesktopSlideshowState state);
+                return state;
+            }
+            finally { ReleaseComObject(wallpaper); }
+        }
+
         /// <summary>
         /// Reconciles fullscreen, application, and native slideshow state with the visible controls.
         /// </summary>
         private void CheckSlideshowStatus()
         {
+            if (servicesEnabled) UpdateCurrentWallpaperDisplay();
             if (fullscreenPolicy.IsPaused)
             {
                 ShowPausedStatus();
@@ -38,16 +62,9 @@ namespace WallpaperControl
                 return;
             }
 
-            IDesktopWallpaper? wallpaper = null;
-
             try
             {
-                wallpaper =
-                    (IDesktopWallpaper)
-                    new DesktopWallpaper();
-
-                wallpaper.GetStatus(
-                    out DesktopSlideshowState state);
+                DesktopSlideshowState state = readNativeSlideshowStatus();
 
                 bool enabled =
                     (state &
@@ -88,10 +105,6 @@ namespace WallpaperControl
                 // Keep the current UI state and record the diagnostic details.
                 AppLogger.Warning("Could not query Windows slideshow status.", ex);
             }
-            finally
-            {
-                ReleaseComObject(wallpaper);
-            }
         }
 
         /// <summary>
@@ -107,9 +120,8 @@ namespace WallpaperControl
 
             pauseButton.Enabled = true;
             pinButton.Enabled = true;
-            nextWallpaperButton.Enabled = true;
+            nextWallpaperButton.Enabled = !initializingDesktop;
 
-            UpdateCurrentWallpaperDisplay();
             UpdateTrayPauseText();
 
             SetNormalLayout();
@@ -133,7 +145,6 @@ namespace WallpaperControl
             pinButton.Enabled = true;
             nextWallpaperButton.Enabled = false;
 
-            UpdateCurrentWallpaperDisplay();
             UpdateTrayPauseText();
 
             SetWarningLayout(false);
@@ -160,7 +171,6 @@ namespace WallpaperControl
             pauseButton.Enabled = false;
             nextWallpaperButton.Enabled = false;
 
-            UpdateCurrentWallpaperDisplay();
             UpdateTrayPauseText();
 
             // Pinning requires an active slideshow.

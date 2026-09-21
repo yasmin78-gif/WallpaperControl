@@ -136,13 +136,13 @@ internal static class NotesTests
         foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
         foreach (float scale in new[] { 1f, 1.5f, 2f })
         {
-            using App.NoteEditorForm editor = new(store, original, language);
+            using App.NoteEditorForm editor = new(store, original, language, darkMode: true);
             editor.Scale(new SizeF(scale, scale)); editor.PerformLayout();
             Control panel = editor.Controls[0]; panel.PerformLayout();
             Control[] controls = panel.Controls.Cast<Control>().Where(c => c.Visible).ToArray();
             check(controls.All(c => c.Right <= panel.Width && c.Bottom <= panel.Height)
                 && controls.Zip(controls.Skip(1)).All(p => p.First.Bottom <= p.Second.Top), $"Notes editor {language}/{scale} controls fit vertically without overlap");
-            using App.NotesManagerForm manager = new(store, language);
+            using App.NotesManagerForm manager = new(store, language, darkMode: true);
             manager.Scale(new SizeF(scale, scale)); manager.PerformLayout();
             ListView managerList = Field<ListView>(manager, "list");
             TableLayoutPanel footer = manager.Controls.OfType<TableLayoutPanel>().Single(); footer.PerformLayout();
@@ -174,8 +174,8 @@ internal static class NotesTests
         App.NotesStore store = new(FixturePath());
         foreach (App.SystemWidgetStyle style in Enum.GetValues<App.SystemWidgetStyle>())
         {
-            using App.NoteEditorForm editor = new(store, null, "de", style);
-            using App.NotesManagerForm manager = new(store, "de", style);
+            using App.NoteEditorForm editor = new(store, null, "de", style, true);
+            using App.NotesManagerForm manager = new(store, "de", style, true);
             Color expected = Color.FromArgb(255, App.WidgetDrawing.GetPalette(style).panel);
             check(editor.BackColor == expected && manager.BackColor == expected,
                 $"Notes dialogs use selected {style} widget background");
@@ -271,7 +271,7 @@ internal static class NotesTests
         Invoke(form, "OnMouseDown", new MouseEventArgs(MouseButtons.Left, 1, point.X, point.Y, 0));
         Invoke(form, "OnMouseUp", new MouseEventArgs(MouseButtons.Left, 1, point.X, point.Y, 0));
     }
-    private static App.SettingsForm NewSettings(App.WidgetSettings settings) => new(false, "system", 0, 0, 0, 0, 0, 0, 0, 0, "", true, false, true, true, true, 92, settings);
+    private static App.WidgetSettingsEditor NewSettings(App.WidgetSettings settings) => new(settings, preview: null);
 
     private static void Settings(Action<bool, string> check)
     {
@@ -291,50 +291,45 @@ internal static class NotesTests
             check(App.WidgetSettings.Load(key).WallpaperInfoFontSize == 10, "Notes persisted font below range clamps to minimum");
             using (RegistryKey registry = Registry.CurrentUser.OpenSubKey(key, true)!) registry.SetValue("WallpaperInfoWidgetFontSize", 500);
             check(App.WidgetSettings.Load(key).WallpaperInfoFontSize == 24, "Notes persisted font above range clamps to maximum");
-            using (App.SettingsForm form = NewSettings(settings))
+            using (App.WidgetSettingsEditor form = NewSettings(settings))
             {
                 Field<NumericUpDown>(form, "wallpaperInfoFontSize").Value = 18; Field<NumericUpDown>(form, "notesMaximumHeight").Value = 700;
                 var draft = (App.WidgetSettings)Invoke(form, "ReadWidgetSettings", false)!;
                 check(draft.WallpaperInfoFontSize == 18 && draft.NotesMaximumHeight == 700 && settings.WallpaperInfoFontSize == 22, "Notes height and wallpaper font preview use independent drafts");
-                Invoke(form, "SaveAndClose"); check(form.WidgetSettings.WallpaperInfoFontSize == 18 && form.WidgetSettings.NotesMaximumHeight == 700, "Notes height and wallpaper font Save accept draft values");
+                var acceptedSettings = form.ReadWidgetSettings(true); check(acceptedSettings.WallpaperInfoFontSize == 18 && acceptedSettings.NotesMaximumHeight == 700, "Notes height and wallpaper font Save accept draft values");
             }
-            using (App.SettingsForm form = NewSettings(settings))
+            using (App.WidgetSettingsEditor form = NewSettings(settings))
             {
-                Invoke(form, "ResetAllSettings"); var draft = (App.WidgetSettings)Invoke(form, "ReadWidgetSettings", false)!;
+                form.ResetDefaults(); var draft = (App.WidgetSettings)Invoke(form, "ReadWidgetSettings", false)!;
                 check(!draft.NotesEnabled && draft.NotesMaximumHeight == 500 && draft.WallpaperInfoFontSize == 13, "Notes Reset restores height, disabled state and default font");
             }
             foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
             {
-                using App.SettingsForm form = NewSettings(settings);
-                Invoke(form, "ApplyPreviewLocalization", language);
+                using App.WidgetSettingsEditor form = NewSettings(settings);
+                form.ApplyPresentation(false, language);
                 int managed = 0;
                 form.ConfigureNotesManager((owner, selectedLanguage) => { if (owner == form && selectedLanguage == language) managed++; });
                 Invoke(Field<Button>(form, "notesManageButton"), "OnClick", EventArgs.Empty);
                 check(managed == 1, $"Notes {language} settings manager button forwards owner and preview language");
-                check(!Field<bool>(form, "settingsWidgetsExpanded") && (string?)Field<TabControl>(form, "settingsTabControl").SelectedTab!.Tag == "SettingsNavGeneral", $"Notes {language} settings initially have no open widget section");
-                typeof(App.SettingsForm).GetField("settingsWidgetsExpanded", Members)!.SetValue(form, true); Invoke(form, "UpdateWidgetsNavigationLayout");
-                string[] names = { "settingsClockNavigationButton", "settingsNextNavigationButton", "settingsSystemNavigationButton", "settingsWeatherNavigationButton", "settingsCalendarNavigationButton", "settingsWallpaperInfoNavigationButton", "settingsNotesNavigationButton" };
-                Button[] buttons = names.Select(n => Field<Button>(form, n)).OrderBy(b => b.Top).ToArray();
+                check(form.WidgetKeys.Count == 7, $"Notes {language} widget editor exposes all seven sections");
+                Button[] buttons = Field<FlowLayoutPanel>(form, "navigation").Controls.OfType<Button>().OrderBy(b => b.TabIndex).ToArray();
                 var comparer = StringComparer.Create(CultureInfo.GetCultureInfo(language), true);
-                string[] labels = buttons.Select(b => App.Localization.Get((string)b.Tag!, language)).ToArray();
+                string[] labels = form.WidgetKeys.Select(key => App.Localization.Get(key, language)).ToArray();
                 check(labels.SequenceEqual(labels.OrderBy(n => n, comparer)) && buttons.All(b => b.TabStop), $"Notes {language} widget sections sort by localized labels and support keyboard navigation");
-                var pages = Field<Dictionary<Button, TabPage>>(form, "settingsNavigationPages");
-                check(buttons.All(b => b.Tag!.Equals(pages[b].Tag)), $"Notes {language} sorting preserves widget page identities");
-                Button first = buttons[0]; Invoke(first, "OnClick", EventArgs.Empty);
-                check(Field<TabControl>(form, "settingsTabControl").SelectedTab == pages[first], $"Notes {language} opening a widget selects exactly its page");
-                Invoke(first, "OnClick", EventArgs.Empty);
-                check((string?)Field<TabControl>(form, "settingsTabControl").SelectedTab!.Tag == "SettingsNavGeneral", $"Notes {language} selected widget section can close again");
-                typeof(App.SettingsForm).GetField("settingsWidgetsExpanded", Members)!.SetValue(form, false); Invoke(form, "UpdateWidgetsNavigationLayout");
-                check(!Field<bool>(form, "settingsWidgetsExpanded"), $"Notes {language} sorting does not expand collapsed widgets");
+                check(Field<TabControl>(form, "pages").TabPages.Cast<TabPage>().Select(p => (string)p.Tag!).Order().SequenceEqual(form.WidgetKeys.Order()), $"Notes {language} sorting preserves widget page identities");
+                form.SelectWidget(form.WidgetKeys[0]);
+                check(form.SelectedKey == form.WidgetKeys[0], $"Notes {language} opening a widget selects exactly its page");
+                form.SelectWidget(form.WidgetKeys[0]);
+                check(form.SelectedKey == form.WidgetKeys[0], $"Notes {language} repeated selection retains its editor");
+                form.ApplyPresentation(false, language);
+                check(form.SelectedKey == form.WidgetKeys[0], $"Notes {language} sorting does not change the selected widget");
             }
             foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
             foreach (float scale in new[] { 1f, 1.5f, 2f })
             {
-                using App.SettingsForm form = NewSettings(settings); Invoke(form, "ApplyPreviewLocalization", language);
-                typeof(App.SettingsForm).GetField("settingsWidgetsExpanded", Members)!.SetValue(form, true); Invoke(form, "UpdateWidgetsNavigationLayout");
-                var pages = Field<Dictionary<Button, TabPage>>(form, "settingsNavigationPages");
-                Button notes = Field<Button>(form, "settingsNotesNavigationButton");
-                var tabs = Field<TabControl>(form, "settingsTabControl"); tabs.SelectedTab = pages[notes];
+                using App.WidgetSettingsEditor form = NewSettings(settings); form.ApplyPresentation(false, language);
+                form.SelectWidget("NotesTitle");
+                var tabs = Field<TabControl>(form, "pages");
                 form.ConfigureNotesManager((_, _) => { });
                 Control panel = Field<NumericUpDown>(form, "notesMaximumHeight").Parent!;
                 panel.Scale(new SizeF(scale, scale)); panel.PerformLayout();
@@ -344,7 +339,7 @@ internal static class NotesTests
                 string? output = Environment.GetEnvironmentVariable("NOTES_TEST_OUTPUT");
                 if (output != null && scale == 1)
                 {
-                    form.Opacity = 0; form.Show(); tabs.SelectedTab = pages[notes];
+                     form.Show(); form.SelectWidget("NotesTitle");
                     using Bitmap bitmap = new(form.Width, form.Height); form.DrawToBitmap(bitmap, new Rectangle(Point.Empty, bitmap.Size));
                     bitmap.Save(Path.Combine(output, "settings-" + language + ".png"));
                 }

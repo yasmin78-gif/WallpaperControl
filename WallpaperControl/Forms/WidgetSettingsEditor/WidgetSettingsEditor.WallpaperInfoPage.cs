@@ -1,10 +1,9 @@
 namespace WallpaperControl
 {
-    internal sealed partial class SettingsForm
+    internal sealed partial class WidgetSettingsEditor
     {
         // These controls are owned and disposed recursively by the WinForms Controls tree.
 #pragma warning disable CA2213
-        private Button? settingsWallpaperInfoNavigationButton;
         private readonly CheckBox wallpaperInfoEnabled = new();
         private readonly CheckBox wallpaperInfoLocked = new();
         private readonly CheckBox wallpaperInfoAdvanced = new();

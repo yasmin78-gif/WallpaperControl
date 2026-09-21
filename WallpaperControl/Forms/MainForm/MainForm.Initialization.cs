@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,10 +15,18 @@ namespace WallpaperControl
         /// <summary>
         /// Builds controls and subscriptions in dependency order, then loads preferences and starts slideshow coordination.
         /// </summary>
-        public MainForm()
+        public MainForm() : this(null, true) { }
+
+        // Isolated UI construction allows navigation tests without activating desktop services.
+        internal MainForm(WidgetManager isolatedWidgets, Func<DesktopSlideshowState>? nativeStatus = null)
+            : this(isolatedWidgets, false, nativeStatus) { }
+
+        private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null)
         {
+            servicesEnabled = startServices;
+            readNativeSlideshowStatus = nativeStatus ?? ReadNativeSlideshowStatus;
             pauseOnFullscreen = appSettings.LoadPauseOnFullscreen();
-            widgetManager = new WidgetManager(() =>
+            widgetManager = widgets ?? new WidgetManager(() =>
                 AdvanceWallpaper(DesktopSlideshowDirection.Forward),
                 advanced => WallpaperInfoSnapshot.Create(lastDisplayedWallpaperPath, activeWallpaperCount, statistics.ViewCounts, advanced));
             statistics.Changed += widgetManager.RefreshWallpaperInfo;
@@ -89,8 +97,6 @@ namespace WallpaperControl
             statusLabel = new Label
             {
                 AutoSize = false,
-                Location = new Point(48, 18),
-                Size = new Size(329, 25),
                 Font = CreateOwnedFont(
                     "Segoe UI",
                     9,
@@ -101,8 +107,6 @@ namespace WallpaperControl
             activateButton = new MainFormButton
             {
                 Text = Localization.Get("ActivateSlideshow"),
-                Location = new Point(25, 48),
-                Size = new Size(375, 34),
                 Visible = false
             };
 
@@ -149,27 +153,17 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("WallpaperFolder"),
                 AutoSize = false,
-                Location = new Point(48, 18),
-                Size = new Size(329, 25),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = CreateOwnedFont(
-                    "Segoe UI",
-                    11,
-                    FontStyle.Bold)
+                TextAlign = ContentAlignment.MiddleLeft
             };
 
             folderTextBox = new TextBox
             {
-                Location = new Point(25, 56),
-                Width = 300,
                 ReadOnly = true
             };
 
             folderButton = new MainFormButton
             {
                 Text = "...",
-                Location = new Point(335, 55),
-                Size = new Size(65, 28)
             };
 
             folderButton.Click +=
@@ -179,7 +173,6 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("WallpaperCountZero"),
                 AutoSize = true,
-                Location = new Point(25, 88),
                 Font = CreateOwnedFont("Segoe UI", 8)
             };
 
@@ -190,18 +183,11 @@ namespace WallpaperControl
             intervalLabel = new Label
             {
                 Text = Localization.Get("WallpaperInterval"),
-                AutoSize = true,
-                Location = new Point(25, 110),
-                Font = CreateOwnedFont(
-                    "Segoe UI",
-                    11,
-                    FontStyle.Bold)
+                AutoSize = true
             };
 
             intervalComboBox = new MainFormComboBox
             {
-                Location = new Point(25, 145),
-                Width = 375,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -218,8 +204,6 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("CurrentWindowsValueEmpty"),
                 AutoSize = false,
-                Location = new Point(25, 176),
-                Size = new Size(375, 20),
                 Font = CreateOwnedFont(
                     "Segoe UI",
                     8.25f,
@@ -234,7 +218,6 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("Shuffle"),
                 AutoSize = true,
-                Location = new Point(25, 200)
             };
 
             shuffleCheckBox.CheckedChanged +=
@@ -247,18 +230,11 @@ namespace WallpaperControl
             positionLabel = new Label
             {
                 Text = Localization.Get("WallpaperPosition"),
-                AutoSize = true,
-                Location = new Point(25, 235),
-                Font = CreateOwnedFont(
-                    "Segoe UI",
-                    11,
-                    FontStyle.Bold)
+                AutoSize = true
             };
 
             positionComboBox = new MainFormComboBox
             {
-                Location = new Point(25, 270),
-                Width = 375,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -278,18 +254,11 @@ namespace WallpaperControl
             transitionLabel = new Label
             {
                 Text = Localization.Get("Transition"),
-                AutoSize = true,
-                Location = new Point(25, 310),
-                Font = CreateOwnedFont(
-                    "Segoe UI",
-                    11,
-                    FontStyle.Bold)
+                AutoSize = true
             };
 
             transitionComboBox = new MainFormComboBox
             {
-                Location = new Point(25, 345),
-                Width = 125,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -313,8 +282,6 @@ namespace WallpaperControl
 
             transitionDirectionComboBox = new MainFormComboBox
             {
-                Location = new Point(160, 345),
-                Width = 115,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -337,18 +304,11 @@ namespace WallpaperControl
             transitionDurationLabel = new Label
             {
                 Text = Localization.Get("TransitionDuration"),
-                AutoSize = true,
-                Location = new Point(285, 310),
-                Font = CreateOwnedFont(
-                    "Segoe UI",
-                    11,
-                    FontStyle.Bold)
+                AutoSize = true
             };
 
             transitionDurationComboBox = new MainFormComboBox
             {
-                Location = new Point(285, 345),
-                Width = 115,
                 DropDownStyle =
                     ComboBoxStyle.DropDownList
             };
@@ -376,8 +336,6 @@ namespace WallpaperControl
             pauseButton = new MainFormButton
             {
                 Text = Localization.Get("PauseSlideshow"),
-                Location = new Point(25, 395),
-                Size = new Size(180, 38)
             };
 
             pauseButton.Click +=
@@ -386,8 +344,6 @@ namespace WallpaperControl
             pinButton = new MainFormButton
             {
                 Text = Localization.Get("PinImage"),
-                Location = new Point(220, 395),
-                Size = new Size(180, 38)
             };
 
             pinButton.Click +=
@@ -400,8 +356,6 @@ namespace WallpaperControl
             nextWallpaperButton = new MainFormButton
             {
                 Text = Localization.Get("NextWallpaper"),
-                Location = new Point(25, 450),
-                Size = new Size(375, 38)
             };
 
             nextWallpaperButton.Click +=
@@ -415,8 +369,6 @@ namespace WallpaperControl
             {
                 Text = Localization.Get("CurrentWallpaperEmpty"),
                 AutoEllipsis = true,
-                Location = new Point(25, 505),
-                Size = new Size(375, 24)
             };
 
             currentWallpaperLabel.Cursor = Cursors.Hand;
@@ -465,8 +417,6 @@ namespace WallpaperControl
             explorerButton = new MainFormButton
             {
                 Text = Localization.Get("ShowInExplorer"),
-                Location = new Point(25, 540),
-                Size = new Size(180, 38)
             };
 
             explorerButton.Click +=
@@ -475,8 +425,6 @@ namespace WallpaperControl
             rejectButton = new MainFormButton
             {
                 Text = Localization.Get("RejectWallpaper"),
-                Location = new Point(220, 540),
-                Size = new Size(180, 38)
             };
 
             rejectButton.Click +=
@@ -499,8 +447,6 @@ namespace WallpaperControl
             undoRejectButton = new MainFormButton
             {
                 Text = Localization.Get("Undo"),
-                Location = new Point(25, 588),
-                Size = new Size(375, 34),
                 Enabled = false
             };
 
@@ -510,16 +456,12 @@ namespace WallpaperControl
             historyButton = new MainFormButton
             {
                 Text = Localization.Get("History"),
-                Location = new Point(25, 630),
-                Size = new Size(180, 34),
                 Enabled = false
             };
 
             statisticsButton = new MainFormButton
             {
                 Text = Localization.Get("Statistics"),
-                Location = new Point(220, 630),
-                Size = new Size(180, 34)
             };
 
             statisticsButton.Click +=
@@ -599,7 +541,7 @@ namespace WallpaperControl
                 Icon = Icon,
                 Text = "Wallpaper Control",
                 ContextMenuStrip = trayMenu,
-                Visible = true
+                Visible = startServices
             };
 
             trayIcon.DoubleClick +=
@@ -615,12 +557,10 @@ namespace WallpaperControl
                 async (_, _) =>
                 {
                     await UpdateFullscreenPauseAsync();
-                    if (fullscreenPolicy.IsPaused || IsDisposed) return;
-                    UpdateCurrentWallpaperDisplay();
-                    UpdateWallpaperPositionDisplay();
+                    RefreshWallpaperUi();
                 };
 
-            wallpaperRefreshTimer.Start();
+            if (startServices) wallpaperRefreshTimer.Start();
 
             // Coalesce file-copy notifications into one count refresh.
             wallpaperCountDebounceTimer =
@@ -637,9 +577,9 @@ namespace WallpaperControl
                     UpdateWallpaperCount();
                 };
 
-            mainHeading.Text = "Wallpaper Control";
+            mainHeading.Text = Localization.Get("MainNavWallpaper");
             mainHeading.Font = CreateOwnedFont("Segoe UI", 15, FontStyle.Bold);
-            mainHeading.TextAlign = ContentAlignment.MiddleCenter;
+            mainHeading.TextAlign = ContentAlignment.MiddleLeft;
             currentHeading.Font = CreateOwnedFont("Segoe UI", 10, FontStyle.Bold);
             directionHeading.Font = CreateOwnedFont("Segoe UI", 10, FontStyle.Bold);
             currentHeading.Text = Localization.Get("MainCurrentWallpaperHeading");
@@ -683,6 +623,12 @@ namespace WallpaperControl
             Controls.Add(undoRejectButton);
             Controls.Add(historyButton);
             Controls.Add(statisticsButton);
+
+            InitializeMainNavigation();
+            if (!startServices)
+            {
+                loading = false; SetNormalLayout(); ApplyWindowsTheme(); return;
+            }
 
             LoadSettings();
             LoadHotkeySettings();

@@ -318,8 +318,7 @@ internal static class CalendarSourceTests
             "Sources manager checkbox edits only its isolated draft");
     }
 
-    private static App.SettingsForm Settings(App.WidgetSettings initial) => new(false, "system", 0u, 0u, 0u, 0u,
-        0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, initial, null);
+    private static App.WidgetSettingsEditor Settings(App.WidgetSettings initial) => new(initial, preview: null);
 
     private static void Transactions(Action<bool, string> check)
     {
@@ -340,28 +339,27 @@ internal static class CalendarSourceTests
                 ("Enabled", list => list[0] = list[0] with { Enabled = false })
             })
             {
-                using App.SettingsForm settings = Settings(initial);
+                using App.WidgetSettingsEditor settings = Settings(initial);
                 change(Field<List<App.CalendarSource>>(settings, "calendarSources"));
                 App.WidgetSettings preview = (App.WidgetSettings)settings.GetType().GetMethod("ReadWidgetSettings", Members)!.Invoke(settings, new object[] { false })!;
-                settings.DialogResult = DialogResult.Cancel;
-                settings.Close();
+                settings.Dispose();
                 check(!preview.CalendarSources.SequenceEqual(initial.CalendarSources)
                     && initial.CalendarSources.Single() == original
                     && App.WidgetSettings.Load(path).CalendarSources.Single() == original,
                     "Sources Settings " + name + " + Cancel preserves original and persisted data");
             }
-            using App.SettingsForm accepted = Settings(initial);
+            using App.WidgetSettingsEditor accepted = Settings(initial);
             List<App.CalendarSource> draft = Field<List<App.CalendarSource>>(accepted, "calendarSources");
             draft[0] = original with { Name = "Saved", Enabled = false, Type = App.CalendarSourceType.Holiday,
                 ColorArgb = Color.Yellow.ToArgb(), Url = Secret + "?saved" };
             draft.Add(new App.CalendarSource { Name = "Added", Url = Secret + "?added" });
-            accepted.GetType().GetMethod("SaveAndClose", Members)!.Invoke(accepted, null);
-            accepted.WidgetSettings.Save(path);
-            check(accepted.DialogResult == DialogResult.OK && App.WidgetSettings.Load(path).CalendarSources.SequenceEqual(draft)
+            var acceptedSettings = accepted.ReadWidgetSettings(true);
+            acceptedSettings.Save(path);
+            check(App.WidgetSettings.Load(path).CalendarSources.SequenceEqual(draft)
                 && initial.CalendarSources.Single() == original,
                 "Sources Settings Save accepts all source edits and persists an independent snapshot");
             draft.Clear();
-            check(accepted.WidgetSettings.CalendarSources.Count == 2,
+            check(acceptedSettings.CalendarSources.Count == 2,
                 "Sources accepted settings cannot be mutated through the closed dialog draft");
         }
         finally { Registry.CurrentUser.DeleteSubKeyTree(path, false); }

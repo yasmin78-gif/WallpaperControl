@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,6 +12,8 @@ namespace WallpaperControl
     // Coordinates window startup, shutdown, and lifetime. Feature-specific members live in Forms/MainForm.
     public partial class MainForm : Form
     {
+        private readonly bool servicesEnabled;
+        private bool initializingDesktop;
         /// <summary>
         /// Warms up the desktop renderer before starting widgets and scheduled update checks.
         /// </summary>
@@ -21,6 +23,8 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (!servicesEnabled) return;
+            FitMainWindowToMonitor();
             await UpdateFullscreenPauseAsync();
             while (fullscreenPolicy.IsPaused && !IsDisposed)
             {
@@ -31,6 +35,7 @@ namespace WallpaperControl
             // Initialize the persistent desktop renderer before the first
             // wallpaper transition, so Explorer/DWM's one-time taskbar refresh
             // happens during startup instead of inside the first wipe.
+            initializingDesktop = true;
             nextWallpaperButton.Enabled = false;
 
             try
@@ -49,12 +54,14 @@ namespace WallpaperControl
             }
             finally
             {
+                initializingDesktop = false;
                 if (!IsDisposed)
                 {
                     // Widgets belong to the persistent desktop host. Starting
                     // them only after the host warm-up prevents the full-screen
                     // wallpaper surface from being placed in front of them.
                     widgetManager.Start();
+                    if (widgetEditSession?.Active == true) widgetManager.SetEditing(true);
                     CheckSlideshowStatus();
                 }
             }
@@ -78,6 +85,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                wallpaperLayoutReady = false;
                 customWallpaperCancellation?.Cancel();
                 if (nativeSlideshowAutoPaused && !slideshowPaused)
                 {
@@ -105,6 +113,10 @@ namespace WallpaperControl
                     AutomaticUpdateCheckTimer_Tick;
                 automaticUpdateCheckTimer.Dispose();
 
+                slideshowHeading.Dispose(); displayHeading.Dispose();
+                slideshowCard.Dispose(); displayCard.Dispose(); currentWallpaperCard.Dispose();
+                widgetEditor?.Dispose(); widgetsPage?.Dispose(); wallpaperContent?.Dispose(); wallpaperPage?.Dispose();
+                wallpaperNavigation?.Dispose(); widgetsNavigation?.Dispose(); mainNavigation?.Dispose();
                 toolTip.Dispose();
                 widgetManager.Dispose();
 
@@ -153,8 +165,7 @@ namespace WallpaperControl
             base.OnHandleCreated(e);
 
             ApplyTitleBarTheme();
-            RegisterHotKeys(
-                showErrors: false);
+            if (servicesEnabled) RegisterHotKeys(showErrors: false);
         }
 
         /// <summary>
@@ -204,6 +215,7 @@ namespace WallpaperControl
                 WindowState ==
                     FormWindowState.Minimized)
             {
+                if (showingWidgets) widgetEditSession?.Begin();
                 Hide();
                 ShowInTaskbar = false;
             }
@@ -216,6 +228,11 @@ namespace WallpaperControl
         protected override void OnFormClosing(
             FormClosingEventArgs e)
         {
+            if (!servicesEnabled) { base.OnFormClosing(e); return; }
+            if (!ResolveWidgetNavigation())
+            {
+                e.Cancel = true; exitRequested = false; base.OnFormClosing(e); return;
+            }
             SaveWindowPosition();
 
             if (closeToTrayEnabled &&
@@ -225,6 +242,7 @@ namespace WallpaperControl
             {
                 e.Cancel = true;
 
+                if (showingWidgets) widgetEditSession?.Begin();
                 Hide();
                 ShowInTaskbar = false;
 

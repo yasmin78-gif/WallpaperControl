@@ -2,7 +2,7 @@ using System.Windows.Forms;
 
 namespace WallpaperControl
 {
-    internal sealed partial class SettingsForm
+    internal sealed partial class WidgetSettingsEditor
     {
         /// <summary>
         /// Rebuilds the next-wallpaper widget&apos;s localized styles while retaining the selection.

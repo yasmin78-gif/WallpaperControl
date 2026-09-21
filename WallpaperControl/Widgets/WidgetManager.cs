@@ -41,6 +41,8 @@ namespace WallpaperControl
 
         public WidgetSettings Settings => settings.Clone();
 
+        internal void SetEditing(bool active) => previewMode = active;
+
         /// <summary>
         /// Creates or updates widgets from saved preferences outside settings-preview mode.
         /// </summary>

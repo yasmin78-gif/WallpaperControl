@@ -7,12 +7,13 @@ namespace WallpaperControl
         private readonly NotesStore store;
         private readonly string language;
         private readonly SystemWidgetStyle style;
+        private readonly bool darkMode;
         private readonly ListView list = new() { View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false, Dock = DockStyle.Fill };
         private readonly Label status = new() { AutoSize = true, Dock = DockStyle.Top, MaximumSize = new Size(800, 0) };
 
-        internal NotesManagerForm(NotesStore store, string language, SystemWidgetStyle style = SystemWidgetStyle.Minimal)
+        internal NotesManagerForm(NotesStore store, string language, SystemWidgetStyle style = SystemWidgetStyle.Minimal, bool? darkMode = null)
         {
-            this.store = store; this.language = language; this.style = style;
+            this.store = store; this.language = language; this.style = style; this.darkMode = darkMode ?? NotesDialogStyle.ResolveDarkMode();
             Text = Localization.Get("NotesManage", language);
             AutoScaleMode = AutoScaleMode.Dpi; AutoScaleDimensions = new SizeF(96, 96);
             ClientSize = new Size(840, 450); MinimumSize = new Size(680, 350);
@@ -36,7 +37,7 @@ namespace WallpaperControl
             list.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter && Selected is NoteEntry entry) { Edit(entry); e.Handled = true; } };
             store.Changed += RefreshEntries;
             RefreshEntries();
-            NotesDialogStyle.Apply(this, style);
+            NotesDialogStyle.Apply(this, style, this.darkMode);
             list.ClientSizeChanged += (_, _) => ResizeLastColumn();
             ResizeLastColumn();
             if (store.LoadIssue) status.Text = Localization.Get("NotesLoadIssue", language);
@@ -54,7 +55,7 @@ namespace WallpaperControl
             Button button = new() { Text = Localization.Get(key, language), AutoSize = true, MinimumSize = new Size(110, 32), Enabled = store.CanWrite };
             button.Click += (_, _) => action(); panel.Controls.Add(button);
         }
-        private void Edit(NoteEntry? entry) { using NoteEditorForm editor = new(store, entry, language, style); editor.ShowDialog(this); }
+        private void Edit(NoteEntry? entry) { using NoteEditorForm editor = new(store, entry, language, style, darkMode); editor.ShowDialog(this); }
         internal bool ToggleSelected() => Report(Selected is NoteEntry e && store.Complete(e.Id, !e.IsCompleted));
         internal bool DeleteSelected() => Report(Selected is NoteEntry e && store.Delete(e.Id));
         private bool Report(bool success) { if (!success) status.Text = Localization.Get("NotesSaveError", language); return success; }

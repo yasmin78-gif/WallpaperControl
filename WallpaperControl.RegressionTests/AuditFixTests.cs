@@ -204,7 +204,7 @@ internal static class AuditFixTests
         foreach (bool dispose in new[] { false, true })
         {
             using App.SettingsForm form = new(false, "system", 0, 0, 0, 0, 0, 0, 0, 0,
-                "", true, false, true, true, true, 92, new App.WidgetSettings());
+                "", true, false, true, true, true, 92);
             TaskCompletionSource<App.UpdateCheckResult> pending = new();
             CancellationToken token = default;
             Task task = form.CheckForUpdatesAsync(value => { token = value; return pending.Task; });

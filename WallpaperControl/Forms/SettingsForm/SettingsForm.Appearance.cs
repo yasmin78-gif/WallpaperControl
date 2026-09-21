@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -201,7 +201,7 @@ namespace WallpaperControl
             BackColor = background;
             ForeColor = foreground;
 
-            ApplyThemeToControls(
+            SettingsControlTheme.Apply(
                 Controls,
                 darkMode,
                 background,
@@ -223,130 +223,6 @@ namespace WallpaperControl
 
             Invalidate(
                 true);
-        }
-
-        /// <summary>
-        /// Recursively styles supported control types for the selected light or dark theme.
-        /// </summary>
-        /// <param name="controls">The controls to style or localize recursively.</param>
-        /// <param name="darkMode">True to use the dark palette; false to use the light palette.</param>
-        /// <param name="background">The background color to apply.</param>
-        /// <param name="foreground">The primary foreground color to apply.</param>
-        /// <param name="inputBackground">The background color used by editable controls.</param>
-        /// <param name="buttonBackground">The background color used by action buttons.</param>
-        private static void ApplyThemeToControls(
-            Control.ControlCollection controls,
-            bool darkMode,
-            Color background,
-            Color foreground,
-            Color inputBackground,
-            Color buttonBackground)
-        {
-            foreach (Control control
-                in controls)
-            {
-                if (control is TabControl tabControl)
-                {
-                    tabControl.BackColor =
-                        background;
-
-                    tabControl.ForeColor =
-                        foreground;
-                }
-                else if (control is TabPage tabPage)
-                {
-                    tabPage.BackColor =
-                        background;
-
-                    tabPage.ForeColor =
-                        foreground;
-                }
-                else if (control is GroupBox groupBox)
-                {
-                    groupBox.BackColor =
-                        background;
-
-                    groupBox.ForeColor =
-                        foreground;
-
-                    groupBox.FlatStyle =
-                        FlatStyle.Flat;
-                }
-                else if (control is Label label)
-                {
-                    label.BackColor =
-                        Color.Transparent;
-
-                    label.ForeColor =
-                        foreground;
-                }
-                else if (control is CheckBox checkBox)
-                {
-                    checkBox.BackColor =
-                        background;
-
-                    checkBox.ForeColor =
-                        foreground;
-                }
-                else if (control is TextBox textBox)
-                {
-                    textBox.BackColor =
-                        inputBackground;
-
-                    textBox.ForeColor =
-                        foreground;
-                }
-                else if (control is ComboBox combo)
-                {
-                    combo.BackColor =
-                        inputBackground;
-
-                    combo.ForeColor =
-                        foreground;
-                }
-                else if (control is TrackBar trackBar)
-                {
-                    trackBar.BackColor =
-                        background;
-
-                    trackBar.ForeColor =
-                        foreground;
-                }
-                else if (control is Button button)
-                {
-                    button.UseVisualStyleBackColor =
-                        false;
-
-                    button.BackColor =
-                        buttonBackground;
-
-                    button.ForeColor =
-                        foreground;
-
-                    button.FlatStyle =
-                        FlatStyle.Flat;
-
-                    button.FlatAppearance.BorderColor =
-                        AppTheme.Border(darkMode);
-
-                    button.FlatAppearance.MouseOverBackColor =
-                        AppTheme.ControlHover(darkMode);
-
-                    button.FlatAppearance.MouseDownBackColor =
-                        AppTheme.ControlPressed(darkMode);
-                }
-
-                if (control.HasChildren)
-                {
-                    ApplyThemeToControls(
-                        control.Controls,
-                        darkMode,
-                        background,
-                        foreground,
-                        inputBackground,
-                        buttonBackground);
-                }
-            }
         }
 
         /// <summary>

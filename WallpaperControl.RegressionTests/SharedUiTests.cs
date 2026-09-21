@@ -66,7 +66,7 @@ internal static class SharedUiTests
     /// <param name="form">The window whose native state or test controls are accessed.</param>
     /// <param name="field">The name of the dialog field holding the requested control.</param>
     /// <returns>The control stored in the requested dialog field.</returns>
-    private static T Control<T>(Form form, string field) => (T)form.GetType().GetField(field, Methods)!.GetValue(form)!;
+    private static T Control<T>(Control form, string field) => (T)form.GetType().GetField(field, Methods)!.GetValue(form)!;
 
     /// <summary>
     /// Checks every editable widget property, cloning, and the save-only empty-location fallback.
@@ -77,8 +77,8 @@ internal static class SharedUiTests
         object settings = Activator.CreateInstance(Type("WidgetSettings"))!;
         Set(settings, "ClockLocation", new Point(-300, 75));
         Set(settings, "WeatherLocationName", "Original city");
-        using Form form = (Form)Activator.CreateInstance(Type("SettingsForm"),
-            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, settings, null)!;
+        using Control form = (Control)Activator.CreateInstance(Type("WidgetSettingsEditor"), Methods, null,
+            new object?[] { settings, false, null, null }, null)!;
         // Reads widget settings from the form using preview or save behavior.
         object Read(bool save) => form.GetType().GetMethod("ReadWidgetSettings", Methods)!.Invoke(form, new object[] { save })!;
         var expected = new Dictionary<string, object>();
@@ -131,7 +131,9 @@ internal static class SharedUiTests
         Control<TextBox>(form, "weatherLocationTextBox").Text = "   ";
         check(Equals(Value(Read(false), "WeatherLocationName"), "") && Equals(Value(Read(true), "WeatherLocationName"), "Karlsruhe"),
             "Empty weather locations retain distinct preview and save behavior");
-        check((string?)Control<TabControl>(form, "settingsTabControl").SelectedTab?.Tag == "SettingsNavGeneral",
+        using Form general = (Form)Activator.CreateInstance(Type("SettingsForm"),
+            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92)!;
+        check((string?)Control<TabControl>(general, "settingsTabControl").SelectedTab?.Tag == "SettingsNavGeneral",
             "Settings still open on General");
     }
 
@@ -175,8 +177,8 @@ internal static class SharedUiTests
         var previews = new List<object>();
         Action<object> capture = value => previews.Add(value);
         Delegate callback = Delegate.CreateDelegate(typeof(Action<>).MakeGenericType(Type("WidgetSettings")), capture.Target, capture.Method);
-        using Form form = (Form)Activator.CreateInstance(Type("SettingsForm"),
-            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92, initial, callback)!;
+        using Control form = (Control)Activator.CreateInstance(Type("WidgetSettingsEditor"), Methods, null,
+            new object?[] { initial, false, null, callback }, null)!;
         var selector = Control<ComboBox>(form, "nextWidgetStyleComboBox");
         check(selector.Items.Count == 3 && selector.SelectedIndex == 1, "Next-widget selector restores the saved style");
         previews.Clear();
@@ -184,9 +186,9 @@ internal static class SharedUiTests
         object read = form.GetType().GetMethod("ReadWidgetSettings", Methods)!.Invoke(form, new object[] { true })!;
         check(previews.Count > 0 && Convert.ToInt32(Value(previews.Last(), "NextStyle")) == 2 && Convert.ToInt32(Value(read, "NextStyle")) == 2,
             "Next-widget style changes reach both live preview and accepted settings");
-        form.GetType().GetMethod("ApplyPreviewLocalization", Methods)!.Invoke(form, new object[] { "en" });
+        form.GetType().GetMethod("ApplyPresentation", Methods)!.Invoke(form, new object[] { false, "en" });
         check(selector.SelectedIndex == 2, "Changing preview language preserves the next-widget style");
-        form.GetType().GetMethod("ResetAllSettings", Methods)!.Invoke(form, null);
+        form.GetType().GetMethod("ResetDefaults", Methods)!.Invoke(form, null);
         check(selector.SelectedIndex == 0 && Convert.ToInt32(Value(initial, "NextStyle")) == 1,
             "Restoring defaults selects Minimal without mutating the original settings");
 

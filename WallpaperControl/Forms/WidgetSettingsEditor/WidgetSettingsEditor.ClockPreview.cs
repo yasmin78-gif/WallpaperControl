@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -7,11 +7,11 @@ using System.Windows.Forms;
 
 namespace WallpaperControl
 {
-    // Settings dialog ClockPreview members. See README.md in this directory for the code map.
-    internal sealed partial class SettingsForm
+    // Widget editor ClockPreview members.
+    internal sealed partial class WidgetSettingsEditor
     {
         /// <summary>
-        /// Renders a clock-style sample within the settings dialog.
+        /// Renders a clock-style sample within the widget editor.
         /// </summary>
         private sealed class ClockStyleCard : Control
         {
@@ -62,7 +62,7 @@ namespace WallpaperControl
         }
 
         /// <summary>
-        /// Renders a clock-style sample within the settings dialog.
+        /// Renders a clock-style sample within the widget editor.
         /// </summary>
         private sealed class ClockSettingsPreview : Control
         {

@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -719,9 +719,6 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
   <data name="SettingsTabWidgets" xml:space="preserve">
     <value>Widgets</value>
   </data>
-  <data name="SettingsWidgetsTitle" xml:space="preserve">
-    <value>Desktop widgets</value>
-  </data>
   <data name="SettingsClockEnabled" xml:space="preserve">
     <value>Show desktop clock</value>
   </data>
@@ -738,7 +735,7 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
     <value>Show Next button</value>
   </data>
   <data name="SettingsWidgetsHint" xml:space="preserve">
-    <value>Unlocked widgets can be freely dragged with the mouse. Positions are saved automatically.</value>
+    <value>Changes and moved positions are previewed first. Choose Save to keep them or Discard to restore them.</value>
   </data>
   <data name="SettingsClockShowSeconds" xml:space="preserve">
     <value>Show seconds</value>
@@ -1133,4 +1130,10 @@ Would you like to open the release page?</value>
   <data name="NotesSaveError" xml:space="preserve"><value>The entry could not be saved. Please try again.</value></data>
   <data name="NotesLoadIssue" xml:space="preserve"><value>Some data could not be loaded. Damaged files are retained for recovery; unknown versions remain read-only.</value></data>
   <data name="WidgetFontSize" xml:space="preserve"><value>Font size</value></data>
+  <data name="MainNavWallpaper" xml:space="preserve"><value>Wallpaper</value></data>
+  <data name="WidgetChangesTitle" xml:space="preserve"><value>Unsaved widget changes</value></data>
+  <data name="WidgetChangesPrompt" xml:space="preserve"><value>Widget settings have changed. Save them, discard them, or continue editing?</value></data>
+  <data name="WidgetDiscard" xml:space="preserve"><value>Discard</value></data>
+  <data name="MainSlideshowHeading" xml:space="preserve"><value>Slideshow</value></data>
+  <data name="MainDisplayHeading" xml:space="preserve"><value>Display</value></data>
 </root>

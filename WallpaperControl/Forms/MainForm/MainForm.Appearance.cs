@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -224,14 +224,15 @@ namespace WallpaperControl
             trayMenu.ForeColor =
                 foreground;
 
-            foreach (Control control in Controls)
+            foreach (Control control in WallpaperControls())
             {
                 if (control is MainFormComboBox combo)
                 {
                     combo.BackColor = inputBackground;
                     combo.ForeColor = inputForeground;
                     combo.MutedColor = AppTheme.TextSecondary(darkMode);
-                    combo.ItemHeight = Math.Max(combo.Font.Height + 8, 26);
+                    combo.ItemHeight = Math.Max(combo.Font.Height + (int)Math.Round(8 * DeviceDpi / 96f),
+                        (int)Math.Round(26 * DeviceDpi / 96f));
                 }
                 if (control is MainFormButton button)
                     button.MutedColor = AppTheme.TextSecondary(darkMode);
@@ -245,6 +246,8 @@ namespace WallpaperControl
             nextWallpaperButton.FlatAppearance.BorderColor = Color.FromArgb(29, 105, 184);
             nextWallpaperButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(37, 121, 207);
             nextWallpaperButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(23, 85, 151);
+            ApplyWallpaperPageTheme();
+            UpdateWidgetPresentation();
             ApplyTitleBarTheme();
             Invalidate(true);
         }
@@ -283,71 +286,5 @@ namespace WallpaperControl
             WindowsTheme.ApplyTitleBar(this, darkMode);
         }
 
-        /// <summary>
-        /// Arranges the controls without a warning area.
-        /// </summary>
-        private void SetNormalLayout() => ArrangeMainForm(0);
-
-        /// <summary>
-        /// Reserves space for a warning and, when needed, the activation button.
-        /// </summary>
-        /// <param name="showActivateButton">Whether the warning layout should include the activation action.</param>
-        private void SetWarningLayout(bool showActivateButton) => ArrangeMainForm(showActivateButton ? 76 : 40);
-
-        /// <summary>
-        /// Positions the main-window controls using the requested warning-area offset.
-        /// </summary>
-        /// <param name="offset">The vertical layout offset in logical pixels.</param>
-        private void ArrangeMainForm(int offset)
-        {
-            SuspendLayout();
-            float scale = DeviceDpi / 96f;
-            // Scales a logical layout dimension for the current display density.
-            int Px(int value) => (int)Math.Round(value * scale);
-            // Positions and sizes a control using the scaled main-window layout coordinates.
-            void Place(Control control, int x, int y, int width, int height)
-            {
-                if (control is Label label) label.AutoSize = false;
-                control.SetBounds(Px(x), Px(y), Px(width), Px(height));
-            }
-            Place(mainHeading, 48, 14, 329, 30);
-            Place(aboutButton, 12, 15, 28, 28);
-            Place(settingsButton, 385, 15, 28, 28);
-            Place(statusLabel, 25, 50, 375, 25);
-            Place(activateButton, 25, 80, 375, 34);
-            Place(folderLabel, 25, 56 + offset, 375, 24);
-            Place(folderTextBox, 25, 84 + offset, 300, 28);
-            Place(folderButton, 335, 83 + offset, 65, 28);
-            Place(wallpaperCountLabel, 25, 114 + offset, 375, 20);
-            Place(intervalLabel, 25, 143 + offset, 375, 24);
-            Place(intervalComboBox, 25, 171 + offset, 375, 28);
-            Place(windowsIntervalLabel, 25, 202 + offset, 375, 20);
-            Place(shuffleCheckBox, 25, 224 + offset, 375, 24);
-            Place(positionLabel, 25, 256 + offset, 375, 24);
-            Place(positionComboBox, 25, 284 + offset, 375, 28);
-            Place(transitionLabel, 25, 322 + offset, 125, 24);
-            Place(directionHeading, 160, 322 + offset, 115, 24);
-            Place(transitionDurationLabel, 285, 322 + offset, 115, 24);
-            Place(transitionComboBox, 25, 350 + offset, 125, 28);
-            Place(transitionDirectionComboBox, 160, 350 + offset, 115, 28);
-            Place(transitionDurationComboBox, 285, 350 + offset, 115, 28);
-            Place(nextWallpaperButton, 25, 396 + offset, 375, 44);
-            Place(currentHeading, 25, 458 + offset, 375, 22);
-            Place(currentWallpaperLabel, 25, 481 + offset, 375, 24);
-            Place(pauseButton, 25, 518 + offset, 180, 34);
-            Place(pinButton, 220, 518 + offset, 180, 34);
-            Place(explorerButton, 25, 562 + offset, 180, 34);
-            Place(rejectButton, 220, 562 + offset, 180, 34);
-            Place(undoRejectButton, 25, 605 + offset, 375, 30);
-            Place(historyButton, 25, 646 + offset, 180, 30);
-            Place(statisticsButton, 220, 646 + offset, 180, 30);
-            int tab = 0;
-            foreach (Control control in new Control[] { folderButton, intervalComboBox, shuffleCheckBox,
-                positionComboBox, transitionComboBox, transitionDirectionComboBox, transitionDurationComboBox,
-                nextWallpaperButton, pauseButton, pinButton, explorerButton, rejectButton, undoRejectButton,
-                historyButton, statisticsButton }) control.TabIndex = tab++;
-            ClientSize = new Size(Px(425), Px(690 + offset));
-            ResumeLayout();
-        }
     }
 }
