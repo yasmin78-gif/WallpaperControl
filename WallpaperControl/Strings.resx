@@ -1136,4 +1136,23 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="WidgetDiscard" xml:space="preserve"><value>Verwerfen</value></data>
   <data name="MainSlideshowHeading" xml:space="preserve"><value>Diashow</value></data>
   <data name="MainDisplayHeading" xml:space="preserve"><value>Darstellung</value></data>
+  <data name="WebTitle" xml:space="preserve"><value>Webseite</value></data>
+  <data name="WebEnabled" xml:space="preserve"><value>Web-Widget aktivieren</value></data>
+  <data name="WebName" xml:space="preserve"><value>Anzeigename</value></data>
+  <data name="WebUrl" xml:space="preserve"><value>Website-Adresse (HTTP/HTTPS)</value></data>
+  <data name="WebApplyUrl" xml:space="preserve"><value>Adresse übernehmen</value></data>
+  <data name="WebZoom" xml:space="preserve"><value>Website-Zoom (%)</value></data>
+  <data name="WebInteraction" xml:space="preserve"><value>Website-Interaktion erlauben</value></data>
+  <data name="WebStartup" xml:space="preserve"><value>Website beim Start laden</value></data>
+  <data name="WebCollapse" xml:space="preserve"><value>Einklappen</value></data>
+  <data name="WebRestore" xml:space="preserve"><value>Aufklappen</value></data>
+  <data name="WebReload" xml:space="preserve"><value>Neu laden</value></data>
+  <data name="WebLoading" xml:space="preserve"><value>Website wird geladen …</value></data>
+  <data name="WebReady" xml:space="preserve"><value>Zum Laden auf „Neu laden“ klicken.</value></data>
+  <data name="WebInvalidUrl" xml:space="preserve"><value>Bitte eine gültige HTTP- oder HTTPS-Adresse ohne Zugangsdaten eingeben.</value></data>
+  <data name="WebRuntimeMissing" xml:space="preserve"><value>Microsoft Edge WebView2 Runtime fehlt. Bitte installieren und das Widget erneut aktivieren.</value></data>
+  <data name="WebInitializationFailed" xml:space="preserve"><value>Web-Widget konnte nicht gestartet werden. Mit „Neu laden“ erneut versuchen.</value></data>
+  <data name="WebNavigationFailed" xml:space="preserve"><value>Website nicht erreichbar. Verbindung prüfen und erneut laden.</value></data>
+  <data name="WebProcessFailed" xml:space="preserve"><value>Web-Prozess beendet. Neu laden versuchen; bei Bedarf Widget aus- und einschalten.</value></data>
+  <data name="WebLocked" xml:space="preserve"><value>Position und Größe fixieren</value></data>
 </root>

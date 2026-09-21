@@ -15,7 +15,11 @@ namespace WallpaperControl
         private void NotifyWidgetPreviewChanged()
         {
             if (!loadingControls && widgetPreviewChanged != null)
-                widgetPreviewChanged(ReadWidgetSettings(applySaveDefaults: false));
+                {
+                    WidgetSettings value = ReadWidgetSettings(applySaveDefaults: false);
+                    value.Web.Url = appliedWebUrl;
+                    widgetPreviewChanged(value);
+                }
         }
         /// <summary>
         /// Reads editable widget values into a clone, preserving positions and unexposed settings.
@@ -25,6 +29,7 @@ namespace WallpaperControl
         internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            ReadWebControls(preview.Web);
             preview.NotesEnabled = notesEnabled.Checked;
             preview.NotesLocked = notesLocked.Checked;
             preview.NotesMaximumHeight = (int)notesMaximumHeight.Value;

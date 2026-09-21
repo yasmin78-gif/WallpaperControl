@@ -68,6 +68,8 @@ namespace WallpaperControl
             Color background =
                 AppTheme.WindowBackground(darkMode);
 
+            widgetManager.RefreshWebTheme(darkMode);
+
             Color foreground =
                 AppTheme.TextPrimary(darkMode);
 

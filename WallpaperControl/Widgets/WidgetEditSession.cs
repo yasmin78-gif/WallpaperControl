@@ -34,7 +34,9 @@ namespace WallpaperControl
         {
             if (!Active) return true;
             long revision = SettingsPersistence.FailureRevision;
-            manager.CommitPreview(read(true));
+            WidgetSettings value = read(true);
+            if (value.Web.Enabled && !WebWidgetSettings.IsValidUrl(value.Web.Url)) return false;
+            manager.CommitPreview(value);
             manager.SetEditing(true);
             if (revision != SettingsPersistence.FailureRevision) return false;
             baseline = manager.Settings;

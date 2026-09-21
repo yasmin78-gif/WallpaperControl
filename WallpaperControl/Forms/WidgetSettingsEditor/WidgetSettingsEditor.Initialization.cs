@@ -25,6 +25,7 @@ namespace WallpaperControl
             TabPage calendarWidgetPage = AddPage("SettingsNavCalendar", "▣");
             TabPage wallpaperInfoPage = AddPage("WallpaperInfoTitle", "ⓘ"); InitializeWallpaperInfoPage(wallpaperInfoPage);
             TabPage notesPage = AddPage("NotesTitle", "▤"); InitializeNotesPage(notesPage);
+            InitializeWebPage(AddPage("WebTitle", "⊕"));
             #region Clock widget page
 
             Label widgetsTitle = new Label

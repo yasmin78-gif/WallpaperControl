@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ namespace WallpaperControl
     {
         internal const string RegistryPath = @"Software\WallpaperControl";
         private bool loadFailed;
+        public WebWidgetSettings Web { get; set; } = new();
 
         public bool NotesEnabled { get; set; }
         public bool NotesLocked { get; set; }
@@ -75,6 +76,7 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
 
                 result.NotesEnabled = ReadInt(key, "NotesWidgetEnabled", 0) == 1;
                 result.NotesLocked = ReadInt(key, "NotesWidgetLocked", 0) == 1;
@@ -155,6 +157,8 @@ namespace WallpaperControl
             try
             {
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
+                Web.Normalize();
+                key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
                 key.SetValue("NotesWidgetEnabled", NotesEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NotesWidgetLocked", NotesLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NotesWidgetMaximumHeight", Math.Clamp(NotesMaximumHeight, 300, 1000), RegistryValueKind.DWord);
@@ -227,6 +231,7 @@ namespace WallpaperControl
         public WidgetSettings Clone() => new()
         {
             loadFailed = loadFailed,
+            Web = Web.Clone(),
             NotesEnabled = NotesEnabled,
             NotesLocked = NotesLocked,
             NotesMaximumHeight = NotesMaximumHeight,

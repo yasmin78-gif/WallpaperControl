@@ -1108,4 +1108,23 @@
   <data name="WidgetDiscard" xml:space="preserve"><value>破棄</value></data>
   <data name="MainSlideshowHeading" xml:space="preserve"><value>スライドショー</value></data>
   <data name="MainDisplayHeading" xml:space="preserve"><value>表示</value></data>
+  <data name="WebTitle" xml:space="preserve"><value>ウェブ</value></data>
+  <data name="WebEnabled" xml:space="preserve"><value>ウェブウィジェットを有効にする</value></data>
+  <data name="WebName" xml:space="preserve"><value>表示名</value></data>
+  <data name="WebUrl" xml:space="preserve"><value>ウェブサイトのURL（HTTP/HTTPS）</value></data>
+  <data name="WebApplyUrl" xml:space="preserve"><value>URLを適用</value></data>
+  <data name="WebZoom" xml:space="preserve"><value>ウェブサイトのズーム（%）</value></data>
+  <data name="WebInteraction" xml:space="preserve"><value>ウェブサイトの操作を許可する</value></data>
+  <data name="WebStartup" xml:space="preserve"><value>起動時にウェブサイトを読み込む</value></data>
+  <data name="WebCollapse" xml:space="preserve"><value>折りたたむ</value></data>
+  <data name="WebRestore" xml:space="preserve"><value>展開する</value></data>
+  <data name="WebReload" xml:space="preserve"><value>再読み込み</value></data>
+  <data name="WebLoading" xml:space="preserve"><value>ウェブサイトを読み込み中…</value></data>
+  <data name="WebReady" xml:space="preserve"><value>再読み込みを押してウェブサイトを読み込んでください。</value></data>
+  <data name="WebInvalidUrl" xml:space="preserve"><value>認証情報を含まない有効なHTTPまたはHTTPSのURLを入力してください。</value></data>
+  <data name="WebRuntimeMissing" xml:space="preserve"><value>Microsoft Edge WebView2 Runtimeがありません。インストール後、ウィジェットを再度有効にしてください。</value></data>
+  <data name="WebInitializationFailed" xml:space="preserve"><value>ウェブウィジェットを起動できませんでした。再読み込みで再試行してください。</value></data>
+  <data name="WebNavigationFailed" xml:space="preserve"><value>ウェブサイトに接続できません。接続を確認して再読み込みしてください。</value></data>
+  <data name="WebProcessFailed" xml:space="preserve"><value>ウェブプロセスが停止しました。再読み込み、またはウィジェットを無効にして再度有効にしてください。</value></data>
+  <data name="WebLocked" xml:space="preserve"><value>位置とサイズを固定する</value></data>
 </root>

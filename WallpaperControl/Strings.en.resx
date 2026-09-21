@@ -1136,4 +1136,23 @@ Would you like to open the release page?</value>
   <data name="WidgetDiscard" xml:space="preserve"><value>Discard</value></data>
   <data name="MainSlideshowHeading" xml:space="preserve"><value>Slideshow</value></data>
   <data name="MainDisplayHeading" xml:space="preserve"><value>Display</value></data>
+  <data name="WebTitle" xml:space="preserve"><value>Web</value></data>
+  <data name="WebEnabled" xml:space="preserve"><value>Enable Web widget</value></data>
+  <data name="WebName" xml:space="preserve"><value>Display name</value></data>
+  <data name="WebUrl" xml:space="preserve"><value>Website URL (HTTP/HTTPS)</value></data>
+  <data name="WebApplyUrl" xml:space="preserve"><value>Apply URL</value></data>
+  <data name="WebZoom" xml:space="preserve"><value>Website zoom (%)</value></data>
+  <data name="WebInteraction" xml:space="preserve"><value>Allow website interaction</value></data>
+  <data name="WebStartup" xml:space="preserve"><value>Load website on startup</value></data>
+  <data name="WebCollapse" xml:space="preserve"><value>Collapse</value></data>
+  <data name="WebRestore" xml:space="preserve"><value>Restore</value></data>
+  <data name="WebReload" xml:space="preserve"><value>Reload</value></data>
+  <data name="WebLoading" xml:space="preserve"><value>Loading website…</value></data>
+  <data name="WebReady" xml:space="preserve"><value>Select Reload to load the website.</value></data>
+  <data name="WebInvalidUrl" xml:space="preserve"><value>Enter a valid HTTP or HTTPS URL without embedded credentials.</value></data>
+  <data name="WebRuntimeMissing" xml:space="preserve"><value>Microsoft Edge WebView2 Runtime is missing. Install it and enable the widget again.</value></data>
+  <data name="WebInitializationFailed" xml:space="preserve"><value>Web widget could not start. Select Reload to retry.</value></data>
+  <data name="WebNavigationFailed" xml:space="preserve"><value>Website unavailable. Check your connection and reload.</value></data>
+  <data name="WebProcessFailed" xml:space="preserve"><value>Web process stopped. Try Reload; if necessary disable and enable the widget.</value></data>
+  <data name="WebLocked" xml:space="preserve"><value>Lock position and size</value></data>
 </root>

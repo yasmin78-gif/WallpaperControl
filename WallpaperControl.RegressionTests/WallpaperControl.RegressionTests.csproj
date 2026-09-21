@@ -26,4 +26,7 @@
     <Compile Include="../WallpaperControl/Services/SingleInstanceGuard.cs" Link="SingleInstanceGuard.cs" />
     <Compile Include="../WallpaperControl/Services/RemoteCommandServer.cs" Link="RemoteCommandServer.cs" />
   </ItemGroup>
+<Target Name="RemoveUnusedWebView2Wpf" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup><Reference Remove="@(Reference)" Condition="'%(Reference.Filename)' == 'Microsoft.Web.WebView2.Wpf'" /></ItemGroup>
+  </Target>
 </Project>

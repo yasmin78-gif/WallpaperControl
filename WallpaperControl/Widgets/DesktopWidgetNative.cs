@@ -26,8 +26,9 @@ namespace WallpaperControl
         /// </summary>
         /// <param name="form">The window whose native state or test controls are accessed.</param>
         /// <param name="location">The widget position in screen coordinates.</param>
+        /// <param name="allowActivation">Whether an interactive widget may activate on a user click to receive keyboard input.</param>
         /// <returns>True when the widget was attached to the desktop band; otherwise, false.</returns>
-        public static bool AttachToDesktop(Form form, Point location)
+        public static bool AttachToDesktop(Form form, Point location, bool allowActivation = false)
         {
             if (form.IsDisposed || !form.IsHandleCreated)
                 return false;
@@ -39,7 +40,9 @@ namespace WallpaperControl
             IntPtr hwnd = form.Handle;
 
             long exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
-            exStyle |= WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+            exStyle |= WS_EX_TOOLWINDOW;
+            if (allowActivation) exStyle &= ~WS_EX_NOACTIVATE;
+            else exStyle |= WS_EX_NOACTIVATE;
             exStyle &= ~WS_EX_TOPMOST;
             SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(exStyle));
 

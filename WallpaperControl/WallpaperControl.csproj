@@ -33,6 +33,11 @@
 		<EmbeddedResource Include="WallpaperControl.ico" />
 		<PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
 		<PackageReference Include="Ical.Net" Version="5.2.3" />
+        <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4022.49" />
 	</ItemGroup>
 
+<!-- The SDK adds WPF too; this WinForms application only uses Core and WinForms. -->
+    <Target Name="RemoveUnusedWebView2Wpf" BeforeTargets="ResolveAssemblyReferences">
+        <ItemGroup><Reference Remove="@(Reference)" Condition="'%(Reference.Filename)' == 'Microsoft.Web.WebView2.Wpf'" /></ItemGroup>
+    </Target>
 </Project>

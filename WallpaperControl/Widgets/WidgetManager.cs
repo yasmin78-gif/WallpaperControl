@@ -23,6 +23,7 @@ namespace WallpaperControl
         private WeatherWidgetForm? weatherWidget;
         private CalendarWidgetForm? calendarWidget;
         private bool previewMode;
+        private WebWidgetForm? webWidget;
 
         /// <summary>
         /// Loads widget preferences and stores the callback used by the next-wallpaper widget.
@@ -63,6 +64,9 @@ namespace WallpaperControl
             // Keep locations from the current live widget state. This allows
             // a widget to be moved while the settings dialog is open without
             // every checkbox/size change snapping it back to the old position.
+            WebWidgetSettings webPreview = previewSettings.Web.Clone();
+            webPreview.CopyGeometry(settings.Web);
+            settings.Web = webPreview;
             settings.NotesEnabled = previewSettings.NotesEnabled;
             settings.NotesLocked = previewSettings.NotesLocked;
             settings.NotesMaximumHeight = previewSettings.NotesMaximumHeight;
@@ -120,6 +124,7 @@ namespace WallpaperControl
             // Preserve locations collected by the live preview. The dialog only
             // owns the enable/lock/size values; drag operations belong to the
             // widget windows themselves.
+            WebWidgetSettings webGeometry = settings.Web.Clone();
             Point notesLocation = settings.NotesLocation;
             Point clockLocation = settings.ClockLocation;
             Point infoLocation = settings.WallpaperInfoLocation;
@@ -129,6 +134,7 @@ namespace WallpaperControl
             Point calendarLocation = settings.CalendarLocation;
 
             settings = committedSettings.Clone();
+            settings.Web.CopyGeometry(webGeometry);
             settings.NotesLocation = notesLocation;
             settings.ClockLocation = clockLocation;
             settings.WallpaperInfoLocation = infoLocation;
@@ -167,6 +173,7 @@ namespace WallpaperControl
             // Preview mode keeps the widget windows interactive even though the
             // settings dialog is modal. The Lock checkboxes themselves still
             // apply immediately, so the preview always matches the current UI.
+            ApplyWebWidget(target, restoreLocations);
             bool effectiveClockLocked = target.ClockLocked;
             bool effectiveNextLocked = target.NextLocked;
 
@@ -656,6 +663,32 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
+        internal void RefreshWebTheme(bool dark) => webWidget?.ApplyTheme(dark);
+
+        private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
+        {
+            if (!target.Web.Enabled)
+            {
+                webWidget?.Close(); webWidget?.Dispose(); webWidget = null; return;
+            }
+            if (webWidget == null || webWidget.IsDisposed)
+            {
+                webWidget = new WebWidgetForm(target.Web, target.ClockLanguageCode);
+                webWidget.GeometrySettled += (_, _) =>
+                {
+                    if (webWidget == null) return;
+                    settings.Web.CopyGeometry(webWidget.Configuration);
+                    if (!previewMode) settings.Save(registryPath);
+                };
+                RegisterDesktopWidget(webWidget);
+                webWidget.SetActivitySuspended(activitySuspended);
+                webWidget.Show();
+            }
+            else webWidget.ApplyConfiguration(target.Web, target.ClockLanguageCode, restoreLocations);
+            webWidget.SetActivitySuspended(activitySuspended);
+            DesktopWidgetNative.EnableInteraction(webWidget);
+        }
+
         private bool activitySuspended;
         /// <summary>
         /// Forwards automatic suspension to the widgets that perform periodic background work.
@@ -665,6 +698,7 @@ namespace WallpaperControl
         {
             bool resumed = activitySuspended && !suspended;
             activitySuspended = suspended;
+            webWidget?.SetActivitySuspended(suspended);
             wallpaperInfoWidget?.SetActivitySuspended(suspended);
             if (resumed) RefreshWallpaperInfo();
             notesWidget?.SetActivitySuspended(suspended);
@@ -681,6 +715,7 @@ namespace WallpaperControl
         public void Dispose()
         {
             desktopShowMonitor.Dispose();
+            webWidget?.Close(); webWidget?.Dispose(); webWidget = null;
 
             clock?.Close();
             clock?.Dispose();

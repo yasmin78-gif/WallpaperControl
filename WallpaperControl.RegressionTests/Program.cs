@@ -35,6 +35,8 @@ try
         Console.WriteLine($"All {passed} status UI checks passed.");
         return 0;
     }
+    if (args.Contains("--web")) { WebWidgetTests.Run(Check); Console.WriteLine($"All {passed} Web checks passed."); return 0; }
+    WebWidgetTests.Run(Check);
     CalendarTests.Run(Check);
     StatisticsTests.Run(Check);
     HotkeyTests.Run(Check);

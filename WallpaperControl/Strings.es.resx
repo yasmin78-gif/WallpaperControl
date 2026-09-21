@@ -1136,4 +1136,23 @@ Versión instalada: {0}
   <data name="WidgetDiscard" xml:space="preserve"><value>Descartar</value></data>
   <data name="MainSlideshowHeading" xml:space="preserve"><value>Presentación</value></data>
   <data name="MainDisplayHeading" xml:space="preserve"><value>Visualización</value></data>
+  <data name="WebTitle" xml:space="preserve"><value>Página web</value></data>
+  <data name="WebEnabled" xml:space="preserve"><value>Activar widget web</value></data>
+  <data name="WebName" xml:space="preserve"><value>Nombre visible</value></data>
+  <data name="WebUrl" xml:space="preserve"><value>Dirección web (HTTP/HTTPS)</value></data>
+  <data name="WebApplyUrl" xml:space="preserve"><value>Aplicar dirección</value></data>
+  <data name="WebZoom" xml:space="preserve"><value>Zoom del sitio (%)</value></data>
+  <data name="WebInteraction" xml:space="preserve"><value>Permitir interacción con el sitio</value></data>
+  <data name="WebStartup" xml:space="preserve"><value>Cargar sitio al iniciar</value></data>
+  <data name="WebCollapse" xml:space="preserve"><value>Contraer</value></data>
+  <data name="WebRestore" xml:space="preserve"><value>Expandir</value></data>
+  <data name="WebReload" xml:space="preserve"><value>Recargar</value></data>
+  <data name="WebLoading" xml:space="preserve"><value>Cargando sitio…</value></data>
+  <data name="WebReady" xml:space="preserve"><value>Selecciona Recargar para cargar el sitio.</value></data>
+  <data name="WebInvalidUrl" xml:space="preserve"><value>Introduce una dirección HTTP o HTTPS válida sin credenciales.</value></data>
+  <data name="WebRuntimeMissing" xml:space="preserve"><value>Falta Microsoft Edge WebView2 Runtime. Instálalo y vuelve a activar el widget.</value></data>
+  <data name="WebInitializationFailed" xml:space="preserve"><value>No se pudo iniciar el widget. Pulsa Recargar para reintentar.</value></data>
+  <data name="WebNavigationFailed" xml:space="preserve"><value>Sitio no disponible. Comprueba la conexión y recarga.</value></data>
+  <data name="WebProcessFailed" xml:space="preserve"><value>El proceso web se detuvo. Recarga o desactiva y activa el widget.</value></data>
+  <data name="WebLocked" xml:space="preserve"><value>Fijar posición y tamaño</value></data>
 </root>

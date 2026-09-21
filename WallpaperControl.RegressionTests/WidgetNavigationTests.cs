@@ -9,7 +9,7 @@ internal static class WidgetNavigationTests
 {
     private const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
     private static readonly string[] Languages = { "de", "en", "fr", "es", "ja" };
-    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather" };
+    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather", "WebTitle" };
     private static readonly float[] Scales = { 1, 1.5f, 2 };
     private static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, Members)!.GetValue(value)!;
     private static object? Invoke(object value, string name, params object[] args) => value.GetType().GetMethod(name, Members)!.Invoke(value, args);
@@ -129,7 +129,7 @@ internal static class WidgetNavigationTests
                 editor.ApplyPresentation(false, language);
                 check(editor.WidgetKeys.Order().SequenceEqual(Keys.Order()) && editor.WidgetKeys.Select(k => App.Localization.Get(k, language))
                     .SequenceEqual(editor.WidgetKeys.Select(k => App.Localization.Get(k, language)).OrderBy(n => n, StringComparer.Create(CultureInfo.GetCultureInfo(language), true))),
-                    $"V2 {language}/{scale} all seven widgets sort by their translated names");
+                    $"V2 {language}/{scale} all eight widgets sort by their translated names");
                 ScaleFonts(main, scale, scaledFonts);
                 main.Scale(new SizeF(scale, scale)); main.PerformLayout();
                 var navigation = Field<FlowLayoutPanel>(editor, "navigation");

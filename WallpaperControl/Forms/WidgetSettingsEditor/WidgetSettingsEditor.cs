@@ -32,6 +32,7 @@ namespace WallpaperControl
             {
                 if (replaceBaseline) initialWidgetSettings = value.Clone();
                 calendarSources = new(value.CalendarSources);
+                LoadWebControls(value.Web);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -86,6 +87,7 @@ namespace WallpaperControl
             try
             {
                 Localize(Controls);
+                RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
                 RefreshClockStyleChoices(GetSelectedClockStyle()); RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle()); RefreshNextStyleChoices(GetSelectedNextStyle());
                 RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
@@ -106,6 +108,7 @@ namespace WallpaperControl
                 if (pages.SelectedTab == null) pages.SelectedTab = ordered[0].Page;
                 BackColor = AppTheme.WindowBackground(dark); ForeColor = AppTheme.TextPrimary(dark);
                 SettingsControlTheme.Apply(Controls, dark, BackColor, ForeColor, AppTheme.InputBackground(dark), AppTheme.ControlBackground(dark));
+                LocalizeWebControls();
                 navigation.BackColor = AppTheme.SidebarBackground(dark);
                 UpdateSelection();
             }
@@ -133,6 +136,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                DisposeWebControls();
                 navigation.Dispose(); pages.Dispose();
                 calendarMaximumHeightNumeric?.Dispose(); notesManageButton.Dispose();
                 notesEnabled.Dispose(); notesLocked.Dispose(); notesMaximumHeight.Dispose(); notesStyle.Dispose(); wallpaperInfoFontSize.Dispose();
