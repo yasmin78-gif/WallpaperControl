@@ -6,7 +6,7 @@
 
 It extends the standard Windows wallpaper experience with its own clock-aligned slideshow engine, desktop-rendered transition effects and optional desktop widgets, while integrating cleanly with the Windows desktop and restoring native wallpaper handling when the application exits.
 
-**Current release: v1.8.5**
+**Current release: v1.8.6**
 
 ## ✨ Features
 
@@ -34,13 +34,14 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Random mode selects a different effect for each wallpaper change and randomizes direction or zoom mode where applicable
   - Configurable transition duration
   - Desktop icons and desktop tools remain visible above the transition layer
-  - Multiple monitors and Span layouts use native Windows wallpaper handling instead of custom animations
 
 - 🕐 **Native desktop widgets**
   - Clock widget with 5 selectable themes
   - System monitoring widget
   - Weather widget with optional 3-day forecast
   - Calendar widget with iCalendar / ICS support
+  - Compact Wallpaper Info widget with current wallpaper statistics
+  - Notes & Reminders widget with local task/reminder management
   - Optional Next Wallpaper button
   - Widgets can be positioned independently anywhere on the desktop
   - Independent position locking for each widget
@@ -123,6 +124,7 @@ It extends the standard Windows wallpaper experience with its own clock-aligned 
   - Remembers window position
   - Drag & drop support
   - Reorganized settings interface
+  - Widget settings are alphabetically sorted by their localized names and start collapsed
   - Settings always open on the **General** tab
   - Refreshed main window with clearer grouping and improved visual hierarchy
   - Dark dropdowns and improved readability for disabled controls
@@ -138,7 +140,7 @@ Wallpaper Control can automatically reduce background activity while a fullscree
 - Pauses automatic wallpaper changes and transition animations
 - Suspends regular desktop widget refreshes
 - Postpones automatic update checks
-- Resumes activity after two seconds without a fullscreen application
+- Uses faster stabilized fullscreen-exit detection and restores widgets to the desktop Z-order after resume
 - Brief Alt-Tab switches therefore do not immediately restart paused activity
 - A slideshow paused manually remains paused when fullscreen mode ends
 - Fullscreen detection is enabled by default and can be disabled in Settings
@@ -264,6 +266,16 @@ Holiday events are visually highlighted and automatically placed before normal a
 Multiple normal and holiday calendar sources can be combined in the same Calendar widget.
 
 Calendar refreshes are resilient to temporary feed failures. Previously loaded events remain visible when an individual source becomes unavailable, while available feeds continue to update. Wallpaper Control indicates when cached calendar data may be outdated and clears the warning after all configured feeds refresh successfully. Cached events are retained for the current application session.
+
+### ℹ️ Wallpaper Info
+
+The compact Wallpaper Info widget can show the current wallpaper name, its display count and the total number of available wallpapers. An optional second row adds average views, total views and the display record. Font size is adjustable from **10–24 px**. File extensions can be hidden, and multiple comma-separated filename suffixes can be removed from the displayed name only. Long names are automatically shortened. The widget supports **Minimal**, **Clean** and **Glow** styles.
+
+### 📝 Notes & Reminders
+
+The Notes & Reminders widget provides lightweight local task and reminder management directly on the desktop. Notes can contain a title, description and optional date/time and are grouped into No date, Overdue, Today, Tomorrow and upcoming days. Entries can be created, edited, completed, deleted and reopened through the widget and its dedicated manager. The content scrolls below a fixed header, the maximum height is configurable, and controls remain usable while the widget position is locked. The manager and editor follow the current Light/Dark application theme. Data is stored locally as JSON using atomic writes, backup and damaged-file protection. The widget supports **Minimal**, **Clean** and **Glow** styles.
+
+Reminder dates and times are displayed in the widget. **Windows notifications are not included in v1.8.6.**
 
 ### Next Wallpaper
 
@@ -396,7 +408,7 @@ Desktop widget text and date formatting follow the selected application language
 
 The **official installation method** for Wallpaper Control is the Windows x64 installer provided with each release.
 
-1. Download `WallpaperControl-1.8.3-Setup-x64.exe` from the latest GitHub release.
+1. Download `WallpaperControl-1.8.6-Setup-x64.exe` from the latest GitHub release.
 2. Completely exit an existing Wallpaper Control instance from the system tray before installing or upgrading.
 3. Run the installer.
 4. Optionally select a Desktop shortcut during setup.
@@ -414,7 +426,7 @@ The installer is currently **not digitally signed**. Windows may therefore displ
 
 ## 🔒 Privacy
 
-Wallpaper Control stores its application settings and wallpaper statistics locally on your computer.
+Wallpaper Control stores its application settings, wallpaper statistics, notes and reminders locally on your computer.
 
 No Wallpaper Control account is required.
 
