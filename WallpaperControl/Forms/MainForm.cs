@@ -105,6 +105,7 @@ namespace WallpaperControl
                 wallpaperRefreshTimer.Stop();
                 wallpaperRefreshTimer.Dispose();
 
+                LogScheduler("stopped: dispose");
                 customSlideshowPreciseTimer.Dispose();
 
                 automaticUpdateCheckTimer.Stop();

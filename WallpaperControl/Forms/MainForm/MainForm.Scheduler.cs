@@ -22,6 +22,7 @@ namespace WallpaperControl
                 !Directory.Exists(folder))
             {
                 customSlideshowEngineActive = false;
+                LogScheduler("start rejected: folder unavailable");
                 return;
             }
 
@@ -31,6 +32,7 @@ namespace WallpaperControl
                 !File.Exists(current))
             {
                 customSlideshowEngineActive = false;
+                LogScheduler("start rejected: current wallpaper unavailable");
                 return;
             }
 
@@ -47,16 +49,19 @@ namespace WallpaperControl
                         current, () => wallpaper.SetWallpaper(null, current)))
                 {
                     customSlideshowEngineActive = false;
+                    LogScheduler("start rejected: desktop session unavailable");
                     return;
                 }
 
                 customSlideshowEngineActive = true;
                 slideshowPaused = false;
+                LogScheduler("started");
                 RecalculateCustomSlideshowSchedule();
             }
             catch (Exception ex)
             {
                 customSlideshowEngineActive = false;
+                LogScheduler("start failed");
                 AppLogger.Error("Could not start the custom slideshow engine.", ex);
             }
             finally
@@ -73,17 +78,21 @@ namespace WallpaperControl
             if (!TryGetSelectedInterval(out uint milliseconds))
             {
                 customSlideshowNextChange = DateTime.MaxValue;
+                LogScheduler("stopped: invalid interval selection");
                 customSlideshowPreciseTimer.Change(
                     Timeout.Infinite,
                     Timeout.Infinite);
                 return;
             }
 
+            if (customSlideshowLastInterval != milliseconds)
+                LogScheduler($"interval changed; newIntervalMs={milliseconds}");
             customSlideshowLastInterval = milliseconds;
             customSlideshowNextChange =
                 GetNextAlignedChange(DateTime.Now, milliseconds);
 
             ArmCustomSlideshowPreciseTimer();
+            LogScheduler("deadline planned / resume");
         }
 
         /// <summary>
@@ -115,6 +124,12 @@ namespace WallpaperControl
             customSlideshowPreciseTimer.Change(
                 remaining,
                 Timeout.InfiniteTimeSpan);
+            // Early callbacks may re-arm the same deadline several times. Do not spam the log.
+            if (schedulerLastArmedDeadline != customSlideshowNextChange)
+            {
+                schedulerLastArmedDeadline = customSlideshowNextChange;
+                LogScheduler($"timer armed; dueMs={remaining.TotalMilliseconds:0}");
+            }
         }
 
         /// <summary>
@@ -124,6 +139,7 @@ namespace WallpaperControl
         private void CustomSlideshowPreciseTimerCallback(
             object? state)
         {
+            Interlocked.Exchange(ref schedulerCallbackUtcTicks, DateTime.UtcNow.Ticks);
             if (IsDisposed ||
                 Disposing)
             {
@@ -152,12 +168,14 @@ namespace WallpaperControl
         /// </summary>
         private void ProcessPreciseCustomSlideshowTick()
         {
+            Interlocked.Exchange(ref schedulerDispatchUtcTicks, DateTime.UtcNow.Ticks);
             if (exitRequested || IsDisposed || Disposing) return;
             _ = UpdateFullscreenPauseAsync();
             if (!customSlideshowEngineActive ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowChangeRunning)
             {
+                LogScheduler("automatic skipped: inactive, paused or change in progress; waiting for resume/completion");
                 ArmCustomSlideshowPreciseTimer();
                 return;
             }
@@ -170,7 +188,18 @@ namespace WallpaperControl
                 customSlideshowPreciseTimer.Change(
                     TimeSpan.FromMilliseconds(250),
                     Timeout.InfiniteTimeSpan);
+                if (!schedulerIntervalRetryLogged)
+                {
+                    schedulerIntervalRetryLogged = true;
+                    LogScheduler("automatic skipped: interval selection unavailable; retryMs=250");
+                }
                 return;
+            }
+
+            if (schedulerIntervalRetryLogged)
+            {
+                schedulerIntervalRetryLogged = false;
+                LogScheduler("interval selection recovered");
             }
 
             if (milliseconds != customSlideshowLastInterval)
@@ -196,12 +225,14 @@ namespace WallpaperControl
                 $"callback: {invoked:HH:mm:ss.fff}; " +
                 $"delta: {(invoked - target).TotalMilliseconds:+0;-0;0} ms");
 
+            LogScheduler($"automatic due; latenessMs={(invoked - target).TotalMilliseconds:0}");
             // Alignment is anchored to midnight; skip missed boundaries after sleep
             // or a clock jump instead of replaying them in a rapid catch-up loop.
             customSlideshowNextChange =
                 GetNextAlignedChange(
                     invoked,
                     milliseconds);
+            LogScheduler("next deadline planned before automatic attempt (retained on skip)");
 
             _ = AdvanceCustomWallpaperAsync(
                 DesktopSlideshowDirection.Forward, automatic: true);

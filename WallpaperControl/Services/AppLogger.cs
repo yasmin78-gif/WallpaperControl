@@ -38,13 +38,15 @@ namespace WallpaperControl
             Write("WARN", context, exception);
         }
 
+        internal static void Info(string context) => Write("INFO", context, null);
+
         /// <summary>
         /// Appends a timestamped diagnostic entry without allowing logging failures to disrupt the application.
         /// </summary>
         /// <param name="level">The diagnostic severity written to the log.</param>
         /// <param name="context">The operation context recorded alongside the exception.</param>
         /// <param name="exception">The exception to include in the diagnostic entry.</param>
-        private static void Write(string level, string context, Exception exception)
+        private static void Write(string level, string context, Exception? exception)
         {
             try
             {
@@ -59,7 +61,7 @@ namespace WallpaperControl
                     entry.Append(level);
                     entry.Append("] ");
                     entry.AppendLine(context);
-                    entry.AppendLine(exception.ToString());
+                    if (exception != null) entry.AppendLine(exception.ToString());
                     entry.AppendLine();
 
                     File.AppendAllText(LogFilePath, entry.ToString(), Encoding.UTF8);

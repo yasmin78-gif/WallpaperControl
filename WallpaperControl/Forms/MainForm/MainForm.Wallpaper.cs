@@ -12,12 +12,15 @@ namespace WallpaperControl
     public partial class MainForm
     {
         private CancellationTokenSource? customWallpaperCancellation;
+        private readonly Func<string?>? readCurrentWallpaperForTests;
+        private readonly NativeSlideshowAdvance nativeSlideshowAdvance = new();
         /// <summary>
         /// Returns the hosted wallpaper path, falling back to the Windows desktop wallpaper API.
         /// </summary>
         /// <returns>The current wallpaper path, or null when it cannot be determined.</returns>
         private string? GetCurrentWallpaperPath()
         {
+            if (readCurrentWallpaperForTests != null) return readCurrentWallpaperForTests();
             string? hostedWallpaper =
                 PersistentDesktopTransitionManager.GetDisplayedWallpaperPath();
 
@@ -97,14 +100,20 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            LogScheduler($"manual request; direction={direction}");
             await UpdateFullscreenPauseAsync();
-            if (fullscreenPolicy.IsPaused) return false;
-            if (slideshowPaused)
-                return false;
+            if (fullscreenPolicy.IsPaused) { LogScheduler("manual skipped: fullscreen"); return false; }
+            if (slideshowPaused) { LogScheduler("manual skipped: manual pause"); return false; }
 
             if (customSlideshowEngineActive)
             {
                 return await AdvanceCustomWallpaperAsync(direction);
+            }
+
+            if (nativeSlideshowAdvance.IsRunning)
+            {
+                LogScheduler("manual skipped: native advance in progress");
+                return false;
             }
 
             IDesktopWallpaper? wallpaper = null;
@@ -115,15 +124,19 @@ namespace WallpaperControl
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
-                wallpaper.AdvanceSlideshow(
-                    null,
-                    direction);
+                bool changed = await nativeSlideshowAdvance.TryAdvanceAsync(
+                    () => wallpaper.AdvanceSlideshow(null, direction),
+                    () => NativeSlideshowAdvance.ReadImages(wallpaper),
+                    () => Task.Delay(500));
+                if (!changed) return false;
 
                 _ = RefreshCurrentWallpaperSoonAsync();
                 return true;
             }
             catch (Exception ex)
             {
+                AppLogger.Warning("Native slideshow: manual advance failed.", ex);
+                if (exitRequested || IsDisposed || Disposing) return false;
                 MessageBox.Show(
                     Localization.Get("MsgAdvanceFailed") +
                     ex.Message,
@@ -147,17 +160,18 @@ namespace WallpaperControl
         private async Task<bool> AdvanceCustomWallpaperAsync(
             DesktopSlideshowDirection direction, bool automatic = false)
         {
+            LogScheduler($"{(automatic ? "automatic" : "manual")} custom attempt");
             await UpdateFullscreenPauseAsync();
-            if (fullscreenPolicy.IsPaused) return false;
-            if (customSlideshowChangeRunning)
-                return false;
-            if (slideshowPaused || !customSlideshowEngineActive) return false;
+            if (fullscreenPolicy.IsPaused) { LogScheduler("skipped: fullscreen"); return false; }
+            if (customSlideshowChangeRunning) { LogScheduler("skipped: change in progress"); return false; }
+            if (slideshowPaused || !customSlideshowEngineActive) { LogScheduler("skipped: manual pause or inactive"); return false; }
 
             string folder = folderTextBox.Text;
 
             if (string.IsNullOrWhiteSpace(folder) ||
                 !Directory.Exists(folder))
             {
+                LogScheduler("skipped: folder unavailable; retaining deadline");
                 return false;
             }
 
@@ -176,8 +190,7 @@ namespace WallpaperControl
                     .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                if (files.Length == 0)
-                    return false;
+                if (files.Length == 0) { LogScheduler("skipped: no images"); return false; }
 
                 string? current = GetCurrentWallpaperPath();
                 string? next = await WallpaperCandidateRunner.TryAdvanceAsync(files, current,
@@ -204,12 +217,13 @@ namespace WallpaperControl
                             return false;
                         }
                     });
-                if (next == null) return false;
+                if (next == null) { LogScheduler("skipped: no candidate applied"); return false; }
+                LogScheduler($"{(automatic ? "automatic" : "manual")} executed");
                 _ = RefreshCurrentWallpaperSoonAsync();
                 return true;
             }
-            catch (Exception) when (cancellation.IsCancellationRequested) { return false; }
-            catch (OperationCanceledException) { return false; }
+            catch (Exception) when (cancellation.IsCancellationRequested) { LogScheduler("skipped: cancelled"); return false; }
+            catch (OperationCanceledException) { LogScheduler("skipped: cancelled"); return false; }
             catch (Exception ex)
             {
                 if (exitRequested ||
@@ -240,9 +254,7 @@ namespace WallpaperControl
                 customSlideshowChangeRunning = false;
                 if (!exitRequested && !IsDisposed && !Disposing)
                 {
-                    if (customSlideshowNextChange <= DateTime.Now && customSlideshowLastInterval > 0)
-                        customSlideshowNextChange = GetNextAlignedChange(DateTime.Now, customSlideshowLastInterval);
-                    ArmCustomSlideshowPreciseTimer();
+                    CompleteCustomSlideshowSchedule(automatic);
                     UpdateCurrentWallpaperDisplay();
                 }
             }

@@ -24,6 +24,7 @@ namespace WallpaperControl
                 if (!fullscreenPolicy.Update(pauseOnFullscreen,
                     pauseOnFullscreen ? FullscreenActivityDetector.GetFullscreenState() : false, DateTime.UtcNow)) return;
                 bool paused = fullscreenPolicy.IsPaused;
+                LogScheduler($"fullscreen pause changed; suspended={paused}; propagation begin");
                 // Reuse the existing UI timer: sample exit more often without
                 // accelerating wallpaper/UI refreshes during normal operation.
                 wallpaperRefreshTimer.Interval = fullscreenPolicy.PollingIntervalMilliseconds;
@@ -79,9 +80,14 @@ namespace WallpaperControl
                     }
                     if (deferredUpdateCheck) _ = CheckForUpdatesAutomaticallyAsync();
                 }
+                LogScheduler("fullscreen propagation completed");
                 CheckSlideshowStatus();
             }
-            catch (Exception ex) { AppLogger.Warning("Could not update fullscreen pause state.", ex); }
+            catch (Exception ex)
+            {
+                LogScheduler("fullscreen propagation failed; recovery=none");
+                AppLogger.Warning("Could not update fullscreen pause state.", ex);
+            }
             finally { fullscreenUpdateRunning = false; }
         }
 

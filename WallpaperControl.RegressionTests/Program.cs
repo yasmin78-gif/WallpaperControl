@@ -38,6 +38,9 @@ try
     if (args.Contains("--web")) { WebWidgetTests.Run(Check); Console.WriteLine($"All {passed} Web checks passed."); return 0; }
     if (args.Contains("--notes")) { NotesTests.Run(Check); DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} notes checks passed."); return 0; }
     if (args.Contains("--daily-notes")) { DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} daily notes checks passed."); return 0; }
+    if (args.Contains("--scheduler")) { SchedulerDiagnosticsTests.Run(Check); Console.WriteLine($"All {passed} scheduler checks passed."); return 0; }
+    SchedulerDiagnosticsTests.Run(Check);
+    NativeSlideshowAdvanceTests.Run(Check);
     WebWidgetTests.Run(Check);
     CalendarTests.Run(Check);
     StatisticsTests.Run(Check);

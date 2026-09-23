@@ -31,6 +31,7 @@ namespace WallpaperControl
             if (customSlideshowEngineActive)
             {
                 slideshowPaused = true;
+                LogScheduler("manual pause enabled; timer stopped");
                 customSlideshowPreciseTimer.Change(
                     Timeout.Infinite,
                     Timeout.Infinite);
@@ -97,6 +98,7 @@ namespace WallpaperControl
             if (customSlideshowEngineActive)
             {
                 slideshowPaused = false;
+                LogScheduler("manual pause disabled; resume");
                 RecalculateCustomSlideshowSchedule();
                 CheckSlideshowStatus();
                 await Task.CompletedTask;
@@ -183,6 +185,7 @@ namespace WallpaperControl
                     new DesktopWallpaper();
 
                 customSlideshowEngineActive = false;
+                LogScheduler("stopped: pin wallpaper");
                 customWallpaperCancellation?.Cancel();
                 customSlideshowPreciseTimer.Change(
                     Timeout.Infinite,

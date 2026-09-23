@@ -150,6 +150,7 @@ internal sealed class WebWidgetForm : Form
         pendingInitialization = false;
         if (!WebWidgetSettings.IsValidUrl(settings.Url)) { ShowStatus("WebInvalidUrl"); return; }
         initializing = true; ShowStatus("WebLoading");
+        AppLogger.Info("Web widget: initialization begin");
         CancellationToken token = lifetime.Token;
         try
         {
@@ -180,7 +181,7 @@ internal sealed class WebWidgetForm : Form
         }
         catch (WebView2RuntimeNotFoundException ex) { ReportFailure("WebRuntimeMissing", ex); }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { if (!token.IsCancellationRequested) ReportFailure("WebInitializationFailed", ex); }
-        finally { initializing = false; }
+        finally { initializing = false; AppLogger.Info($"Web widget: initialization end; ready={ready}; cancelled={token.IsCancellationRequested}"); }
     }
     private void NavigateConfigured()
     {
@@ -197,29 +198,42 @@ internal sealed class WebWidgetForm : Form
     private void NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
         if (closing) return;
-        if (e.IsSuccess) ShowStatus("");
+        if (e.IsSuccess) { AppLogger.Info("Web widget: navigation completed; usable=true"); ShowStatus(""); }
         else if (e.WebErrorStatus != CoreWebView2WebErrorStatus.OperationCanceled)
-            ReportFailure("WebNavigationFailed", new InvalidOperationException(e.WebErrorStatus.ToString()));
+        {
+            AppLogger.Info($"Web widget: navigation failed; status={e.WebErrorStatus}");
+            ReportFailure("WebNavigationFailed", new InvalidOperationException());
+        }
     }
     private static void NewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e) => e.Handled = true;
     private static void DownloadStarting(object? sender, CoreWebView2DownloadStartingEventArgs e) { e.Cancel = true; e.Handled = true; }
     private static void PermissionRequested(object? sender, CoreWebView2PermissionRequestedEventArgs e) => e.State = CoreWebView2PermissionState.Deny;
     private void ProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)
     {
-        failedProcess = e.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited;
-        ReportFailure("WebProcessFailed", new InvalidOperationException(e.ProcessFailedKind.ToString()));
+        HandleProcessFailure(e.ProcessFailedKind);
+    }
+    internal void HandleProcessFailure(CoreWebView2ProcessFailedKind kind)
+    {
+        failedProcess = kind == CoreWebView2ProcessFailedKind.BrowserProcessExited;
+        AppLogger.Info($"Web widget: ProcessFailedKind={kind}; appRecoveryAttempted=false; " +
+            $"runtimeGpuRecoveryExpected={kind == CoreWebView2ProcessFailedKind.GpuProcessExited}; " +
+            $"usable={(failedProcess ? "false" : "unverified")}; ready={ready}; suspended={suspended}");
+        ReportFailure("WebProcessFailed", new InvalidOperationException());
     }
     private void ReportFailure(string key, Exception exception)
     {
-        AppLogger.Warning("Web widget: " + key, exception);
+        // Messages/stack traces from the browser can contain navigation/profile data.
+        AppLogger.Warning($"Web widget: {key}; exceptionType={exception.GetType().Name}; hresult=0x{exception.HResult:X8}",
+            new InvalidOperationException("Web operation failed; original details omitted for privacy."));
         if (!closing) ShowStatus(key);
     }
     private void Reload_Click(object? sender, EventArgs e)
     {
-        if (suspended || closing) return;
+        if (suspended || closing) { AppLogger.Info("Web widget: reload skipped; suspended or closing"); return; }
+        AppLogger.Info($"Web widget: reload requested; ready={ready}; browserProcessFailed={failedProcess}");
         if (!ready) { _ = InitializeAsync(); return; }
         if (failedProcess) { ShowStatus("WebProcessFailed"); return; }
-        try { browser.CoreWebView2.Reload(); }
+        try { browser.CoreWebView2.Reload(); AppLogger.Info("Web widget: reload dispatched; usability pending navigation completion"); }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { ReportFailure("WebNavigationFailed", ex); }
     }
     private void Collapse_Click(object? sender, EventArgs e) => SetCollapsed(!settings.Collapsed);

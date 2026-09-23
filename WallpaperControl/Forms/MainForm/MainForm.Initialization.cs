@@ -18,8 +18,9 @@ namespace WallpaperControl
         public MainForm() : this(null, true) { }
 
         // Isolated UI construction allows navigation tests without activating desktop services.
-        internal MainForm(WidgetManager isolatedWidgets, Func<DesktopSlideshowState>? nativeStatus = null)
-            : this(isolatedWidgets, false, nativeStatus) { }
+        internal MainForm(WidgetManager isolatedWidgets, Func<DesktopSlideshowState>? nativeStatus = null,
+            Func<string?>? currentWallpaper = null)
+            : this(isolatedWidgets, false, nativeStatus) { readCurrentWallpaperForTests = currentWallpaper; }
 
         private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null)
         {

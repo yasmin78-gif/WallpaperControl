@@ -17,6 +17,7 @@ namespace WallpaperControl
         // normal poll, even when the fullscreen policy itself has not changed.
         private void RefreshWallpaperUi()
         {
+            ObserveScheduler();
             if (fullscreenPolicy.IsPaused || IsDisposed) return;
             CheckSlideshowStatus();
             if (servicesEnabled) UpdateWallpaperPositionDisplay();
