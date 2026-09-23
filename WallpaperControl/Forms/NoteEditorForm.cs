@@ -12,6 +12,9 @@ namespace WallpaperControl
         private readonly CheckBox reminder = new() { AutoSize = true };
         private readonly CheckBox timed = new() { AutoSize = true };
         private readonly CheckBox completed = new() { AutoSize = true };
+        private readonly ComboBox repeat = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 240 };
+        private readonly Label repeatHint = new() { AutoSize = true, MaximumSize = new Size(500, 0) };
+        private bool completionChanged;
         private readonly DateTimePicker date = new() { Format = DateTimePickerFormat.Short, Width = 190 };
         private readonly DateTimePicker time = new() { Format = DateTimePickerFormat.Time, ShowUpDown = true, Width = 160 };
         private readonly Label error = new() { AutoSize = true, ForeColor = Color.Firebrick, MaximumSize = new Size(500, 0) };
@@ -35,6 +38,15 @@ namespace WallpaperControl
             Controls.Add(layout);
             AddLabel(layout, "NotesEntryTitle"); layout.Controls.Add(titleBox);
             AddLabel(layout, "NotesDescription"); layout.Controls.Add(descriptionBox);
+            AddLabel(layout, "NotesRepeat"); layout.Controls.Add(repeat);
+            repeat.Items.AddRange(new object[] { Localization.Get("NotesRepeatNone", language), Localization.Get("NotesRepeatDaily", language) });
+            // Native combo height can change after the table's preferred-size measurement.
+            for (int row = 0; row < layout.Controls.Count - 1; row++) layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            RowStyle repeatRow = new(SizeType.Absolute, repeat.Height + repeat.Margin.Vertical);
+            layout.RowStyles.Add(repeatRow);
+            repeat.SizeChanged += (_, _) => repeatRow.Height = repeat.Height + repeat.Margin.Vertical;
+            repeat.SelectedIndex = original.RepeatsDaily ? 1 : 0;
+            repeatHint.Text = Localization.Get("NotesDailyHint", language); layout.Controls.Add(repeatHint);
             reminder.Text = Localization.Get("NotesReminder", language); layout.Controls.Add(reminder);
             AddLabel(layout, "NotesDate"); layout.Controls.Add(date);
             timed.Text = Localization.Get("NotesUseTime", language); layout.Controls.Add(timed); layout.Controls.Add(time);
@@ -55,7 +67,14 @@ namespace WallpaperControl
             date.CustomFormat = System.Globalization.CultureInfo.GetCultureInfo(language).DateTimeFormat.ShortDatePattern;
             time.Format = DateTimePickerFormat.Custom;
             time.CustomFormat = System.Globalization.CultureInfo.GetCultureInfo(language).DateTimeFormat.ShortTimePattern;
-            completed.Checked = original.IsCompleted;
+            completed.Checked = original.IsCompletedOn(store.Now);
+            repeat.SelectedIndexChanged += (_, _) =>
+            {
+                completed.Checked = (original with { RepeatsDaily = repeat.SelectedIndex == 1 }).IsCompletedOn(store.Now);
+                completionChanged = false;
+                UpdateDateControls();
+            };
+            completed.CheckedChanged += (_, _) => completionChanged = true;
             reminder.CheckedChanged += (_, _) => UpdateDateControls(); timed.CheckedChanged += (_, _) => UpdateDateControls();
             UpdateDateControls();
             NotesDialogStyle.Apply(this, style, darkMode);
@@ -64,7 +83,16 @@ namespace WallpaperControl
 
         private void AddLabel(TableLayoutPanel layout, string key) => layout.Controls.Add(new Label { Text = Localization.Get(key, language), AutoSize = true, Margin = new Padding(3, 10, 3, 3) });
         private Button ActionButton(string key) => new() { Text = Localization.Get(key, language), AutoSize = true, MinimumSize = new Size(105, 32), Margin = new Padding(3, 12, 3, 3) };
-        private void UpdateDateControls() { date.Enabled = timed.Enabled = reminder.Checked; time.Enabled = reminder.Checked && timed.Checked; }
+        private void UpdateDateControls()
+        {
+            bool daily = repeat.SelectedIndex == 1;
+            if (daily && !reminder.Checked) reminder.Checked = true;
+            reminder.Enabled = !daily;
+            repeatHint.Visible = daily;
+            date.Enabled = timed.Enabled = reminder.Checked;
+            time.Enabled = reminder.Checked && timed.Checked;
+            completed.Text = Localization.Get(daily ? "NotesCompletedToday" : "NotesCompleted", language);
+        }
 
         internal bool SaveEntry()
         {
@@ -74,8 +102,10 @@ namespace WallpaperControl
                 Title = titleBox.Text.Trim(), Description = descriptionBox.Text, HasReminder = reminder.Checked,
                 DueDate = reminder.Checked ? DateOnly.FromDateTime(date.Value) : null,
                 DueTime = reminder.Checked && timed.Checked ? new TimeOnly(time.Value.Hour, time.Value.Minute) : null,
-                IsCompleted = completed.Checked,
-                CompletedAt = completed.Checked ? original.CompletedAt ?? DateTime.Now : null
+                RepeatsDaily = repeat.SelectedIndex == 1,
+                // Merely editing across midnight must not check off the new day's task.
+                IsCompleted = completionChanged ? completed.Checked : original.IsCompleted,
+                CompletedAt = completionChanged ? completed.Checked ? store.Now : null : original.CompletedAt
             };
             if (!store.SaveEntry(draft)) { error.Text = Localization.Get("NotesSaveError", language); return false; }
             DialogResult = DialogResult.OK; Close(); return true;

@@ -23,6 +23,7 @@ internal static class NotesTests
 
     internal static void Run(Action<bool, string> check)
     {
+        App.Localization.RefreshAvailableLanguages();
         ModelAndTime(check); Storage(check);
         // Run synchronously on an STA thread; Task captures and rethrows assertion failures to the runner.
         using Task work = new(() => { Dialogs(check); DialogAppearance(check); Widget(check); Settings(check); Manager(check); });

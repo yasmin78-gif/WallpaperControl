@@ -1155,4 +1155,11 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="WebNavigationFailed" xml:space="preserve"><value>Website nicht erreichbar. Verbindung prüfen und erneut laden.</value></data>
   <data name="WebProcessFailed" xml:space="preserve"><value>Web-Prozess beendet. Neu laden versuchen; bei Bedarf Widget aus- und einschalten.</value></data>
   <data name="WebLocked" xml:space="preserve"><value>Position und Größe fixieren</value></data>
+  <data name="NotesRepeat" xml:space="preserve"><value>Wiederholung</value></data>
+  <data name="NotesRepeatNone" xml:space="preserve"><value>Keine</value></data>
+  <data name="NotesRepeatDaily" xml:space="preserve"><value>Täglich</value></data>
+  <data name="NotesDailyHint" xml:space="preserve"><value>Ab dem gewählten Datum täglich. Abhaken gilt nur für heute. Bearbeiten oder Löschen betrifft die gesamte Aufgabe.</value></data>
+  <data name="NotesCompletedToday" xml:space="preserve"><value>Heute erledigt</value></data>
+  <data name="NotesDoneGroup" xml:space="preserve"><value>Heute erledigt ({0})</value></data>
+  <data name="NotesDoneAt" xml:space="preserve"><value>Heute erledigt um {0}</value></data>
 </root>

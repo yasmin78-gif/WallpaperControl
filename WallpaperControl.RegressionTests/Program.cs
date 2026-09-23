@@ -36,6 +36,8 @@ try
         return 0;
     }
     if (args.Contains("--web")) { WebWidgetTests.Run(Check); Console.WriteLine($"All {passed} Web checks passed."); return 0; }
+    if (args.Contains("--notes")) { NotesTests.Run(Check); DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} notes checks passed."); return 0; }
+    if (args.Contains("--daily-notes")) { DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} daily notes checks passed."); return 0; }
     WebWidgetTests.Run(Check);
     CalendarTests.Run(Check);
     StatisticsTests.Run(Check);
@@ -48,6 +50,7 @@ try
     CalendarScrollTests.Run(Check);
     WallpaperInfoTests.Run(Check);
     NotesTests.Run(Check);
+    DailyNotesTests.Run(Check);
     WidgetNavigationTests.Run(Check);
     SlideshowStatusUiTests.Run(Check);
     WallpaperLayoutTests.Run(Check);

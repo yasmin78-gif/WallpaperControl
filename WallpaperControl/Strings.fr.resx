@@ -1155,4 +1155,11 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="WebNavigationFailed" xml:space="preserve"><value>Site inaccessible. Vérifiez la connexion et actualisez.</value></data>
   <data name="WebProcessFailed" xml:space="preserve"><value>Le processus web s’est arrêté. Actualisez ou désactivez puis réactivez le widget.</value></data>
   <data name="WebLocked" xml:space="preserve"><value>Verrouiller la position et la taille</value></data>
+  <data name="NotesRepeat" xml:space="preserve"><value>Répétition</value></data>
+  <data name="NotesRepeatNone" xml:space="preserve"><value>Aucune</value></data>
+  <data name="NotesRepeatDaily" xml:space="preserve"><value>Tous les jours</value></data>
+  <data name="NotesDailyHint" xml:space="preserve"><value>Chaque jour à partir de la date choisie. Cocher termine la tâche pour aujourd’hui uniquement. Modifier ou supprimer concerne toute la tâche.</value></data>
+  <data name="NotesCompletedToday" xml:space="preserve"><value>Terminée aujourd’hui</value></data>
+  <data name="NotesDoneGroup" xml:space="preserve"><value>Terminées aujourd’hui ({0})</value></data>
+  <data name="NotesDoneAt" xml:space="preserve"><value>Terminée aujourd’hui à {0}</value></data>
 </root>

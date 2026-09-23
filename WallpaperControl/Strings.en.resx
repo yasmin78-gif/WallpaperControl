@@ -1155,4 +1155,11 @@ Would you like to open the release page?</value>
   <data name="WebNavigationFailed" xml:space="preserve"><value>Website unavailable. Check your connection and reload.</value></data>
   <data name="WebProcessFailed" xml:space="preserve"><value>Web process stopped. Try Reload; if necessary disable and enable the widget.</value></data>
   <data name="WebLocked" xml:space="preserve"><value>Lock position and size</value></data>
+  <data name="NotesRepeat" xml:space="preserve"><value>Repeat</value></data>
+  <data name="NotesRepeatNone" xml:space="preserve"><value>None</value></data>
+  <data name="NotesRepeatDaily" xml:space="preserve"><value>Daily</value></data>
+  <data name="NotesDailyHint" xml:space="preserve"><value>Daily from the selected date. Checking off applies only to today. Editing or deleting affects the entire task.</value></data>
+  <data name="NotesCompletedToday" xml:space="preserve"><value>Completed today</value></data>
+  <data name="NotesDoneGroup" xml:space="preserve"><value>Completed today ({0})</value></data>
+  <data name="NotesDoneAt" xml:space="preserve"><value>Completed today at {0}</value></data>
 </root>

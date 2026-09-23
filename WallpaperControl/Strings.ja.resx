@@ -1127,4 +1127,11 @@
   <data name="WebNavigationFailed" xml:space="preserve"><value>ウェブサイトに接続できません。接続を確認して再読み込みしてください。</value></data>
   <data name="WebProcessFailed" xml:space="preserve"><value>ウェブプロセスが停止しました。再読み込み、またはウィジェットを無効にして再度有効にしてください。</value></data>
   <data name="WebLocked" xml:space="preserve"><value>位置とサイズを固定する</value></data>
+  <data name="NotesRepeat" xml:space="preserve"><value>繰り返し</value></data>
+  <data name="NotesRepeatNone" xml:space="preserve"><value>なし</value></data>
+  <data name="NotesRepeatDaily" xml:space="preserve"><value>毎日</value></data>
+  <data name="NotesDailyHint" xml:space="preserve"><value>選択した日から毎日繰り返します。チェックは今日の分だけを完了します。編集・削除はタスク全体に適用されます。</value></data>
+  <data name="NotesCompletedToday" xml:space="preserve"><value>今日完了</value></data>
+  <data name="NotesDoneGroup" xml:space="preserve"><value>今日完了（{0}）</value></data>
+  <data name="NotesDoneAt" xml:space="preserve"><value>今日 {0} に完了</value></data>
 </root>

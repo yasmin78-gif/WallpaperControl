@@ -21,6 +21,7 @@ namespace WallpaperControl
         internal IReadOnlyList<NoteEntry> Entries => Array.AsReadOnly(entries);
         internal bool CanWrite { get; private set; } = true;
         internal bool LoadIssue { get; private set; }
+        internal DateTime Now => clock();
 
         internal NotesStore(string? path = null, Func<DateTime>? clock = null)
         {
@@ -34,7 +35,7 @@ namespace WallpaperControl
             if (new FileInfo(candidate).Length > 16 * 1024 * 1024) throw new JsonException("Notes document exceeds the size limit.");
             NotesDocument document = JsonSerializer.Deserialize<NotesDocument>(File.ReadAllText(candidate), JsonOptions)
                 ?? throw new JsonException("Missing notes document.");
-            if (document.Version != 1) throw new NotSupportedException("Unsupported notes version.");
+            if (document.Version is not (1 or 2)) throw new NotSupportedException("Unsupported notes version.");
             if (document.Entries == null || document.Entries.Count > 10000 || document.Entries.Any(e => e == null || !e.IsValid)
                 || document.Entries.Select(e => e.Id).Distinct().Count() != document.Entries.Count)
                 throw new JsonException("Invalid notes document.");
@@ -69,7 +70,8 @@ namespace WallpaperControl
         internal bool Complete(Guid id, bool completed)
         {
             NoteEntry? entry = entries.FirstOrDefault(e => e.Id == id);
-            return entry != null && SaveEntry(entry with { IsCompleted = completed, CompletedAt = completed ? clock() : null });
+            return entry != null && SaveEntry(entry with { IsCompleted = completed,
+                CompletedAt = completed ? entry.IsCompletedOn(Now) ? entry.CompletedAt : Now : null });
         }
 
         internal bool Delete(Guid id) => entries.Any(e => e.Id == id) && Commit(entries.Where(e => e.Id != id).ToArray());
@@ -83,7 +85,8 @@ namespace WallpaperControl
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
                 using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    JsonSerializer.Serialize(stream, new NotesDocument { Entries = next.ToList() }, JsonOptions);
+                    // Older releases must not silently turn recurring tasks into one-off notes.
+                    JsonSerializer.Serialize(stream, new NotesDocument { Version = next.Any(e => e.RepeatsDaily) ? 2 : 1, Entries = next.ToList() }, JsonOptions);
                     if (stream.Length > 16 * 1024 * 1024) throw new IOException("Notes document exceeds the size limit.");
                     stream.Flush(true);
                 }
