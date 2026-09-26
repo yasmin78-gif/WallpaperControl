@@ -70,6 +70,9 @@ namespace WallpaperControl
                         Handle);
 
                     UpdateCurrentWallpaperDisplay();
+                    // Repaint the native edit after the tray/taskbar handle and
+                    // normal-size layout have been restored, without moving focus.
+                    folderTextBox.Refresh();
                 }
                 finally
                 {

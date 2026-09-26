@@ -86,6 +86,9 @@ namespace WallpaperControl
         private void ArrangeWallpaperPage(float scale)
         {
             if (!wallpaperLayoutReady || arrangingWallpaper || Disposing || IsDisposed || wallpaperPage!.IsDisposed) return;
+            // Minimized windows have no usable viewport. Resizing the native edit
+            // control here disturbs its visible text/scroll state until it gets focus.
+            if (WindowState == FormWindowState.Minimized) return;
             arrangingWallpaper = true;
             int viewportWidth = wallpaperPage.ClientSize.Width;
             wallpaperPage.SuspendLayout();

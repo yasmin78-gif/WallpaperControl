@@ -190,6 +190,27 @@ internal static class SlideshowStatusUiTests
             object editor = Field<object>(main, "widgetEditor");
             Invoke(main, "SelectMainSection", true); Invoke(main, "SelectMainSection", false);
             check(ReferenceEquals(editor, Field<object>(main, "widgetEditor")), $"Status {language}/{scale}: Widgets editor remains unchanged");
+            failQuery = false;
+            Invoke(main, "ArrangeWallpaperPage", scale);
+            TextBox folder = Field<TextBox>(main, "folderTextBox");
+            folder.Text = @"C:\Wallpapers\Test folder";
+            folder.Select(0, 0);
+            Rectangle folderBounds = folder.Bounds;
+            main.WindowState = FormWindowState.Minimized;
+            Invoke(main, "RefreshWallpaperUi");
+            check(folder.Bounds == folderBounds,
+                $"Restore {language}/{scale}: minimizing and hidden polling preserve folder geometry");
+            Invoke(main, "RestoreFromTray");
+            Application.DoEvents();
+            check(main.Visible && main.WindowState == FormWindowState.Normal && main.ShowInTaskbar,
+                $"Restore {language}/{scale}: tray restore returns the normal window");
+            // Native restoration caps the window at the physical monitor size;
+            // restore the simulated DPI viewport for the remaining layout checks.
+            main.ClientSize = new Size((int)(1260 * scale), (int)(800 * scale));
+            Invoke(main, "ArrangeWallpaperPage", scale);
+            check(folder.Text == @"C:\Wallpapers\Test folder" && folder.Bounds == folderBounds,
+                $"Restore {language}/{scale}: folder text and geometry survive restore without clicking");
+
         }
         finally
         {
