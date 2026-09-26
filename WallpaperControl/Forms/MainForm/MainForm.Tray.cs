@@ -70,9 +70,11 @@ namespace WallpaperControl
                         Handle);
 
                     UpdateCurrentWallpaperDisplay();
-                    // Repaint the native edit after the tray/taskbar handle and
-                    // normal-size layout have been restored, without moving focus.
-                    folderTextBox.Refresh();
+                    // Repaint the entire restored surface, including child controls.
+                    // The layered window can retain stale pixels after hiding and
+                    // recreating its taskbar handle; the widget sidebar needs this
+                    // just as the native folder edit does. Preserve focus and selection.
+                    Refresh();
                 }
                 finally
                 {

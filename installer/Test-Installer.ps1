@@ -17,6 +17,8 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 [xml]$project = Get-Content (Join-Path $repo 'WallpaperControl/WallpaperControl.csproj') -Raw
 $version = [string]$project.Project.PropertyGroup.Version
+$fileVersion = [string]$project.Project.PropertyGroup.FileVersion
+if (!$fileVersion) { $fileVersion = "$version.0" }
 $id = 'WCTest.' + [guid]::NewGuid().ToString('N')
 $testRoot = Join-Path $repo "artifacts/installer/test-$id"
 $installDir = Join-Path $testRoot 'Installed App'
@@ -54,7 +56,7 @@ try {
     Assert-Installer (Test-Path $shortcut) 'Start menu shortcut is created.'
     Assert-Installer (!(Test-Path $registryProviderPath)) 'Fresh installation leaves autostart disabled.'
     $installedExe = Join-Path $installDir 'WallpaperControl.exe'
-    Assert-Installer ((Get-Item $installedExe).VersionInfo.FileVersion -eq "$version.0") 'Installed executable has the expected version.'
+    Assert-Installer ((Get-Item $installedExe).VersionInfo.FileVersion -eq $fileVersion) 'Installed executable has the expected version.'
     foreach ($file in Get-ChildItem -LiteralPath $PublishDir -File -Recurse) {
         $relative = [IO.Path]::GetRelativePath([IO.Path]::GetFullPath($PublishDir), $file.FullName)
         Assert-Installer ((Get-FileHash $file.FullName).Hash -eq (Get-FileHash (Join-Path $installDir $relative)).Hash) "Installed payload matches: $relative"

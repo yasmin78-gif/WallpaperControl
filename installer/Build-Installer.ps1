@@ -15,6 +15,9 @@ $project = Join-Path $repo 'WallpaperControl/WallpaperControl.csproj'
 [xml]$projectXml = Get-Content -LiteralPath $project -Raw
 $version = [string]$projectXml.Project.PropertyGroup.Version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Unsupported release version: $version" }
+$fileVersion = [string]$projectXml.Project.PropertyGroup.FileVersion
+if (!$fileVersion) { $fileVersion = "$version.0" }
+if ($fileVersion -notmatch ('^' + [regex]::Escape($version) + '\.\d+$')) { throw "File version does not match release version: $fileVersion" }
 
 if (!$InnoCompiler) {
     $compilerCommand = Get-Command ISCC.exe -ErrorAction SilentlyContinue
@@ -42,7 +45,7 @@ try {
         -p:PublishSingleFile=true -p:PublishReadyToRun=false -o $publish
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed: $LASTEXITCODE" }
     $exe = Join-Path $publish 'WallpaperControl.exe'
-    if ((Get-Item -LiteralPath $exe).VersionInfo.FileVersion -ne "$version.0") {
+    if ((Get-Item -LiteralPath $exe).VersionInfo.FileVersion -ne $fileVersion) {
         throw 'Published executable version does not match the project version.'
     }
     & $InnoCompiler "/DAppVersion=$version" "/DPublishDir=$publish" "/DOutputDir=$output" `

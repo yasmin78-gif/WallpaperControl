@@ -18,9 +18,9 @@
 		<Copyright>Copyright © 2026 Yasmin Mahr</Copyright>
 		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
 
-		<Version>2.0.1</Version>
-		<AssemblyVersion>2.0.1.1</AssemblyVersion>
-		<FileVersion>2.0.1.1</FileVersion>
+		<Version>2.0.2</Version>
+		<AssemblyVersion>2.0.2.0</AssemblyVersion>
+		<FileVersion>2.0.2.0</FileVersion>
 
 		<SatelliteResourceLanguages>en;fr;es;ja</SatelliteResourceLanguages>
 

@@ -177,6 +177,20 @@ internal static class WidgetNavigationTests
                 }
                 main.ClientSize = new Size(Math.Max(main.MinimumSize.Width, (int)(960 * scale)), (int)(620 * scale)); main.PerformLayout();
                 check(Field<Panel>(main, "widgetsPage").ClientSize.Width > 0 && editor.Width > navigation.Width && editor.Height > 0, $"V2 {language}/{scale} minimum window size keeps widget editor reachable");
+                foreach (string key in new[] { "SettingsNavClock", "NotesTitle", "SettingsNavCalendar" })
+                {
+                    editor.SelectWidget(key);
+                    main.WindowState = FormWindowState.Minimized;
+                    Application.DoEvents();
+                    Invoke(main, "RefreshWallpaperUi");
+                    Invoke(main, "RestoreFromTray");
+                    Application.DoEvents();
+                    check(navigation.Visible && navigation.Width > 0 && editor.ClientRectangle.Contains(navigation.Bounds)
+                        && navigation.Controls.OfType<Button>().All(b => b.Visible && b.Width > 0)
+                        && Field<TabControl>(editor, "pages").Left >= navigation.Right,
+                        $"V2 {language}/{scale}/{key} tray restore retains visible unobstructed widget navigation");
+                    check(editor.SelectedKey == key, $"V2 {language}/{scale}/{key} tray restore preserves selected widget");
+                }
 
         }
         finally
