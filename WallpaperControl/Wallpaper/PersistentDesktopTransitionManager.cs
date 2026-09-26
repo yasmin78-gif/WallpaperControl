@@ -15,7 +15,7 @@ namespace WallpaperControl
         private static string? nativeWallpaperAtStart;
 
         internal static bool SupportsConfiguration(int monitorCount, DesktopWallpaperPosition position) =>
-            monitorCount == 1 && position != DesktopWallpaperPosition.Span;
+            monitorCount == 1;
         private static DesktopWallpaperPosition wallpaperPosition =
             DesktopWallpaperPosition.Fill;
 
@@ -50,8 +50,16 @@ namespace WallpaperControl
             if (persistentHost is { IsDisposed: false } && persistentHost.EnsureDesktopPlacement()) return true;
             persistentHost?.Dispose();
             persistentHost = null;
-            if (createHost == null && !SupportsConfiguration(Screen.AllScreens.Length, wallpaperPosition)) return false;
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+            if (createHost == null && !SupportsConfiguration(Screen.AllScreens.Length, wallpaperPosition))
+            {
+                AppLogger.Info($"Desktop renderer unavailable: unsupported configuration; monitors={Screen.AllScreens.Length}; position={wallpaperPosition}");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                AppLogger.Info("Desktop renderer unavailable: current image missing");
+                return false;
+            }
 
             initializing = true;
             int initialGeneration = generation;
@@ -61,7 +69,16 @@ namespace WallpaperControl
                 candidate = createHost != null ? createHost() : new PersistentDesktopWallpaperHost();
                 candidate.SetActivitySuspended(activitySuspended);
                 candidate.SetWallpaperPosition(wallpaperPosition);
-                if (!candidate.Initialize(path) || !candidate.EnsureDesktopPlacement()) return false;
+                if (!candidate.Initialize(path))
+                {
+                    AppLogger.Info("Desktop renderer unavailable: host initialization rejected");
+                    return false;
+                }
+                if (!candidate.EnsureDesktopPlacement())
+                {
+                    AppLogger.Info("Desktop renderer unavailable: desktop placement rejected");
+                    return false;
+                }
                 if (initialGeneration != generation) return false;
                 candidate.SetActivitySuspended(activitySuspended);
                 candidate.SetWallpaperPosition(wallpaperPosition);

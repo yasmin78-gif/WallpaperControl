@@ -108,7 +108,16 @@ namespace WallpaperControl
                 }
                 int InputAt(Control input, int x, int y, int availableWidth)
                 {
-                    if (input is MainFormComboBox combo) combo.ItemHeight = Math.Max(combo.Font.Height + Px(8), Px(26));
+                    if (input is MainFormComboBox combo)
+                    {
+                        int itemHeight = Math.Max(combo.Font.Height + Px(8), Px(26));
+                        if (combo.ItemHeight != itemHeight) combo.ItemHeight = itemHeight;
+                        // ComboBox.SetBoundsCore closes the native popup even when
+                        // the resulting bounds are unchanged. Its height follows ItemHeight.
+                        if (combo.Left != x || combo.Top != y || combo.Width != availableWidth)
+                            combo.SetBounds(x, y, availableWidth, combo.Height);
+                        return combo.Bottom;
+                    }
                     input.SetBounds(x, y, availableWidth, Math.Max(Px(30), input.PreferredSize.Height));
                     return input.Bottom;
                 }

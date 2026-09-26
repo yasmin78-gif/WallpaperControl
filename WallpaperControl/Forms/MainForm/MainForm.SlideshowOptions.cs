@@ -12,6 +12,32 @@ namespace WallpaperControl
     // Main-window slideshowoptions responsibilities; see README.md in this directory for the code map.
     public partial class MainForm
     {
+        internal static string SpanPositionText(int monitorCount) =>
+            Localization.Get(monitorCount > 1 ? "PositionSpanNative" : "PositionSpan");
+
+        // Polling catches monitor changes without resetting controls every second.
+        // Defer a changed caption while its list is open so selection is not interrupted.
+        internal void UpdateSpanPositionCaption(int monitorCount)
+        {
+            if (positionComboBox.DroppedDown) return;
+            int index = positions.FindIndex(item => item.Value == DesktopWallpaperPosition.Span);
+            string text = SpanPositionText(monitorCount);
+            if (index < 0 || positions[index].Text == text) return;
+            bool wasLoading = loading;
+            int selectedIndex = positionComboBox.SelectedIndex;
+            loading = true;
+            try
+            {
+                positions[index] = new(DesktopWallpaperPosition.Span, text);
+                positionComboBox.Items[index] = positions[index];
+                positionComboBox.SelectedIndex = selectedIndex;
+                positionComboBox.DropDownWidth = Math.Max(positionComboBox.Width,
+                    positions.Max(item => TextRenderer.MeasureText(item.Text, positionComboBox.Font).Width)
+                    + SystemInformation.VerticalScrollBarWidth + (int)Math.Ceiling(20 * DeviceDpi / 96f));
+            }
+            finally { loading = wasLoading; }
+        }
+
         /// <summary>
         /// Loads the native interval and shuffle options, falling back to the registry when needed.
         /// </summary>
@@ -274,6 +300,7 @@ namespace WallpaperControl
                         break;
                     }
                 }
+                TryStartCustomSlideshowAfterLayoutChange(actual, Screen.AllScreens.Length, StartCustomSlideshowEngine);
             }
             catch (Exception ex)
             {

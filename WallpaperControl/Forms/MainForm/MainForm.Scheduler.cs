@@ -11,6 +11,29 @@ namespace WallpaperControl
     // Main-window scheduler responsibilities; see README.md in this directory for the code map.
     public partial class MainForm
     {
+        // Switching away from an unsupported layout must also leave native fallback.
+        // Keep ownership unchanged for paused, pinned and remote-disabled desktops.
+        internal void TryStartCustomSlideshowAfterLayoutChange(DesktopWallpaperPosition position,
+            int monitorCount, Action startEngine)
+        {
+            if (customSlideshowEngineActive || slideshowPaused || fullscreenPolicy.IsPaused ||
+                !PersistentDesktopTransitionManager.SupportsConfiguration(monitorCount, position)) return;
+            try
+            {
+                DesktopSlideshowState state = readNativeSlideshowStatus();
+                const DesktopSlideshowState active = DesktopSlideshowState.Enabled | DesktopSlideshowState.Slideshow;
+                if ((state & active) != active || (state & DesktopSlideshowState.DisabledByRemoteSession) != 0) return;
+                LogScheduler("supported layout selected; attempting custom engine activation");
+                startEngine();
+                LogScheduler(customSlideshowEngineActive ? "custom engine activated after layout change" :
+                    "custom engine unavailable after layout change; native scheduling retained");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("Could not activate custom scheduling after layout change.", ex);
+            }
+        }
+
         /// <summary>
         /// Enables application-controlled wallpaper scheduling for the current folder.
         /// </summary>

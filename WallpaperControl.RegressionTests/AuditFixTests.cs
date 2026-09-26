@@ -166,17 +166,21 @@ internal static class AuditFixTests
 
             check(App.PersistentDesktopTransitionManager.SupportsConfiguration(1, App.DesktopWallpaperPosition.Fill) &&
                 !App.PersistentDesktopTransitionManager.SupportsConfiguration(2, App.DesktopWallpaperPosition.Fill) &&
-                !App.PersistentDesktopTransitionManager.SupportsConfiguration(1, App.DesktopWallpaperPosition.Span),
-                "M4 only supported single-monitor layouts use the animated renderer");
+                App.PersistentDesktopTransitionManager.SupportsConfiguration(1, App.DesktopWallpaperPosition.Span) &&
+                !App.PersistentDesktopTransitionManager.SupportsConfiguration(2, App.DesktopWallpaperPosition.Span),
+                "M4 single-monitor Span supports animations; multi-monitor layouts retain native rendering");
             App.PersistentDesktopTransitionManager.SetWallpaperPosition(App.DesktopWallpaperPosition.Span);
             bool ownership = false;
-            check(!App.PersistentDesktopTransitionManager.TryStartSession(file, () => ownership = true) && !ownership,
-                "M4 unsupported layout retains native slideshow ownership at startup");
+            host = new();
+            check(App.PersistentDesktopTransitionManager.TryStartSession(file, () => ownership = true, () => host) && ownership,
+                "M4 Span can acquire animated slideshow ownership");
+            typeof(App.PersistentDesktopTransitionManager).GetField("compositionReady", BindingFlags.Static | BindingFlags.NonPublic)!
+                .SetValue(null, Task.CompletedTask);
             App.PersistentDesktopTransitionManager.ApplyCoreAsync(file, file, App.WallpaperTransitionKind.DesktopFade,
                 100, App.WallpaperTransitionDirection.Left, App.WallpaperZoomMode.In,
                 (_, _) => { fallbacks++; return Task.CompletedTask; }, CancellationToken.None).GetAwaiter().GetResult();
-            check(fallbacks == 1 && App.PersistentDesktopTransitionManager.GetDisplayedWallpaperPath() == null,
-                "M4 unsupported layout uses exactly one native fallback without an overlay");
+            check(fallbacks == 0 && App.PersistentDesktopTransitionManager.GetDisplayedWallpaperPath() == file,
+                "M4 Span runs the animated host without a native fallback");
         }
         finally
         {

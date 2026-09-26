@@ -1162,4 +1162,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="NotesCompletedToday" xml:space="preserve"><value>Heute erledigt</value></data>
   <data name="NotesDoneGroup" xml:space="preserve"><value>Heute erledigt ({0})</value></data>
   <data name="NotesDoneAt" xml:space="preserve"><value>Heute erledigt um {0}</value></data>
+  <data name="PositionSpanNative" xml:space="preserve">
+    <value>Strecken (nur Windows-Animation)</value>
+  </data>
 </root>

@@ -1162,4 +1162,7 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="NotesCompletedToday" xml:space="preserve"><value>Terminée aujourd’hui</value></data>
   <data name="NotesDoneGroup" xml:space="preserve"><value>Terminées aujourd’hui ({0})</value></data>
   <data name="NotesDoneAt" xml:space="preserve"><value>Terminée aujourd’hui à {0}</value></data>
+  <data name="PositionSpanNative" xml:space="preserve">
+    <value>Étendre (animation Windows uniquement)</value>
+  </data>
 </root>

@@ -1134,4 +1134,7 @@
   <data name="NotesCompletedToday" xml:space="preserve"><value>今日完了</value></data>
   <data name="NotesDoneGroup" xml:space="preserve"><value>今日完了（{0}）</value></data>
   <data name="NotesDoneAt" xml:space="preserve"><value>今日 {0} に完了</value></data>
+  <data name="PositionSpanNative" xml:space="preserve">
+    <value>スパン（Windows標準アニメーションのみ）</value>
+  </data>
 </root>

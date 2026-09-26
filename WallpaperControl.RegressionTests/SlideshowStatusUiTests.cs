@@ -86,6 +86,53 @@ internal static class SlideshowStatusUiTests
             Invoke(main, "RefreshWallpaperUi");
             check(!status.Visible && !activate.Visible && next.Enabled, $"Status {language}/{scale}: normal native slideshow active");
             Fits("active");
+            ComboBox position = Field<ComboBox>(main, "positionComboBox");
+            int originalPosition = position.SelectedIndex;
+            string[] originalLabels = position.Items.Cast<object>().Select(item => item.ToString()!).ToArray();
+            int spanIndex = position.Items.Count - 1;
+            bool originalLoading = Field<bool>(main, "loading");
+            Set(main, "loading", true);
+            position.SelectedIndex = spanIndex;
+            Set(main, "loading", originalLoading);
+            main.UpdateSpanPositionCaption(2);
+            string nativeCaption = App.Localization.Get("PositionSpanNative");
+            check(position.Text == nativeCaption && nativeCaption != "PositionSpanNative" && position.SelectedIndex == spanIndex,
+                $"Span {language}/{scale}: multi-monitor caption is localized and preserves selection");
+            check(position.Items.Cast<object>().Take(spanIndex).Select(item => item.ToString()).SequenceEqual(originalLabels.Take(spanIndex)),
+                $"Span {language}/{scale}: other layout captions remain unchanged");
+            check(TextRenderer.MeasureText(nativeCaption, position.Font).Width + (int)(30 * scale) <= position.Width,
+                $"Span {language}/{scale}: selected native caption fits");
+            position.DroppedDown = true;
+            main.UpdateSpanPositionCaption(1);
+            check(position.DroppedDown && position.Text == nativeCaption,
+                $"Span {language}/{scale}: monitor change defers caption update while dropdown is open");
+            position.DroppedDown = false;
+            main.UpdateSpanPositionCaption(1);
+            check(position.Text == App.Localization.Get("PositionSpan") && position.SelectedIndex == spanIndex,
+                $"Span {language}/{scale}: single monitor restores ordinary caption and selection");
+            Set(main, "loading", true);
+            position.SelectedIndex = originalPosition;
+            Set(main, "loading", originalLoading);
+            main.UpdateSpanPositionCaption(2);
+            check(position.SelectedIndex == originalPosition && Field<bool>(main, "loading") == originalLoading,
+                $"Span {language}/{scale}: caption refresh preserves another selected layout and loading state");
+            main.UpdateSpanPositionCaption(Screen.AllScreens.Length);
+            foreach (string name in new[] { "intervalComboBox", "positionComboBox", "transitionComboBox", "transitionDurationComboBox" })
+            {
+                ComboBox combo = Field<ComboBox>(main, name);
+                // Explicit scaling simulates DPI without changing the window's real DeviceDpi.
+                Invoke(main, "ArrangeWallpaperPage", scale);
+                combo.DroppedDown = true;
+                check(combo.DroppedDown, $"Status {language}/{scale}: {name} opens");
+                Invoke(main, "ArrangeWallpaperPage", scale);
+                check(combo.DroppedDown, $"Status {language}/{scale}: repeated layout preserves open {name}");
+                combo.DroppedDown = false;
+                Invoke(main, "RefreshWallpaperUi");
+                combo.DroppedDown = true;
+                Invoke(main, "RefreshWallpaperUi");
+                check(combo.DroppedDown, $"Status {language}/{scale}: unchanged status poll preserves open {name}");
+                combo.DroppedDown = false;
+            }
             policy.Update(true, true, now);
             Invoke(main, "CheckSlideshowStatus");
             check(status.Text == App.Localization.Get("StatusFullscreenPaused") && status.Visible && !activate.Visible && !next.Enabled,

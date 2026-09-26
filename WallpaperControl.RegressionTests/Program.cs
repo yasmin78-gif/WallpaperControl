@@ -41,6 +41,7 @@ try
     if (args.Contains("--scheduler")) { SchedulerDiagnosticsTests.Run(Check); Console.WriteLine($"All {passed} scheduler checks passed."); return 0; }
     SchedulerDiagnosticsTests.Run(Check);
     NativeSlideshowAdvanceTests.Run(Check);
+    LayoutEngineActivationTests.Run(Check);
     WebWidgetTests.Run(Check);
     CalendarTests.Run(Check);
     StatisticsTests.Run(Check);

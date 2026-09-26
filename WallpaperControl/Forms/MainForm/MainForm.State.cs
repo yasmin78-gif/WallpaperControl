@@ -184,7 +184,7 @@ namespace WallpaperControl
             new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")),
             new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")),
             new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")),
-            new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan"))
+            new(DesktopWallpaperPosition.Span, SpanPositionText(Screen.AllScreens.Length))
         ];
 
         // Native hotkey ownership and window constants

@@ -18,7 +18,9 @@ namespace WallpaperControl
         private void RefreshWallpaperUi()
         {
             ObserveScheduler();
-            if (fullscreenPolicy.IsPaused || IsDisposed) return;
+            if (IsDisposed) return;
+            UpdateSpanPositionCaption(Screen.AllScreens.Length);
+            if (fullscreenPolicy.IsPaused) return;
             CheckSlideshowStatus();
             if (servicesEnabled) UpdateWallpaperPositionDisplay();
         }

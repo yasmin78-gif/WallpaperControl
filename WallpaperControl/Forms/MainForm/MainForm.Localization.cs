@@ -100,7 +100,7 @@ namespace WallpaperControl
                 positions.Add(new(DesktopWallpaperPosition.Stretch, Localization.Get("PositionStretch")));
                 positions.Add(new(DesktopWallpaperPosition.Tile, Localization.Get("PositionTile")));
                 positions.Add(new(DesktopWallpaperPosition.Center, Localization.Get("PositionCenter")));
-                positions.Add(new(DesktopWallpaperPosition.Span, Localization.Get("PositionSpan")));
+                positions.Add(new(DesktopWallpaperPosition.Span, SpanPositionText(Screen.AllScreens.Length)));
 
                 positionComboBox.Items.Clear();
                 foreach (var item in positions)
