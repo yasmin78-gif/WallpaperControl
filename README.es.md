@@ -15,7 +15,7 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.0.0**
+**Versión actual: v2.0.1**
 
 ## ✨ Funciones
 
@@ -412,20 +412,13 @@ acortan automáticamente. Admite **Minimal**, **Clean** y **Glow**.
 
 ### 📝 Notas y recordatorios
 
-El widget Notas y recordatorios ofrece gestión local de tareas y
-recordatorios en el escritorio. Las entradas pueden incluir título,
-descripción y fecha/hora opcionales, y se agrupan en Sin fecha,
-Vencidos, Hoy, Mañana y próximos días. Pueden crearse, editarse,
-completarse, eliminarse y reabrirse desde el widget y su gestor. El
-contenido se desplaza bajo una cabecera fija, la altura máxima es
-configurable y los controles siguen funcionando con la posición
-bloqueada. El gestor y el editor siguen el tema Claro/Oscuro actual. Los
-datos se guardan localmente como JSON con escritura atómica, copia de
-seguridad y protección frente a archivos dañados. Admite **Minimal**,
-**Clean** y **Glow**.
+El widget Notas y recordatorios ofrece gestión local de tareas y recordatorios en el escritorio. Las entradas pueden incluir título, descripción y fecha/hora opcionales, y se agrupan en Sin fecha, Vencidos, Hoy, Mañana y próximos días. Pueden crearse, editarse, completarse, eliminarse y reabrirse desde el widget y su gestor.
 
-Las fechas y horas se muestran en el widget. **Las notificaciones de
-Windows no están incluidas en v1.8.6.**
+Las tareas diarias recurrentes pueden configurarse con una fecha de inicio y una hora opcional. Completar una tarea diaria solo la marca como completada para el día actual; al día siguiente vuelve a aparecer automáticamente como pendiente, sin crear duplicados. Las tareas completadas hoy se agrupan con su hora de finalización en una sección plegable **Completadas hoy** y pueden volver a abrirse.
+
+El diseño más compacto reduce el espacio vertical necesario para las entradas cortas. El contenido se desplaza bajo una cabecera fija, la altura máxima es configurable y los controles siguen funcionando con la posición bloqueada. El gestor y el editor siguen el tema Claro/Oscuro actual. Los datos se guardan localmente como JSON con escritura atómica, copia de seguridad y protección frente a archivos dañados. Las notas existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y **Glow**.
+
+Las fechas y horas se muestran en el widget. **No se incluyen notificaciones de Windows.**
 
 ### Siguiente fondo
 
@@ -601,7 +594,7 @@ seleccionado.
 El **método oficial de instalación** de Wallpaper Control es el
 instalador Windows x64 incluido con cada versión.
 
-1.  Descarga `WallpaperControl-2.0.0-Setup-x64.exe` desde la última
+1.  Descarga `WallpaperControl-2.0.1-Setup-x64.exe` desde la última
     versión de GitHub.
 2.  Cierra completamente cualquier instancia existente de Wallpaper
     Control desde el área de notificación antes de instalar o

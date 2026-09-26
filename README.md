@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.0.0**
+**Current release: v2.0.1**
 
 ## ✨ Features
 
@@ -51,7 +51,8 @@ exits.
     -   Weather widget with optional 3-day forecast
     -   Calendar widget with iCalendar / ICS support
     -   Compact Wallpaper Info widget with current wallpaper statistics
-    -   Notes & Reminders widget with local task/reminder management
+    -   Notes & Reminders widget with local task/reminder management,
+        including daily recurring tasks
     -   Resizable and collapsible Web widget powered by Microsoft
         WebView2
     -   Optional Next Wallpaper button
@@ -387,15 +388,25 @@ reminder management directly on the desktop. Notes can contain a title,
 description and optional date/time and are grouped into No date,
 Overdue, Today, Tomorrow and upcoming days. Entries can be created,
 edited, completed, deleted and reopened through the widget and its
-dedicated manager. The content scrolls below a fixed header, the maximum
-height is configurable, and controls remain usable while the widget
-position is locked. The manager and editor follow the current Light/Dark
-application theme. Data is stored locally as JSON using atomic writes,
-backup and damaged-file protection. The widget supports **Minimal**,
-**Clean** and **Glow** styles.
+dedicated manager.
+
+Daily recurring tasks can be configured with a start date and optional
+time. Completing a daily task marks it as completed only for the current
+day; it automatically appears as open again on the following day without
+creating duplicate entries. Tasks completed today are collected in a
+collapsible **Completed Today** section with their completion time and
+can be reopened when needed.
+
+The widget uses a compact layout with reduced vertical space for short
+entries. The content scrolls below a fixed header, the maximum height is
+configurable, and controls remain usable while the widget position is
+locked. The manager and editor follow the current Light/Dark application
+theme. Data is stored locally as JSON using atomic writes, backup and
+damaged-file protection. Existing notes remain compatible. The widget
+supports **Minimal**, **Clean** and **Glow** styles.
 
 Reminder dates and times are displayed in the widget. **Windows
-notifications are not included in v1.8.6.**
+notifications are not included.**
 
 ### Next Wallpaper
 
@@ -539,7 +550,9 @@ wallpaper-control.log
 ```
 
 Logging is designed for troubleshooting and does not require any
-additional configuration during normal use.
+additional configuration during normal use. Diagnostic entries include
+relevant slideshow scheduling, wallpaper-change, fullscreen-pause and
+Web widget lifecycle failures while avoiding sensitive browser content.
 
 ## 🌍 Languages
 
@@ -569,7 +582,7 @@ language.
 The **official installation method** for Wallpaper Control is the
 Windows x64 installer provided with each release.
 
-1.  Download `WallpaperControl-2.0.0-Setup-x64.exe` from the latest
+1.  Download `WallpaperControl-2.0.1-Setup-x64.exe` from the latest
     GitHub release.
 2.  Completely exit an existing Wallpaper Control instance from the
     system tray before installing or upgrading.

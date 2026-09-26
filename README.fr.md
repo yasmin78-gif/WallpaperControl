@@ -15,7 +15,7 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.0.0**
+**Version actuelle : v2.0.1**
 
 ## ✨ Fonctionnalités
 
@@ -426,21 +426,13 @@ longs sont automatiquement raccourcis. Le widget prend en charge
 
 ### 📝 Notes et rappels
 
-Le widget Notes et rappels offre une gestion locale légère des tâches et
-rappels sur le bureau. Les entrées peuvent contenir un titre, une
-description et une date/heure optionnelles, et sont regroupées en Sans
-date, En retard, Aujourd'hui, Demain et jours à venir. Elles peuvent
-être créées, modifiées, terminées, supprimées et rouvertes depuis le
-widget et son gestionnaire. Le contenu défile sous un en-tête fixe, la
-hauteur maximale est configurable et les contrôles restent utilisables
-lorsque la position est verrouillée. Le gestionnaire et l'éditeur
-suivent le thème Clair/Sombre actuel. Les données sont stockées
-localement en JSON avec écriture atomique, sauvegarde et protection des
-fichiers endommagés. Le widget prend en charge **Minimal**, **Clean** et
-**Glow**.
+Le widget Notes et rappels offre une gestion locale légère des tâches et rappels sur le bureau. Les entrées peuvent contenir un titre, une description et une date/heure optionnelles, et sont regroupées en Sans date, En retard, Aujourd'hui, Demain et jours à venir. Elles peuvent être créées, modifiées, terminées, supprimées et rouvertes depuis le widget et son gestionnaire.
 
-Les dates et heures sont affichées dans le widget. **Les notifications
-Windows ne sont pas incluses dans v1.8.6.**
+Les tâches quotidiennes récurrentes peuvent être configurées avec une date de début et une heure facultative. Une tâche quotidienne terminée ne l'est que pour le jour en cours ; elle réapparaît automatiquement comme ouverte le lendemain, sans créer de doublons. Les tâches terminées aujourd'hui sont regroupées avec leur heure d'achèvement dans une section repliable **Terminées aujourd'hui** et peuvent être rouvertes.
+
+La présentation plus compacte réduit l'espace vertical nécessaire aux entrées courtes. Le contenu défile sous un en-tête fixe, la hauteur maximale est configurable et les contrôles restent utilisables lorsque la position est verrouillée. Le gestionnaire et l'éditeur suivent le thème Clair/Sombre actuel. Les données sont stockées localement en JSON avec écriture atomique, sauvegarde et protection des fichiers endommagés. Les notes existantes restent compatibles. Le widget prend en charge **Minimal**, **Clean** et **Glow**.
+
+Les dates et heures sont affichées dans le widget. **Les notifications Windows ne sont pas incluses.**
 
 ### Fond d'écran suivant
 
@@ -618,7 +610,7 @@ sélectionnée.
 La **méthode d'installation officielle** de Wallpaper Control est
 l'installateur Windows x64 fourni avec chaque version.
 
-1.  Téléchargez `WallpaperControl-2.0.0-Setup-x64.exe` depuis la
+1.  Téléchargez `WallpaperControl-2.0.1-Setup-x64.exe` depuis la
     dernière version GitHub.
 2.  Fermez complètement toute instance existante de Wallpaper Control
     depuis la zone de notification avant l'installation ou la mise à
