@@ -88,6 +88,11 @@ namespace WallpaperControl
             if (widgets) widgetEditSession!.Begin();
             showingWidgets = widgets;
             widgetsPage!.Visible = widgets; wallpaperPage!.Visible = !widgets;
+            // A hidden page can acquire its handle only after a tray restore.
+            // Reassert docking order: the left sidebar must reserve its space
+            // before either Fill page is laid out, otherwise it covers 200 px.
+            mainNavigation!.SendToBack();
+            PerformLayout();
             UpdateWidgetPresentation();
         }
         private bool ResolveWidgetNavigation()

@@ -11,6 +11,10 @@ namespace WallpaperControl
         public TimeOnly? DueTime { get; init; }
         public bool IsCompleted { get; init; }
         public bool RepeatsDaily { get; init; }
+        public bool PopupReminder { get; init; }
+        public int PopupLeadMinutes { get; init; }
+        public DateTime? PopupOccurrence { get; init; }
+        public DateTime? PopupSnoozedUntil { get; init; }
         public DateTime CreatedAt { get; init; } = DateTime.Now;
         public DateTime? CompletedAt { get; init; }
 
@@ -19,6 +23,9 @@ namespace WallpaperControl
             && HasReminder == DueDate.HasValue && (HasReminder || !DueTime.HasValue)
             && IsCompleted == CompletedAt.HasValue
             && (!RepeatsDaily || HasReminder)
+            && PopupLeadMinutes is 0 or 5 or 10
+            && (!PopupReminder || (HasReminder && DueTime.HasValue))
+            && (!PopupSnoozedUntil.HasValue || PopupOccurrence.HasValue)
             && (!DueDate.HasValue || (DueDate.Value >= new DateOnly(1753, 1, 1) && DueDate.Value <= new DateOnly(9998, 12, 31)));
 
         internal bool IsCompletedOn(DateTime now) => IsCompleted && (!RepeatsDaily || CompletedAt?.Date == now.Date);

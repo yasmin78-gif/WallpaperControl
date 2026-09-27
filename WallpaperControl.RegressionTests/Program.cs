@@ -39,6 +39,9 @@ try
     if (args.Contains("--notes")) { NotesTests.Run(Check); DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} notes checks passed."); return 0; }
     if (args.Contains("--daily-notes")) { DailyNotesTests.Run(Check); Console.WriteLine($"All {passed} daily notes checks passed."); return 0; }
     if (args.Contains("--scheduler")) { SchedulerDiagnosticsTests.Run(Check); Console.WriteLine($"All {passed} scheduler checks passed."); return 0; }
+    if (args.Contains("--note-reminders")) { NoteReminderTests.Run(Check); Console.WriteLine($"All {passed} reminder checks passed."); return 0; }
+    if (args.Contains("--widget-navigation")) { WidgetNavigationTests.Run(Check); Console.WriteLine($"All {passed} navigation checks passed."); return 0; }
+    NoteReminderTests.Run(Check);
     SchedulerDiagnosticsTests.Run(Check);
     NativeSlideshowAdvanceTests.Run(Check);
     LayoutEngineActivationTests.Run(Check);

@@ -8,6 +8,13 @@ namespace WallpaperControl
     {
         private readonly string registryPath;
         private readonly NotesStore notesStore;
+        private NoteReminderService? noteReminders;
+        internal void StartNoteReminders()
+        {
+            if (noteReminders != null) return;
+            noteReminders = new NoteReminderService(notesStore, () => settings.ClockLanguageCode);
+            noteReminders.Start();
+        }
         private NotesWidgetForm? notesWidget;
         private bool notesDialogOpen;
         private readonly Action next;
@@ -714,6 +721,7 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            noteReminders?.Dispose(); noteReminders = null;
             desktopShowMonitor.Dispose();
             webWidget?.Close(); webWidget?.Dispose(); webWidget = null;
 

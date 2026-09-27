@@ -652,6 +652,8 @@ namespace WallpaperControl
             StartCustomSlideshowEngine();
             CheckSlideshowStatus();
 
+            widgetManager.StartNoteReminders();
+
             SystemEvents.UserPreferenceChanged +=
                 SystemEvents_UserPreferenceChanged;
 

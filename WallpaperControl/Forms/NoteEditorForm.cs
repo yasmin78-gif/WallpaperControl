@@ -12,6 +12,8 @@ namespace WallpaperControl
         private readonly CheckBox reminder = new() { AutoSize = true };
         private readonly CheckBox timed = new() { AutoSize = true };
         private readonly CheckBox completed = new() { AutoSize = true };
+        private readonly CheckBox popup = new() { AutoSize = true };
+        private readonly ComboBox popupLead = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 300 };
         private readonly ComboBox repeat = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 240 };
         private readonly Label repeatHint = new() { AutoSize = true, MaximumSize = new Size(500, 0) };
         private bool completionChanged;
@@ -33,6 +35,7 @@ namespace WallpaperControl
             ShowInTaskbar = false;
             MaximizeBox = MinimizeBox = false;
             AutoSize = true;
+            AutoScroll = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             TableLayoutPanel layout = new() { AutoSize = true, ColumnCount = 1, Padding = new Padding(18), Width = 550 };
             Controls.Add(layout);
@@ -50,6 +53,17 @@ namespace WallpaperControl
             reminder.Text = Localization.Get("NotesReminder", language); layout.Controls.Add(reminder);
             AddLabel(layout, "NotesDate"); layout.Controls.Add(date);
             timed.Text = Localization.Get("NotesUseTime", language); layout.Controls.Add(timed); layout.Controls.Add(time);
+            popup.Text = Localization.Get("NotesPopup", language); layout.Controls.Add(popup);
+            popupLead.Items.AddRange(new object[] { Localization.Get("NotesPopupAtDue", language),
+                Localization.Get("NotesPopupFiveBefore", language), Localization.Get("NotesPopupTenBefore", language) });
+            popupLead.SelectedIndex = original.PopupLeadMinutes / 5;
+            popup.Checked = original.PopupReminder;
+            layout.Controls.Add(popupLead);
+            while (layout.RowStyles.Count < layout.Controls.Count - 1) layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            RowStyle popupRow = new(SizeType.Absolute, popupLead.Height + popupLead.Margin.Vertical);
+            layout.RowStyles.Add(popupRow);
+            popupLead.SizeChanged += (_, _) => popupRow.Height = popupLead.Height + popupLead.Margin.Vertical;
+            popup.CheckedChanged += (_, _) => UpdateDateControls();
             completed.Text = Localization.Get("NotesCompleted", language); completed.Visible = existing; layout.Controls.Add(completed);
             layout.Controls.Add(error);
             FlowLayoutPanel actions = new() { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
@@ -82,6 +96,17 @@ namespace WallpaperControl
         }
 
         private void AddLabel(TableLayoutPanel layout, string key) => layout.Controls.Add(new Label { Text = Localization.Get(key, language), AutoSize = true, Margin = new Padding(3, 10, 3, 3) });
+        protected override void OnShown(EventArgs e)
+        {
+            MaximumSize = Screen.FromControl(this).WorkingArea.Size;
+            base.OnShown(e);
+        }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            base.OnDpiChanged(e);
+            MaximumSize = Screen.FromControl(this).WorkingArea.Size;
+        }
         private Button ActionButton(string key) => new() { Text = Localization.Get(key, language), AutoSize = true, MinimumSize = new Size(105, 32), Margin = new Padding(3, 12, 3, 3) };
         private void UpdateDateControls()
         {
@@ -91,6 +116,8 @@ namespace WallpaperControl
             repeatHint.Visible = daily;
             date.Enabled = timed.Enabled = reminder.Checked;
             time.Enabled = reminder.Checked && timed.Checked;
+            popup.Enabled = time.Enabled;
+            popupLead.Enabled = popup.Enabled && popup.Checked;
             completed.Text = Localization.Get(daily ? "NotesCompletedToday" : "NotesCompleted", language);
         }
 
@@ -103,6 +130,8 @@ namespace WallpaperControl
                 DueDate = reminder.Checked ? DateOnly.FromDateTime(date.Value) : null,
                 DueTime = reminder.Checked && timed.Checked ? new TimeOnly(time.Value.Hour, time.Value.Minute) : null,
                 RepeatsDaily = repeat.SelectedIndex == 1,
+                PopupReminder = popup.Enabled && popup.Checked,
+                PopupLeadMinutes = Math.Max(0, popupLead.SelectedIndex) * 5,
                 // Merely editing across midnight must not check off the new day's task.
                 IsCompleted = completionChanged ? completed.Checked : original.IsCompleted,
                 CompletedAt = completionChanged ? completed.Checked ? store.Now : null : original.CompletedAt

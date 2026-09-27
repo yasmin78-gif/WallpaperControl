@@ -1,51 +1,110 @@
-<?xml version='1.0' encoding='utf-8'?>
-<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:schema id="root">
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xs:element name="root" ns1:IsDataSet="true">
-      <xs:complexType>
-        <xs:choice maxOccurs="unbounded">
-          <xs:element name="metadata">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" />
-              </xs:sequence>
-              <xs:attribute name="name" use="required" type="xsd:string" />
-              <xs:attribute name="type" type="xsd:string" />
-              <xs:attribute name="mimetype" type="xsd:string" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="assembly">
-            <xs:complexType>
-              <xs:attribute name="alias" type="xsd:string" />
-              <xs:attribute name="name" type="xsd:string" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="data">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
-              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
-              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="resheader">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" />
-            </xs:complexType>
-          </xs:element>
-        </xs:choice>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -905,8 +964,12 @@ Tous les affichages, horodatages et classements précédents seront définitivem
   <data name="SettingsCalendarEntries" xml:space="preserve">
     <value>Jours avec rendez-vous</value>
   </data>
-  <data name="SettingsCalendarShowLocation" xml:space="preserve"><value>Afficher le lieu</value></data>
-  <data name="SettingsCalendarHint" xml:space="preserve"><value>Les sources de calendrier sont gérées séparément. Les sources désactivées restent enregistrées sans être téléchargées.</value></data>
+  <data name="SettingsCalendarShowLocation" xml:space="preserve">
+    <value>Afficher le lieu</value>
+  </data>
+  <data name="SettingsCalendarHint" xml:space="preserve">
+    <value>Les sources de calendrier sont gérées séparément. Les sources désactivées restent enregistrées sans être téléchargées.</value>
+  </data>
   <data name="CalendarWidgetTitle" xml:space="preserve">
     <value>Calendrier</value>
   </data>
@@ -1044,37 +1107,99 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="UpdateDialogOkButton" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="MsgInstanceNotResponding" xml:space="preserve"><value>Wallpaper Control est déjà lancé, mais ne répond pas. Veuillez réessayer dans un instant.</value></data>
-  <data name="CalendarStatusStale" xml:space="preserve"><value>Données peut-être obsolètes</value></data>
-  <data name="MainCurrentWallpaperHeading" xml:space="preserve"><value>Fond actuel</value></data>
-  <data name="MainDirectionHeading" xml:space="preserve"><value>Direction</value></data>
-  <data name="SettingsPauseOnFullscreen" xml:space="preserve"><value>Pause automatique en plein écran</value></data>
-  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve"><value>Suspend les changements de fond, les animations et les widgets en plein écran au premier plan. Reprend ensuite automatiquement, en conservant une pause manuelle.</value></data>
-  <data name="StatusFullscreenPaused" xml:space="preserve"><value>Pause auto : plein écran</value></data>
-  <data name="CalendarSourcesManage" xml:space="preserve"><value>Gérer les sources de calendrier...</value></data>
-  <data name="CalendarSourcesTitle" xml:space="preserve"><value>Sources de calendrier</value></data>
-  <data name="CalendarSourceEditorTitle" xml:space="preserve"><value>Modifier la source de calendrier</value></data>
-  <data name="CalendarSourceName" xml:space="preserve"><value>Nom</value></data>
-  <data name="CalendarSourceAddress" xml:space="preserve"><value>Adresse ICS</value></data>
-  <data name="CalendarSourceType" xml:space="preserve"><value>Type</value></data>
-  <data name="CalendarSourceTypeCalendar" xml:space="preserve"><value>Calendrier</value></data>
-  <data name="CalendarSourceTypeHoliday" xml:space="preserve"><value>Calendrier des jours fériés</value></data>
-  <data name="CalendarSourceColor" xml:space="preserve"><value>Couleur du texte</value></data>
-  <data name="CalendarSourceChooseColor" xml:space="preserve"><value>Choisir une couleur...</value></data>
-  <data name="CalendarSourceEnabled" xml:space="preserve"><value>Activée</value></data>
-  <data name="CalendarSourceAdd" xml:space="preserve"><value>Ajouter...</value></data>
-  <data name="CalendarSourceEdit" xml:space="preserve"><value>Modifier...</value></data>
-  <data name="CalendarSourceRemove" xml:space="preserve"><value>Supprimer</value></data>
-  <data name="CalendarSourceApply" xml:space="preserve"><value>Appliquer</value></data>
-  <data name="CalendarSourceCancel" xml:space="preserve"><value>Annuler</value></data>
-  <data name="CalendarSourceFallback" xml:space="preserve"><value>Calendrier {0}</value></data>
-  <data name="CalendarSourceHolidayFallback" xml:space="preserve"><value>Jours fériés {0}</value></data>
-  <data name="CalendarSourceInvalidAddress" xml:space="preserve"><value>Veuillez saisir une adresse HTTP ou HTTPS valide.</value></data>
-  <data name="CalendarSourceNameHint" xml:space="preserve"><value>Sans nom personnalisé, le widget utilise le nom du calendrier ou un libellé numéroté. Enregistrez les paramètres pour conserver les modifications. Choisissez Afficher pour modifier l’adresse.</value></data>
-  <data name="SettingsCalendarMaximumHeight" xml:space="preserve"><value>Hauteur maximale</value></data>
-  <data name="CalendarUntitledEvent" xml:space="preserve"><value>(sans titre)</value></data>
-  <data name="SettingsSaveFailed" xml:space="preserve"><value>Certains paramètres n’ont pas pu être enregistrés et peuvent être perdus après un redémarrage. Veuillez réessayer.</value></data>
-  <data name="StatisticsActionFailed" xml:space="preserve"><value>L’action n’a pas pu être effectuée. Veuillez réessayer.</value></data>
+  <data name="MsgInstanceNotResponding" xml:space="preserve">
+    <value>Wallpaper Control est déjà lancé, mais ne répond pas. Veuillez réessayer dans un instant.</value>
+  </data>
+  <data name="CalendarStatusStale" xml:space="preserve">
+    <value>Données peut-être obsolètes</value>
+  </data>
+  <data name="MainCurrentWallpaperHeading" xml:space="preserve">
+    <value>Fond actuel</value>
+  </data>
+  <data name="MainDirectionHeading" xml:space="preserve">
+    <value>Direction</value>
+  </data>
+  <data name="SettingsPauseOnFullscreen" xml:space="preserve">
+    <value>Pause automatique en plein écran</value>
+  </data>
+  <data name="SettingsPauseOnFullscreenHint" xml:space="preserve">
+    <value>Suspend les changements de fond, les animations et les widgets en plein écran au premier plan. Reprend ensuite automatiquement, en conservant une pause manuelle.</value>
+  </data>
+  <data name="StatusFullscreenPaused" xml:space="preserve">
+    <value>Pause auto : plein écran</value>
+  </data>
+  <data name="CalendarSourcesManage" xml:space="preserve">
+    <value>Gérer les sources de calendrier...</value>
+  </data>
+  <data name="CalendarSourcesTitle" xml:space="preserve">
+    <value>Sources de calendrier</value>
+  </data>
+  <data name="CalendarSourceEditorTitle" xml:space="preserve">
+    <value>Modifier la source de calendrier</value>
+  </data>
+  <data name="CalendarSourceName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="CalendarSourceAddress" xml:space="preserve">
+    <value>Adresse ICS</value>
+  </data>
+  <data name="CalendarSourceType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="CalendarSourceTypeCalendar" xml:space="preserve">
+    <value>Calendrier</value>
+  </data>
+  <data name="CalendarSourceTypeHoliday" xml:space="preserve">
+    <value>Calendrier des jours fériés</value>
+  </data>
+  <data name="CalendarSourceColor" xml:space="preserve">
+    <value>Couleur du texte</value>
+  </data>
+  <data name="CalendarSourceChooseColor" xml:space="preserve">
+    <value>Choisir une couleur...</value>
+  </data>
+  <data name="CalendarSourceEnabled" xml:space="preserve">
+    <value>Activée</value>
+  </data>
+  <data name="CalendarSourceAdd" xml:space="preserve">
+    <value>Ajouter...</value>
+  </data>
+  <data name="CalendarSourceEdit" xml:space="preserve">
+    <value>Modifier...</value>
+  </data>
+  <data name="CalendarSourceRemove" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="CalendarSourceApply" xml:space="preserve">
+    <value>Appliquer</value>
+  </data>
+  <data name="CalendarSourceCancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="CalendarSourceFallback" xml:space="preserve">
+    <value>Calendrier {0}</value>
+  </data>
+  <data name="CalendarSourceHolidayFallback" xml:space="preserve">
+    <value>Jours fériés {0}</value>
+  </data>
+  <data name="CalendarSourceInvalidAddress" xml:space="preserve">
+    <value>Veuillez saisir une adresse HTTP ou HTTPS valide.</value>
+  </data>
+  <data name="CalendarSourceNameHint" xml:space="preserve">
+    <value>Sans nom personnalisé, le widget utilise le nom du calendrier ou un libellé numéroté. Enregistrez les paramètres pour conserver les modifications. Choisissez Afficher pour modifier l’adresse.</value>
+  </data>
+  <data name="SettingsCalendarMaximumHeight" xml:space="preserve">
+    <value>Hauteur maximale</value>
+  </data>
+  <data name="CalendarUntitledEvent" xml:space="preserve">
+    <value>(sans titre)</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Certains paramètres n’ont pas pu être enregistrés et peuvent être perdus après un redémarrage. Veuillez réessayer.</value>
+  </data>
+  <data name="StatisticsActionFailed" xml:space="preserve">
+    <value>L’action n’a pas pu être effectuée. Veuillez réessayer.</value>
+  </data>
   <data name="WallpaperInfoTitle" xml:space="preserve">
     <value>Info du fond d’écran</value>
   </data>
@@ -1105,64 +1230,208 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="WallpaperInfoRecord" xml:space="preserve">
     <value>Record</value>
   </data>
-  <data name="NotesTitle" xml:space="preserve"><value>Notes et rappels</value></data>
-  <data name="NotesEnabled" xml:space="preserve"><value>Afficher les notes et rappels</value></data>
-  <data name="NotesManage" xml:space="preserve"><value>Gérer les notes et rappels…</value></data>
-  <data name="NotesNew" xml:space="preserve"><value>Nouvelle entrée</value></data>
-  <data name="NotesEdit" xml:space="preserve"><value>Modifier l’entrée</value></data>
-  <data name="NotesEntryTitle" xml:space="preserve"><value>Titre</value></data>
-  <data name="NotesDescription" xml:space="preserve"><value>Note</value></data>
-  <data name="NotesReminder" xml:space="preserve"><value>Rappel</value></data>
-  <data name="NotesDate" xml:space="preserve"><value>Date</value></data>
-  <data name="NotesTime" xml:space="preserve"><value>Heure</value></data>
-  <data name="NotesUseTime" xml:space="preserve"><value>Utiliser une heure (facultatif)</value></data>
-  <data name="NotesCompleted" xml:space="preserve"><value>Terminé</value></data>
-  <data name="NotesOpen" xml:space="preserve"><value>En cours</value></data>
-  <data name="NotesDelete" xml:space="preserve"><value>Supprimer</value></data>
-  <data name="NotesToggle" xml:space="preserve"><value>Terminé / En cours</value></data>
-  <data name="NotesStatus" xml:space="preserve"><value>État</value></data>
-  <data name="NotesUndated" xml:space="preserve"><value>Sans date</value></data>
-  <data name="NotesToday" xml:space="preserve"><value>Aujourd’hui</value></data>
-  <data name="NotesTomorrow" xml:space="preserve"><value>Demain</value></data>
-  <data name="NotesOverdue" xml:space="preserve"><value>En retard</value></data>
-  <data name="NotesEmpty" xml:space="preserve"><value>Aucune entrée en cours</value></data>
-  <data name="NotesTitleRequired" xml:space="preserve"><value>Veuillez saisir un titre.</value></data>
-  <data name="NotesSaveError" xml:space="preserve"><value>L’entrée n’a pas pu être enregistrée. Veuillez réessayer.</value></data>
-  <data name="NotesLoadIssue" xml:space="preserve"><value>Certaines données n’ont pas pu être chargées. Les fichiers endommagés sont conservés ; les versions inconnues restent en lecture seule.</value></data>
-  <data name="WidgetFontSize" xml:space="preserve"><value>Taille du texte</value></data>
-  <data name="MainNavWallpaper" xml:space="preserve"><value>Fond d’écran</value></data>
-  <data name="WidgetChangesTitle" xml:space="preserve"><value>Modifications des widgets non enregistrées</value></data>
-  <data name="WidgetChangesPrompt" xml:space="preserve"><value>Les paramètres des widgets ont changé. Voulez-vous les enregistrer, les abandonner ou continuer la modification ?</value></data>
-  <data name="WidgetDiscard" xml:space="preserve"><value>Abandonner</value></data>
-  <data name="MainSlideshowHeading" xml:space="preserve"><value>Diaporama</value></data>
-  <data name="MainDisplayHeading" xml:space="preserve"><value>Affichage</value></data>
-  <data name="WebTitle" xml:space="preserve"><value>Site web</value></data>
-  <data name="WebEnabled" xml:space="preserve"><value>Activer le widget web</value></data>
-  <data name="WebName" xml:space="preserve"><value>Nom affiché</value></data>
-  <data name="WebUrl" xml:space="preserve"><value>Adresse du site (HTTP/HTTPS)</value></data>
-  <data name="WebApplyUrl" xml:space="preserve"><value>Appliquer l’adresse</value></data>
-  <data name="WebZoom" xml:space="preserve"><value>Zoom du site (%)</value></data>
-  <data name="WebInteraction" xml:space="preserve"><value>Autoriser les interactions avec le site</value></data>
-  <data name="WebStartup" xml:space="preserve"><value>Charger le site au démarrage</value></data>
-  <data name="WebCollapse" xml:space="preserve"><value>Réduire</value></data>
-  <data name="WebRestore" xml:space="preserve"><value>Développer</value></data>
-  <data name="WebReload" xml:space="preserve"><value>Actualiser</value></data>
-  <data name="WebLoading" xml:space="preserve"><value>Chargement du site…</value></data>
-  <data name="WebReady" xml:space="preserve"><value>Sélectionnez Actualiser pour charger le site.</value></data>
-  <data name="WebInvalidUrl" xml:space="preserve"><value>Saisissez une adresse HTTP ou HTTPS valide sans identifiants.</value></data>
-  <data name="WebRuntimeMissing" xml:space="preserve"><value>Microsoft Edge WebView2 Runtime est absent. Installez-le puis réactivez le widget.</value></data>
-  <data name="WebInitializationFailed" xml:space="preserve"><value>Le widget web n’a pas pu démarrer. Sélectionnez Actualiser pour réessayer.</value></data>
-  <data name="WebNavigationFailed" xml:space="preserve"><value>Site inaccessible. Vérifiez la connexion et actualisez.</value></data>
-  <data name="WebProcessFailed" xml:space="preserve"><value>Le processus web s’est arrêté. Actualisez ou désactivez puis réactivez le widget.</value></data>
-  <data name="WebLocked" xml:space="preserve"><value>Verrouiller la position et la taille</value></data>
-  <data name="NotesRepeat" xml:space="preserve"><value>Répétition</value></data>
-  <data name="NotesRepeatNone" xml:space="preserve"><value>Aucune</value></data>
-  <data name="NotesRepeatDaily" xml:space="preserve"><value>Tous les jours</value></data>
-  <data name="NotesDailyHint" xml:space="preserve"><value>Chaque jour à partir de la date choisie. Cocher termine la tâche pour aujourd’hui uniquement. Modifier ou supprimer concerne toute la tâche.</value></data>
-  <data name="NotesCompletedToday" xml:space="preserve"><value>Terminée aujourd’hui</value></data>
-  <data name="NotesDoneGroup" xml:space="preserve"><value>Terminées aujourd’hui ({0})</value></data>
-  <data name="NotesDoneAt" xml:space="preserve"><value>Terminée aujourd’hui à {0}</value></data>
+  <data name="NotesTitle" xml:space="preserve">
+    <value>Notes et rappels</value>
+  </data>
+  <data name="NotesEnabled" xml:space="preserve">
+    <value>Afficher les notes et rappels</value>
+  </data>
+  <data name="NotesManage" xml:space="preserve">
+    <value>Gérer les notes et rappels…</value>
+  </data>
+  <data name="NotesNew" xml:space="preserve">
+    <value>Nouvelle entrée</value>
+  </data>
+  <data name="NotesEdit" xml:space="preserve">
+    <value>Modifier l’entrée</value>
+  </data>
+  <data name="NotesEntryTitle" xml:space="preserve">
+    <value>Titre</value>
+  </data>
+  <data name="NotesDescription" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="NotesReminder" xml:space="preserve">
+    <value>Rappel</value>
+  </data>
+  <data name="NotesDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="NotesTime" xml:space="preserve">
+    <value>Heure</value>
+  </data>
+  <data name="NotesUseTime" xml:space="preserve">
+    <value>Utiliser une heure (facultatif)</value>
+  </data>
+  <data name="NotesCompleted" xml:space="preserve">
+    <value>Terminé</value>
+  </data>
+  <data name="NotesOpen" xml:space="preserve">
+    <value>En cours</value>
+  </data>
+  <data name="NotesDelete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="NotesToggle" xml:space="preserve">
+    <value>Terminé / En cours</value>
+  </data>
+  <data name="NotesStatus" xml:space="preserve">
+    <value>État</value>
+  </data>
+  <data name="NotesUndated" xml:space="preserve">
+    <value>Sans date</value>
+  </data>
+  <data name="NotesToday" xml:space="preserve">
+    <value>Aujourd’hui</value>
+  </data>
+  <data name="NotesTomorrow" xml:space="preserve">
+    <value>Demain</value>
+  </data>
+  <data name="NotesOverdue" xml:space="preserve">
+    <value>En retard</value>
+  </data>
+  <data name="NotesEmpty" xml:space="preserve">
+    <value>Aucune entrée en cours</value>
+  </data>
+  <data name="NotesTitleRequired" xml:space="preserve">
+    <value>Veuillez saisir un titre.</value>
+  </data>
+  <data name="NotesSaveError" xml:space="preserve">
+    <value>L’entrée n’a pas pu être enregistrée. Veuillez réessayer.</value>
+  </data>
+  <data name="NotesLoadIssue" xml:space="preserve">
+    <value>Certaines données n’ont pas pu être chargées. Les fichiers endommagés sont conservés ; les versions inconnues restent en lecture seule.</value>
+  </data>
+  <data name="WidgetFontSize" xml:space="preserve">
+    <value>Taille du texte</value>
+  </data>
+  <data name="MainNavWallpaper" xml:space="preserve">
+    <value>Fond d’écran</value>
+  </data>
+  <data name="WidgetChangesTitle" xml:space="preserve">
+    <value>Modifications des widgets non enregistrées</value>
+  </data>
+  <data name="WidgetChangesPrompt" xml:space="preserve">
+    <value>Les paramètres des widgets ont changé. Voulez-vous les enregistrer, les abandonner ou continuer la modification ?</value>
+  </data>
+  <data name="WidgetDiscard" xml:space="preserve">
+    <value>Abandonner</value>
+  </data>
+  <data name="MainSlideshowHeading" xml:space="preserve">
+    <value>Diaporama</value>
+  </data>
+  <data name="MainDisplayHeading" xml:space="preserve">
+    <value>Affichage</value>
+  </data>
+  <data name="WebTitle" xml:space="preserve">
+    <value>Site web</value>
+  </data>
+  <data name="WebEnabled" xml:space="preserve">
+    <value>Activer le widget web</value>
+  </data>
+  <data name="WebName" xml:space="preserve">
+    <value>Nom affiché</value>
+  </data>
+  <data name="WebUrl" xml:space="preserve">
+    <value>Adresse du site (HTTP/HTTPS)</value>
+  </data>
+  <data name="WebApplyUrl" xml:space="preserve">
+    <value>Appliquer l’adresse</value>
+  </data>
+  <data name="WebZoom" xml:space="preserve">
+    <value>Zoom du site (%)</value>
+  </data>
+  <data name="WebInteraction" xml:space="preserve">
+    <value>Autoriser les interactions avec le site</value>
+  </data>
+  <data name="WebStartup" xml:space="preserve">
+    <value>Charger le site au démarrage</value>
+  </data>
+  <data name="WebCollapse" xml:space="preserve">
+    <value>Réduire</value>
+  </data>
+  <data name="WebRestore" xml:space="preserve">
+    <value>Développer</value>
+  </data>
+  <data name="WebReload" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="WebLoading" xml:space="preserve">
+    <value>Chargement du site…</value>
+  </data>
+  <data name="WebReady" xml:space="preserve">
+    <value>Sélectionnez Actualiser pour charger le site.</value>
+  </data>
+  <data name="WebInvalidUrl" xml:space="preserve">
+    <value>Saisissez une adresse HTTP ou HTTPS valide sans identifiants.</value>
+  </data>
+  <data name="WebRuntimeMissing" xml:space="preserve">
+    <value>Microsoft Edge WebView2 Runtime est absent. Installez-le puis réactivez le widget.</value>
+  </data>
+  <data name="WebInitializationFailed" xml:space="preserve">
+    <value>Le widget web n’a pas pu démarrer. Sélectionnez Actualiser pour réessayer.</value>
+  </data>
+  <data name="WebNavigationFailed" xml:space="preserve">
+    <value>Site inaccessible. Vérifiez la connexion et actualisez.</value>
+  </data>
+  <data name="WebProcessFailed" xml:space="preserve">
+    <value>Le processus web s’est arrêté. Actualisez ou désactivez puis réactivez le widget.</value>
+  </data>
+  <data name="WebLocked" xml:space="preserve">
+    <value>Verrouiller la position et la taille</value>
+  </data>
+  <data name="NotesRepeat" xml:space="preserve">
+    <value>Répétition</value>
+  </data>
+  <data name="NotesRepeatNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="NotesRepeatDaily" xml:space="preserve">
+    <value>Tous les jours</value>
+  </data>
+  <data name="NotesDailyHint" xml:space="preserve">
+    <value>Chaque jour à partir de la date choisie. Cocher termine la tâche pour aujourd’hui uniquement. Modifier ou supprimer concerne toute la tâche.</value>
+  </data>
+  <data name="NotesCompletedToday" xml:space="preserve">
+    <value>Terminée aujourd’hui</value>
+  </data>
+  <data name="NotesDoneGroup" xml:space="preserve">
+    <value>Terminées aujourd’hui ({0})</value>
+  </data>
+  <data name="NotesDoneAt" xml:space="preserve">
+    <value>Terminée aujourd’hui à {0}</value>
+  </data>
   <data name="PositionSpanNative" xml:space="preserve">
     <value>Étendre (animation Windows uniquement)</value>
+  </data>
+  <data name="NotesPopup" xml:space="preserve">
+    <value>Rappel contextuel</value>
+  </data>
+  <data name="NotesPopupAtDue" xml:space="preserve">
+    <value>À échéance</value>
+  </data>
+  <data name="NotesPopupFiveBefore" xml:space="preserve">
+    <value>5 minutes avant</value>
+  </data>
+  <data name="NotesPopupTenBefore" xml:space="preserve">
+    <value>10 minutes avant</value>
+  </data>
+  <data name="NotesPopupSnooze" xml:space="preserve">
+    <value>Rappeler dans 5 minutes</value>
+  </data>
+  <data name="NotesPopupUpcoming" xml:space="preserve">
+    <value>À échéance dans {0} minutes</value>
+  </data>
+  <data name="NotesPopupDue" xml:space="preserve">
+    <value>À échéance – {0}</value>
+  </data>
+  <data name="NotesPopupClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="NotesPopupAtDueAction" xml:space="preserve">
+    <value>Rappeler à l’échéance</value>
+  </data>
+  <data name="NotesPopupLater" xml:space="preserve">
+    <value>Plus tard</value>
   </data>
 </root>

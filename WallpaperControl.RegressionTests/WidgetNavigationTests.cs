@@ -118,6 +118,20 @@ internal static class WidgetNavigationTests
         {
                 main.Opacity = 0; main.Show();
                 var editor = Field<App.WidgetSettingsEditor>(main, "widgetEditor");
+                var startupNavigation = Field<FlowLayoutPanel>(editor, "navigation");
+                int startupWidth = startupNavigation.Width;
+                main.WindowState = FormWindowState.Minimized;
+                Application.DoEvents();
+                Invoke(main, "RestoreFromTray");
+                Application.DoEvents();
+                Invoke(main, "SelectMainSection", true);
+                var mainSidebar = Field<Panel>(main, "mainNavigation");
+                var widgetPage = Field<Panel>(main, "widgetsPage");
+                check(widgetPage.Left == mainSidebar.Right && widgetPage.Right <= main.ClientSize.Width,
+                    $"V2 {language}/{scale} first widget page starts after main navigation ({widgetPage.Left} vs {mainSidebar.Right})");
+                check(startupNavigation.Width == startupWidth && startupNavigation.Width >= 218 * main.DeviceDpi / 96,
+                    $"V2 {language}/{scale} first Widgets visit after startup tray cycle preserves sidebar width ({startupWidth} -> {startupNavigation.Width})");
+                Invoke(main, "SelectMainSection", false);
                 editor.ApplyPresentation(false, language);
                 check(!Field<bool>(main, "showingWidgets") && Field<Panel>(main, "wallpaperPage").Visible, $"V2 {language}/{scale} starts on Wallpaper");
                 var timer = Field<System.Windows.Forms.Timer>(main, "wallpaperRefreshTimer");
@@ -133,6 +147,12 @@ internal static class WidgetNavigationTests
                 ScaleFonts(main, scale, scaledFonts);
                 main.Scale(new SizeF(scale, scale)); main.PerformLayout();
                 var navigation = Field<FlowLayoutPanel>(editor, "navigation");
+                int scaledSidebarWidth = navigation.Width;
+                navigation.Width = 1;
+                editor.PerformLayout();
+                check(navigation.Width == scaledSidebarWidth && navigation.Width >= (int)(218 * scale)
+                    && Field<TabControl>(editor, "pages").Left >= navigation.Right,
+                    $"V2 {language}/{scale} transient narrow bounds cannot collapse or cover widget navigation");
                 check(navigation.Controls.OfType<Button>().All(b => TextRenderer.MeasureText(b.Text, b.Font).Width + b.Padding.Horizontal <= b.Width)
                     && navigation.Controls.OfType<Button>().Single(b => b.AccessibleDescription == "▤").Text.Contains(App.Localization.Get("NotesTitle", language), StringComparison.Ordinal),
                     $"V2 {language}/{scale} complete navigation captions and Notes icon fit");
@@ -186,6 +206,7 @@ internal static class WidgetNavigationTests
                     Invoke(main, "RestoreFromTray");
                     Application.DoEvents();
                     check(navigation.Visible && navigation.Width > 0 && editor.ClientRectangle.Contains(navigation.Bounds)
+                        && Field<Panel>(main, "widgetsPage").Left == Field<Panel>(main, "mainNavigation").Right
                         && navigation.Controls.OfType<Button>().All(b => b.Visible && b.Width > 0)
                         && Field<TabControl>(editor, "pages").Left >= navigation.Right,
                         $"V2 {language}/{scale}/{key} tray restore retains visible unobstructed widget navigation");

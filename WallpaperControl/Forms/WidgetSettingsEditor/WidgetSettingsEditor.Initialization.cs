@@ -9,7 +9,9 @@ namespace WallpaperControl
         private bool darkMode;
         private bool loadingControls = true;
         private readonly TabControl pages = new() { Dock = DockStyle.Fill, Appearance = TabAppearance.FlatButtons, SizeMode = TabSizeMode.Fixed, ItemSize = new Size(0, 1), Multiline = true };
-        private readonly FlowLayoutPanel navigation = new() { Dock = DockStyle.Left, Width = 218, AutoScroll = true, WrapContents = false, FlowDirection = FlowDirection.TopDown, Padding = new Padding(8) };
+        // Keep the fixed sidebar width even when the still-hidden editor receives
+        // tiny bounds during tray/handle transitions. WinForms scales MinimumSize with DPI.
+        private readonly FlowLayoutPanel navigation = new() { Dock = DockStyle.Left, Width = 218, MinimumSize = new Size(218, 0), AutoScroll = true, WrapContents = false, FlowDirection = FlowDirection.TopDown, Padding = new Padding(8) };
         private readonly List<(string Key, string Icon, TabPage Page, Button Button)> entries = new();
         internal WidgetSettingsEditor(WidgetSettings settings, bool dark = false, string? language = null, Action<WidgetSettings>? preview = null)
         {
