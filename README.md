@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.0.1**
+**Current release: v2.0.2**
 
 ## ✨ Features
 
@@ -383,30 +383,15 @@ The widget supports **Minimal**, **Clean** and **Glow** styles.
 
 ### 📝 Notes & Reminders
 
-The Notes & Reminders widget provides lightweight local task and
-reminder management directly on the desktop. Notes can contain a title,
-description and optional date/time and are grouped into No date,
-Overdue, Today, Tomorrow and upcoming days. Entries can be created,
-edited, completed, deleted and reopened through the widget and its
-dedicated manager.
+The Notes & Reminders widget provides lightweight local task and reminder management directly on the desktop. Notes can contain a title, description and optional date/time. Entries can be created, edited, completed, deleted and reopened through the widget and its dedicated manager.
 
-Daily recurring tasks can be configured with a start date and optional
-time. Completing a daily task marks it as completed only for the current
-day; it automatically appears as open again on the following day without
-creating duplicate entries. Tasks completed today are collected in a
-collapsible **Completed Today** section with their completion time and
-can be reopened when needed.
+Daily recurring tasks can be configured with a start date and optional time. Completing a daily task applies only to the current day; it automatically appears open again on the following day without creating duplicates. Tasks completed today are collected in a collapsible **Completed Today** section with their completion time and can be reopened.
 
-The widget uses a compact layout with reduced vertical space for short
-entries. The content scrolls below a fixed header, the maximum height is
-configurable, and controls remain usable while the widget position is
-locked. The manager and editor follow the current Light/Dark application
-theme. Data is stored locally as JSON using atomic writes, backup and
-damaged-file protection. Existing notes remain compatible. The widget
-supports **Minimal**, **Clean** and **Glow** styles.
+Popup reminders can be configured for the due time or **5 / 10 minutes before**, including for daily recurring tasks. They appear above normal windows without taking focus. While a fullscreen application is active, reminders are held back until fullscreen mode ends. The complete note text is displayed and longer content can be scrolled.
 
-Reminder dates and times are displayed in the widget. **Windows
-notifications are not included.**
+Reminder popups provide **Done**, **Close** and a context-sensitive **Later** action. With multiple postponement options, Later opens a selection menu; with only one option, it is applied directly. Reminder and snooze state is preserved across application restarts.
+
+The compact layout reduces vertical space for short entries. The content scrolls below a fixed header, maximum height is configurable, and controls remain usable while the widget position is locked. The manager and editor follow the current Light/Dark theme. Data is stored locally as JSON using atomic writes, backup and damaged-file protection. Existing notes remain compatible. The widget supports **Minimal**, **Clean** and **Glow** styles.
 
 ### Next Wallpaper
 
@@ -582,7 +567,7 @@ language.
 The **official installation method** for Wallpaper Control is the
 Windows x64 installer provided with each release.
 
-1.  Download `WallpaperControl-2.0.1-Setup-x64.exe` from the latest
+1.  Download `WallpaperControl-2.0.2-Setup-x64.exe` from the latest
     GitHub release.
 2.  Completely exit an existing Wallpaper Control instance from the
     system tray before installing or upgrading.

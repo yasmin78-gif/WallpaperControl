@@ -15,7 +15,7 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.0.1**
+**Aktuelle Version: v2.0.2**
 
 ## ✨ Funktionen
 
@@ -416,13 +416,15 @@ automatisch gekürzt. Das Widget unterstützt **Minimal**, **Clean** und
 
 ### 📝 Notizen & Reminder
 
-Das Notizen-&-Reminder-Widget bietet eine schlanke lokale Aufgaben- und Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel, Beschreibung sowie optional Datum und Uhrzeit enthalten und werden in Ohne Termin, Überfällig, Heute, Morgen und weitere Tage gruppiert. Einträge lassen sich über das Widget und den eigenen Manager erstellen, bearbeiten, abhaken, löschen und wieder öffnen.
+Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel, Beschreibung sowie optional Datum und Uhrzeit enthalten und über das Widget und den eigenen Manager erstellt, bearbeitet, erledigt, gelöscht und wieder geöffnet werden.
 
-Täglich wiederkehrende Aufgaben können mit Startdatum und optionaler Uhrzeit angelegt werden. Das Erledigen gilt nur für den aktuellen Tag; am nächsten Tag erscheint die Aufgabe automatisch wieder offen, ohne Duplikate zu erzeugen. Heute erledigte Aufgaben werden mit ihrer Erledigungszeit in einem einklappbaren Bereich **Heute erledigt** gesammelt und können wieder geöffnet werden.
+Täglich wiederkehrende Aufgaben können mit Startdatum und optionaler Uhrzeit angelegt werden. Das Erledigen gilt nur für den aktuellen Tag; am nächsten Tag erscheint die Aufgabe automatisch wieder offen, ohne Duplikate zu erzeugen. Heute erledigte Aufgaben werden mit ihrer Erledigungszeit im einklappbaren Bereich **Heute erledigt** gesammelt.
 
-Die kompaktere Darstellung reduziert den Platzbedarf kurzer Einträge. Unter der festen Kopfzeile ist der Inhalt scrollbar, die Maximalhöhe ist einstellbar und die Bedienelemente bleiben auch bei gesperrter Widgetposition nutzbar. Verwaltung und Editor folgen dem aktuellen Hell-/Dunkel-Design der Anwendung. Die Daten werden lokal als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget unterstützt **Minimal**, **Clean** und **Glow**.
+Popup-Erinnerungen können **zur Fälligkeit** oder **5 / 10 Minuten vorher** ausgelöst werden, auch bei täglichen Aufgaben. Sie erscheinen über normalen Fenstern, ohne den Fokus zu übernehmen. Während eine Vollbildanwendung aktiv ist, werden Erinnerungen zurückgehalten und anschließend angezeigt. Der vollständige Notiztext wird angezeigt; längere Inhalte sind scrollbar.
 
-Erinnerungsdatum und -uhrzeit werden im Widget angezeigt. **Windows-Benachrichtigungen sind nicht enthalten.**
+Die Popups bieten **Erledigt**, **Schließen** und die kontextabhängige Aktion **Später**. Bei mehreren Möglichkeiten öffnet Später ein Auswahlmenü; gibt es nur eine, wird sie direkt ausgeführt. Erinnerungs- und Schlummerzustand bleiben über Neustarts hinweg erhalten.
+
+Die kompakte Darstellung reduziert den Platzbedarf kurzer Einträge. Inhalt und Maximalhöhe bleiben wie bisher konfigurierbar. Verwaltung und Editor folgen dem aktuellen Hell-/Dunkel-Design. Die Daten werden lokal als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget unterstützt **Minimal**, **Clean** und **Glow**.
 
 ### Nächstes Wallpaper
 
@@ -601,7 +603,7 @@ Anwendungssprache.
 Der **offizielle Installationsweg** für Wallpaper Control ist der
 Windows-x64-Installer, der mit jedem Release bereitgestellt wird.
 
-1.  Lade `WallpaperControl-2.0.1-Setup-x64.exe` aus dem neuesten
+1.  Lade `WallpaperControl-2.0.2-Setup-x64.exe` aus dem neuesten
     GitHub-Release herunter.
 2.  Beende eine bereits laufende Wallpaper-Control-Instanz vor der
     Installation oder Aktualisierung vollständig über das
