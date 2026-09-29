@@ -1434,4 +1434,169 @@ Would you like to open the release page?</value>
   <data name="NotesPopupLater" xml:space="preserve">
     <value>Remind me later</value>
   </data>
+  <data name="PackageTitle" xml:space="preserve">
+    <value>Package tracking</value>
+  </data>
+  <data name="PackageEnabled" xml:space="preserve">
+    <value>Show package widget</value>
+  </data>
+  <data name="PackageSetup" xml:space="preserve">
+    <value>Set up Ship24 / change API key</value>
+  </data>
+  <data name="PackageManage" xml:space="preserve">
+    <value>Manage packages…</value>
+  </data>
+  <data name="PackageAdd" xml:space="preserve">
+    <value>Add package</value>
+  </data>
+  <data name="PackageEdit" xml:space="preserve">
+    <value>Edit package</value>
+  </data>
+  <data name="PackageName" xml:space="preserve">
+    <value>Name (optional)</value>
+  </data>
+  <data name="PackageNumber" xml:space="preserve">
+    <value>Tracking number</value>
+  </data>
+  <data name="PackageCarrier" xml:space="preserve">
+    <value>Carrier</value>
+  </data>
+  <data name="PackageAutomatic" xml:space="preserve">
+    <value>Detect automatically</value>
+  </data>
+  <data name="PackageNumberReadOnly" xml:space="preserve">
+    <value>The tracking number cannot be changed. For a different number, delete this package and add a new one.</value>
+  </data>
+  <data name="PackageOpenShip24" xml:space="preserve">
+    <value>Open Ship24</value>
+  </data>
+  <data name="PackagePrivacy" xml:space="preserve">
+    <value>Tracking numbers you enter are sent to Ship24 to track your packages.</value>
+  </data>
+  <data name="PackageNoCredential" xml:space="preserve">
+    <value>Ship24: No API key saved</value>
+  </data>
+  <data name="PackageCredentialSaved" xml:space="preserve">
+    <value>Ship24: API key saved</value>
+  </data>
+  <data name="PackageConnected" xml:space="preserve">
+    <value>Ship24: Connection test successful</value>
+  </data>
+  <data name="PackageKey" xml:space="preserve">
+    <value>Personal API key</value>
+  </data>
+  <data name="PackageSaveBeforeTest" xml:space="preserve">
+    <value>Save a new key before testing the connection. Saved keys are never displayed here.</value>
+  </data>
+  <data name="PackageDeleteKey" xml:space="preserve">
+    <value>Delete API key</value>
+  </data>
+  <data name="PackageDeleteKeyConfirm" xml:space="preserve">
+    <value>Delete the saved API key? Your packages will be kept.</value>
+  </data>
+  <data name="PackageTest" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="PackageBrowserError" xml:space="preserve">
+    <value>Could not open Ship24 in the browser.</value>
+  </data>
+  <data name="PackageBusy" xml:space="preserve">
+    <value>Please wait…</value>
+  </data>
+  <data name="PackageDuplicate" xml:space="preserve">
+    <value>This tracking number already exists.</value>
+  </data>
+  <data name="PackageInvalidNumber" xml:space="preserve">
+    <value>Enter a valid tracking number (5–50 characters).</value>
+  </data>
+  <data name="PackageStorageError" xml:space="preserve">
+    <value>The data could not be saved. A tracker already created at Ship24 is not removed by this failure.</value>
+  </data>
+  <data name="PackageCredentialError" xml:space="preserve">
+    <value>Set up or check your Ship24 API key.</value>
+  </data>
+  <data name="PackageForbidden" xml:space="preserve">
+    <value>Ship24 denied access. Check your plan and permissions.</value>
+  </data>
+  <data name="PackageQuota" xml:space="preserve">
+    <value>Your Ship24 shipment quota has been reached.</value>
+  </data>
+  <data name="PackageRateLimit" xml:space="preserve">
+    <value>Too many requests. Try again later.</value>
+  </data>
+  <data name="PackageMissing" xml:space="preserve">
+    <value>The shipment was not found.</value>
+  </data>
+  <data name="PackageRefreshError" xml:space="preserve">
+    <value>The request failed. Previously saved tracking data has been kept.</value>
+  </data>
+  <data name="PackageRefreshShort" xml:space="preserve">
+    <value>Update failed</value>
+  </data>
+  <data name="PackageLoadIssue" xml:space="preserve">
+    <value>Saved package data could not be loaded completely. Check the backup.</value>
+  </data>
+  <data name="PackageLocalActions" xml:space="preserve">
+    <value>Packages and the API key are saved separately in their dialogs. Discard and defaults apply only to widget settings.</value>
+  </data>
+  <data name="PackageDetails" xml:space="preserve">
+    <value>Shipment details</value>
+  </data>
+  <data name="PackageRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="PackageDeleteConfirm" xml:space="preserve">
+    <value>Delete this package locally? Its tracker at Ship24 will not be deleted.</value>
+  </data>
+  <data name="PackageHistory" xml:space="preserve">
+    <value>Event history</value>
+  </data>
+  <data name="PackageUnknownTime" xml:space="preserve">
+    <value>Time unknown</value>
+  </data>
+  <data name="PackageUpdatedTitle" xml:space="preserve">
+    <value>Last updated</value>
+  </data>
+  <data name="PackageUpdated" xml:space="preserve">
+    <value>Updated: {0}</value>
+  </data>
+  <data name="PackageEta" xml:space="preserve">
+    <value>Estimated delivery: {0}</value>
+  </data>
+  <data name="PackageEmpty" xml:space="preserve">
+    <value>No packages yet. Add one in settings.</value>
+  </data>
+  <data name="PackageUnnamed" xml:space="preserve">
+    <value>Package</value>
+  </data>
+  <data name="PackageInfoReceived" xml:space="preserve">
+    <value>Shipment announced</value>
+  </data>
+  <data name="PackageInTransit" xml:space="preserve">
+    <value>In transit</value>
+  </data>
+  <data name="PackageOutForDelivery" xml:space="preserve">
+    <value>Out for delivery</value>
+  </data>
+  <data name="PackagePickup" xml:space="preserve">
+    <value>Ready for pickup</value>
+  </data>
+  <data name="PackageDelivered" xml:space="preserve">
+    <value>Delivered</value>
+  </data>
+  <data name="PackageException" xml:space="preserve">
+    <value>Delivery issue</value>
+  </data>
+  <data name="PackageUnknown" xml:space="preserve">
+    <value>Status not yet available</value>
+  </data>
+  <data name="PackageSetupHelp" xml:space="preserve">
+    <value>WallpaperControl needs your personal Ship24 API key for package tracking. The free plan currently supports up to 10 new shipments per month.
+
+1. Open the Ship24 Tracking API plan and select FREE.
+2. Create a Ship24 account or sign in.
+3. Open “Developers” in the dashboard.
+4. Under “API Keys”, find the automatically created “Default” key.
+5. Select “Copy” and paste the key below.</value>
+  </data>
 </root>

@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace WallpaperControl
 {
-    internal sealed class WidgetManager : IDisposable
+    internal sealed partial class WidgetManager : IDisposable
     {
         private readonly string registryPath;
         private readonly NotesStore notesStore;
@@ -37,12 +37,15 @@ namespace WallpaperControl
         /// </summary>
         /// <param name="next">The callback that requests the next wallpaper.</param>
         public WidgetManager(Action next, Func<bool, WallpaperInfoSnapshot>? wallpaperInfoSource = null,
-            string registryPath = WidgetSettings.RegistryPath, NotesStore? notesStore = null)
+            string registryPath = WidgetSettings.RegistryPath, NotesStore? notesStore = null,
+            PackageTrackingService? packageTrackingService = null, TrackingCredentialStore? packageCredentials = null)
         {
             this.next = next;
             this.wallpaperInfoSource = wallpaperInfoSource;
             this.registryPath = registryPath;
             this.notesStore = notesStore ?? new NotesStore();
+            packages = packageTrackingService;
+            packageCredentialStore = packageCredentials ?? new TrackingCredentialStore();
             settings = WidgetSettings.Load(registryPath);
             desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
         }
@@ -74,6 +77,10 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            settings.PackageEnabled = previewSettings.PackageEnabled;
+            settings.PackageLocked = previewSettings.PackageLocked;
+            settings.PackageStyle = previewSettings.PackageStyle;
+            settings.PackageMaximumHeight = previewSettings.PackageMaximumHeight;
             settings.NotesEnabled = previewSettings.NotesEnabled;
             settings.NotesLocked = previewSettings.NotesLocked;
             settings.NotesMaximumHeight = previewSettings.NotesMaximumHeight;
@@ -132,6 +139,7 @@ namespace WallpaperControl
             // owns the enable/lock/size values; drag operations belong to the
             // widget windows themselves.
             WebWidgetSettings webGeometry = settings.Web.Clone();
+            Point packageLocation = settings.PackageLocation;
             Point notesLocation = settings.NotesLocation;
             Point clockLocation = settings.ClockLocation;
             Point infoLocation = settings.WallpaperInfoLocation;
@@ -142,6 +150,7 @@ namespace WallpaperControl
 
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
+            settings.PackageLocation = packageLocation;
             settings.NotesLocation = notesLocation;
             settings.ClockLocation = clockLocation;
             settings.WallpaperInfoLocation = infoLocation;
@@ -180,6 +189,7 @@ namespace WallpaperControl
             // Preview mode keeps the widget windows interactive even though the
             // settings dialog is modal. The Lock checkboxes themselves still
             // apply immediately, so the preview always matches the current UI.
+            ApplyPackageWidget(target, restoreLocations);
             ApplyWebWidget(target, restoreLocations);
             bool effectiveClockLocked = target.ClockLocked;
             bool effectiveNextLocked = target.NextLocked;
@@ -670,7 +680,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) => webWidget?.ApplyTheme(dark);
+        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -708,6 +718,7 @@ namespace WallpaperControl
             webWidget?.SetActivitySuspended(suspended);
             wallpaperInfoWidget?.SetActivitySuspended(suspended);
             if (resumed) RefreshWallpaperInfo();
+            packageWidget?.SetActivitySuspended(suspended);
             notesWidget?.SetActivitySuspended(suspended);
             clock?.SetActivitySuspended(suspended);
             systemWidget?.SetActivitySuspended(suspended);
@@ -722,6 +733,8 @@ namespace WallpaperControl
         public void Dispose()
         {
             noteReminders?.Dispose(); noteReminders = null;
+            packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
+            packages?.Dispose(); packages = null;
             desktopShowMonitor.Dispose();
             webWidget?.Close(); webWidget?.Dispose(); webWidget = null;
 

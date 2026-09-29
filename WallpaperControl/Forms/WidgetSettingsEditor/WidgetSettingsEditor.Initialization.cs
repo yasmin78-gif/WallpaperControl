@@ -28,6 +28,7 @@ namespace WallpaperControl
             TabPage wallpaperInfoPage = AddPage("WallpaperInfoTitle", "ⓘ"); InitializeWallpaperInfoPage(wallpaperInfoPage);
             TabPage notesPage = AddPage("NotesTitle", "▤"); InitializeNotesPage(notesPage);
             InitializeWebPage(AddPage("WebTitle", "⊕"));
+            InitializePackagePage(AddPage("PackageTitle", "◇"));
             #region Clock widget page
 
             Label widgetsTitle = new Label
@@ -639,6 +640,7 @@ namespace WallpaperControl
                 NotifyWidgetPreviewChanged();
             };
             ConnectNotesPreview();
+            ConnectPackagePreview();
             ConnectWallpaperInfoPreview();
             nextWidgetEnabledCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
             nextWidgetLockedCheckBox.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();

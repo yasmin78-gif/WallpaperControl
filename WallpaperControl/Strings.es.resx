@@ -1434,4 +1434,169 @@ Versión instalada: {0}
   <data name="NotesPopupLater" xml:space="preserve">
     <value>Más tarde</value>
   </data>
+  <data name="PackageTitle" xml:space="preserve">
+    <value>Rastreo de paquetes</value>
+  </data>
+  <data name="PackageEnabled" xml:space="preserve">
+    <value>Mostrar widget de paquetes</value>
+  </data>
+  <data name="PackageSetup" xml:space="preserve">
+    <value>Configurar Ship24 / cambiar clave API</value>
+  </data>
+  <data name="PackageManage" xml:space="preserve">
+    <value>Administrar paquetes…</value>
+  </data>
+  <data name="PackageAdd" xml:space="preserve">
+    <value>Añadir paquete</value>
+  </data>
+  <data name="PackageEdit" xml:space="preserve">
+    <value>Editar paquete</value>
+  </data>
+  <data name="PackageName" xml:space="preserve">
+    <value>Nombre (opcional)</value>
+  </data>
+  <data name="PackageNumber" xml:space="preserve">
+    <value>Número de seguimiento</value>
+  </data>
+  <data name="PackageCarrier" xml:space="preserve">
+    <value>Transportista</value>
+  </data>
+  <data name="PackageAutomatic" xml:space="preserve">
+    <value>Detectar automáticamente</value>
+  </data>
+  <data name="PackageNumberReadOnly" xml:space="preserve">
+    <value>El número de seguimiento no se puede cambiar. Para usar otro, elimina el paquete y añade uno nuevo.</value>
+  </data>
+  <data name="PackageOpenShip24" xml:space="preserve">
+    <value>Abrir Ship24</value>
+  </data>
+  <data name="PackagePrivacy" xml:space="preserve">
+    <value>Los números de seguimiento introducidos se envían a Ship24 para rastrear tus paquetes.</value>
+  </data>
+  <data name="PackageNoCredential" xml:space="preserve">
+    <value>Ship24: no hay clave API guardada</value>
+  </data>
+  <data name="PackageCredentialSaved" xml:space="preserve">
+    <value>Ship24: clave API guardada</value>
+  </data>
+  <data name="PackageConnected" xml:space="preserve">
+    <value>Ship24: conexión verificada correctamente</value>
+  </data>
+  <data name="PackageKey" xml:space="preserve">
+    <value>Clave API personal</value>
+  </data>
+  <data name="PackageSaveBeforeTest" xml:space="preserve">
+    <value>Guarda la nueva clave antes de probar la conexión. Las claves guardadas nunca se muestran aquí.</value>
+  </data>
+  <data name="PackageDeleteKey" xml:space="preserve">
+    <value>Eliminar clave API</value>
+  </data>
+  <data name="PackageDeleteKeyConfirm" xml:space="preserve">
+    <value>¿Eliminar la clave API guardada? Se conservarán los paquetes.</value>
+  </data>
+  <data name="PackageTest" xml:space="preserve">
+    <value>Probar conexión</value>
+  </data>
+  <data name="PackageBrowserError" xml:space="preserve">
+    <value>No se pudo abrir Ship24 en el navegador.</value>
+  </data>
+  <data name="PackageBusy" xml:space="preserve">
+    <value>Espera…</value>
+  </data>
+  <data name="PackageDuplicate" xml:space="preserve">
+    <value>Este número de seguimiento ya existe.</value>
+  </data>
+  <data name="PackageInvalidNumber" xml:space="preserve">
+    <value>Introduce un número de seguimiento válido (5–50 caracteres).</value>
+  </data>
+  <data name="PackageStorageError" xml:space="preserve">
+    <value>No se pudieron guardar los datos. Este error no elimina un seguimiento ya creado en Ship24.</value>
+  </data>
+  <data name="PackageCredentialError" xml:space="preserve">
+    <value>Configura o comprueba tu clave API de Ship24.</value>
+  </data>
+  <data name="PackageForbidden" xml:space="preserve">
+    <value>Ship24 ha denegado el acceso. Comprueba el plan y los permisos.</value>
+  </data>
+  <data name="PackageQuota" xml:space="preserve">
+    <value>Se ha agotado tu cuota de envíos de Ship24.</value>
+  </data>
+  <data name="PackageRateLimit" xml:space="preserve">
+    <value>Demasiadas solicitudes. Inténtalo más tarde.</value>
+  </data>
+  <data name="PackageMissing" xml:space="preserve">
+    <value>No se encontró el envío.</value>
+  </data>
+  <data name="PackageRefreshError" xml:space="preserve">
+    <value>La solicitud ha fallado. Se conservan los datos de seguimiento guardados.</value>
+  </data>
+  <data name="PackageRefreshShort" xml:space="preserve">
+    <value>Error al actualizar</value>
+  </data>
+  <data name="PackageLoadIssue" xml:space="preserve">
+    <value>No se pudieron cargar todos los datos guardados. Comprueba la copia de seguridad.</value>
+  </data>
+  <data name="PackageLocalActions" xml:space="preserve">
+    <value>Los paquetes y la clave API se guardan por separado en sus diálogos. Descartar y restaurar valores solo afecta al widget.</value>
+  </data>
+  <data name="PackageDetails" xml:space="preserve">
+    <value>Detalles del envío</value>
+  </data>
+  <data name="PackageRefresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="PackageDeleteConfirm" xml:space="preserve">
+    <value>¿Eliminar este paquete localmente? Su seguimiento en Ship24 no se eliminará.</value>
+  </data>
+  <data name="PackageHistory" xml:space="preserve">
+    <value>Historial de eventos</value>
+  </data>
+  <data name="PackageUnknownTime" xml:space="preserve">
+    <value>Fecha desconocida</value>
+  </data>
+  <data name="PackageUpdatedTitle" xml:space="preserve">
+    <value>Última actualización</value>
+  </data>
+  <data name="PackageUpdated" xml:space="preserve">
+    <value>Actualizado: {0}</value>
+  </data>
+  <data name="PackageEta" xml:space="preserve">
+    <value>Entrega estimada: {0}</value>
+  </data>
+  <data name="PackageEmpty" xml:space="preserve">
+    <value>No hay paquetes. Añádelos en los ajustes.</value>
+  </data>
+  <data name="PackageUnnamed" xml:space="preserve">
+    <value>Paquete</value>
+  </data>
+  <data name="PackageInfoReceived" xml:space="preserve">
+    <value>Envío anunciado</value>
+  </data>
+  <data name="PackageInTransit" xml:space="preserve">
+    <value>En tránsito</value>
+  </data>
+  <data name="PackageOutForDelivery" xml:space="preserve">
+    <value>En reparto</value>
+  </data>
+  <data name="PackagePickup" xml:space="preserve">
+    <value>Listo para recoger</value>
+  </data>
+  <data name="PackageDelivered" xml:space="preserve">
+    <value>Entregado</value>
+  </data>
+  <data name="PackageException" xml:space="preserve">
+    <value>Problema de entrega</value>
+  </data>
+  <data name="PackageUnknown" xml:space="preserve">
+    <value>Estado aún no disponible</value>
+  </data>
+  <data name="PackageSetupHelp" xml:space="preserve">
+    <value>WallpaperControl necesita tu clave API personal de Ship24 para rastrear paquetes. El plan gratuito admite actualmente hasta 10 envíos nuevos al mes.
+
+1. Abre el plan Tracking API de Ship24 y selecciona FREE.
+2. Crea una cuenta de Ship24 o inicia sesión.
+3. Abre «Developers» en el panel.
+4. En «API Keys», busca la clave «Default» creada automáticamente.
+5. Selecciona «Copy» y pega la clave abajo.</value>
+  </data>
 </root>

@@ -5,6 +5,20 @@ namespace WallpaperControl
 {
     internal static class WidgetDrawing
     {
+        /// <summary>Draws a centered, clearly visible add symbol in logical widget coordinates.</summary>
+        internal static void DrawAddIcon(Graphics graphics, RectangleF bounds, Color color)
+        {
+            float x = bounds.Left + bounds.Width / 2;
+            float y = bounds.Top + bounds.Height / 2;
+            using Pen pen = new(color, 2.2f)
+            {
+                StartCap = LineCap.Round,
+                EndCap = LineCap.Round
+            };
+            graphics.DrawLine(pen, x - 6, y, x + 6, y);
+            graphics.DrawLine(pen, x, y - 6, x, y + 6);
+        }
+
         /// <summary>
         /// Returns the shared weather/calendar colors for a widget style.
         /// </summary>

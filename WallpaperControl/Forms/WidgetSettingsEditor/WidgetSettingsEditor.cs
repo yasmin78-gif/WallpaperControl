@@ -33,6 +33,7 @@ namespace WallpaperControl
                 if (replaceBaseline) initialWidgetSettings = value.Clone();
                 calendarSources = new(value.CalendarSources);
                 LoadWebControls(value.Web);
+                LoadPackageControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -88,6 +89,7 @@ namespace WallpaperControl
             {
                 Localize(Controls);
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
+                RefreshWidgetStyleChoices(packageStyle, (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex));
                 RefreshClockStyleChoices(GetSelectedClockStyle()); RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle()); RefreshNextStyleChoices(GetSelectedNextStyle());
                 RefreshCalendarStyleChoices(GetSelectedCalendarStyle());
@@ -109,6 +111,7 @@ namespace WallpaperControl
                 BackColor = AppTheme.WindowBackground(dark); ForeColor = AppTheme.TextPrimary(dark);
                 SettingsControlTheme.Apply(Controls, dark, BackColor, ForeColor, AppTheme.InputBackground(dark), AppTheme.ControlBackground(dark));
                 LocalizeWebControls();
+                UpdatePackageConnection();
                 navigation.BackColor = AppTheme.SidebarBackground(dark);
                 UpdateSelection();
             }

@@ -1406,4 +1406,169 @@
   <data name="NotesPopupLater" xml:space="preserve">
     <value>後で通知</value>
   </data>
+  <data name="PackageTitle" xml:space="preserve">
+    <value>荷物追跡</value>
+  </data>
+  <data name="PackageEnabled" xml:space="preserve">
+    <value>荷物ウィジェットを表示</value>
+  </data>
+  <data name="PackageSetup" xml:space="preserve">
+    <value>Ship24 の設定 / API キーの変更</value>
+  </data>
+  <data name="PackageManage" xml:space="preserve">
+    <value>荷物の管理…</value>
+  </data>
+  <data name="PackageAdd" xml:space="preserve">
+    <value>荷物を追加</value>
+  </data>
+  <data name="PackageEdit" xml:space="preserve">
+    <value>荷物を編集</value>
+  </data>
+  <data name="PackageName" xml:space="preserve">
+    <value>名前（任意）</value>
+  </data>
+  <data name="PackageNumber" xml:space="preserve">
+    <value>追跡番号</value>
+  </data>
+  <data name="PackageCarrier" xml:space="preserve">
+    <value>配送業者</value>
+  </data>
+  <data name="PackageAutomatic" xml:space="preserve">
+    <value>自動検出</value>
+  </data>
+  <data name="PackageNumberReadOnly" xml:space="preserve">
+    <value>追跡番号は変更できません。別の番号を使う場合は、この荷物を削除して新しく追加してください。</value>
+  </data>
+  <data name="PackageOpenShip24" xml:space="preserve">
+    <value>Ship24 を開く</value>
+  </data>
+  <data name="PackagePrivacy" xml:space="preserve">
+    <value>荷物を追跡するため、入力した追跡番号が Ship24 に送信されます。</value>
+  </data>
+  <data name="PackageNoCredential" xml:space="preserve">
+    <value>Ship24: API キー未保存</value>
+  </data>
+  <data name="PackageCredentialSaved" xml:space="preserve">
+    <value>Ship24: API キー保存済み</value>
+  </data>
+  <data name="PackageConnected" xml:space="preserve">
+    <value>Ship24: 接続テスト成功</value>
+  </data>
+  <data name="PackageKey" xml:space="preserve">
+    <value>個人用 API キー</value>
+  </data>
+  <data name="PackageSaveBeforeTest" xml:space="preserve">
+    <value>新しいキーを保存してから接続をテストしてください。保存済みのキーは表示されません。</value>
+  </data>
+  <data name="PackageDeleteKey" xml:space="preserve">
+    <value>API キーを削除</value>
+  </data>
+  <data name="PackageDeleteKeyConfirm" xml:space="preserve">
+    <value>保存した API キーを削除しますか？荷物のデータは保持されます。</value>
+  </data>
+  <data name="PackageTest" xml:space="preserve">
+    <value>接続をテスト</value>
+  </data>
+  <data name="PackageBrowserError" xml:space="preserve">
+    <value>ブラウザーで Ship24 を開けませんでした。</value>
+  </data>
+  <data name="PackageBusy" xml:space="preserve">
+    <value>お待ちください…</value>
+  </data>
+  <data name="PackageDuplicate" xml:space="preserve">
+    <value>この追跡番号はすでに登録されています。</value>
+  </data>
+  <data name="PackageInvalidNumber" xml:space="preserve">
+    <value>有効な追跡番号（5～50 文字）を入力してください。</value>
+  </data>
+  <data name="PackageStorageError" xml:space="preserve">
+    <value>データを保存できませんでした。このエラーによって Ship24 で作成済みの追跡は削除されません。</value>
+  </data>
+  <data name="PackageCredentialError" xml:space="preserve">
+    <value>Ship24 API キーを設定または確認してください。</value>
+  </data>
+  <data name="PackageForbidden" xml:space="preserve">
+    <value>Ship24 へのアクセスが拒否されました。プランと権限を確認してください。</value>
+  </data>
+  <data name="PackageQuota" xml:space="preserve">
+    <value>Ship24 の荷物追跡枠を使い切りました。</value>
+  </data>
+  <data name="PackageRateLimit" xml:space="preserve">
+    <value>リクエストが多すぎます。しばらくしてから再試行してください。</value>
+  </data>
+  <data name="PackageMissing" xml:space="preserve">
+    <value>荷物が見つかりませんでした。</value>
+  </data>
+  <data name="PackageRefreshError" xml:space="preserve">
+    <value>リクエストに失敗しました。保存済みの追跡データは保持されます。</value>
+  </data>
+  <data name="PackageRefreshShort" xml:space="preserve">
+    <value>更新に失敗しました</value>
+  </data>
+  <data name="PackageLoadIssue" xml:space="preserve">
+    <value>荷物データを完全に読み込めませんでした。バックアップを確認してください。</value>
+  </data>
+  <data name="PackageLocalActions" xml:space="preserve">
+    <value>荷物と API キーは各ダイアログで個別に保存されます。変更の破棄と初期設定への復元はウィジェット設定のみに適用されます。</value>
+  </data>
+  <data name="PackageDetails" xml:space="preserve">
+    <value>荷物の詳細</value>
+  </data>
+  <data name="PackageRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="PackageDeleteConfirm" xml:space="preserve">
+    <value>この荷物をローカルから削除しますか？Ship24 側の追跡は削除されません。</value>
+  </data>
+  <data name="PackageHistory" xml:space="preserve">
+    <value>追跡履歴</value>
+  </data>
+  <data name="PackageUnknownTime" xml:space="preserve">
+    <value>日時不明</value>
+  </data>
+  <data name="PackageUpdatedTitle" xml:space="preserve">
+    <value>最終更新</value>
+  </data>
+  <data name="PackageUpdated" xml:space="preserve">
+    <value>更新: {0}</value>
+  </data>
+  <data name="PackageEta" xml:space="preserve">
+    <value>配達予定: {0}</value>
+  </data>
+  <data name="PackageEmpty" xml:space="preserve">
+    <value>荷物はありません。設定から追加してください。</value>
+  </data>
+  <data name="PackageUnnamed" xml:space="preserve">
+    <value>荷物</value>
+  </data>
+  <data name="PackageInfoReceived" xml:space="preserve">
+    <value>発送情報を受信</value>
+  </data>
+  <data name="PackageInTransit" xml:space="preserve">
+    <value>輸送中</value>
+  </data>
+  <data name="PackageOutForDelivery" xml:space="preserve">
+    <value>配達中</value>
+  </data>
+  <data name="PackagePickup" xml:space="preserve">
+    <value>受取可能</value>
+  </data>
+  <data name="PackageDelivered" xml:space="preserve">
+    <value>配達済み</value>
+  </data>
+  <data name="PackageException" xml:space="preserve">
+    <value>配送に問題あり</value>
+  </data>
+  <data name="PackageUnknown" xml:space="preserve">
+    <value>状況はまだ不明です</value>
+  </data>
+  <data name="PackageSetupHelp" xml:space="preserve">
+    <value>荷物追跡には個人用の Ship24 API キーが必要です。無料プランでは現在、毎月最大 10 件の新しい荷物を追跡できます。
+
+1. Ship24 の Tracking API プランを開き、FREE を選択します。
+2. Ship24 アカウントを作成するか、ログインします。
+3. ダッシュボードで「Developers」を開きます。
+4.「API Keys」で自動作成された「Default」キーを探します。
+5.「Copy」を選択し、下にキーを貼り付けます。</value>
+  </data>
 </root>

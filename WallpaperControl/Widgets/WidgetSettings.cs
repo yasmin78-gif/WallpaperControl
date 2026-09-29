@@ -12,6 +12,11 @@ namespace WallpaperControl
         private bool loadFailed;
         public WebWidgetSettings Web { get; set; } = new();
 
+        public bool PackageEnabled { get; set; }
+        public bool PackageLocked { get; set; }
+        public SystemWidgetStyle PackageStyle { get; set; } = SystemWidgetStyle.Minimal;
+        public int PackageMaximumHeight { get; set; } = 500;
+        public Point PackageLocation { get; set; } = new(1100, 40);
         public bool NotesEnabled { get; set; }
         public bool NotesLocked { get; set; }
         public int NotesMaximumHeight { get; set; } = 500;
@@ -78,6 +83,11 @@ namespace WallpaperControl
                 if (key == null) return result;
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
 
+                result.PackageEnabled = ReadBool(key, "PackageWidgetEnabled", false);
+                result.PackageLocked = ReadBool(key, "PackageWidgetLocked", false);
+                result.PackageStyle = ReadSystemStyle(key, "PackageWidgetStyle", SystemWidgetStyle.Minimal);
+                result.PackageMaximumHeight = CalendarViewport.NormalizeMaximum(ReadInt(key, "PackageWidgetMaximumHeight", 500));
+                result.PackageLocation = new Point(ReadInt(key, "PackageWidgetX", 1100), ReadInt(key, "PackageWidgetY", 40));
                 result.NotesEnabled = ReadInt(key, "NotesWidgetEnabled", 0) == 1;
                 result.NotesLocked = ReadInt(key, "NotesWidgetLocked", 0) == 1;
                 result.NotesMaximumHeight = Math.Clamp(ReadInt(key, "NotesWidgetMaximumHeight", 500), 300, 1000);
@@ -159,6 +169,12 @@ namespace WallpaperControl
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
                 Web.Normalize();
                 key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
+                key.SetValue("PackageWidgetEnabled", PackageEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("PackageWidgetLocked", PackageLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("PackageWidgetStyle", (int)PackageStyle, RegistryValueKind.DWord);
+                key.SetValue("PackageWidgetMaximumHeight", CalendarViewport.NormalizeMaximum(PackageMaximumHeight), RegistryValueKind.DWord);
+                key.SetValue("PackageWidgetX", PackageLocation.X, RegistryValueKind.DWord);
+                key.SetValue("PackageWidgetY", PackageLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("NotesWidgetEnabled", NotesEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NotesWidgetLocked", NotesLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("NotesWidgetMaximumHeight", Math.Clamp(NotesMaximumHeight, 300, 1000), RegistryValueKind.DWord);
@@ -232,6 +248,8 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
+            PackageEnabled = PackageEnabled, PackageLocked = PackageLocked, PackageMaximumHeight = PackageMaximumHeight, PackageLocation = PackageLocation,
+            PackageStyle = PackageStyle,
             NotesEnabled = NotesEnabled,
             NotesLocked = NotesLocked,
             NotesMaximumHeight = NotesMaximumHeight,

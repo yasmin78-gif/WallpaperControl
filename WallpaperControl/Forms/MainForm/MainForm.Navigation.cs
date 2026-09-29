@@ -56,6 +56,7 @@ namespace WallpaperControl
             widgetEditor = new WidgetSettingsEditor(widgetManager.Settings, darkMode, Localization.CurrentLanguage,
                 value => widgetEditSession?.Preview(value)) { Dock = DockStyle.Fill };
             widgetEditor.ConfigureNotesManager(widgetManager.ShowNotesManager);
+            widgetEditor.ConfigurePackages(widgetManager.ShowPackages, widgetManager.PackageHasCredential);
             widgetEditSession = new WidgetEditSession(widgetManager, widgetEditor.ReadWidgetSettings, widgetEditor.LoadSettings);
             FlowLayoutPanel actions = new() { Dock = DockStyle.Bottom, AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
             foreach (var (key, action) in new (string, Action)[] {

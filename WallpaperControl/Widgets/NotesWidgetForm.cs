@@ -121,9 +121,20 @@ namespace WallpaperControl
                 using SolidBrush text = new(palette.text); using SolidBrush muted = new(palette.muted); using SolidBrush accent = new(palette.accent);
                 using StringFormat line = new() { FormatFlags = StringFormatFlags.NoWrap, Trimming = StringTrimming.EllipsisCharacter, LineAlignment = StringAlignment.Center };
                 using StringFormat paragraph = new() { FormatFlags = StringFormatFlags.NoWrap | StringFormatFlags.LineLimit };
-                g.DrawString(Localization.Get("NotesTitle", language), heading, text, new RectangleF(14, 12, 260, 28), line);
+                using Font titleFont = new("Segoe UI Semibold", 11f, FontStyle.Bold);
+                using SolidBrush titleBrush = new(palette.title);
+                string widgetTitle = Localization.Get("NotesTitle", language).ToUpperInvariant();
+                GraphicsState headerState = g.Save();
+                g.SetClip(new RectangleF(12, 10, 260, 30));
+                if (settings.NotesStyle == SystemWidgetStyle.Glow)
+                    WidgetDrawing.DrawGlowText(g, widgetTitle, titleFont, 16, 13, palette.accent);
+                else
+                    g.DrawString(widgetTitle, titleFont, titleBrush, 16, 13);
+                g.Restore(headerState);
+                if (settings.NotesStyle != SystemWidgetStyle.Minimal)
+                    g.FillRectangle(accent, 16, 40, LogicalWidth - 32, settings.NotesStyle == SystemWidgetStyle.Glow ? 2 : 1);
                 g.DrawString(OpenCount.ToString(culture), font, muted, new RectangleF(276, 12, 40, 28), line);
-                g.DrawString("+", heading, accent, AddBounds, line);
+                WidgetDrawing.DrawAddIcon(g, AddBounds, palette.accent);
                 rows.Clear();
                 completedBounds = RectangleF.Empty;
                 GraphicsState state = g.Save();
