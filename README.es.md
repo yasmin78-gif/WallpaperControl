@@ -15,7 +15,7 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.0.1**
+**Versión actual: v2.0.2**
 
 ## ✨ Funciones
 
@@ -412,13 +412,15 @@ acortan automáticamente. Admite **Minimal**, **Clean** y **Glow**.
 
 ### 📝 Notas y recordatorios
 
-El widget Notas y recordatorios ofrece gestión local de tareas y recordatorios en el escritorio. Las entradas pueden incluir título, descripción y fecha/hora opcionales, y se agrupan en Sin fecha, Vencidos, Hoy, Mañana y próximos días. Pueden crearse, editarse, completarse, eliminarse y reabrirse desde el widget y su gestor.
+El widget Notas y recordatorios permite gestionar localmente tareas y recordatorios en el escritorio. Las entradas pueden incluir título, descripción y fecha/hora opcionales, y pueden crearse, editarse, completarse, eliminarse y reabrirse.
 
-Las tareas diarias recurrentes pueden configurarse con una fecha de inicio y una hora opcional. Completar una tarea diaria solo la marca como completada para el día actual; al día siguiente vuelve a aparecer automáticamente como pendiente, sin crear duplicados. Las tareas completadas hoy se agrupan con su hora de finalización en una sección plegable **Completadas hoy** y pueden volver a abrirse.
+Las tareas diarias recurrentes pueden configurarse con una fecha de inicio y una hora opcional. Completar una tarea diaria solo se aplica al día actual y vuelve a aparecer automáticamente al día siguiente sin crear duplicados. Las tareas completadas hoy se agrupan con su hora de finalización en la sección plegable **Completadas hoy**.
 
-El diseño más compacto reduce el espacio vertical necesario para las entradas cortas. El contenido se desplaza bajo una cabecera fija, la altura máxima es configurable y los controles siguen funcionando con la posición bloqueada. El gestor y el editor siguen el tema Claro/Oscuro actual. Los datos se guardan localmente como JSON con escritura atómica, copia de seguridad y protección frente a archivos dañados. Las notas existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y **Glow**.
+Los recordatorios emergentes pueden activarse **al vencer** o **5 / 10 minutos antes**, también para tareas diarias. Aparecen sobre las ventanas normales sin quitar el foco. Durante una aplicación a pantalla completa, se aplazan hasta salir del modo de pantalla completa. Se muestra el texto completo de la nota y el contenido largo puede desplazarse.
 
-Las fechas y horas se muestran en el widget. **No se incluyen notificaciones de Windows.**
+Los recordatorios ofrecen **Completado**, **Cerrar** y la acción contextual **Más tarde**. Si hay varias opciones, Más tarde abre un menú de selección; si solo hay una, se aplica directamente. El estado de los recordatorios y aplazamientos se conserva tras reiniciar.
+
+El diseño compacto reduce el espacio necesario para las entradas cortas. Los datos se guardan localmente como JSON con escritura atómica, copia de seguridad y protección frente a archivos dañados. Las notas existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y **Glow**.
 
 ### Siguiente fondo
 
@@ -594,7 +596,7 @@ seleccionado.
 El **método oficial de instalación** de Wallpaper Control es el
 instalador Windows x64 incluido con cada versión.
 
-1.  Descarga `WallpaperControl-2.0.1-Setup-x64.exe` desde la última
+1.  Descarga `WallpaperControl-2.0.2-Setup-x64.exe` desde la última
     versión de GitHub.
 2.  Cierra completamente cualquier instancia existente de Wallpaper
     Control desde el área de notificación antes de instalar o
