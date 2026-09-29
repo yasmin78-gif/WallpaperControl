@@ -1,6 +1,8 @@
 namespace WallpaperControl;
 
-/// <summary>Future adapters obtain credentials separately. No transport or vendor types cross this boundary.</summary>
+/// <summary>Adapters obtain credentials separately. No transport or vendor types cross this boundary.
+/// Fetches return remote snapshots: callers merge by Provider/ProviderTrackerId, preserving the stored
+/// Id, DisplayName and NotificationState. Failures use TrackingProviderException; cancellation remains cancellation.</summary>
 internal interface ITrackingProvider
 {
     string ProviderId { get; }

@@ -12,8 +12,8 @@ internal sealed record TrackedShipment
     public string TrackingNumber { get; init; } = string.Empty;
     public string? DisplayName { get; init; }
     public string? CarrierCode { get; init; }
-    public string StatusCategory { get; init; } = "unknown";
-    public string StatusMilestone { get; init; } = "unknown";
+    public string? StatusCategory { get; init; } = "unknown";
+    public string? StatusMilestone { get; init; } = "unknown";
     public DateTimeOffset? EstimatedDelivery { get; init; }
     public TrackingEvent? LastRelevantEvent { get; init; }
     public List<TrackingEvent> Events { get; init; } = new();
@@ -29,9 +29,12 @@ internal sealed record TrackingEvent
 {
     // A stable provider event ID or deterministic fingerprint, never a list index.
     public string EventId { get; init; } = string.Empty;
-    public DateTimeOffset OccurredAt { get; init; }
-    public string StatusCategory { get; init; } = "unknown";
-    public string StatusMilestone { get; init; } = "unknown";
+    public DateTimeOffset? OccurredAt { get; init; }
+    // Preserve date-only, unknown-zone and malformed source timestamps without inventing an instant.
+    public string? RawOccurredAt { get; init; }
+    public string? SourceCode { get; init; }
+    public string? StatusCategory { get; init; } = "unknown";
+    public string? StatusMilestone { get; init; } = "unknown";
     public string? Description { get; init; }
     public string? Location { get; init; }
     public string? CarrierCode { get; init; }

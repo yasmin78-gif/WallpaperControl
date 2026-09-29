@@ -44,13 +44,13 @@ internal sealed class TrackingStore
 
     private static bool Valid(TrackedShipment s) => s != null && s.Id != Guid.Empty
         && !string.IsNullOrWhiteSpace(s.Provider) && !string.IsNullOrWhiteSpace(s.TrackingNumber)
-        && s.CreatedAt != default && s.StatusCategory != null && s.StatusMilestone != null
+        && s.CreatedAt != default
         && s.Events != null && s.Events.Count <= 10000 && s.Events.All(ValidEvent)
         && (s.LastRelevantEvent == null || ValidEvent(s.LastRelevantEvent))
         && s.NotificationState != null && s.NotificationState.NotifiedEventIds != null
         && s.NotificationState.NotifiedEventIds.All(id => !string.IsNullOrWhiteSpace(id));
     private static bool ValidEvent(TrackingEvent e) => e != null && !string.IsNullOrWhiteSpace(e.EventId)
-        && e.OccurredAt != default && e.StatusCategory != null && e.StatusMilestone != null;
+        && (e.OccurredAt == null || e.OccurredAt != default(DateTimeOffset));
     private static Document Read(string source)
     {
         using FileStream stream = new(source, FileMode.Open, FileAccess.Read, FileShare.Read);
