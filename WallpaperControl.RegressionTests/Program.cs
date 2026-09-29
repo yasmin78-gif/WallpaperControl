@@ -42,6 +42,7 @@ try
     if (args.Contains("--note-reminders")) { NoteReminderTests.Run(Check); Console.WriteLine($"All {passed} reminder checks passed."); return 0; }
     if (args.Contains("--widget-navigation")) { WidgetNavigationTests.Run(Check); Console.WriteLine($"All {passed} navigation checks passed."); return 0; }
     NoteReminderTests.Run(Check);
+    TrackingTests.Run(Check);
     SchedulerDiagnosticsTests.Run(Check);
     NativeSlideshowAdvanceTests.Run(Check);
     LayoutEngineActivationTests.Run(Check);
