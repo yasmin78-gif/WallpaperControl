@@ -38,9 +38,9 @@ internal sealed class PackageDetailsForm : Form
         if (s.LastSuccessfulRefresh != null) lines.Add(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(s.LastSuccessfulRefresh, language), language));
         if (service.RefreshFailures.ContainsKey(id)) lines.Add(Localization.Get("PackageRefreshError", language));
         lines.Add(""); lines.Add(Localization.Get("PackageHistory", language));
-        foreach (var e in s.Events.OrderByDescending(e => e.OccurredAt))
+        foreach (var e in PackagePresentation.NewestEventsFirst(s.Events))
         {
-            lines.Add(e.OccurredAt != null ? PackagePresentation.Date(e.OccurredAt, language) : e.RawOccurredAt ?? Localization.Get("PackageUnknownTime", language));
+            lines.Add(PackagePresentation.EventDate(e, language));
             if (!string.IsNullOrWhiteSpace(e.Location)) lines.Add(e.Location);
             if (!string.IsNullOrWhiteSpace(e.Description)) lines.Add(e.Description);
             lines.Add("");

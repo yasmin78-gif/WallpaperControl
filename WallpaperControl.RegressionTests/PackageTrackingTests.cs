@@ -38,6 +38,29 @@ internal static class PackageTrackingTests
     }
     private static async Task Service(Action<bool, string> check, string root)
     {
+        var rawEvents = new[] { "2026-09-28T01:55:00", "2026-09-29T13:40:00", "2026-09-26T10:11:00", "2026-09-26T16:29:00", "2026-09-29T10:36:00" }
+            .Select((time, index) => new App.TrackingEvent { EventId = index.ToString(), RawOccurredAt = time }).ToArray();
+        check(App.PackagePresentation.NewestEventsFirst(rawEvents).Select(e => e.EventId).SequenceEqual(new[] { "1", "4", "0", "3", "2" }),
+            "Packages history sorts timezone-less courier timestamps newest first");
+        check(rawEvents.All(e => e.OccurredAt == null), "Packages display sorting never invents stored UTC instants");
+        foreach (string language in new[] { "de", "en", "fr", "es", "ja" })
+        {
+            var culture = CultureInfo.GetCultureInfo(language);
+            var entry = new App.TrackingEvent { RawOccurredAt = "2026-09-29T13:40:00" };
+            check(App.PackagePresentation.EventDate(entry, language) == new DateTime(2026, 9, 29, 13, 40, 0).ToString("g", culture),
+                "Packages localized source time without timezone conversion " + language);
+            check(App.PackagePresentation.EventDate(entry with { RawOccurredAt = "2026-09-29" }, language) == new DateTime(2026, 9, 29).ToString("d", culture),
+                "Packages date-only events do not invent a time " + language);
+        }
+        check(App.PackagePresentation.EventDate(rawEvents[1], "de") == "29.09.2026 13:40", "Packages German event time uses readable date and minutes");
+        var mixedEvents = new[] {
+            new App.TrackingEvent { EventId = "invalid", RawOccurredAt = "invalid" },
+            new App.TrackingEvent { EventId = "date", RawOccurredAt = "2026-09-28" },
+            new App.TrackingEvent { EventId = "offset", OccurredAt = DateTimeOffset.Parse("2026-09-29T12:00:00-04:00") },
+            new App.TrackingEvent { EventId = "utc", OccurredAt = DateTimeOffset.Parse("2026-09-29T15:00:00Z") },
+            new App.TrackingEvent { EventId = "missing" } };
+        check(App.PackagePresentation.NewestEventsFirst(mixedEvents).Select(e => e.EventId).SequenceEqual(new[] { "offset", "utc", "date", "invalid", "missing" }),
+            "Packages history compares known offsets correctly and keeps undated events last");
         string path = Path.Combine(root, "tracking.json"); var store = new App.TrackingStore(path); var provider = new Provider();
         using var service = new App.PackageTrackingService(store, provider);
         check((await service.AddAsync("  Abcde123  ", "  Headphones  ")).Outcome == App.PackageOperation.Success && provider.Created == 1, "Packages add creates exactly one tracker");
