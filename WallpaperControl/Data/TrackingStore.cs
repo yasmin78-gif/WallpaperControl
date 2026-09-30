@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace WallpaperControl;
 
 /// <summary>Single-owner local store following NotesStore's atomic replacement and quarantine pattern.
-/// No runtime code instantiates this store yet. Callers serialize writes after awaited provider operations.</summary>
+/// Callers serialize writes after awaited provider operations.</summary>
 internal sealed class TrackingStore
 {
     private const long SizeLimit = 16 * 1024 * 1024;
@@ -43,6 +43,7 @@ internal sealed class TrackingStore
     private static Document Clone(Document value) => JsonSerializer.Deserialize<Document>(JsonSerializer.Serialize(value, Options), Options)!;
 
     private static bool Valid(TrackedShipment s) => s != null && s.Id != Guid.Empty
+        && KnownSemantics(s)
         && !string.IsNullOrWhiteSpace(s.Provider) && !string.IsNullOrWhiteSpace(s.TrackingNumber)
         && s.CreatedAt != default
         && s.Events != null && s.Events.Count <= 10000 && s.Events.All(ValidEvent)
@@ -51,6 +52,8 @@ internal sealed class TrackingStore
         && s.NotificationState.NotifiedEventIds.All(id => !string.IsNullOrWhiteSpace(id));
     private static bool ValidEvent(TrackingEvent e) => e != null && !string.IsNullOrWhiteSpace(e.EventId)
         && (e.OccurredAt == null || e.OccurredAt != default(DateTimeOffset));
+    private static bool KnownSemantics(TrackedShipment s) => s.TrackingMode is "provider" or "manual"
+        && s.StatusSource is "provider" or "local" or "user";
     private static Document Read(string source)
     {
         using FileStream stream = new(source, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -59,6 +62,15 @@ internal sealed class TrackingStore
         if (json.RootElement.ValueKind != JsonValueKind.Object || !json.RootElement.TryGetProperty("Version", out var version)
             || version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out int number)) throw new JsonException("Missing tracking schema.");
         if (number != 1) throw new NotSupportedException("Unsupported tracking schema.");
+        // Do not quarantine or fall back to an older backup when future semantic values are encountered.
+        json.RootElement.TryGetProperty("Shipments", out var shipments);
+        if (shipments.ValueKind == JsonValueKind.Array)
+            foreach (var shipment in shipments.EnumerateArray())
+                if (shipment.ValueKind == JsonValueKind.Object)
+                    foreach (string field in new[] { "TrackingMode", "StatusSource" })
+                        if (shipment.TryGetProperty(field, out var semantic) && (semantic.ValueKind != JsonValueKind.String
+                            || (field == "TrackingMode" ? semantic.GetString() is not ("provider" or "manual") : semantic.GetString() is not ("provider" or "local" or "user"))))
+                            throw new NotSupportedException("Unsupported tracking semantics.");
         Document value = json.RootElement.Deserialize<Document>(Options) ?? throw new JsonException("Missing tracking document.");
         if (value.Shipments == null || value.Shipments.Count > 10000 || !value.Shipments.All(Valid)
             || value.Shipments.Select(s => s.Id).Distinct().Count() != value.Shipments.Count)

@@ -16,7 +16,7 @@ internal sealed partial class WidgetManager
         packageDialogOpen = true;
         try
         {
-            if (action is "PackageSetup" or "PackageTest" || !PackageHasCredential() && action == "PackageAdd")
+            if (action is "PackageSetup" or "PackageTest")
             { using var setup = new Ship24SetupForm(PackageCredentials, language, testOnShown: action == "PackageTest"); setup.ShowDialog(owner); if (action != "PackageAdd" || !PackageHasCredential()) return; }
             if (action == "PackageAdd") { using var editor = new PackageEditorForm(Packages, null, language); editor.ShowDialog(owner); }
             else { using var manager = new PackageManagerForm(Packages, language); manager.ShowDialog(owner); }

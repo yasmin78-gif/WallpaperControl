@@ -18,9 +18,18 @@ internal sealed class PackageEditorForm : Form
         {
             foreach (Label label in fields.Controls.OfType<Label>()) label.MaximumSize = new(Math.Max(100, fields.ClientSize.Width - fields.Padding.Horizontal - 24 * DeviceDpi / 96), 0);
         };
-        var carrier = new ComboBox { Dock = DockStyle.Top, DropDownStyle = ComboBoxStyle.DropDownList };
-        carrier.Items.Add(Localization.Get("PackageAutomatic", language)); carrier.SelectedIndex = 0; fields.Controls.Add(carrier);
-        if (shipment != null) { name.Text = shipment.DisplayName; number.Text = shipment.TrackingNumber; number.ReadOnly = true; carrier.Enabled = false; Label("PackageNumberReadOnly"); }
+        var carrier = new Label { AutoSize = true, Text = Localization.Get("PackageAutomatic", language) }; fields.Controls.Add(carrier);
+        var amazonNotice = new Label { AutoSize = true, MaximumSize = new(520, 0), Margin = new Padding(0, 8, 0, 8) }; fields.Controls.Add(amazonNotice);
+        void UpdateDetection()
+        {
+            bool local = shipment == null ? AmazonLogistics.Recognizes(number.Text) : AmazonLogistics.IsLocal(shipment);
+            carrier.Text = local ? "Amazon Logistics" : Localization.Get("PackageAutomatic", language);
+            amazonNotice.Text = local ? Localization.Get("PackageAmazonNotice", language) : "";
+            if (local) ClientSize = new(ClientSize.Width, Math.Max(ClientSize.Height, 440 * DeviceDpi / 96));
+        }
+        number.TextChanged += (_, _) => UpdateDetection();
+        if (shipment != null) { name.Text = shipment.DisplayName; number.Text = shipment.TrackingNumber; number.ReadOnly = true; Label("PackageNumberReadOnly"); }
+        UpdateDetection();
         var footer = new FlowLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
         var cancel = new Button { Text = Localization.Get("SettingsCancel", language), AutoSize = true, DialogResult = DialogResult.Cancel, MinimumSize = new(100, 32) };
         var save = new Button { Text = Localization.Get("SettingsSave", language), AutoSize = true, MinimumSize = new(100, 32) };
@@ -34,6 +43,8 @@ internal sealed class PackageEditorForm : Form
                 PackageResult result = shipment == null ? await service.AddAsync(number.Text, name.Text, lifetime.Token) : service.Rename(shipment.Id, name.Text);
                 if (IsDisposed || Disposing) return;
                 if (result.Outcome == PackageOperation.Success) { DialogResult = DialogResult.OK; Close(); }
+                else if (result.Failure == TrackingProviderFailure.MissingCredential)
+                { using var setup = new Ship24SetupForm(new TrackingCredentialStore(), language); setup.ShowDialog(this); }
                 else MessageBox.Show(this, PackagePresentation.Error(result, language), Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (OperationCanceledException) { }

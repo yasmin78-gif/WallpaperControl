@@ -7,7 +7,7 @@ internal sealed class PackageDetailsForm : Form
     private readonly string language;
     private readonly TextBox details = new SelectableDetailsTextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, WordWrap = true, Cursor = Cursors.Default };
     private readonly FlowLayoutPanel actions = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(10), FlowDirection = FlowDirection.RightToLeft };
-    private readonly Button edit, delete;
+    private readonly Button edit, delete, delivery;
     internal PackageDetailsForm(PackageTrackingService service, Guid id, string language)
     {
         this.service = service; this.id = id; this.language = language;
@@ -16,6 +16,13 @@ internal sealed class PackageDetailsForm : Form
         Button Button(string key) { var b = new Button { Text = Localization.Get(key, language), AutoSize = true, MinimumSize = new(100, 32) }; actions.Controls.Add(b); return b; }
         var close = Button("AboutClose"); close.DialogResult = DialogResult.Cancel; CancelButton = close;
         edit = Button("PackageEdit"); delete = Button("NotesDelete");
+        delivery = Button("PackageMarkDelivered");
+        delivery.Click += (_, _) =>
+        {
+            var s = service.Shipments.FirstOrDefault(s => s.Id == id); if (s == null) return;
+            var result = service.SetManualDelivered(id, !(s.StatusSource == "user" && s.StatusMilestone == "delivered"));
+            if (result.Outcome != PackageOperation.Success) MessageBox.Show(this, PackagePresentation.Error(result, language), Text);
+        };
         edit.Click += (_, _) => { var s = service.Shipments.FirstOrDefault(s => s.Id == id); if (s != null) { using var editor = new PackageEditorForm(service, s, language); editor.ShowDialog(this); } };
         delete.Click += (_, _) =>
         {
@@ -33,10 +40,14 @@ internal sealed class PackageDetailsForm : Form
         if (IsDisposed) return;
         edit.Enabled = delete.Enabled = !service.Busy && service.CanWrite;
         var s = service.Shipments.FirstOrDefault(s => s.Id == id); if (s == null) return;
-        var lines = new List<string> { PackagePresentation.Name(s, language), PackagePresentation.CarrierNumber(s, false), PackagePresentation.Status(s.StatusMilestone, language) };
+        bool local = AmazonLogistics.IsLocal(s);
+        delivery.Visible = local; delivery.Enabled = !service.Busy && service.CanWrite;
+        delivery.Text = Localization.Get(s.StatusSource == "user" && s.StatusMilestone == "delivered" ? "PackageMarkNotDelivered" : "PackageMarkDelivered", language);
+        var lines = new List<string> { PackagePresentation.Name(s, language), PackagePresentation.CarrierNumber(s, false), PackagePresentation.ShipmentStatus(s, language) };
+        if (local) lines.Add(Localization.Get("PackageAmazonOnly", language));
         if (s.EstimatedDelivery != null) lines.Add(PackagePresentation.Format("PackageEta", PackagePresentation.Date(s.EstimatedDelivery, language), language));
-        if (s.LastSuccessfulRefresh != null) lines.Add(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(s.LastSuccessfulRefresh, language), language));
-        if (service.RefreshFailures.ContainsKey(id)) lines.Add(Localization.Get("PackageRefreshError", language));
+        if (!local && s.LastSuccessfulRefresh != null) lines.Add(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(s.LastSuccessfulRefresh, language), language));
+        if (!local && service.RefreshFailures.ContainsKey(id)) lines.Add(Localization.Get("PackageRefreshError", language));
         lines.Add(""); lines.Add(Localization.Get("PackageHistory", language));
         foreach (var e in PackagePresentation.NewestEventsFirst(s.Events))
         {

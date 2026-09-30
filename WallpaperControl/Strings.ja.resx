@@ -1571,4 +1571,9 @@
 4.「API Keys」で自動作成された「Default」キーを探します。
 5.「Copy」を選択し、下にキーを貼り付けます。</value>
   </data>
+  <data name="PackageMarkNotDelivered" xml:space="preserve"><value>未配達に戻す</value></data>
+  <data name="PackageAmazonOnly" xml:space="preserve"><value>配送状況は Amazon で確認してください</value></data>
+  <data name="PackageMarkDelivered" xml:space="preserve"><value>配達済みにする</value></data>
+  <data name="PackageManualDelivered" xml:space="preserve"><value>配達済み（手動確認）</value></data>
+  <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics を検出しました。この荷物は Ship24 では自動追跡できません。Ship24 の追跡枠を使わずローカルに保存されます。後で手動で配達済みにできます。</value></data>
 </root>

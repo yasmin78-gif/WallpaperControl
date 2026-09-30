@@ -1599,4 +1599,9 @@ Versión instalada: {0}
 4. En «API Keys», busca la clave «Default» creada automáticamente.
 5. Selecciona «Copy» y pega la clave abajo.</value>
   </data>
+  <data name="PackageMarkNotDelivered" xml:space="preserve"><value>Marcar como no entregado</value></data>
+  <data name="PackageAmazonOnly" xml:space="preserve"><value>Estado disponible solo en Amazon</value></data>
+  <data name="PackageMarkDelivered" xml:space="preserve"><value>Marcar como entregado</value></data>
+  <data name="PackageManualDelivered" xml:space="preserve"><value>Entregado (confirmado manualmente)</value></data>
+  <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics detectado. Este envío no se puede seguir automáticamente mediante Ship24. Se guardará localmente sin consumir cuota de Ship24. Podrás marcarlo como entregado manualmente.</value></data>
 </root>

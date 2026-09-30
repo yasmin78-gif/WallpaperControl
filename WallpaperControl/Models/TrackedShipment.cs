@@ -8,6 +8,9 @@ internal sealed record TrackedShipment
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Provider { get; init; } = string.Empty;
+    // Open strings preserve future values; TrackingStore makes unknown semantics read-only.
+    public string TrackingMode { get; init; } = "provider";
+    public string StatusSource { get; init; } = "provider";
     public string? ProviderTrackerId { get; init; }
     public string TrackingNumber { get; init; } = string.Empty;
     public string? DisplayName { get; init; }

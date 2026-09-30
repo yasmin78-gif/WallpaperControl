@@ -1599,4 +1599,9 @@ Would you like to open the release page?</value>
 4. Under “API Keys”, find the automatically created “Default” key.
 5. Select “Copy” and paste the key below.</value>
   </data>
+  <data name="PackageMarkNotDelivered" xml:space="preserve"><value>Mark as not delivered</value></data>
+  <data name="PackageAmazonOnly" xml:space="preserve"><value>Status available only through Amazon</value></data>
+  <data name="PackageMarkDelivered" xml:space="preserve"><value>Mark as delivered</value></data>
+  <data name="PackageManualDelivered" xml:space="preserve"><value>Delivered (confirmed by you)</value></data>
+  <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics detected. This shipment cannot be tracked automatically through Ship24. It will be saved locally without using a Ship24 shipment slot. You can mark it as delivered manually later.</value></data>
 </root>

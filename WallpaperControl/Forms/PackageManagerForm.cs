@@ -44,7 +44,8 @@ internal sealed class PackageManagerForm : Form
         list.BeginUpdate(); list.Items.Clear();
         foreach (var s in service.Shipments)
         {
-            var row = new ListViewItem(new[] { PackagePresentation.Name(s, language), PackagePresentation.CarrierNumber(s, false), PackagePresentation.Status(s.StatusMilestone, language), PackagePresentation.Date(s.LastSuccessfulRefresh, language) }) { Tag = s.Id };
+            var row = new ListViewItem(new[] { PackagePresentation.Name(s, language), PackagePresentation.CarrierNumber(s, false), PackagePresentation.ShipmentStatus(s, language),
+                AmazonLogistics.IsLocal(s) ? Localization.Get("PackageAmazonOnly", language) : PackagePresentation.Date(s.LastSuccessfulRefresh, language) }) { Tag = s.Id };
             row.ToolTipText = string.Join(" · ", row.SubItems.Cast<ListViewItem.ListViewSubItem>().Select(i => i.Text));
             list.Items.Add(row); row.Selected = selected == s.Id;
         }

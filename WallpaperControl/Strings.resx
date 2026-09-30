@@ -1599,4 +1599,9 @@ Möchtest du die Release-Seite öffnen?</value>
 4. Unter „API Keys“ den automatisch erstellten Schlüssel „Default“ suchen.
 5. „Copy“ wählen und den Schlüssel unten einfügen.</value>
   </data>
+  <data name="PackageMarkNotDelivered" xml:space="preserve"><value>Als nicht zugestellt markieren</value></data>
+  <data name="PackageAmazonOnly" xml:space="preserve"><value>Status nur über Amazon verfügbar</value></data>
+  <data name="PackageMarkDelivered" xml:space="preserve"><value>Als zugestellt markieren</value></data>
+  <data name="PackageManualDelivered" xml:space="preserve"><value>Zugestellt (manuell bestätigt)</value></data>
+  <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics erkannt. Diese Sendung kann nicht automatisch über Ship24 verfolgt werden. Sie wird lokal gespeichert und verbraucht kein Ship24-Sendungskontingent. Du kannst sie später manuell als zugestellt markieren.</value></data>
 </root>

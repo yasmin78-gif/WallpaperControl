@@ -4,6 +4,9 @@ namespace WallpaperControl;
 
 internal static class PackagePresentation
 {
+    internal static string ShipmentStatus(TrackedShipment shipment, string language) => AmazonLogistics.IsLocal(shipment)
+        ? shipment.StatusSource == "user" && shipment.StatusMilestone == "delivered" ? Localization.Get("PackageManualDelivered", language) : "Amazon Logistics"
+        : Status(shipment.StatusMilestone, language);
     internal static IEnumerable<TrackingEvent> NewestEventsFirst(IEnumerable<TrackingEvent> events) =>
         events.OrderByDescending(EventSortTime);
 
@@ -30,7 +33,7 @@ internal static class PackagePresentation
     }, language);
     internal static string Name(TrackedShipment s, string language) => string.IsNullOrWhiteSpace(s.DisplayName) ? Localization.Get("PackageUnnamed", language) : s.DisplayName;
     internal static string CarrierNumber(TrackedShipment s, bool shorten) =>
-        (string.IsNullOrWhiteSpace(s.CarrierCode) ? "" : s.CarrierCode + " · ") +
+        (string.IsNullOrWhiteSpace(s.CarrierCode) ? "" : (s.CarrierCode == AmazonLogistics.Carrier ? "Amazon Logistics" : s.CarrierCode) + " · ") +
         (shorten && s.TrackingNumber.Length > 16 ? s.TrackingNumber[..16] + "…" : s.TrackingNumber);
     internal static string Date(DateTimeOffset? value, string language) => value?.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo(language)) ?? "";
     internal static string EventDate(TrackingEvent entry, string language)

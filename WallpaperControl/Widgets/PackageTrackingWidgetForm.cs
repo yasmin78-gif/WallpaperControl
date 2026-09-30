@@ -76,7 +76,10 @@ internal sealed class PackageTrackingWidgetForm : Form
     {
         var shipments = service.Shipments;
         string lang = settings.ClockLanguageCode;
-        float Height(TrackedShipment s) => 104 + (s.EstimatedDelivery != null ? 24 : 0) + (service.RefreshFailures.ContainsKey(s.Id) ? 24 : 0);
+        string EventSummary(TrackedShipment s) => AmazonLogistics.IsLocal(s) ? Localization.Get("PackageAmazonOnly", lang) : string.Join(" · ", new[] { s.LastRelevantEvent?.Location,
+            PackagePresentation.Date(s.LastRelevantEvent?.OccurredAt, lang) }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        float Height(TrackedShipment s) => 80 + (EventSummary(s).Length > 0 ? 24 : 0)
+            + (s.EstimatedDelivery != null ? 24 : 0) + (service.RefreshFailures.ContainsKey(s.Id) ? 24 : 0);
         viewport.Update(Math.Max(40, shipments.Sum(Height)), settings.PackageMaximumHeight, heightLimit, dpi);
         Bitmap bitmap = new((int)Math.Ceiling(LogicalWidth * viewport.Scale), viewport.PhysicalHeight, PixelFormat.Format32bppPArgb);
         try
@@ -115,7 +118,9 @@ internal sealed class PackageTrackingWidgetForm : Form
             g.DrawString(service.Busy ? "…" : "↻", heading, accent, RefreshBounds, line);
             WidgetDrawing.DrawAddIcon(g, AddBounds, service.Busy ? muted.Color : accent.Color);
             rows.Clear(); var state = g.Save(); g.SetClip(viewport.ContentBounds);
+            using var separator = new Pen(Color.FromArgb(dark ? 70 : 55, muted.Color), 1);
             float y = CalendarViewport.HeaderHeight - viewport.ScrollOffset;
+            int index = 0;
             foreach (var s in shipments)
             {
                 var bounds = new RectangleF(14, y, viewport.ContentBounds.Width - 4, Height(s));
@@ -125,21 +130,26 @@ internal sealed class PackageTrackingWidgetForm : Form
                     void Draw(string value, float offset, Brush brush, Font? f = null) => g.DrawString(value.ReplaceLineEndings(" "), f ?? font, brush, new RectangleF(bounds.X, y + offset, bounds.Width, 23), line);
                     Draw(PackagePresentation.Name(s, lang), 0, text, heading);
                     Draw(PackagePresentation.CarrierNumber(s, true), 24, muted);
-                    Draw("● " + PackagePresentation.Status(s.StatusMilestone, lang), 48, text);
-                    Draw(string.Join(" · ", new[] { s.LastRelevantEvent?.Location, PackagePresentation.Date(s.LastRelevantEvent?.OccurredAt, lang) }.Where(v => !string.IsNullOrEmpty(v))), 72, muted);
-                    float offset = 96;
+                    Draw("● " + PackagePresentation.ShipmentStatus(s, lang), 48, text);
+                    float offset = 72;
+                    string summary = EventSummary(s);
+                    if (summary.Length > 0) { Draw(summary, offset, muted); offset += 24; }
                     if (s.EstimatedDelivery != null) { Draw(PackagePresentation.Format("PackageEta", PackagePresentation.Date(s.EstimatedDelivery, lang), lang), offset, muted); offset += 24; }
                     if (service.RefreshFailures.ContainsKey(s.Id)) Draw(Localization.Get("PackageRefreshShort", lang), offset, muted);
+                    if (index < shipments.Count - 1)
+                        g.DrawLine(separator, bounds.Left, bounds.Bottom - 4, bounds.Right, bounds.Bottom - 4);
                 }
                 y += Height(s);
+                index++;
             }
             if (shipments.Count == 0) g.DrawString(Localization.Get("PackageEmpty", lang), font, muted, viewport.ContentBounds, line);
             g.Restore(state);
             // The existing viewport reserves 25 logical pixels below the list. At the scroll
             // limit the list end meets that footer; before then the timestamp travels with it.
             UpdatedBounds = new RectangleF(14, Math.Max(viewport.ContentBounds.Bottom, y), LogicalWidth - 28, 22);
-            DateTimeOffset? updated = shipments.Count > 0 && shipments.All(s => s.LastSuccessfulRefresh != null)
-                ? shipments.Min(s => s.LastSuccessfulRefresh) : null;
+            var remote = shipments.Where(s => s.TrackingMode == "provider").ToArray();
+            DateTimeOffset? updated = remote.Length > 0 && remote.All(s => s.LastSuccessfulRefresh != null)
+                ? remote.Min(s => s.LastSuccessfulRefresh) : null;
             if (updated != null && error == null)
                 g.DrawString(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(updated, lang), lang), font, muted, UpdatedBounds, line);
             if (viewport.CanScroll) { g.FillRectangle(muted, viewport.Track); g.FillRectangle(accent, viewport.Thumb); }

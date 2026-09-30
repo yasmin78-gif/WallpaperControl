@@ -32,7 +32,11 @@ internal sealed class PackageTrackingService : IDisposable
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);
         try
         {
-            var snapshot = await provider.CreateTrackerAsync(number, cancellationToken: linked.Token);
+            linked.Token.ThrowIfCancellationRequested();
+            var snapshot = AmazonLogistics.Recognizes(number)
+                ? new TrackedShipment { Provider = "local", TrackingMode = "manual", StatusSource = "local", TrackingNumber = number,
+                    CarrierCode = AmazonLogistics.Carrier, StatusCategory = "unknown", StatusMilestone = "unknown" }
+                : await provider.CreateTrackerAsync(number, cancellationToken: linked.Token);
             linked.Token.ThrowIfCancellationRequested();
             return new(store.Save(snapshot with { DisplayName = CleanName(name) }) ? PackageOperation.Success : PackageOperation.StorageError);
         }
@@ -57,6 +61,19 @@ internal sealed class PackageTrackingService : IDisposable
         if (saved) { RefreshFailures.Remove(id); Notify(); }
         return new(saved ? PackageOperation.Success : PackageOperation.StorageError);
     }
+    internal PackageResult SetManualDelivered(Guid id, bool delivered)
+    {
+        if (disposed || !CanWrite) return new(PackageOperation.StorageError);
+        if (Busy) return new(PackageOperation.Busy);
+        var shipment = Shipments.FirstOrDefault(s => s.Id == id);
+        if (shipment == null || !AmazonLogistics.IsLocal(shipment)) return new(PackageOperation.Missing);
+        if (!delivered && shipment.StatusSource != "user") return new(PackageOperation.Success);
+        if (delivered && shipment.StatusSource == "user" && shipment.StatusMilestone == "delivered") return new(PackageOperation.Success);
+        var next = shipment with { StatusMilestone = delivered ? "delivered" : "unknown", StatusCategory = delivered ? "delivery" : "unknown",
+            StatusSource = delivered ? "user" : "local", DeliveredAt = delivered ? DateTimeOffset.UtcNow : null };
+        if (!store.Save(next)) return new(PackageOperation.StorageError);
+        RefreshFailures.Remove(id); Notify(); return new(PackageOperation.Success);
+    }
     internal async Task<PackageResult> RefreshAsync(CancellationToken token = default)
     {
         if (Busy) return new(PackageOperation.Busy);
@@ -69,6 +86,7 @@ internal sealed class PackageTrackingService : IDisposable
             foreach (var existing in Shipments)
             {
                 linked.Token.ThrowIfCancellationRequested();
+                if (existing.TrackingMode != "provider") continue;
                 try
                 {
                     if (existing.Provider != provider.ProviderId || string.IsNullOrWhiteSpace(existing.ProviderTrackerId))
