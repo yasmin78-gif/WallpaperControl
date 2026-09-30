@@ -171,6 +171,13 @@ namespace WallpaperControl
                 return;
             }
 
+            // WM_POWERBROADCAST arrives at this existing window; no global hook.
+            // Package power handling does not change wallpaper/fullscreen policy.
+            if (m.Msg == 0x0218 && widgetManager != null)
+            {
+                if (m.WParam.ToInt32() == 4) widgetManager.SetPackagePowerSuspended(true); // PBT_APMSUSPEND
+                else if (m.WParam.ToInt32() is 7 or 18) widgetManager.SetPackagePowerSuspended(false); // resume
+            }
             base.WndProc(ref m);
         }
 

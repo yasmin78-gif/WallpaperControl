@@ -1576,4 +1576,7 @@
   <data name="PackageMarkDelivered" xml:space="preserve"><value>配達済みにする</value></data>
   <data name="PackageManualDelivered" xml:space="preserve"><value>配達済み（手動確認）</value></data>
   <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics を検出しました。この荷物は Ship24 では自動追跡できません。Ship24 の追跡枠を使わずローカルに保存されます。後で手動で配達済みにできます。</value></data>
+  <data name="PackageAutomaticRefresh" xml:space="preserve"><value>自動更新</value></data>
+  <data name="PackageRefreshInterval" xml:space="preserve"><value>更新間隔</value></data>
+  <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} 分</value></data>
 </root>

@@ -111,6 +111,7 @@ namespace WallpaperControl
                 BackColor = AppTheme.WindowBackground(dark); ForeColor = AppTheme.TextPrimary(dark);
                 SettingsControlTheme.Apply(Controls, dark, BackColor, ForeColor, AppTheme.InputBackground(dark), AppTheme.ControlBackground(dark));
                 LocalizeWebControls();
+                LocalizePackageInterval(PackageIntervalMinutes);
                 UpdatePackageConnection();
                 navigation.BackColor = AppTheme.SidebarBackground(dark);
                 UpdateSelection();

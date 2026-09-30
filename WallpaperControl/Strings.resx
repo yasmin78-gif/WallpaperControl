@@ -1604,4 +1604,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PackageMarkDelivered" xml:space="preserve"><value>Als zugestellt markieren</value></data>
   <data name="PackageManualDelivered" xml:space="preserve"><value>Zugestellt (manuell bestätigt)</value></data>
   <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics erkannt. Diese Sendung kann nicht automatisch über Ship24 verfolgt werden. Sie wird lokal gespeichert und verbraucht kein Ship24-Sendungskontingent. Du kannst sie später manuell als zugestellt markieren.</value></data>
+  <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Automatisch aktualisieren</value></data>
+  <data name="PackageRefreshInterval" xml:space="preserve"><value>Aktualisierungsintervall</value></data>
+  <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} Minuten</value></data>
 </root>

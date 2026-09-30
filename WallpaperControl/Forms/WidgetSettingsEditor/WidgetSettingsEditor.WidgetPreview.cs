@@ -32,6 +32,7 @@ namespace WallpaperControl
             ReadWebControls(preview.Web);
             preview.PackageEnabled = packageEnabled.Checked; preview.PackageLocked = packageLocked.Checked; preview.PackageMaximumHeight = (int)packageMaximum.Value;
             preview.PackageStyle = (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex);
+            preview.PackageAutomaticRefresh = packageAutomatic.Checked; preview.PackageRefreshMinutes = PackageIntervalMinutes;
             preview.NotesEnabled = notesEnabled.Checked;
             preview.NotesLocked = notesLocked.Checked;
             preview.NotesMaximumHeight = (int)notesMaximumHeight.Value;

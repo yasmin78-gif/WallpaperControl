@@ -1604,4 +1604,7 @@ Would you like to open the release page?</value>
   <data name="PackageMarkDelivered" xml:space="preserve"><value>Mark as delivered</value></data>
   <data name="PackageManualDelivered" xml:space="preserve"><value>Delivered (confirmed by you)</value></data>
   <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics detected. This shipment cannot be tracked automatically through Ship24. It will be saved locally without using a Ship24 shipment slot. You can mark it as delivered manually later.</value></data>
+  <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Automatic refresh</value></data>
+  <data name="PackageRefreshInterval" xml:space="preserve"><value>Refresh interval</value></data>
+  <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} minutes</value></data>
 </root>

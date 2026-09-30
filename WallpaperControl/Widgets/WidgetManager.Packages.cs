@@ -3,6 +3,10 @@ namespace WallpaperControl;
 internal sealed partial class WidgetManager
 {
     private PackageTrackingService? packages;
+    private PackageRefreshScheduler? packageScheduler;
+    private bool packagePowerSuspended;
+    internal void SetPackagePowerSuspended(bool value)
+    { packagePowerSuspended = value; packageScheduler?.SetPowerSuspended(value); }
     private PackageTrackingWidgetForm? packageWidget;
     private bool packageDialogOpen;
     private readonly TrackingCredentialStore packageCredentialStore;
@@ -32,11 +36,23 @@ internal sealed partial class WidgetManager
     }
     private void ApplyPackageWidget(WidgetSettings target, bool restoreLocations)
     {
-        if (!target.PackageEnabled) { packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null; return; }
+        if (!target.PackageEnabled)
+        {
+            packageScheduler?.Dispose(); packageScheduler = null;
+            packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null; return;
+        }
+        if (packageScheduler == null)
+        {
+            packageScheduler = new PackageRefreshScheduler(Packages);
+            packageScheduler.SetSuspended(activitySuspended);
+            packageScheduler.SetPowerSuspended(packagePowerSuspended);
+        }
+        packageScheduler.Configure(target.PackageAutomaticRefresh, target.PackageRefreshMinutes);
         if (packageWidget == null || packageWidget.IsDisposed)
         {
             packageWidget = new PackageTrackingWidgetForm(Packages, target, p => { settings.PackageLocation = p; if (!previewMode) settings.Save(registryPath); }, PackageDetails,
                 () => ShowPackages(null, settings.ClockLanguageCode, "PackageAdd"));
+            packageWidget.Disposed += (_, _) => { packageScheduler?.Dispose(); packageScheduler = null; };
             packageWidget.SetActivitySuspended(activitySuspended); RegisterDesktopWidget(packageWidget); packageWidget.Show();
             if (!DesktopWidgetNative.AttachToDesktop(packageWidget, target.PackageLocation)) { packageWidget.Hide(); AppLogger.Info("Package widget desktop attachment failed."); }
         }

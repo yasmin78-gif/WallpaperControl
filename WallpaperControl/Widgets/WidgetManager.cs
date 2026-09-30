@@ -80,6 +80,8 @@ namespace WallpaperControl
             settings.PackageEnabled = previewSettings.PackageEnabled;
             settings.PackageLocked = previewSettings.PackageLocked;
             settings.PackageStyle = previewSettings.PackageStyle;
+            settings.PackageAutomaticRefresh = previewSettings.PackageAutomaticRefresh;
+            settings.PackageRefreshMinutes = previewSettings.PackageRefreshMinutes;
             settings.PackageMaximumHeight = previewSettings.PackageMaximumHeight;
             settings.NotesEnabled = previewSettings.NotesEnabled;
             settings.NotesLocked = previewSettings.NotesLocked;
@@ -719,6 +721,7 @@ namespace WallpaperControl
             wallpaperInfoWidget?.SetActivitySuspended(suspended);
             if (resumed) RefreshWallpaperInfo();
             packageWidget?.SetActivitySuspended(suspended);
+            packageScheduler?.SetSuspended(suspended);
             notesWidget?.SetActivitySuspended(suspended);
             clock?.SetActivitySuspended(suspended);
             systemWidget?.SetActivitySuspended(suspended);
@@ -734,6 +737,7 @@ namespace WallpaperControl
         {
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
+            packageScheduler?.Dispose(); packageScheduler = null;
             packages?.Dispose(); packages = null;
             desktopShowMonitor.Dispose();
             webWidget?.Close(); webWidget?.Dispose(); webWidget = null;

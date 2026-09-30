@@ -1604,4 +1604,7 @@ Versión instalada: {0}
   <data name="PackageMarkDelivered" xml:space="preserve"><value>Marcar como entregado</value></data>
   <data name="PackageManualDelivered" xml:space="preserve"><value>Entregado (confirmado manualmente)</value></data>
   <data name="PackageAmazonNotice" xml:space="preserve"><value>Amazon Logistics detectado. Este envío no se puede seguir automáticamente mediante Ship24. Se guardará localmente sin consumir cuota de Ship24. Podrás marcarlo como entregado manualmente.</value></data>
+  <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Actualización automática</value></data>
+  <data name="PackageRefreshInterval" xml:space="preserve"><value>Intervalo de actualización</value></data>
+  <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} minutos</value></data>
 </root>

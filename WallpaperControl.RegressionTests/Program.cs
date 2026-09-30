@@ -44,6 +44,8 @@ try
     if (args.Contains("--ship24")) { Ship24Tests.Run(Check); Console.WriteLine($"All {passed} Ship24 checks passed."); return 0; }
     if (args.Contains("--packages")) { PackageTrackingTests.Run(Check); Console.WriteLine($"All {passed} package checks passed."); return 0; }
     if (args.Contains("--amazon")) { AmazonLogisticsTests.Run(Check); Console.WriteLine($"All {passed} Amazon checks passed."); return 0; }
+    if (args.Contains("--package-refresh")) { PackageRefreshTests.Run(Check); Console.WriteLine($"All {passed} package refresh checks passed."); return 0; }
+    PackageRefreshTests.Run(Check);
     AmazonLogisticsTests.Run(Check);
     PackageTrackingTests.Run(Check);
     NoteReminderTests.Run(Check);

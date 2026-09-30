@@ -31,7 +31,12 @@ internal sealed class PackageTrackingWidgetForm : Form
         AutoScaleMode = AutoScaleMode.None; FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual; ClientSize = new(LogicalWidth, 120); Location = WidgetSettings.EnsureVisible(settings.PackageLocation, Size);
         drag = new WidgetDragHandler(this, () => this.settings.PackageLocked, Render, moved);
-        service.Changed += Render;
+        service.Changed += RefreshData;
+    }
+    private void RefreshData()
+    {
+        if (!service.Busy && service.RefreshFailures.Count == 0) error = null;
+        Render();
     }
     protected override bool ShowWithoutActivation => true;
     protected override CreateParams CreateParams { get { var cp = base.CreateParams; cp.ExStyle |= 0x00080000 | 0x00000080 | 0x08000000; return cp; } }
@@ -204,6 +209,7 @@ internal sealed class PackageTrackingWidgetForm : Form
             pressed = null; Capture = false;
             if (suspended || HitTest(e.Location) != id) return;
             if (id != Guid.Empty) { details(id); return; }
+            if (service.Busy) return; // The existing busy icon already indicates the in-flight automatic/manual cycle.
             try { var result = await service.RefreshAsync(lifetime.Token); error = result.Outcome == PackageOperation.Success ? null : PackagePresentation.Error(result, settings.ClockLanguageCode); Render(); }
             catch (OperationCanceledException) { }
             return;
@@ -216,5 +222,5 @@ internal sealed class PackageTrackingWidgetForm : Form
         base.OnMouseCaptureChanged(e);
     }
     protected override void Dispose(bool disposing)
-    { if (disposing && !IsDisposed) { lifetime.Cancel(); lifetime.Dispose(); service.Changed -= Render; drag.Dispose(); } base.Dispose(disposing); }
+    { if (disposing && !IsDisposed) { lifetime.Cancel(); lifetime.Dispose(); service.Changed -= RefreshData; drag.Dispose(); } base.Dispose(disposing); }
 }

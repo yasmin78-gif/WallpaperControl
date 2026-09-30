@@ -3,7 +3,7 @@ namespace WallpaperControl;
 internal enum PackageOperation { Success, Busy, Duplicate, InvalidNumber, StorageError, Missing, ProviderError }
 internal readonly record struct PackageResult(PackageOperation Outcome, TrackingProviderFailure? Failure = null);
 
-/// <summary>UI-thread owner of package mutations. No timer, startup request or resume refresh.</summary>
+/// <summary>UI-thread owner of package mutations; manual and scheduled work share one gate.</summary>
 internal sealed class PackageTrackingService : IDisposable
 {
     private readonly TrackingStore store;
@@ -11,6 +11,7 @@ internal sealed class PackageTrackingService : IDisposable
     private readonly CancellationTokenSource lifetime = new();
     private bool disposed;
     internal event Action? Changed;
+    internal event Action? Disposing;
     internal bool Busy { get; private set; }
     internal bool CanWrite => store.CanWrite;
     internal bool LoadIssue => store.LoadIssue;
@@ -74,7 +75,10 @@ internal sealed class PackageTrackingService : IDisposable
         if (!store.Save(next)) return new(PackageOperation.StorageError);
         RefreshFailures.Remove(id); Notify(); return new(PackageOperation.Success);
     }
-    internal async Task<PackageResult> RefreshAsync(CancellationToken token = default)
+    internal Task<PackageResult> RefreshAsync(CancellationToken token = default) => RefreshCoreAsync(null, null, token);
+    internal Task<PackageResult> RefreshAutomaticAsync(Func<TrackedShipment, bool> eligible, Action<TrackedShipment> starting,
+        CancellationToken token) => RefreshCoreAsync(eligible, starting, token);
+    private async Task<PackageResult> RefreshCoreAsync(Func<TrackedShipment, bool>? eligible, Action<TrackedShipment>? starting, CancellationToken token)
     {
         if (Busy) return new(PackageOperation.Busy);
         if (!CanWrite || disposed) return new(PackageOperation.StorageError);
@@ -87,10 +91,13 @@ internal sealed class PackageTrackingService : IDisposable
             {
                 linked.Token.ThrowIfCancellationRequested();
                 if (existing.TrackingMode != "provider") continue;
+                // Re-evaluate immediately before each request: disabling or suspending stops the remainder of a cycle.
+                if (eligible != null && !eligible(existing)) continue;
                 try
                 {
                     if (existing.Provider != provider.ProviderId || string.IsNullOrWhiteSpace(existing.ProviderTrackerId))
                         throw new TrackingProviderException(TrackingProviderFailure.TrackerNotFound);
+                    starting?.Invoke(existing);
                     var snapshot = await provider.GetTrackingAsync(existing.ProviderTrackerId, linked.Token);
                     linked.Token.ThrowIfCancellationRequested();
                     if (!store.Save(snapshot with { Id = existing.Id, DisplayName = existing.DisplayName,
@@ -109,7 +116,7 @@ internal sealed class PackageTrackingService : IDisposable
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true; lifetime.Cancel();
+        disposed = true; Disposing?.Invoke(); Disposing = null; lifetime.Cancel();
         if (provider is IDisposable resource) resource.Dispose();
         lifetime.Dispose(); Changed = null;
     }
