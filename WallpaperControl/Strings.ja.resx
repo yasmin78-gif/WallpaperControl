@@ -1605,4 +1605,7 @@
   <data name="VideoNoSelection" xml:space="preserve"><value>動画が選択されていません</value></data>
   <data name="VideoSelectedImagesActive" xml:space="preserve"><value>動画を選択中 · スライドショーを実行中</value></data>
   <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>スライドショーを選択中 · 動画を再生中</value></data>
+  <data name="VideoSound" xml:space="preserve"><value>音声</value></data>
+  <data name="VideoVolume" xml:space="preserve"><value>音量</value></data>
+  <data name="VideoVolumeFormat" xml:space="preserve"><value>音量: {0}%</value></data>
 </root>

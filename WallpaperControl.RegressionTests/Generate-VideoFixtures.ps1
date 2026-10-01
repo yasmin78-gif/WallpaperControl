@@ -12,6 +12,8 @@ function Invoke-FixtureEncoder([string[]]$EncoderArguments) {
 Invoke-FixtureEncoder @('-f','lavfi','-i','testsrc2=size=320x180:rate=30:duration=4',
     '-f','lavfi','-i','sine=frequency=880:sample_rate=48000:duration=4',
     '-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','-shortest',(Join-Path $fixtureDirectory 'h264.mp4'))
+Invoke-FixtureEncoder @('-i',(Join-Path $fixtureDirectory 'h264.mp4'),
+    '-map','0:v:0','-c:v','copy','-an',(Join-Path $fixtureDirectory 'h264-no-audio.mp4'))
 Invoke-FixtureEncoder @('-f','lavfi','-i','testsrc2=size=320x180:rate=30:duration=1',
     '-c:v','mpeg4',(Join-Path $fixtureDirectory 'unsupported.mp4'))
 Set-Content -LiteralPath (Join-Path $fixtureDirectory 'corrupt.mp4') -Value 'Not an MP4.'

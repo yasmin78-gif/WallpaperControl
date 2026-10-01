@@ -67,6 +67,8 @@ namespace WallpaperControl
             }
             slideshowHeading.ForeColor = displayHeading.ForeColor = AppTheme.TextPrimary(darkMode);
             transitionLabel.ForeColor = transitionDurationLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            videoSoundCheck.ForeColor = videoVolumeLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            videoSoundCheck.BackColor = videoVolumeSlider.BackColor = AppTheme.PanelBackground(darkMode);
             modeHeading.ForeColor = videoFileLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoPathText.BackColor = AppTheme.InputBackground(darkMode);
@@ -166,7 +168,11 @@ namespace WallpaperControl
                 videoApplyButton.SetBounds(padding, videoY, videoActionWidth, videoActionHeight);
                 videoPauseButton.SetBounds(padding + videoActionWidth + small, videoY, videoWidth - videoActionWidth - small, videoActionHeight);
                 videoY += videoActionHeight + small;
-                videoY += padding;
+                videoSoundCheck.SetBounds(padding, videoY, videoWidth, Px(30));
+                videoY = videoSoundCheck.Bottom + small;
+                videoY = LabelAt(videoVolumeLabel, padding, videoY, videoWidth) + Px(4);
+                videoVolumeSlider.SetBounds(padding, videoY, videoWidth, Px(40));
+                videoY = videoVolumeSlider.Bottom + padding;
                 videoCard.SetBounds(0, top, width, videoY);
                 if (videoCard.Visible) top = videoCard.Bottom + gap;
 

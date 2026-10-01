@@ -1633,4 +1633,7 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VideoNoSelection" xml:space="preserve"><value>Aucune vidéo sélectionnée</value></data>
   <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Vidéo sélectionnée · Diaporama actuellement actif</value></data>
   <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Diaporama sélectionné · Vidéo actuellement active</value></data>
+  <data name="VideoSound" xml:space="preserve"><value>Son</value></data>
+  <data name="VideoVolume" xml:space="preserve"><value>Volume</value></data>
+  <data name="VideoVolumeFormat" xml:space="preserve"><value>Volume : {0} %</value></data>
 </root>

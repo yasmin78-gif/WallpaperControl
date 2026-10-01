@@ -1633,4 +1633,7 @@ Would you like to open the release page?</value>
   <data name="VideoNoSelection" xml:space="preserve"><value>No video selected</value></data>
   <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Video selected · Image slideshow currently active</value></data>
   <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Slideshow selected · Video currently active</value></data>
+  <data name="VideoSound" xml:space="preserve"><value>Sound</value></data>
+  <data name="VideoVolume" xml:space="preserve"><value>Volume</value></data>
+  <data name="VideoVolumeFormat" xml:space="preserve"><value>Volume: {0}%</value></data>
 </root>

@@ -32,6 +32,7 @@ internal static class VideoNativeSmokeTests
                 BlackContent(Path.Combine(fixtures, "loop-black.mp4"), check);
             }
             VideoNativePhase2Checks.Run(fixtures, check);
+            VideoAudioNativeChecks.Run(fixtures, check);
         });
         Thread thread = new(() =>
         {
@@ -249,7 +250,7 @@ internal static class VideoNativeSmokeTests
             var deadline = DateTime.UtcNow.AddSeconds(15);
             while (!ready && failure == null && DateTime.UtcNow < deadline) Pump(10);
             if (failure != null) throw failure;
-            check(ready, "Native video: async media item ready with audio streams deselected");
+            check(ready, "Native video: async media item ready with audio output muted");
             player.Pause(); Pump(300);
             check(failure == null, "Native video: initialized paused without starting playback");
             player.Seek(10000000); Pump(300);

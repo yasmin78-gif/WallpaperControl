@@ -45,7 +45,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
     private readonly VideoShellGeneration shell;
     private readonly Rectangle screenBounds;
     private readonly nint rendererHandle;
-    private bool disposed, playing, priming, prepared;
+    private bool disposed, playing, priming, prepared, published, audioFailed, audioSilenceUnavailable;
     private Exception? failure;
     private int loops;
     private static long nextId;
@@ -95,6 +95,15 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
             try { player.SetCreatedItem(Marshal.ReadIntPtr(header, 32)); }
             catch (Exception ex) { hr = ex.HResult; }
         }
+        if (hr < 0 && !prepared && !disposed)
+        {
+            try
+            {
+                if (player.TryVideoOnlyFallback())
+                { audioFailed = true; Log($"audio initialization fallback; video-only; event={type}; hr=0x{hr:X8}"); return; }
+            }
+            catch (Exception ex) { Log($"audio initialization fallback failed; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}"); }
+        }
         try
         {
             dispatcher.BeginInvoke((Action)(() =>
@@ -106,7 +115,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
                     // Play is asynchronous. A policy change may have arrived
                     // while its request was pending in the native pipeline.
                     if (type == 0 && !playing && !priming) player.Pause();
-                    if (type == 6) { player.Fill(render.ClientSize); ready.TrySetResult(); }
+                    if (type == 6) { player.Fill(render.ClientSize); ready.TrySetResult(); if (priming) player.Play(); }
                     // The configured EVR retains its last presented surface
                     // through the EOS stop/seek, until it presents a new sample.
                     // A Play acknowledgement is not a frame-ready signal.
@@ -150,6 +159,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
             if (failure != null) throw failure;
             player.Pause();
             prepared = true;
+            player.CompletePreparation();
             Log("first composited frame ready; hidden=true; mute=true");
         }
         finally { priming = false; }
@@ -164,7 +174,21 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
             !VideoNative.SetWindowPos(rendererHandle, shell.DefView, origin.X, origin.Y, screenBounds.Width, screenBounds.Height, 0x10 | 0x20 | 0x40))
             throw new InvalidOperationException("Video publication failed");
         render.Invalidate(); render.Update();
+        published = true;
         Log("video presented");
+    }
+    public void SetAudio(bool enabled, int volume)
+    {
+        if (disposed || audioFailed) return;
+        try { player.SetAudio(published && enabled, volume); }
+        catch (Exception ex)
+        {
+            audioFailed = true;
+            Log($"audio control failed; silent fallback; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+            // If neither mute nor zero volume is available, pausing is the only
+            // safe fallback on the existing shared clock; never leave sound running.
+            if (!player.TrySilence()) { audioSilenceUnavailable = true; Pause(); }
+        }
     }
     public bool IsAttached(VideoShellGeneration current) => !disposed && current == shell &&
         !render.IsDisposed && render.RendererHandle == rendererHandle && VideoNative.IsWindow(rendererHandle) &&
@@ -172,7 +196,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
     // Visibility is deliberately not a repair trigger: Show Desktop can change
     // visibility temporarily without destroying the renderer or its shell lease.
     public long Position => player.Position100ns();
-    public void Play() { playing = true; player.Play(); }
+    public void Play() { if (audioSilenceUnavailable) { Pause(); return; } playing = true; player.Play(); }
     public void Pause() { playing = false; player.Pause(); }
     public void Seek(long position) => player.Seek(position);
     public void Dispose()
@@ -180,7 +204,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
         if (disposed) return;
         disposed = true; Failed = null; ready.TrySetCanceled();
         render.Paint -= Paint;
-        try { player.Dispose(); }
+        try { player.TrySilence(); player.Dispose(); }
         finally
         {
             try { render.Hide(); render.Dispose(); }

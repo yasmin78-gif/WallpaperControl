@@ -1633,4 +1633,7 @@ Versión instalada: {0}
   <data name="VideoNoSelection" xml:space="preserve"><value>Ningún vídeo seleccionado</value></data>
   <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Vídeo seleccionado · Presentación actualmente activa</value></data>
   <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Presentación seleccionada · Vídeo actualmente activo</value></data>
+  <data name="VideoSound" xml:space="preserve"><value>Sonido</value></data>
+  <data name="VideoVolume" xml:space="preserve"><value>Volumen</value></data>
+  <data name="VideoVolumeFormat" xml:space="preserve"><value>Volumen: {0}%</value></data>
 </root>

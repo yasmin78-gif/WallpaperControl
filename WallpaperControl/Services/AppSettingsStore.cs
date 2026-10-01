@@ -48,6 +48,18 @@ namespace WallpaperControl
             }
             catch { return WallpaperOperatingMode.ImageSlideshow; }
         }
+        internal bool LoadVideoSound()
+        {
+            try { using var key = Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("VideoSound") is int value && value == 1; }
+            catch { return false; }
+        }
+        internal int LoadVideoVolume()
+        {
+            try { using var key = Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("VideoVolume") is int value && value is >= 0 and <= 100 ? value : 50; }
+            catch { return 50; }
+        }
+        internal void SaveVideoSound(bool enabled) => WriteValue("VideoSound", enabled ? 1 : 0, RegistryValueKind.DWord);
+        internal void SaveVideoVolume(int volume) => WriteValue("VideoVolume", Math.Clamp(volume, 0, 100), RegistryValueKind.DWord);
         internal string LoadVideoWallpaperPath()
         {
             try { using var key = Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("VideoWallpaperPath") as string ?? ""; }

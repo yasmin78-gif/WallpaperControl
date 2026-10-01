@@ -37,6 +37,7 @@ try
     if (args.Length >= 2 && args[0] == "--video-native-phase2") { VideoNativeSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 native video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-desktop") { VideoDesktopSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} desktop video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-desktop-phase2") { VideoDesktopSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 desktop video checks passed."); return 0; }
+    VideoAudioTests.Run(Check);
     VideoPresentationTests.Run(Check);
     RuntimeResourceTelemetryTests.Run(Check);
     VideoPhase2Tests.Run(Check);

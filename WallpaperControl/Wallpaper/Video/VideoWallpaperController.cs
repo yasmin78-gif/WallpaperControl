@@ -10,6 +10,7 @@ internal interface IVideoSession : IDisposable
     // Candidates stay hidden until a real composited sample is ready.
     Task PrepareAsync(CancellationToken cancellation) => Task.CompletedTask;
     void Present() { }
+    void SetAudio(bool enabled, int volume) { }
     bool IsAttached(VideoShellGeneration shell);
     long Position { get; }
     void Play();
@@ -34,6 +35,7 @@ internal sealed class VideoWallpaperController : IDisposable
     {
         internal IVideoSession Value { get; } = value;
         internal Action<Exception>? Handler;
+        internal bool AudioFailed;
         private bool disposed;
         public void Dispose()
         {
@@ -63,10 +65,30 @@ internal sealed class VideoWallpaperController : IDisposable
     internal bool HasSession => session != null;
     internal string ActivePath => path;
     internal bool ChangePending => starting;
+    internal bool SoundEnabled { get; private set; }
+    internal int Volume { get; private set; } = 50;
     internal event Action? Changed;
 
     internal VideoWallpaperController(IVideoDesktop desktop, Action<string> log, Func<DateTime>? now = null)
     { this.desktop = desktop; this.log = log; this.now = now ?? (() => DateTime.UtcNow); }
+    internal void SetAudio(bool enabled, int volume)
+    {
+        if (disposed) return;
+        SoundEnabled = enabled; Volume = Math.Clamp(volume, 0, 100);
+        if (session != null) ApplyAudio(session);
+    }
+    private void ApplyAudio(OwnedSession owned)
+    {
+        if (owned.AudioFailed) return;
+        try { owned.Value.SetAudio(SoundEnabled, Volume); }
+        catch (Exception ex)
+        {
+            owned.AudioFailed = true;
+            log($"audio control failed; silent fallback; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+            try { owned.Value.SetAudio(false, 0); }
+            catch { try { owned.Value.Pause(); } catch { /* Shutdown still owns cleanup. */ } }
+        }
+    }
     private void Status(VideoWallpaperState state) { State = state; Changed?.Invoke(); }
     private VideoWallpaperState PolicyState => PauseReasons == VideoPauseReason.None ? VideoWallpaperState.Playing : VideoWallpaperState.Paused;
     private void InvalidatePending()
@@ -156,7 +178,10 @@ internal sealed class VideoWallpaperController : IDisposable
             var old = session;
             session = candidate; initializingSession = null; candidate = null;
             path = file; shell = target; position = restorePosition; recoverable = true; ErrorKey = ""; starting = false;
+            // Complete old playback shutdown before unmuting the published player.
+            // Candidates never receive enabled audio, including stale continuations.
             old?.Dispose();
+            ApplyAudio(session);
             log($"video started; request={lease}; file={file}; reasons={PauseReasons}");
             Status(PolicyState);
             LogPlayback();

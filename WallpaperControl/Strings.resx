@@ -1633,4 +1633,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VideoNoSelection" xml:space="preserve"><value>Kein Video ausgewählt</value></data>
   <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Video ausgewählt · Slideshow derzeit aktiv</value></data>
   <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Slideshow ausgewählt · Video derzeit aktiv</value></data>
+  <data name="VideoSound" xml:space="preserve"><value>Ton</value></data>
+  <data name="VideoVolume" xml:space="preserve"><value>Lautstärke</value></data>
+  <data name="VideoVolumeFormat" xml:space="preserve"><value>Lautstärke: {0}%</value></data>
 </root>

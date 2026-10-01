@@ -20,6 +20,9 @@ public partial class MainForm
     private readonly Label videoStatusLabel = new();
     private readonly Label videoFileLabel = new() { AutoEllipsis = true };
     private readonly MainFormButton imageApplyButton = new();
+    private readonly CheckBox videoSoundCheck = new();
+    private readonly TrackBar videoVolumeSlider = new() { Minimum = 0, Maximum = 100, Value = 50, TickStyle = TickStyle.None };
+    private readonly Label videoVolumeLabel = new();
     private bool VideoConfigurationSelected => wallpaperModeCombo.SelectedIndex == 1;
     private bool videoUiLoading;
     private string? videoSelectionError;
@@ -37,11 +40,15 @@ public partial class MainForm
 
     private void InitializeVideoWallpaperUi()
     {
-        videoCard.Controls.AddRange(new Control[] { modeHeading, videoFileLabel, videoBrowseButton, videoApplyButton, videoPauseButton, videoStatusLabel });
+        videoCard.Controls.AddRange(new Control[] { modeHeading, videoFileLabel, videoBrowseButton, videoApplyButton, videoPauseButton, videoStatusLabel, videoSoundCheck, videoVolumeSlider, videoVolumeLabel });
         wallpaperContent!.Controls.AddRange(new Control[] { videoCard, wallpaperModeCombo, imageApplyButton, videoStatusLabel });
         videoPathText.Text = servicesEnabled ? appSettings.LoadVideoWallpaperPath() : "";
         videoPathText.AccessibleName = Localization.Get("VideoBrowse");
         videoPathText.TextChanged += (_, _) => UpdateVideoControls();
+        videoSoundCheck.Checked = servicesEnabled && appSettings.LoadVideoSound();
+        videoVolumeSlider.Value = servicesEnabled ? appSettings.LoadVideoVolume() : 50;
+        videoSoundCheck.CheckedChanged += (_, _) => ApplyVideoAudioConfiguration(true, false);
+        videoVolumeSlider.ValueChanged += (_, _) => ApplyVideoAudioConfiguration(false, true);
         modeHeading.Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold);
         videoBrowseButton.Click += (_, _) =>
         {
@@ -60,6 +67,17 @@ public partial class MainForm
         };
         LocalizeVideoWallpaperUi();
     }
+    private void ApplyVideoAudioConfiguration(bool saveSound, bool saveVolume)
+    {
+        if (servicesEnabled)
+        {
+            if (saveSound) appSettings.SaveVideoSound(videoSoundCheck.Checked);
+            if (saveVolume) appSettings.SaveVideoVolume(videoVolumeSlider.Value);
+        }
+        videoWallpaper?.SetAudio(videoSoundCheck.Checked, videoVolumeSlider.Value);
+        videoVolumeSlider.Enabled = videoSoundCheck.Checked;
+        videoVolumeLabel.Text = string.Format(Localization.Get("VideoVolumeFormat"), videoVolumeSlider.Value);
+    }
     private void LocalizeVideoWallpaperUi()
     {
         videoUiLoading = true;
@@ -70,6 +88,9 @@ public partial class MainForm
         videoUiLoading = false;
         modeHeading.Text = Localization.Get("VideoSelectedFile");
         imageApplyButton.Text = Localization.Get("ImageStart");
+        videoSoundCheck.Text = Localization.Get("VideoSound");
+        videoVolumeSlider.AccessibleName = Localization.Get("VideoVolume");
+        ApplyVideoAudioConfiguration(false, false);
         wallpaperModeCombo.AccessibleName = Localization.Get("WallpaperModeHeading");
 
         videoPathText.AccessibleName = Localization.Get("VideoBrowse");
@@ -125,6 +146,7 @@ public partial class MainForm
     {
         if (videoWallpaper != null) return videoWallpaper;
         videoWallpaper = new(new MediaFoundationVideoDesktop(this), message => AppLogger.Info($"Video wallpaper: pid={Environment.ProcessId}; " + message));
+        videoWallpaper.SetAudio(videoSoundCheck.Checked, videoVolumeSlider.Value);
         videoWallpaper.Changed += VideoWallpaperChanged;
         return videoWallpaper;
     }
