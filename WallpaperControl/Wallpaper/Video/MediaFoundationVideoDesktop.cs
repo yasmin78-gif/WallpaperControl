@@ -8,9 +8,30 @@ internal sealed class MediaFoundationVideoDesktop : IVideoDesktop
     internal MediaFoundationVideoDesktop(Control dispatcher) { this.dispatcher = dispatcher; }
     public int MonitorCount => Screen.AllScreens.Length;
     public bool FileExists(string path) => VideoFileValidation.IsLocalMp4(path);
-    public Task ValidateAsync(string path, CancellationToken cancellation) =>
-        Task.Run(() => { cancellation.ThrowIfCancellationRequested(); VideoFileValidation.ValidateCodec(path); }, cancellation)
-            .WaitAsync(TimeSpan.FromSeconds(15), cancellation);
+    // Serialize metadata readers even when a timed-out caller has moved on.
+    // Native MF calls cannot be forcibly aborted inside this process.
+    private readonly SemaphoreSlim validation = new(1, 1);
+    public async Task ValidateAsync(string path, CancellationToken cancellation)
+    {
+        using var operation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        try { await ValidateCoreAsync(path, operation.Token).WaitAsync(TimeSpan.FromSeconds(15), cancellation); }
+        catch { operation.Cancel(); throw; }
+    }
+    private async Task ValidateCoreAsync(string path, CancellationToken cancellation)
+    {
+        await validation.WaitAsync(cancellation);
+        try
+        {
+            await Task.Run(() =>
+            {
+                cancellation.ThrowIfCancellationRequested();
+                using (File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)) { }
+                VideoFileValidation.ValidateCodec(path);
+                cancellation.ThrowIfCancellationRequested();
+            }, cancellation);
+        }
+        finally { validation.Release(); }
+    }
     public VideoShellGeneration? ResolveShell() => VideoNative.Resolve();
     public IVideoSession Create(string path, VideoShellGeneration shell) => new MediaFoundationVideoSession(dispatcher, path, shell);
 }
@@ -24,7 +45,12 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
     private readonly VideoShellGeneration shell;
     private readonly Rectangle screenBounds;
     private readonly nint rendererHandle;
-    private bool disposed, playing;
+    private bool disposed, playing, priming, prepared;
+    private Exception? failure;
+    private int loops;
+    private static long nextId;
+    private readonly long id = Interlocked.Increment(ref nextId);
+    private void Log(string message) => AppLogger.Info($"Video MF: pid={Environment.ProcessId}; session={id}; {message}");
     public event Action<Exception>? Failed;
     internal MediaFoundationVideoSession(Control dispatcher, string path, VideoShellGeneration shell)
     {
@@ -46,8 +72,8 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
             if (!VideoNative.ScreenToClient(shell.Host, ref origin)) throw new InvalidOperationException("Video coordinate conversion failed");
             // A direct disabled child immediately under DefView. No topmost,
             // widget ownership, focus stealing or input interception.
-            render.Show();
-            if (!VideoNative.SetWindowPos(hwnd, shell.DefView, origin.X, origin.Y, bounds.Width, bounds.Height, 0x10 | 0x20 | 0x40))
+            // A staged decoder must not cover the old stable background.
+            if (!VideoNative.SetWindowPos(hwnd, shell.DefView, origin.X, origin.Y, bounds.Width, bounds.Height, 0x10 | 0x20))
                 throw new InvalidOperationException("Video placement failed");
             player = new MfPlayer(hwnd, path, OnNativeEvent);
             render.Paint += Paint;
@@ -59,6 +85,7 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
     private void OnNativeEvent(nint header)
     {
         int type = Marshal.ReadInt32(header), hr = Marshal.ReadInt32(header, 4);
+        if (type is 5 or 6) Log($"initialization event={type}; hr=0x{hr:X8}");
         // Native event memory expires when the callback returns.
         // MFPlay's default callback runs on the creating UI thread. Consume the
         // borrowed media item here instead of retaining COM references in a
@@ -78,19 +105,67 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
                     Marshal.ThrowExceptionForHR(hr);
                     // Play is asynchronous. A policy change may have arrived
                     // while its request was pending in the native pipeline.
-                    if (type == 0 && !playing) player.Pause();
+                    if (type == 0 && !playing && !priming) player.Pause();
                     if (type == 6) { player.Fill(render.ClientSize); ready.TrySetResult(); }
                     // The configured EVR retains its last presented surface
                     // through the EOS stop/seek, until it presents a new sample.
                     // A Play acknowledgement is not a frame-ready signal.
-                    if (type == 11) { player.Seek(0); if (playing) player.Play(); }
+                    if (type == 11)
+                    {
+                        Log($"loop; count={++loops}; reasonsPlaying={playing}");
+                        player.Seek(0); if (playing || priming) player.Play();
+                    }
                 }
-                catch (Exception ex) { ready.TrySetException(ex); Failed?.Invoke(ex); }
+                catch (Exception ex)
+                {
+                    failure = ex;
+                    Log($"Media Foundation error; event={type}; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+                    ready.TrySetException(ex); Failed?.Invoke(ex);
+                }
             }));
         }
         catch (InvalidOperationException) { /* Dispatcher is shutting down. */ }
     }
     public Task InitializeAsync(CancellationToken cancellation) => ready.Task.WaitAsync(TimeSpan.FromSeconds(15), cancellation);
+    public async Task PrepareAsync(CancellationToken cancellation)
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        if (prepared) return;
+        priming = true;
+        try
+        {
+            // Silent, hidden preroll produces an actual EVR sample. It never
+            // changes the published session's manual/fullscreen pause policy.
+            player.Play();
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+            while (!player.HasPresentedFrame)
+            {
+                if (failure != null) throw failure;
+                cancellation.ThrowIfCancellationRequested();
+                ObjectDisposedException.ThrowIf(disposed, this);
+                if (deadline.Elapsed >= TimeSpan.FromSeconds(15)) throw new TimeoutException("First video frame unavailable");
+                await Task.Delay(25, cancellation);
+            }
+            cancellation.ThrowIfCancellationRequested();
+            if (failure != null) throw failure;
+            player.Pause();
+            prepared = true;
+            Log("first composited frame ready; hidden=true; mute=true");
+        }
+        finally { priming = false; }
+    }
+    public void Present()
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        if (!prepared) throw new InvalidOperationException("Video candidate has no prepared frame");
+        render.Show();
+        var origin = screenBounds.Location;
+        if (!VideoNative.ScreenToClient(shell.Host, ref origin) ||
+            !VideoNative.SetWindowPos(rendererHandle, shell.DefView, origin.X, origin.Y, screenBounds.Width, screenBounds.Height, 0x10 | 0x20 | 0x40))
+            throw new InvalidOperationException("Video publication failed");
+        render.Invalidate(); render.Update();
+        Log("video presented");
+    }
     public bool IsAttached(VideoShellGeneration current) => !disposed && current == shell &&
         !render.IsDisposed && render.RendererHandle == rendererHandle && VideoNative.IsWindow(rendererHandle) &&
         VideoNative.GetParent(rendererHandle) == shell.Host && Screen.AllScreens.Length == 1 && Screen.AllScreens[0].Bounds == screenBounds;
@@ -106,7 +181,11 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
         disposed = true; Failed = null; ready.TrySetCanceled();
         render.Paint -= Paint;
         try { player.Dispose(); }
-        finally { render.Hide(); render.Dispose(); }
+        finally
+        {
+            try { render.Hide(); render.Dispose(); }
+            finally { Log($"video released; loops={loops}"); }
+        }
     }
 }
 

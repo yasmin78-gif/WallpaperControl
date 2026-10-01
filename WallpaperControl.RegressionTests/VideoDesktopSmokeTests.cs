@@ -7,10 +7,21 @@ using System.Runtime.InteropServices;
 internal static class VideoDesktopSmokeTests
 {
     [DllImport("dwmapi.dll")] private static extern int DwmFlush();
-    internal static void Run(string fixtures, Action<bool, string> check)
+    internal static void Run(string fixtures, Action<bool, string> check, bool phase2Only = false)
     {
-        using Task task = new(() => Desktop(Path.Combine(fixtures, "loop-colors.mp4"), check));
-        var thread = new Thread(() => task.RunSynchronously(TaskScheduler.Default));
+        using Task task = new(() =>
+        {
+            if (!phase2Only) Desktop(Path.Combine(fixtures, "loop-colors.mp4"), check);
+            VideoDesktopPhase2Checks.Run(fixtures, check);
+        });
+        var thread = new Thread(() =>
+        {
+            // A real WinForms message loop keeps async continuations on the
+            // owning STA, even after failed constructors dispose a child form.
+            using var loop = new Video.VideoRenderForm { Location = new(-20000, -20000), Size = new(100, 100) };
+            loop.Shown += (_, _) => { try { task.RunSynchronously(TaskScheduler.Default); } finally { loop.Close(); } };
+            Application.Run(loop);
+        });
         thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join(); task.GetAwaiter().GetResult();
     }
     private static void Pump(int milliseconds)
@@ -44,7 +55,10 @@ internal static class VideoDesktopSmokeTests
             var deadline = DateTime.UtcNow.AddSeconds(15);
             while (!ready.IsCompleted && DateTime.UtcNow < deadline) Pump(10);
             ready.GetAwaiter().GetResult();
-            session.Play(); Pump(300);
+            var prepared = session.PrepareAsync(default);
+            while (!prepared.IsCompleted) Pump(10);
+            prepared.GetAwaiter().GetResult();
+            session.Play(); session.Present(); Pump(300);
             check(session.IsAttached(shell) && failure == null, $"Desktop video {run}: production session attaches and initializes");
             if (exposed == null)
             {

@@ -283,6 +283,39 @@ internal static class VideoWallpaperTests
                 "Video UI: unsupported monitor configuration explained and Apply disabled");
             Set(main, "videoMonitorCount", (Func<int>)(() => 1));
             Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.ImageSlideshow)!);
+            desktop.ValidationError = new InvalidDataException();
+            bool imageWasActive = Field<bool>(main, "customSlideshowEngineActive");
+            Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.VideoWallpaper)!);
+            check(Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages &&
+                Field<bool>(main, "customSlideshowEngineActive") == imageWasActive &&
+                main.GetType().GetField("savedImageMode", Members)!.GetValue(main) == null,
+                "Phase 2 UI: invalid video selection preserves image mode and scheduler");
+            desktop.ValidationError = null;
+            desktop.Initialization = Task.FromException(new System.Runtime.InteropServices.COMException());
+            Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.VideoWallpaper)!);
+            check(Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages &&
+                Field<bool>(main, "customSlideshowEngineActive") == imageWasActive &&
+                main.GetType().GetField("savedImageMode", Members)!.GetValue(main) == null,
+                "Phase 2 UI: failed MF initialization rolls image ownership and snapshot back");
+            desktop.Initialization = Task.CompletedTask;
+            Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.VideoWallpaper)!);
+            var stableVideo = desktop.Last;
+            controller.SetPause(App.VideoPauseReason.Manual, true);
+            stableVideo.Value = 7654321;
+            desktop.Initialization = Task.FromException(new System.Runtime.InteropServices.COMException());
+            Field<TextBox>(main, "videoPathText").Text = @"C:\rejected.mp4";
+            Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.VideoWallpaper)!);
+            check(!stableVideo.Disposed && !stableVideo.Playing && stableVideo.Value == 7654321 &&
+                controller.PauseReasons == App.VideoPauseReason.Manual && !Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages,
+                "Phase 2 UI: failed video-to-video Apply retains stable paused video ownership");
+            check(Field<Button>(main, "videoPauseButton").Enabled &&
+                Field<Label>(main, "videoStatusLabel").Text == App.Localization.Get("VideoErrorPlayback"),
+                "Phase 2 UI: rejected switch shows error while retained video pause control remains usable");
+            desktop.Initialization = Task.CompletedTask;
+            Field<TextBox>(main, "videoPathText").Text = @"C:\test.mp4";
+            Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.ImageSlideshow)!);
+            check(stableVideo.Disposed && Field<bool>(main, "customSlideshowEngineActive") == imageWasActive,
+                "Phase 2 UI: returning to images after rejected switch frees the retained player");
             foreach (bool dark in new[] { false, true })
             {
                 Set(main, "darkMode", dark); Invoke(main, "ApplyWallpaperPageTheme");

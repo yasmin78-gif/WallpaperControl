@@ -6,9 +6,11 @@ using System.Runtime.InteropServices;
 // attachment, registry writes, Explorer restart or network dependencies.
 internal static class VideoNativeSmokeTests
 {
-    internal static void Run(string fixtures, Action<bool, string> check)
+    internal static void Run(string fixtures, Action<bool, string> check, bool phase2Only = false)
     {
         string supported = Path.Combine(fixtures, "h264.mp4");
+        if (!phase2Only)
+        {
         Video.VideoFileValidation.ValidateCodec(supported);
         check(Video.VideoFileValidation.IsLocalMp4(supported), "Native video: local MP4/H.264 accepted");
         check(!Video.VideoFileValidation.IsLocalMp4(@"\\server\share\video.mp4"), "Native video: UNC rejected");
@@ -20,13 +22,23 @@ internal static class VideoNativeSmokeTests
             catch (Exception ex) when (ex is NotSupportedException or COMException) { rejected = true; }
             check(rejected, "Native video: rejects " + invalid);
         }
+        }
         using Task work = new(() =>
         {
-            Playback(supported, check);
-            Loops(Path.Combine(fixtures, "loop-colors.mp4"), check);
-            BlackContent(Path.Combine(fixtures, "loop-black.mp4"), check);
+            if (!phase2Only)
+            {
+                Playback(supported, check);
+                Loops(Path.Combine(fixtures, "loop-colors.mp4"), check);
+                BlackContent(Path.Combine(fixtures, "loop-black.mp4"), check);
+            }
+            VideoNativePhase2Checks.Run(fixtures, check);
         });
-        Thread thread = new(() => work.RunSynchronously(TaskScheduler.Default));
+        Thread thread = new(() =>
+        {
+            using var loop = new Video.VideoRenderForm { Location = new(-20000, -20000), Size = new(100, 100) };
+            loop.Shown += (_, _) => { try { work.RunSynchronously(TaskScheduler.Default); } finally { loop.Close(); } };
+            Application.Run(loop);
+        });
         thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join(); work.GetAwaiter().GetResult();
     }
     private static void Loops(string file, Action<bool, string> check)
@@ -34,7 +46,7 @@ internal static class VideoNativeSmokeTests
         // Blue first second, red last second, plus a real AAC stream. This small
         // non-activating window also verifies the visible front surface: EVR
         // GetCurrentImage alone cannot read the retained surface after EOS flush.
-        using var target = new Video.VideoRenderForm { Location = new(20, 20), Size = new(240, 240) };
+        using var target = new Video.VideoRenderForm { Location = UncoveredLocation(), Size = new(240, 240) };
         target.Show();
         Video.VideoNative.SetWindowPos(target.Handle, 0, 0, 0, 0, 0, 0x1 | 0x2 | 0x10 | 0x40);
         Video.MfPlayer? player = null;
@@ -95,7 +107,11 @@ internal static class VideoNativeSmokeTests
                     validAfterFirst &= frame.Size == target.ClientSize;
                     // Check the entire composited image: no black border/blank.
                     for (int i = 0; i < frame.Pixels.Length; i += 4)
-                        if (Math.Max(frame.Pixels[i], Math.Max(frame.Pixels[i + 1], frame.Pixels[i + 2])) < 100) { nonBlack = false; break; }
+                        if (Math.Max(frame.Pixels[i], Math.Max(frame.Pixels[i + 1], frame.Pixels[i + 2])) < 100)
+                        {
+                            if (nonBlack) Console.WriteLine($"Native loop unexpected black sample: timestamp={frame.Timestamp}; ended={ended}; pixelOffset={i}; captures={captures}");
+                            nonBlack = false; break;
+                        }
                     if (previousTimestamp >= 0 && frame.Timestamp < previousTimestamp) wraps++;
                     previousTimestamp = frame.Timestamp;
                 }
@@ -109,7 +125,9 @@ internal static class VideoNativeSmokeTests
                     using (var graphics = Graphics.FromImage(front))
                         graphics.CopyFromScreen(target.PointToScreen(Point.Empty), Point.Empty, target.ClientSize);
                     var pixel = front.GetPixel(front.Width / 2, front.Height / 2);
-                    nonBlack &= Math.Max(pixel.R, Math.Max(pixel.G, pixel.B)) > 100;
+                    bool visible = Math.Max(pixel.R, Math.Max(pixel.G, pixel.B)) > 100;
+                    if (!visible && nonBlack) Console.WriteLine($"Native loop unexpected black surface: ended={ended}; captures={captures}; root=0x{GetAncestor(WindowFromPoint(target.PointToScreen(new(120, 120))), 2):X}; target=0x{target.Handle:X}");
+                    nonBlack &= visible;
                     if (ended > 0 && !seekSent) heldBeforeSeek &= pixel.R > 200 && pixel.B < 40;
                     if (ended > 0 && seekSent && !restarted) heldDuringSeek &= pixel.R > 200 && pixel.B < 40;
                     validAfterFirst &= front.Width == 240 && front.Height == 240;
@@ -190,6 +208,24 @@ internal static class VideoNativeSmokeTests
         finally { player.Dispose(); target.Hide(); }
     }
     [DllImport("dwmapi.dll")] private static extern int DwmFlush();
+    [DllImport("user32.dll")] private static extern nint WindowFromPoint(Point point);
+    [DllImport("user32.dll")] private static extern nint GetAncestor(nint hwnd, uint flags);
+    private static Point UncoveredLocation()
+    {
+        var host = Video.VideoNative.Resolve()?.Host ?? throw new InvalidOperationException("Native loop check requires desktop shell");
+        var bounds = Screen.PrimaryScreen!.Bounds;
+        var formerRoot = GetAncestor(WindowFromPoint(new(bounds.Left + 140, bounds.Top + 140)), 2);
+        Console.WriteLine($"Native loop visibility: former (20,20) center root=0x{formerRoot:X}; desktop=0x{host:X}");
+        for (int y = bounds.Top + 20; y < bounds.Bottom - 260; y += 260)
+            for (int x = bounds.Left + 20; x < bounds.Right - 260; x += 260)
+            {
+                var points = new[] { new Point(x + 5, y + 5), new Point(x + 235, y + 5),
+                    new Point(x + 120, y + 120), new Point(x + 5, y + 235), new Point(x + 235, y + 235) };
+                if (points.All(p => GetAncestor(WindowFromPoint(p), 2) == host))
+                    return new(x, y);
+            }
+        throw new InvalidOperationException("Native loop check needs an uncovered 240x240 desktop area");
+    }
     private static void Playback(string file, Action<bool, string> check)
     {
         using var target = new Video.VideoRenderForm { Location = new(-20000, -20000), Size = new(320, 180) };

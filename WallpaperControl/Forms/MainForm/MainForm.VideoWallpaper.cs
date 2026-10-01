@@ -94,7 +94,7 @@ public partial class MainForm
         videoStatusLabel.Text = Localization.Get(key);
         bool manualVideoPause = ((videoWallpaper?.PauseReasons ?? VideoPauseReason.None) & VideoPauseReason.Manual) != 0;
         videoPauseButton.Text = Localization.Get(manualVideoPause ? "VideoResume" : "VideoPause");
-        videoPauseButton.Enabled = video && videoWallpaper?.State is VideoWallpaperState.Playing or VideoWallpaperState.Paused;
+        videoPauseButton.Enabled = video && videoWallpaper?.HasSession == true;
         if (video)
         {
             UpdateTrayPauseText();
@@ -102,7 +102,7 @@ public partial class MainForm
             statusLabel.Visible = true; statusLabel.Text = videoStatusLabel.Text;
             activateButton.Visible = false;
             nextWallpaperButton.Enabled = pinButton.Enabled = rejectButton.Enabled = undoRejectButton.Enabled = false;
-            pauseButton.Enabled = videoWallpaper?.State is VideoWallpaperState.Playing or VideoWallpaperState.Paused;
+            pauseButton.Enabled = videoWallpaper?.HasSession == true;
             pauseButton.Text = videoPauseButton.Text;
             SetWarningLayout(false);
         }
@@ -112,7 +112,7 @@ public partial class MainForm
     private VideoWallpaperController EnsureVideoWallpaper()
     {
         if (videoWallpaper != null) return videoWallpaper;
-        videoWallpaper = new(new MediaFoundationVideoDesktop(this), message => AppLogger.Info("Video wallpaper: " + message));
+        videoWallpaper = new(new MediaFoundationVideoDesktop(this), message => AppLogger.Info($"Video wallpaper: pid={Environment.ProcessId}; " + message));
         videoWallpaper.Changed += VideoWallpaperChanged;
         return videoWallpaper;
     }
@@ -126,47 +126,76 @@ public partial class MainForm
         if (mode == WallpaperOperatingMode.VideoWallpaper && videoMonitorCount() != 1)
         {
             videoSelectionError = "VideoErrorMonitor";
-            if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper) videoWallpaper?.Stop();
             videoUiLoading = true; wallpaperModeCombo.SelectedIndex = 1; videoUiLoading = false;
             UpdateVideoControls();
             return;
         }
         videoSelectionError = null;
         int request = ++wallpaperModeRequest;
-        // Stop pending native initialization/recovery immediately; serialized
-        // ownership restoration below waits for cancelled image transitions.
-        videoWallpaper?.Stop();
+        string selectedPath = videoPathText.Text;
+        // Cancel only an obsolete candidate. Keep the published video until a
+        // new one is ready; returning to images releases video immediately.
+        if (mode == WallpaperOperatingMode.VideoWallpaper) videoWallpaper?.CancelPendingStart();
+        else videoWallpaper?.Stop();
         await wallpaperModeChange.WaitAsync();
         try
         {
             if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
             if (mode == WallpaperOperatingMode.VideoWallpaper)
             {
-                bool enteringVideo = savedImageMode == null;
-                if (savedImageMode == null)
-                {
-                    savedImageMode = CaptureImageMode();
-                    if (servicesEnabled) appSettings.SaveImageActiveBeforeVideo(savedImageMode.Custom || savedImageMode.NativeActive);
-                }
-                wallpaperOwnership.Switch(mode); // Block every producer before cancellation/await.
-                AppLogger.Info("Wallpaper operating mode: VideoWallpaper; image ownership suspended");
-                customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                customWallpaperCancellation?.Cancel();
-                if (imageTransitionTasks.Count > 0) await Task.WhenAll(imageTransitionTasks.ToArray());
-                if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
-                customSlideshowEngineActive = false;
-                StopVideoLiveTest();
-                FreezeNativeWallpaper(savedImageMode.StaticPath);
-                PersistentDesktopTransitionManager.Shutdown();
                 VideoWallpaperController engine = EnsureVideoWallpaper();
-                if (servicesEnabled)
+                bool started = await engine.StartAsync(selectedPath, async () =>
                 {
-                    appSettings.SaveVideoWallpaperPath(videoPathText.Text);
-                    appSettings.SaveWallpaperOperatingMode(mode);
+                    if (request != wallpaperModeRequest || wallpaperOwnership.Closed) throw new OperationCanceledException();
+                    bool enteringVideo = savedImageMode == null;
+                    if (savedImageMode == null)
+                    {
+                        savedImageMode = CaptureImageMode();
+                        if (servicesEnabled) appSettings.SaveImageActiveBeforeVideo(savedImageMode.Custom || savedImageMode.NativeActive);
+                    }
+                    if (wallpaperOwnership.AllowsImages)
+                    {
+                        wallpaperOwnership.Switch(mode);
+                        AppLogger.Info("Wallpaper operating mode: VideoWallpaper; image ownership suspended");
+                        customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        customWallpaperCancellation?.Cancel();
+                        if (imageTransitionTasks.Count > 0) await Task.WhenAll(imageTransitionTasks.ToArray());
+                        if (request != wallpaperModeRequest || wallpaperOwnership.Closed) throw new OperationCanceledException();
+                        customSlideshowEngineActive = false;
+                        StopVideoLiveTest();
+                        FreezeNativeWallpaper(savedImageMode.StaticPath);
+                        PersistentDesktopTransitionManager.Shutdown();
+                    }
+                    // A saved video-mode startup already reserved ownership.
+                    else if (enteringVideo)
+                    {
+                        StopVideoLiveTest();
+                        FreezeNativeWallpaper(savedImageMode.StaticPath);
+                        PersistentDesktopTransitionManager.Shutdown();
+                    }
+                    if (enteringVideo) engine.SetPause(VideoPauseReason.Manual, slideshowPaused);
+                    engine.SetPause(VideoPauseReason.Fullscreen, fullscreenPolicy.IsPaused);
+                });
+                if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
+                if (started || engine.State == VideoWallpaperState.Recovering)
+                {
+                    if (servicesEnabled)
+                    {
+                        appSettings.SaveVideoWallpaperPath(selectedPath);
+                        appSettings.SaveWallpaperOperatingMode(mode);
+                    }
                 }
-                if (enteringVideo) engine.SetPause(VideoPauseReason.Manual, slideshowPaused);
-                engine.SetPause(VideoPauseReason.Fullscreen, fullscreenPolicy.IsPaused);
-                await engine.StartAsync(videoPathText.Text);
+                else
+                {
+                    videoSelectionError = engine.ErrorKey;
+                    if (!engine.HasSession)
+                    {
+                        engine.Stop();
+                        wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
+                        RestoreImageMode();
+                        if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
+                    }
+                }
             }
             else
             {
@@ -179,6 +208,7 @@ public partial class MainForm
         catch (Exception ex)
         {
             AppLogger.Info($"Wallpaper mode change failed; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+            if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
             videoWallpaper?.Stop();
             wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
             RestoreImageMode();
@@ -188,7 +218,7 @@ public partial class MainForm
         finally
         {
             wallpaperModeChange.Release();
-            if (!wallpaperOwnership.Closed && !IsDisposed && !Disposing)
+            if (request == wallpaperModeRequest && !wallpaperOwnership.Closed && !IsDisposed && !Disposing)
             {
                 videoUiLoading = true; wallpaperModeCombo.SelectedIndex = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper ? 1 : 0; videoUiLoading = false;
                 CheckSlideshowStatus(); UpdateVideoControls();

@@ -667,6 +667,9 @@ namespace WallpaperControl
 
             widgetManager.StartNoteReminders();
 
+            runtimeResources = RuntimeResourceTelemetry.Create(AppLogger.Info);
+            ObserveRuntimeResources();
+
             SystemEvents.UserPreferenceChanged +=
                 SystemEvents_UserPreferenceChanged;
 

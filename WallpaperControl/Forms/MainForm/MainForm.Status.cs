@@ -17,6 +17,7 @@ namespace WallpaperControl
         // normal poll, even when the fullscreen policy itself has not changed.
         private void RefreshWallpaperUi()
         {
+            ObserveRuntimeResources();
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
                 if (videoWallpaper != null) _ = videoWallpaper.TickAsync();

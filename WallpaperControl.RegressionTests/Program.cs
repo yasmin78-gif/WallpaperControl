@@ -7,6 +7,16 @@ using System.IO.Pipes;
 try
 {
     if (args.Contains("--fail-test")) throw new Exception("Intentional test failure.");
+    if (args.Length == 2 && args[0] == "--video-handle-count-pid")
+    {
+        Console.WriteLine($"Kernel handles for pid={args[1]}: {NativeHandleSnapshot.Capture(int.Parse(args[1])).Total}");
+        return 0;
+    }
+    if (args.Length == 5 && args[0] == "--video-handle-stress")
+    {
+        VideoHandleStressDiagnostics.Run(args[1], args[2], int.Parse(args[3]), args[4]);
+        return 0;
+    }
 
     if (args.Contains("--probe"))
     {
@@ -24,8 +34,12 @@ try
         passed++;
     }
     if (args.Length >= 2 && args[0] == "--video-native") { VideoNativeSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} native video checks passed."); return 0; }
+    if (args.Length >= 2 && args[0] == "--video-native-phase2") { VideoNativeSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 native video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-desktop") { VideoDesktopSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} desktop video checks passed."); return 0; }
+    if (args.Length >= 2 && args[0] == "--video-desktop-phase2") { VideoDesktopSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 desktop video checks passed."); return 0; }
     VideoPresentationTests.Run(Check);
+    RuntimeResourceTelemetryTests.Run(Check);
+    VideoPhase2Tests.Run(Check);
     if (args.Contains("--video")) { VideoWallpaperTests.Run(Check); Console.WriteLine($"All {passed} video checks passed."); return 0; }
     VideoWallpaperTests.Run(Check);
     if (args.Contains("--wallpaper-layout"))

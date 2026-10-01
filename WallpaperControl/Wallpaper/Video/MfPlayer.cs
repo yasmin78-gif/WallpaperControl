@@ -24,6 +24,7 @@ public sealed class MfCallback : IMfCallback
 internal sealed class MfPlayer : IDisposable
 {
     private nint player;
+    private bool platformStarted;
     private readonly MfCallback callback;
     private readonly nint videoWindow;
     private MfVideoRenderer? renderer;
@@ -34,6 +35,8 @@ internal sealed class MfPlayer : IDisposable
     private static extern int MFPCreateMediaPlayer(string? url, [MarshalAs(UnmanagedType.Bool)] bool start,
         uint options, IMfCallback callback, nint hwnd, out nint player);
     [DllImport("ole32.dll")] private static extern int PropVariantClear(ref Variant value);
+    [DllImport("mfplat.dll")] private static extern int MFStartup(int version, int flags);
+    [DllImport("mfplat.dll")] private static extern int MFShutdown();
     [UnmanagedFunctionPointer(CallingConvention.StdCall)] private delegate int Simple(nint instance);
     [UnmanagedFunctionPointer(CallingConvention.StdCall)] private delegate int StateArg(nint instance, out int state);
     [UnmanagedFunctionPointer(CallingConvention.StdCall)] private delegate int BoolArg(nint instance, int value);
@@ -76,6 +79,9 @@ internal sealed class MfPlayer : IDisposable
         videoWindow = hwnd;
         try
         {
+            // Our explicit EVR is disposed after MFPlay releases its own MF
+            // startup reference. Keep the platform alive through that cleanup.
+            Check(MFStartup(0x20070, 0)); platformStarted = true;
             Check(MFPCreateMediaPlayer(null, false, 0, callback, hwnd, out player));
             Check(PlayerSlot<BoolArg>(SetMuteSlot)(player, 1));
             // Async parsing keeps corrupt/slow media off the UI thread. The
@@ -126,6 +132,7 @@ internal sealed class MfPlayer : IDisposable
         Check(PlayerSlot<PtrArg>(SetItemSlot)(player, item));
     }
     internal uint RenderingPreferences => renderer?.RenderingPreferences ?? 0;
+    internal bool HasPresentedFrame => renderer?.HasPresentedFrame == true;
     internal bool Muted
     {
         get { Check(PlayerSlot<StateArg>(GetMuteSlot)(player, out int muted)); return muted != 0; }
@@ -181,12 +188,21 @@ internal sealed class MfPlayer : IDisposable
     {
         callback.Event = null;
         nint owned = player; player = 0;
+        bool closePlatform = platformStarted; platformStarted = false;
         try { if (owned != 0) Slot<Simple>(owned, ShutdownSlot)(owned); }
         finally
         {
-            if (owned != 0) Marshal.Release(owned);
-            renderer?.Dispose(); renderer = null;
-            GC.KeepAlive(callback);
+            try { if (owned != 0) Marshal.Release(owned); }
+            finally
+            {
+                var oldRenderer = renderer; renderer = null;
+                try { oldRenderer?.Dispose(); }
+                finally
+                {
+                    try { if (closePlatform) Check(MFShutdown()); }
+                    finally { GC.KeepAlive(callback); }
+                }
+            }
         }
     }
 }

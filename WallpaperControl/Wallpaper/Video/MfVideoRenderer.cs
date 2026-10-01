@@ -123,6 +123,21 @@ internal sealed class MfVideoRenderer : IDisposable
     private static bool ValidImage(BitmapHeader header, nint pixels, uint length) =>
         pixels != 0 && header.Width > 0 && header.Height != 0 && header.Height != int.MinValue &&
         header.Bits == 32 && header.Compression == 0 && length == (long)header.Width * Math.Abs(header.Height) * 4;
+    internal bool HasPresentedFrame
+    {
+        get
+        {
+            if (display == 0) return false;
+            nint pixels = 0;
+            try
+            {
+                var header = new BitmapHeader { Size = 40 };
+                int hr = Slot<Image>(display, 12)(display, ref header, out pixels, out uint length, out _);
+                return hr >= 0 && ValidImage(header, pixels, length);
+            }
+            finally { if (pixels != 0) Marshal.FreeCoTaskMem(pixels); }
+        }
+    }
     // Diagnostic readback of the actual composited EVR frame, not the source
     // decoder or playback clock. Never polled in production playback.
     internal bool TryCaptureFrame(out MfVideoFrame? frame)
@@ -150,8 +165,8 @@ internal sealed class MfVideoRenderer : IDisposable
         try { if (ownedSink != 0) Slot<Simple>(ownedSink, 11)(ownedSink); }
         finally
         {
-            if (ownedDisplay != 0) Marshal.Release(ownedDisplay);
-            if (ownedSink != 0) Marshal.Release(ownedSink);
+            try { if (ownedDisplay != 0) Marshal.Release(ownedDisplay); }
+            finally { if (ownedSink != 0) Marshal.Release(ownedSink); }
         }
     }
 }

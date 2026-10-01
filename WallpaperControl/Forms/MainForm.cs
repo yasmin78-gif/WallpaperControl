@@ -93,6 +93,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                runtimeResources?.Dispose(); runtimeResources = null;
                 DisposeVideoWallpaper();
                 StopVideoLiveTest();
                 wallpaperLayoutReady = false;

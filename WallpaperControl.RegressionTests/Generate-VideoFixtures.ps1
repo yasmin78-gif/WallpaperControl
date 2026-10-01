@@ -15,7 +15,7 @@ Invoke-FixtureEncoder @('-f','lavfi','-i','testsrc2=size=320x180:rate=30:duratio
 Invoke-FixtureEncoder @('-f','lavfi','-i','testsrc2=size=320x180:rate=30:duration=1',
     '-c:v','mpeg4',(Join-Path $fixtureDirectory 'unsupported.mp4'))
 Set-Content -LiteralPath (Join-Path $fixtureDirectory 'corrupt.mp4') -Value 'Not an MP4.'
-foreach ($scene in @(@{ Name = 'loop-colors.mp4'; First = 'blue' }, @{ Name = 'loop-black.mp4'; First = 'black' })) {
+foreach ($scene in @(@{ Name = 'loop-colors.mp4'; First = 'blue' }, @{ Name = 'loop-black.mp4'; First = 'black' }, @{ Name = 'switch-colors.mp4'; First = 'lime' })) {
     Invoke-FixtureEncoder @('-f','lavfi','-i',"color=c=$($scene.First):s=320x180:r=30:d=1",
         '-f','lavfi','-i','color=c=red:s=320x180:r=30:d=1',
         '-f','lavfi','-i','sine=frequency=880:sample_rate=48000:duration=2',
