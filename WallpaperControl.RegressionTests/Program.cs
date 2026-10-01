@@ -23,6 +23,11 @@ try
         Console.WriteLine("PASS: " + name);
         passed++;
     }
+    if (args.Length >= 2 && args[0] == "--video-native") { VideoNativeSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} native video checks passed."); return 0; }
+    if (args.Length >= 2 && args[0] == "--video-desktop") { VideoDesktopSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} desktop video checks passed."); return 0; }
+    VideoPresentationTests.Run(Check);
+    if (args.Contains("--video")) { VideoWallpaperTests.Run(Check); Console.WriteLine($"All {passed} video checks passed."); return 0; }
+    VideoWallpaperTests.Run(Check);
     if (args.Contains("--wallpaper-layout"))
     {
         WallpaperLayoutTests.Run(Check);

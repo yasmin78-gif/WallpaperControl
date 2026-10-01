@@ -24,6 +24,7 @@ namespace WallpaperControl
                 if (!fullscreenPolicy.Update(pauseOnFullscreen,
                     pauseOnFullscreen ? FullscreenActivityDetector.GetFullscreenState() : false, DateTime.UtcNow)) return;
                 bool paused = fullscreenPolicy.IsPaused;
+                videoWallpaper?.SetPause(VideoPauseReason.Fullscreen, paused);
                 LogScheduler($"fullscreen pause changed; suspended={paused}; propagation begin");
                 // Reuse the existing UI timer: sample exit more often without
                 // accelerating wallpaper/UI refreshes during normal operation.
@@ -41,7 +42,7 @@ namespace WallpaperControl
                     customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     // The fallback Windows slideshow also needs to stop. Keep this
                     // separate from the user's manual pause state.
-                    if (!customSlideshowEngineActive && !slideshowPaused && IsSlideshowCurrentlyActive())
+                    if (wallpaperOwnership.AllowsImages && !customSlideshowEngineActive && !slideshowPaused && IsSlideshowCurrentlyActive())
                     {
                         string? path = GetCurrentWallpaperPath();
                         if (!string.IsNullOrWhiteSpace(path))
@@ -63,7 +64,7 @@ namespace WallpaperControl
                 }
                 else
                 {
-                    if (nativeSlideshowAutoPaused && !slideshowPaused)
+                    if (wallpaperOwnership.AllowsImages && nativeSlideshowAutoPaused && !slideshowPaused)
                     {
                         if (fullscreenSavedSlideshow != null) RestoreNativeSlideshowAfterFullscreen();
                         else await ResumeSlideshowAsync(showError: false);
@@ -71,7 +72,7 @@ namespace WallpaperControl
                     nativeSlideshowAutoPaused = false;
                     ReleaseComObject(fullscreenSavedSlideshow);
                     fullscreenSavedSlideshow = null;
-                    if (customSlideshowEngineActive && !slideshowPaused)
+                    if (wallpaperOwnership.AllowsImages && customSlideshowEngineActive && !slideshowPaused)
                         RecalculateCustomSlideshowSchedule();
                     if (deferredWallpaperCount)
                     {

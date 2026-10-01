@@ -54,6 +54,7 @@ internal static class AuditFixTests
     {
         // Exercise real timer/UI methods without constructing COM or loading user preferences.
         var form = (App.MainForm)RuntimeHelpers.GetUninitializedObject(typeof(App.MainForm));
+        Set(form, "wallpaperOwnership", new App.WallpaperModeOwnership());
         using ManualResetEventSlim fired = new();
         using System.Threading.Timer timer = new(_ => fired.Set(), null, Timeout.Infinite, Timeout.Infinite);
         Set(form, "customSlideshowPreciseTimer", timer);

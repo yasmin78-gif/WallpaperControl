@@ -4,6 +4,8 @@ namespace WallpaperControl;
 
 internal static class PackagePresentation
 {
+    internal static DateTimeOffset? LastUpdate(IEnumerable<TrackedShipment> shipments) =>
+        shipments.Where(s => s.TrackingMode == "provider").Max(s => s.LastSuccessfulRefresh);
     internal static string ShipmentStatus(TrackedShipment shipment, string language) => AmazonLogistics.IsLocal(shipment)
         ? shipment.StatusSource == "user" && shipment.StatusMilestone == "delivered" ? Localization.Get("PackageManualDelivered", language) : "Amazon Logistics"
         : Status(shipment.StatusMilestone, language);

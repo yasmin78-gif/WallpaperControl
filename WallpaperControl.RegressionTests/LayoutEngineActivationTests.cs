@@ -10,6 +10,7 @@ internal static class LayoutEngineActivationTests
         const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
         var form = (App.MainForm)RuntimeHelpers.GetUninitializedObject(typeof(App.MainForm));
         void Set(string name, object value) => typeof(App.MainForm).GetField(name, fields)!.SetValue(form, value);
+        Set("wallpaperOwnership", new App.WallpaperModeOwnership());
         var policy = new App.FullscreenPausePolicy();
         Set("fullscreenPolicy", policy);
         App.DesktopSlideshowState state = App.DesktopSlideshowState.Enabled | App.DesktopSlideshowState.Slideshow;

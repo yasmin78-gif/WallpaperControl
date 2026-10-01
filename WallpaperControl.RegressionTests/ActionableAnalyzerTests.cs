@@ -52,6 +52,7 @@ internal static class ActionableAnalyzerTests
         try
         {
             var form = (App.MainForm)RuntimeHelpers.GetUninitializedObject(typeof(App.MainForm));
+            typeof(App.MainForm).GetField("wallpaperOwnership", Instance)!.SetValue(form, new App.WallpaperModeOwnership());
             var store = new App.AppSettingsStore(keyPath);
             string missing = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
             long revision = App.SettingsPersistence.FailureRevision;

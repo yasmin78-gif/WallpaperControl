@@ -537,6 +537,11 @@ namespace WallpaperControl
                     Close();
                 });
 
+            videoLiveTestItem = new ToolStripMenuItem(Localization.Get("VideoLiveTest"));
+            videoLiveTestItem.Click += (_, _) => OpenVideoLiveTest();
+            trayMenu.Items.Insert(7, videoLiveTestItem);
+            trayMenu.Items.Insert(8, new ToolStripSeparator());
+
             trayIcon = new NotifyIcon
             {
                 Icon = Icon,
@@ -649,7 +654,15 @@ namespace WallpaperControl
 
             // The application owns slideshow timing. Schedule the first change
             // at the next clock-aligned interval boundary.
-            StartCustomSlideshowEngine();
+            if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.ImageSlideshow)
+                StartCustomSlideshowEngine();
+            else if (Screen.AllScreens.Length == 1)
+            {
+                // Reserve ownership before any timer, hotkey or startup host can run.
+                wallpaperOwnership.Switch(WallpaperOperatingMode.VideoWallpaper);
+                videoPathText.Text = appSettings.LoadVideoWallpaperPath();
+                videoUiLoading = true; wallpaperModeCombo.SelectedIndex = 1; videoUiLoading = false;
+            }
             CheckSlideshowStatus();
 
             widgetManager.StartNoteReminders();

@@ -1579,4 +1579,23 @@
   <data name="PackageAutomaticRefresh" xml:space="preserve"><value>自動更新</value></data>
   <data name="PackageRefreshInterval" xml:space="preserve"><value>更新間隔</value></data>
   <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} 分</value></data>
+  <data name="VideoLiveTest" xml:space="preserve"><value>動画壁紙をテスト…</value></data>
+  <data name="VideoLiveTestAlreadyRunning" xml:space="preserve"><value>動画テストは既に実行中です。タスクバーから操作ウィンドウを開いてください。</value></data>
+  <data name="VideoLiveTestStartFailed" xml:space="preserve"><value>動画テストを開始できませんでした。ログを確認してください。</value></data>
+  <data name="WallpaperModeHeading" xml:space="preserve"><value>壁紙モード</value></data>
+  <data name="ModeImageSlideshow" xml:space="preserve"><value>画像スライドショー</value></data>
+  <data name="ModeVideoWallpaper" xml:space="preserve"><value>動画壁紙</value></data>
+  <data name="VideoApply" xml:space="preserve"><value>適用 / 動画を開始</value></data>
+  <data name="VideoBrowse" xml:space="preserve"><value>ローカル MP4 を選択</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>動画壁紙が有効 · ミュート · ループ · フィル</value></data>
+  <data name="VideoInitializing" xml:space="preserve"><value>動画を準備しています …</value></data>
+  <data name="VideoRecovering" xml:space="preserve"><value>デスクトップへの接続を復元しています …</value></data>
+  <data name="VideoManualPaused" xml:space="preserve"><value>動画は手動で一時停止中</value></data>
+  <data name="VideoFullscreenPaused" xml:space="preserve"><value>全画面表示のため動画を一時停止中</value></data>
+  <data name="VideoPause" xml:space="preserve"><value>動画を一時停止</value></data>
+  <data name="VideoResume" xml:space="preserve"><value>動画を再開</value></data>
+  <data name="VideoErrorFile" xml:space="preserve"><value>既存のローカル MP4 ファイルを選択してください。</value></data>
+  <data name="VideoErrorPlayback" xml:space="preserve"><value>動画を利用できません。H.264 の MP4 に対応しています。静止画の壁紙は保持されます。</value></data>
+  <data name="VideoErrorRecovery" xml:space="preserve"><value>デスクトップへの接続に失敗しました。動画を再度適用してください。</value></data>
+  <data name="VideoErrorMonitor" xml:space="preserve"><value>動画壁紙は現在、アクティブなモニター 1 台にのみ対応しています。</value></data>
 </root>

@@ -37,6 +37,31 @@ namespace WallpaperControl
     // supplied for tests, leaving real user settings untouched.
     internal sealed class AppSettingsStore
     {
+        internal WallpaperOperatingMode LoadWallpaperOperatingMode()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(registryPath);
+                return key?.GetValue("WallpaperOperatingMode") is string text &&
+                    text == nameof(WallpaperOperatingMode.VideoWallpaper)
+                    ? WallpaperOperatingMode.VideoWallpaper : WallpaperOperatingMode.ImageSlideshow;
+            }
+            catch { return WallpaperOperatingMode.ImageSlideshow; }
+        }
+        internal string LoadVideoWallpaperPath()
+        {
+            try { using var key = Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("VideoWallpaperPath") as string ?? ""; }
+            catch { return ""; }
+        }
+        internal void SaveWallpaperOperatingMode(WallpaperOperatingMode mode) =>
+            WriteValue("WallpaperOperatingMode", mode.ToString(), RegistryValueKind.String);
+        internal void SaveVideoWallpaperPath(string path) => WriteValue("VideoWallpaperPath", path, RegistryValueKind.String);
+        internal bool LoadImageActiveBeforeVideo()
+        {
+            try { using var key = Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("VideoRestoreImageActive") is int value && value != 0; }
+            catch { return false; }
+        }
+        internal void SaveImageActiveBeforeVideo(bool active) => WriteValue("VideoRestoreImageActive", active ? 1 : 0, RegistryValueKind.DWord);
         private readonly string registryPath;
         /// <summary>
         /// Selects the application registry key or an isolated key supplied by a test.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -112,6 +112,7 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task RejectCurrentWallpaperAsync()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (slideshowPaused || fullscreenPolicy.IsPaused)
                 return;
 
@@ -225,6 +226,7 @@ namespace WallpaperControl
         /// </summary>
         private void UndoLastReject()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (string.IsNullOrWhiteSpace(lastRejectedSourcePath) ||
                 string.IsNullOrWhiteSpace(lastRejectedDestinationPath))
             {

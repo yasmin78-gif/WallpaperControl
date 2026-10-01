@@ -16,6 +16,7 @@ namespace WallpaperControl
         internal void TryStartCustomSlideshowAfterLayoutChange(DesktopWallpaperPosition position,
             int monitorCount, Action startEngine)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (customSlideshowEngineActive || slideshowPaused || fullscreenPolicy.IsPaused ||
                 !PersistentDesktopTransitionManager.SupportsConfiguration(monitorCount, position)) return;
             try
@@ -39,6 +40,7 @@ namespace WallpaperControl
         /// </summary>
         private void StartCustomSlideshowEngine()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             string folder = folderTextBox.Text;
 
             if (string.IsNullOrWhiteSpace(folder) ||
@@ -98,6 +100,7 @@ namespace WallpaperControl
         /// </summary>
         private void RecalculateCustomSlideshowSchedule()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (!TryGetSelectedInterval(out uint milliseconds))
             {
                 customSlideshowNextChange = DateTime.MaxValue;
@@ -123,7 +126,7 @@ namespace WallpaperControl
         /// </summary>
         private void ArmCustomSlideshowPreciseTimer()
         {
-            if (!customSlideshowEngineActive ||
+            if (!wallpaperOwnership.AllowsImages || !customSlideshowEngineActive ||
                 customSlideshowChangeRunning ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowNextChange == DateTime.MaxValue)
@@ -171,9 +174,9 @@ namespace WallpaperControl
 
             try
             {
-                BeginInvoke(
-                    new Action(
-                        ProcessPreciseCustomSlideshowTick));
+                int lease = wallpaperOwnership.Generation;
+                BeginInvoke(new Action(() =>
+                { if (wallpaperOwnership.IsCurrentImage(lease)) ProcessPreciseCustomSlideshowTick(); }));
             }
             catch (Exception ex)
             {
@@ -192,7 +195,7 @@ namespace WallpaperControl
         private void ProcessPreciseCustomSlideshowTick()
         {
             Interlocked.Exchange(ref schedulerDispatchUtcTicks, DateTime.UtcNow.Ticks);
-            if (exitRequested || IsDisposed || Disposing) return;
+            if (!wallpaperOwnership.AllowsImages || exitRequested || IsDisposed || Disposing) return;
             _ = UpdateFullscreenPauseAsync();
             if (!customSlideshowEngineActive ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||

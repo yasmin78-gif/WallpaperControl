@@ -1607,4 +1607,23 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Automatisch aktualisieren</value></data>
   <data name="PackageRefreshInterval" xml:space="preserve"><value>Aktualisierungsintervall</value></data>
   <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} Minuten</value></data>
+  <data name="VideoLiveTest" xml:space="preserve"><value>Video-Hintergrund testen…</value></data>
+  <data name="VideoLiveTestAlreadyRunning" xml:space="preserve"><value>Der Video-Live-Test läuft bereits. Öffne sein Steuerfenster über die Taskleiste.</value></data>
+  <data name="VideoLiveTestStartFailed" xml:space="preserve"><value>Der Video-Live-Test konnte nicht gestartet werden. Details stehen im Protokoll.</value></data>
+  <data name="WallpaperModeHeading" xml:space="preserve"><value>Hintergrundmodus</value></data>
+  <data name="ModeImageSlideshow" xml:space="preserve"><value>Bild-Diashow</value></data>
+  <data name="ModeVideoWallpaper" xml:space="preserve"><value>Video-Hintergrund</value></data>
+  <data name="VideoApply" xml:space="preserve"><value>Anwenden / Video starten</value></data>
+  <data name="VideoBrowse" xml:space="preserve"><value>Lokale MP4 auswählen</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Video-Hintergrund aktiv · stumm · Endlosschleife · Fill</value></data>
+  <data name="VideoInitializing" xml:space="preserve"><value>Video wird vorbereitet …</value></data>
+  <data name="VideoRecovering" xml:space="preserve"><value>Desktop-Anbindung wird wiederhergestellt …</value></data>
+  <data name="VideoManualPaused" xml:space="preserve"><value>Video manuell pausiert</value></data>
+  <data name="VideoFullscreenPaused" xml:space="preserve"><value>Video wegen Vollbild pausiert</value></data>
+  <data name="VideoPause" xml:space="preserve"><value>Video pausieren</value></data>
+  <data name="VideoResume" xml:space="preserve"><value>Video fortsetzen</value></data>
+  <data name="VideoErrorFile" xml:space="preserve"><value>Bitte eine vorhandene lokale MP4-Datei auswählen.</value></data>
+  <data name="VideoErrorPlayback" xml:space="preserve"><value>Video nicht verfügbar. Unterstützt wird MP4 mit H.264. Der statische Hintergrund bleibt erhalten.</value></data>
+  <data name="VideoErrorRecovery" xml:space="preserve"><value>Desktop-Anbindung fehlgeschlagen. Bitte Video erneut anwenden.</value></data>
+  <data name="VideoErrorMonitor" xml:space="preserve"><value>Video-Hintergrund unterstützt derzeit genau einen aktiven Monitor.</value></data>
 </root>

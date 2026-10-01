@@ -17,6 +17,12 @@ namespace WallpaperControl
         // normal poll, even when the fullscreen policy itself has not changed.
         private void RefreshWallpaperUi()
         {
+            if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
+            {
+                if (videoWallpaper != null) _ = videoWallpaper.TickAsync();
+                UpdateVideoControls();
+                return;
+            }
             ObserveScheduler();
             if (IsDisposed) return;
             UpdateSpanPositionCaption(Screen.AllScreens.Length);
@@ -42,6 +48,8 @@ namespace WallpaperControl
         /// </summary>
         private void CheckSlideshowStatus()
         {
+            if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
+            { UpdateVideoControls(); return; }
             if (servicesEnabled) UpdateCurrentWallpaperDisplay();
             if (fullscreenPolicy.IsPaused)
             {

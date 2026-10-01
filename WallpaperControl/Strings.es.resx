@@ -1607,4 +1607,23 @@ Versión instalada: {0}
   <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Actualización automática</value></data>
   <data name="PackageRefreshInterval" xml:space="preserve"><value>Intervalo de actualización</value></data>
   <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} minutos</value></data>
+  <data name="VideoLiveTest" xml:space="preserve"><value>Probar fondo de vídeo…</value></data>
+  <data name="VideoLiveTestAlreadyRunning" xml:space="preserve"><value>La prueba de vídeo ya está en ejecución. Abra su ventana desde la barra de tareas.</value></data>
+  <data name="VideoLiveTestStartFailed" xml:space="preserve"><value>No se pudo iniciar la prueba de vídeo. Consulte el registro.</value></data>
+  <data name="WallpaperModeHeading" xml:space="preserve"><value>Modo de fondo</value></data>
+  <data name="ModeImageSlideshow" xml:space="preserve"><value>Presentación de imágenes</value></data>
+  <data name="ModeVideoWallpaper" xml:space="preserve"><value>Fondo de vídeo</value></data>
+  <data name="VideoApply" xml:space="preserve"><value>Aplicar / iniciar vídeo</value></data>
+  <data name="VideoBrowse" xml:space="preserve"><value>Seleccionar MP4 local</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Vídeo activo · silenciado · bucle · rellenar</value></data>
+  <data name="VideoInitializing" xml:space="preserve"><value>Preparando vídeo …</value></data>
+  <data name="VideoRecovering" xml:space="preserve"><value>Restaurando la integración con el escritorio …</value></data>
+  <data name="VideoManualPaused" xml:space="preserve"><value>Vídeo pausado manualmente</value></data>
+  <data name="VideoFullscreenPaused" xml:space="preserve"><value>Vídeo pausado por pantalla completa</value></data>
+  <data name="VideoPause" xml:space="preserve"><value>Pausar vídeo</value></data>
+  <data name="VideoResume" xml:space="preserve"><value>Reanudar vídeo</value></data>
+  <data name="VideoErrorFile" xml:space="preserve"><value>Seleccione un archivo MP4 local existente.</value></data>
+  <data name="VideoErrorPlayback" xml:space="preserve"><value>Vídeo no disponible. Se admite MP4 con H.264. Se conserva el fondo estático.</value></data>
+  <data name="VideoErrorRecovery" xml:space="preserve"><value>Error de integración con el escritorio. Vuelva a aplicar el vídeo.</value></data>
+  <data name="VideoErrorMonitor" xml:space="preserve"><value>El fondo de vídeo admite actualmente un único monitor activo.</value></data>
 </root>

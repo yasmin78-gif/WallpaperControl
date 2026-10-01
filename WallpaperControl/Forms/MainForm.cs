@@ -26,7 +26,7 @@ namespace WallpaperControl
             if (!servicesEnabled) return;
             FitMainWindowToMonitor();
             await UpdateFullscreenPauseAsync();
-            while (fullscreenPolicy.IsPaused && !IsDisposed)
+            while (wallpaperOwnership.AllowsImages && fullscreenPolicy.IsPaused && !IsDisposed)
             {
                 await Task.Delay(1000);
                 await UpdateFullscreenPauseAsync();
@@ -40,11 +40,19 @@ namespace WallpaperControl
 
             try
             {
+                if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.VideoWallpaper)
+                {
+                    videoPathText.Text = appSettings.LoadVideoWallpaperPath();
+                    await ApplyWallpaperModeAsync(WallpaperOperatingMode.VideoWallpaper);
+                }
+                else
+                {
                 string? current =
                     GetCurrentWallpaperPath();
 
                 await PersistentDesktopTransitionManager.InitializeHostAsync(
                     current);
+                }
             }
             catch (Exception ex)
             {
@@ -85,6 +93,8 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                DisposeVideoWallpaper();
+                StopVideoLiveTest();
                 wallpaperLayoutReady = false;
                 customWallpaperCancellation?.Cancel();
                 if (nativeSlideshowAutoPaused && !slideshowPaused)

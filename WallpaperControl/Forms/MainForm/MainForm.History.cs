@@ -18,6 +18,7 @@ namespace WallpaperControl
         private async void SetWallpaperFromStatistics(
             string path)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (string.IsNullOrWhiteSpace(path) ||
                 !File.Exists(path))
             {
@@ -67,6 +68,7 @@ namespace WallpaperControl
 
         internal void ApplyExplicitWallpaper(Action applyNative, bool pauseAfterSelection)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             bool wasPaused = slideshowPaused;
             slideshowPaused = true;
             ArmCustomSlideshowPreciseTimer();

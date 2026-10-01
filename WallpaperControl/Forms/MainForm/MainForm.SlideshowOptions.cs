@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -256,6 +256,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (loading)
                 return;
 
@@ -368,6 +369,7 @@ namespace WallpaperControl
         /// <param name="showError">True to show an error; background resume only records diagnostics.</param>
         private void ApplySlideshowOptions(bool showError = true)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (intervalComboBox.SelectedItem
                 is not DisplayOption<uint> selected)
             {

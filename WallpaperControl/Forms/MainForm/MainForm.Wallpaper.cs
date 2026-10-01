@@ -100,8 +100,11 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            int lease = wallpaperOwnership.Generation;
+            if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             LogScheduler($"manual request; direction={direction}");
             await UpdateFullscreenPauseAsync();
+            if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             if (fullscreenPolicy.IsPaused) { LogScheduler("manual skipped: fullscreen"); return false; }
             if (slideshowPaused) { LogScheduler("manual skipped: manual pause"); return false; }
 
@@ -157,11 +160,31 @@ namespace WallpaperControl
         /// </summary>
         /// <param name="direction">Whether to move forward or backward in the slideshow.</param>
         /// <returns>A task whose result is true when the selected wallpaper became the current wallpaper; false when blocked, unavailable, or unsuccessful.</returns>
-        private async Task<bool> AdvanceCustomWallpaperAsync(
+        private Task<bool> AdvanceCustomWallpaperAsync(DesktopSlideshowDirection direction, bool automatic = false)
+        {
+            if (!wallpaperOwnership.AllowsImages) return Task.FromResult(false);
+            var task = AdvanceCustomWallpaperCoreAsync(direction, automatic);
+            if (!task.IsCompleted)
+            {
+                imageTransitionTasks.Add(task);
+                _ = ForgetImageTransitionAsync(task);
+            }
+            return task;
+        }
+
+        private async Task ForgetImageTransitionAsync(Task<bool> task)
+        {
+            try { await task; }
+            finally { imageTransitionTasks.Remove(task); }
+        }
+
+        private async Task<bool> AdvanceCustomWallpaperCoreAsync(
             DesktopSlideshowDirection direction, bool automatic = false)
         {
+            int lease = wallpaperOwnership.Generation;
             LogScheduler($"{(automatic ? "automatic" : "manual")} custom attempt");
             await UpdateFullscreenPauseAsync();
+            if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             if (fullscreenPolicy.IsPaused) { LogScheduler("skipped: fullscreen"); return false; }
             if (customSlideshowChangeRunning) { LogScheduler("skipped: change in progress"); return false; }
             if (slideshowPaused || !customSlideshowEngineActive) { LogScheduler("skipped: manual pause or inactive"); return false; }
@@ -197,7 +220,7 @@ namespace WallpaperControl
                     shuffleCheckBox.Checked, direction == DesktopSlideshowDirection.Backward,
                     customSlideshowRandom, async candidate =>
                     {
-                        if (exitRequested || IsDisposed || Disposing || cancellation.IsCancellationRequested) return false;
+                        if (!wallpaperOwnership.IsCurrentImage(lease) || exitRequested || IsDisposed || Disposing || cancellation.IsCancellationRequested) return false;
                         try
                         {
                             // Validate using the same Windows decoder even for the direct path.
@@ -206,6 +229,7 @@ namespace WallpaperControl
                                 selectedTransitionKind, selectedTransitionDurationMilliseconds,
                                 selectedTransitionDirection, selectedZoomMode, cancellation.Token);
                             cancellation.Token.ThrowIfCancellationRequested();
+                            if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
                             return string.Equals(GetCurrentWallpaperPath(), candidate,
                                 StringComparison.OrdinalIgnoreCase);
                         }
@@ -252,7 +276,7 @@ namespace WallpaperControl
             {
                 customWallpaperCancellation = null;
                 customSlideshowChangeRunning = false;
-                if (!exitRequested && !IsDisposed && !Disposing)
+                if (wallpaperOwnership.IsCurrentImage(lease) && !exitRequested && !IsDisposed && !Disposing)
                 {
                     CompleteCustomSlideshowSchedule(automatic);
                     UpdateCurrentWallpaperDisplay();
@@ -279,6 +303,7 @@ namespace WallpaperControl
         /// </summary>
         private void UpdateCurrentWallpaperDisplay()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             string? path =
                 GetCurrentWallpaperPath();
 

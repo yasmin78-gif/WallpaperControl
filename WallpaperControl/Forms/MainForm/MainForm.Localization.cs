@@ -208,8 +208,10 @@ namespace WallpaperControl
             trayMenu.Items[5].Text =
                 Localization.Get("OpenRejectedFolder");
 
-            trayMenu.Items[7].Text =
+            trayMenu.Items[9].Text =
                 Localization.Get("Exit");
+
+            if (videoLiveTestItem != null) videoLiveTestItem.Text = Localization.Get("VideoLiveTest");
 
             UpdateWallpaperCount();
 

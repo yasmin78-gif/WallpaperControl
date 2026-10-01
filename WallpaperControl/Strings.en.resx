@@ -1607,4 +1607,23 @@ Would you like to open the release page?</value>
   <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Automatic refresh</value></data>
   <data name="PackageRefreshInterval" xml:space="preserve"><value>Refresh interval</value></data>
   <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} minutes</value></data>
+  <data name="VideoLiveTest" xml:space="preserve"><value>Test video wallpaper…</value></data>
+  <data name="VideoLiveTestAlreadyRunning" xml:space="preserve"><value>The video live test is already running. Open its control window from the taskbar.</value></data>
+  <data name="VideoLiveTestStartFailed" xml:space="preserve"><value>The video live test could not be started. See the log for details.</value></data>
+  <data name="WallpaperModeHeading" xml:space="preserve"><value>Wallpaper mode</value></data>
+  <data name="ModeImageSlideshow" xml:space="preserve"><value>Image slideshow</value></data>
+  <data name="ModeVideoWallpaper" xml:space="preserve"><value>Video wallpaper</value></data>
+  <data name="VideoApply" xml:space="preserve"><value>Apply / start video</value></data>
+  <data name="VideoBrowse" xml:space="preserve"><value>Select local MP4</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Video wallpaper active · muted · loop · Fill</value></data>
+  <data name="VideoInitializing" xml:space="preserve"><value>Preparing video …</value></data>
+  <data name="VideoRecovering" xml:space="preserve"><value>Restoring desktop attachment …</value></data>
+  <data name="VideoManualPaused" xml:space="preserve"><value>Video manually paused</value></data>
+  <data name="VideoFullscreenPaused" xml:space="preserve"><value>Video paused for fullscreen</value></data>
+  <data name="VideoPause" xml:space="preserve"><value>Pause video</value></data>
+  <data name="VideoResume" xml:space="preserve"><value>Resume video</value></data>
+  <data name="VideoErrorFile" xml:space="preserve"><value>Select an existing local MP4 file.</value></data>
+  <data name="VideoErrorPlayback" xml:space="preserve"><value>Video unavailable. MP4 with H.264 is supported. The static wallpaper is retained.</value></data>
+  <data name="VideoErrorRecovery" xml:space="preserve"><value>Desktop attachment failed. Please apply the video again.</value></data>
+  <data name="VideoErrorMonitor" xml:space="preserve"><value>Video wallpaper currently supports exactly one active monitor.</value></data>
 </root>

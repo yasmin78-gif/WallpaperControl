@@ -16,6 +16,7 @@ namespace WallpaperControl
         [STAThread]
         static void Main()
         {
+            if (VideoWallpaperTest.VideoTestEntry.TryRun(Environment.GetCommandLineArgs())) return;
             string? remoteCommand = GetRemoteCommand();
 
             using SingleInstanceGuard instance = new();

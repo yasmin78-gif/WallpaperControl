@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -28,6 +28,7 @@ namespace WallpaperControl
         /// </summary>
         private void PauseSlideshow()
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (customSlideshowEngineActive)
             {
                 slideshowPaused = true;
@@ -95,6 +96,8 @@ namespace WallpaperControl
         private async Task<bool> ResumeSlideshowAsync(
             bool showError)
         {
+            int lease = wallpaperOwnership.Generation;
+            if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             if (customSlideshowEngineActive)
             {
                 slideshowPaused = false;
@@ -127,6 +130,7 @@ namespace WallpaperControl
                 if (!SetWallpaperFolder(folder, showError)) return false;
 
                 await Task.Delay(300);
+                if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
 
                 slideshowPaused = false;
                 StartCustomSlideshowEngine();
@@ -161,6 +165,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             string? wallpaperPath =
                 GetCurrentWallpaperPath();
 
@@ -225,6 +230,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (!wallpaperOwnership.AllowsImages) return;
             if (string.IsNullOrWhiteSpace(
                 folderTextBox.Text))
             {
@@ -287,6 +293,13 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ToggleSlideshowPauseAsync(bool refreshDisplay)
         {
+            if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
+            {
+                if (videoWallpaper != null) videoWallpaper.SetPause(VideoPauseReason.Manual,
+                    (videoWallpaper.PauseReasons & VideoPauseReason.Manual) == 0);
+                UpdateVideoControls();
+                return;
+            }
             if (slideshowPaused)
             {
                 await ResumeSlideshowAsync(

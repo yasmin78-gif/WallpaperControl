@@ -152,9 +152,7 @@ internal sealed class PackageTrackingWidgetForm : Form
             // The existing viewport reserves 25 logical pixels below the list. At the scroll
             // limit the list end meets that footer; before then the timestamp travels with it.
             UpdatedBounds = new RectangleF(14, Math.Max(viewport.ContentBounds.Bottom, y), LogicalWidth - 28, 22);
-            var remote = shipments.Where(s => s.TrackingMode == "provider").ToArray();
-            DateTimeOffset? updated = remote.Length > 0 && remote.All(s => s.LastSuccessfulRefresh != null)
-                ? remote.Min(s => s.LastSuccessfulRefresh) : null;
+            DateTimeOffset? updated = PackagePresentation.LastUpdate(shipments);
             if (updated != null && error == null)
                 g.DrawString(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(updated, lang), lang), font, muted, UpdatedBounds, line);
             if (viewport.CanScroll) { g.FillRectangle(muted, viewport.Track); g.FillRectangle(accent, viewport.Thumb); }

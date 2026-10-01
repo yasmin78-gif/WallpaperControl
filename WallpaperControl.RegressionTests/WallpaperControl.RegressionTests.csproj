@@ -5,8 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>../WallpaperControl/app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WallpaperControl/Wallpaper/Video/WallpaperOperatingMode.cs" Link="WallpaperOperatingMode.cs" />
     <ProjectReference Include="../WallpaperControl/WallpaperControl.csproj" Aliases="WallpaperApp" />
     <Compile Include="../WallpaperControl/Services/FullscreenActivityDetector.cs" Link="FullscreenActivityDetector.cs" />
     <Compile Include="../WallpaperControl/Wallpaper/WallpaperTransitionKind.cs" Link="WallpaperTransitionKind.cs" />

@@ -26,6 +26,7 @@ namespace WallpaperControl
             currentWallpaperCard.Controls.AddRange(new Control[] { currentHeading, currentWallpaperLabel, pauseButton, pinButton,
                 explorerButton, rejectButton, undoRejectButton, historyButton, statisticsButton });
             wallpaperContent!.Controls.AddRange(new Control[] { slideshowCard, displayCard, currentWallpaperCard });
+            InitializeVideoWallpaperUi();
             wallpaperContent.TabIndex = 0;
             mainHeading.TabIndex = 0; statusLabel.TabIndex = 1; activateButton.TabIndex = 2;
             slideshowCard.TabIndex = 3; displayCard.TabIndex = 4; nextWallpaperButton.TabIndex = 5; currentWallpaperCard.TabIndex = 6;
@@ -43,6 +44,7 @@ namespace WallpaperControl
             mainHeading.Text = Localization.Get("MainNavWallpaper");
             slideshowHeading.Text = Localization.Get("MainSlideshowHeading");
             displayHeading.Text = Localization.Get("MainDisplayHeading");
+            LocalizeVideoWallpaperUi();
             LayoutWallpaperPage();
         }
 
@@ -58,13 +60,20 @@ namespace WallpaperControl
 
         private void ApplyWallpaperPageTheme()
         {
-            foreach (Panel card in new[] { slideshowCard, displayCard, currentWallpaperCard })
+            foreach (Panel card in new[] { slideshowCard, displayCard, currentWallpaperCard, videoCard })
             {
                 card.BackColor = AppTheme.PanelBackground(darkMode);
                 card.ForeColor = AppTheme.TextPrimary(darkMode);
             }
             slideshowHeading.ForeColor = displayHeading.ForeColor = AppTheme.TextPrimary(darkMode);
             transitionLabel.ForeColor = transitionDurationLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            modeHeading.ForeColor = videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            videoPathText.BackColor = AppTheme.InputBackground(darkMode);
+            videoPathText.ForeColor = AppTheme.TextPrimary(darkMode);
+            wallpaperModeCombo.BackColor = AppTheme.InputBackground(darkMode);
+            wallpaperModeCombo.ForeColor = AppTheme.TextPrimary(darkMode);
+            foreach (Button button in new[] { videoBrowseButton, videoApplyButton, videoPauseButton })
+            { button.BackColor = AppTheme.ControlBackground(darkMode); button.ForeColor = AppTheme.TextPrimary(darkMode); }
         }
 
         private void SetNormalLayout()
@@ -127,7 +136,9 @@ namespace WallpaperControl
                 int Field(Label caption, Control input, int x, int y, int availableWidth) =>
                     InputAt(input, x, LabelAt(caption, x, y, availableWidth) + Px(4), availableWidth) + small;
 
-                int top = LabelAt(mainHeading, 0, 0, width, 32) + gap;
+                int selectorWidth = Math.Min(Px(300), width / 2);
+                int top = Math.Max(LabelAt(mainHeading, 0, 0, width - selectorWidth - small, 32),
+                    InputAt(wallpaperModeCombo, width - selectorWidth, 0, selectorWidth)) + gap;
                 if (wallpaperWarning)
                 {
                     top = LabelAt(statusLabel, 0, top, width) + small;
@@ -137,6 +148,22 @@ namespace WallpaperControl
                         top = activateButton.Bottom + small;
                     }
                 }
+
+                int videoWidth = Math.Max(1, width - 2 * padding);
+                int videoY = LabelAt(modeHeading, padding, padding, videoWidth, 28) + small;
+                int videoBrowseWidth = Px(54);
+                videoY = InputAt(videoPathText, padding, videoY, Math.Max(1, videoWidth - videoBrowseWidth - small));
+                videoBrowseButton.SetBounds(padding + videoWidth - videoBrowseWidth, videoPathText.Top, videoBrowseWidth, videoPathText.Height);
+                videoY += small;
+                int videoActionWidth = (videoWidth - small) / 2;
+                int videoActionHeight = Math.Max(Px(36), new[] { videoApplyButton, videoPauseButton }.Max(button =>
+                    TextRenderer.MeasureText(button.Text, button.Font, new Size(videoActionWidth - Px(16), int.MaxValue), TextFormatFlags.WordBreak).Height + Px(12)));
+                videoApplyButton.SetBounds(padding, videoY, videoActionWidth, videoActionHeight);
+                videoPauseButton.SetBounds(padding + videoActionWidth + small, videoY, videoWidth - videoActionWidth - small, videoActionHeight);
+                videoY += videoActionHeight + small;
+                videoY = LabelAt(videoStatusLabel, padding, videoY, videoWidth) + padding;
+                videoCard.SetBounds(0, top, width, videoY);
+                if (videoCard.Visible) top = videoCard.Bottom + gap;
 
                 int leftY = LabelAt(slideshowHeading, padding, padding, fieldWidth, 28) + gap;
                 leftY = LabelAt(folderLabel, padding, leftY, fieldWidth) + Px(4);
@@ -189,8 +216,9 @@ namespace WallpaperControl
                 currentWallpaperCard.SetBounds(0, nextWallpaperButton.Bottom + gap, width, currentY - small + padding);
 
                 Point scroll = wallpaperPage.AutoScrollPosition;
+                int contentHeight = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper ? videoCard.Bottom : currentWallpaperCard.Bottom;
                 wallpaperContent.SetBounds(Math.Max(gap, (wallpaperPage.ClientSize.Width - width) / 2) + scroll.X,
-                    gap + scroll.Y, width, currentWallpaperCard.Bottom);
+                    gap + scroll.Y, width, contentHeight);
                 wallpaperPage.AutoScrollMinSize = new Size(0, wallpaperContent.Height + 2 * gap);
             }
             finally

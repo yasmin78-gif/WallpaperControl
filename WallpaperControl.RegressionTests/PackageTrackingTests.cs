@@ -38,6 +38,18 @@ internal static class PackageTrackingTests
     }
     private static async Task Service(Action<bool, string> check, string root)
     {
+        var oldUpdate = new DateTimeOffset(2026, 10, 1, 0, 20, 0, TimeSpan.FromHours(2));
+        var lastUpdate = oldUpdate.AddHours(8).AddMinutes(31);
+        var delivered = Snapshot("delivered") with { StatusMilestone = "delivered", LastSuccessfulRefresh = oldUpdate };
+        var active = Snapshot("active") with { LastSuccessfulRefresh = lastUpdate };
+        var unrefreshed = Snapshot("pending") with { LastSuccessfulRefresh = null };
+        var manual = Snapshot("manual") with { TrackingMode = "manual", LastSuccessfulRefresh = lastUpdate.AddHours(1) };
+        check(App.PackagePresentation.LastUpdate(new[] { delivered, active, unrefreshed, manual }) == lastUpdate,
+            "Packages footer shows latest successful update despite older delivered and never-refreshed shipments");
+        check(App.PackagePresentation.LastUpdate(new[] { delivered }) == oldUpdate,
+            "Packages footer retains last actual update when all shipments are delivered");
+        check(App.PackagePresentation.LastUpdate(new[] { unrefreshed, manual }) == null && App.PackagePresentation.LastUpdate(Array.Empty<App.TrackedShipment>()) == null,
+            "Packages footer does not invent updates for manual, unrefreshed or empty lists");
         var rawEvents = new[] { "2026-09-28T01:55:00", "2026-09-29T13:40:00", "2026-09-26T10:11:00", "2026-09-26T16:29:00", "2026-09-29T10:36:00" }
             .Select((time, index) => new App.TrackingEvent { EventId = index.ToString(), RawOccurredAt = time }).ToArray();
         check(App.PackagePresentation.NewestEventsFirst(rawEvents).Select(e => e.EventId).SequenceEqual(new[] { "1", "4", "0", "3", "2" }),

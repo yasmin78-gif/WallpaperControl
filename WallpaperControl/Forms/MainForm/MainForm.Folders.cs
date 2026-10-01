@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -486,6 +486,7 @@ namespace WallpaperControl
         private bool SetWallpaperFolder(
             string path, bool showError = true)
         {
+            if (!wallpaperOwnership.AllowsImages) return false;
             IShellItem? folderItem = null;
             IShellItemArray? folderArray = null;
             IDesktopWallpaper? wallpaper = null;

@@ -1607,4 +1607,23 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="PackageAutomaticRefresh" xml:space="preserve"><value>Actualisation automatique</value></data>
   <data name="PackageRefreshInterval" xml:space="preserve"><value>Intervalle d’actualisation</value></data>
   <data name="PackageRefreshMinutesFormat" xml:space="preserve"><value>{0} minutes</value></data>
+  <data name="VideoLiveTest" xml:space="preserve"><value>Tester un fond vidéo…</value></data>
+  <data name="VideoLiveTestAlreadyRunning" xml:space="preserve"><value>Le test vidéo est déjà en cours. Ouvrez sa fenêtre depuis la barre des tâches.</value></data>
+  <data name="VideoLiveTestStartFailed" xml:space="preserve"><value>Impossible de démarrer le test vidéo. Consultez le journal.</value></data>
+  <data name="WallpaperModeHeading" xml:space="preserve"><value>Mode du fond d’écran</value></data>
+  <data name="ModeImageSlideshow" xml:space="preserve"><value>Diaporama d’images</value></data>
+  <data name="ModeVideoWallpaper" xml:space="preserve"><value>Fond d’écran vidéo</value></data>
+  <data name="VideoApply" xml:space="preserve"><value>Appliquer / démarrer la vidéo</value></data>
+  <data name="VideoBrowse" xml:space="preserve"><value>Sélectionner un MP4 local</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Vidéo active · muette · boucle · remplissage</value></data>
+  <data name="VideoInitializing" xml:space="preserve"><value>Préparation de la vidéo …</value></data>
+  <data name="VideoRecovering" xml:space="preserve"><value>Rétablissement du bureau …</value></data>
+  <data name="VideoManualPaused" xml:space="preserve"><value>Vidéo en pause manuelle</value></data>
+  <data name="VideoFullscreenPaused" xml:space="preserve"><value>Vidéo en pause pour le plein écran</value></data>
+  <data name="VideoPause" xml:space="preserve"><value>Mettre la vidéo en pause</value></data>
+  <data name="VideoResume" xml:space="preserve"><value>Reprendre la vidéo</value></data>
+  <data name="VideoErrorFile" xml:space="preserve"><value>Sélectionnez un fichier MP4 local existant.</value></data>
+  <data name="VideoErrorPlayback" xml:space="preserve"><value>Vidéo indisponible. MP4 avec H.264 est pris en charge. Le fond statique est conservé.</value></data>
+  <data name="VideoErrorRecovery" xml:space="preserve"><value>Échec de l’intégration au bureau. Appliquez à nouveau la vidéo.</value></data>
+  <data name="VideoErrorMonitor" xml:space="preserve"><value>Le fond vidéo prend actuellement en charge un seul écran actif.</value></data>
 </root>
