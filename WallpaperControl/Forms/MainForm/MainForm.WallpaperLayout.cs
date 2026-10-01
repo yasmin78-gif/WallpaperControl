@@ -67,12 +67,13 @@ namespace WallpaperControl
             }
             slideshowHeading.ForeColor = displayHeading.ForeColor = AppTheme.TextPrimary(darkMode);
             transitionLabel.ForeColor = transitionDurationLabel.ForeColor = AppTheme.TextPrimary(darkMode);
-            modeHeading.ForeColor = videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            modeHeading.ForeColor = videoFileLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoPathText.BackColor = AppTheme.InputBackground(darkMode);
             videoPathText.ForeColor = AppTheme.TextPrimary(darkMode);
             wallpaperModeCombo.BackColor = AppTheme.InputBackground(darkMode);
             wallpaperModeCombo.ForeColor = AppTheme.TextPrimary(darkMode);
-            foreach (Button button in new[] { videoBrowseButton, videoApplyButton, videoPauseButton })
+            foreach (Button button in new[] { videoBrowseButton, videoApplyButton, videoPauseButton, imageApplyButton })
             { button.BackColor = AppTheme.ControlBackground(darkMode); button.ForeColor = AppTheme.TextPrimary(darkMode); }
         }
 
@@ -139,7 +140,10 @@ namespace WallpaperControl
                 int selectorWidth = Math.Min(Px(300), width / 2);
                 int top = Math.Max(LabelAt(mainHeading, 0, 0, width - selectorWidth - small, 32),
                     InputAt(wallpaperModeCombo, width - selectorWidth, 0, selectorWidth)) + gap;
-                if (wallpaperWarning)
+                if (videoStatusLabel.Visible) top = LabelAt(videoStatusLabel, 0, top, width) + small;
+                if (imageApplyButton.Visible)
+                { imageApplyButton.SetBounds(0, top, width, Px(36)); top = imageApplyButton.Bottom + gap; }
+                if (wallpaperWarning && !VideoConfigurationSelected && wallpaperOwnership.AllowsImages)
                 {
                     top = LabelAt(statusLabel, 0, top, width) + small;
                     if (wallpaperActivation)
@@ -152,8 +156,9 @@ namespace WallpaperControl
                 int videoWidth = Math.Max(1, width - 2 * padding);
                 int videoY = LabelAt(modeHeading, padding, padding, videoWidth, 28) + small;
                 int videoBrowseWidth = Px(54);
-                videoY = InputAt(videoPathText, padding, videoY, Math.Max(1, videoWidth - videoBrowseWidth - small));
-                videoBrowseButton.SetBounds(padding + videoWidth - videoBrowseWidth, videoPathText.Top, videoBrowseWidth, videoPathText.Height);
+                videoFileLabel.SetBounds(padding, videoY, Math.Max(1, videoWidth - videoBrowseWidth - small), Px(32));
+                videoBrowseButton.SetBounds(padding + videoWidth - videoBrowseWidth, videoY, videoBrowseWidth, Px(32));
+                videoY = videoFileLabel.Bottom;
                 videoY += small;
                 int videoActionWidth = (videoWidth - small) / 2;
                 int videoActionHeight = Math.Max(Px(36), new[] { videoApplyButton, videoPauseButton }.Max(button =>
@@ -161,7 +166,7 @@ namespace WallpaperControl
                 videoApplyButton.SetBounds(padding, videoY, videoActionWidth, videoActionHeight);
                 videoPauseButton.SetBounds(padding + videoActionWidth + small, videoY, videoWidth - videoActionWidth - small, videoActionHeight);
                 videoY += videoActionHeight + small;
-                videoY = LabelAt(videoStatusLabel, padding, videoY, videoWidth) + padding;
+                videoY += padding;
                 videoCard.SetBounds(0, top, width, videoY);
                 if (videoCard.Visible) top = videoCard.Bottom + gap;
 
@@ -216,7 +221,7 @@ namespace WallpaperControl
                 currentWallpaperCard.SetBounds(0, nextWallpaperButton.Bottom + gap, width, currentY - small + padding);
 
                 Point scroll = wallpaperPage.AutoScrollPosition;
-                int contentHeight = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper ? videoCard.Bottom : currentWallpaperCard.Bottom;
+                int contentHeight = VideoConfigurationSelected ? videoCard.Bottom : currentWallpaperCard.Bottom;
                 wallpaperContent.SetBounds(Math.Max(gap, (wallpaperPage.ClientSize.Width - width) / 2) + scroll.X,
                     gap + scroll.Y, width, contentHeight);
                 wallpaperPage.AutoScrollMinSize = new Size(0, wallpaperContent.Height + 2 * gap);

@@ -1615,7 +1615,7 @@ Versión instalada: {0}
   <data name="ModeVideoWallpaper" xml:space="preserve"><value>Fondo de vídeo</value></data>
   <data name="VideoApply" xml:space="preserve"><value>Aplicar / iniciar vídeo</value></data>
   <data name="VideoBrowse" xml:space="preserve"><value>Seleccionar MP4 local</value></data>
-  <data name="VideoActive" xml:space="preserve"><value>Vídeo activo · silenciado · bucle · rellenar</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Vídeo en reproducción</value></data>
   <data name="VideoInitializing" xml:space="preserve"><value>Preparando vídeo …</value></data>
   <data name="VideoRecovering" xml:space="preserve"><value>Restaurando la integración con el escritorio …</value></data>
   <data name="VideoManualPaused" xml:space="preserve"><value>Vídeo pausado manualmente</value></data>
@@ -1626,4 +1626,11 @@ Versión instalada: {0}
   <data name="VideoErrorPlayback" xml:space="preserve"><value>Vídeo no disponible. Se admite MP4 con H.264. Se conserva el fondo estático.</value></data>
   <data name="VideoErrorRecovery" xml:space="preserve"><value>Error de integración con el escritorio. Vuelva a aplicar el vídeo.</value></data>
   <data name="VideoErrorMonitor" xml:space="preserve"><value>El fondo de vídeo admite actualmente un único monitor activo.</value></data>
+  <data name="VideoStart" xml:space="preserve"><value>Iniciar vídeo</value></data>
+  <data name="VideoChange" xml:space="preserve"><value>Cambiar vídeo</value></data>
+  <data name="ImageStart" xml:space="preserve"><value>Iniciar presentación</value></data>
+  <data name="VideoSelectedFile" xml:space="preserve"><value>Vídeo seleccionado</value></data>
+  <data name="VideoNoSelection" xml:space="preserve"><value>Ningún vídeo seleccionado</value></data>
+  <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Vídeo seleccionado · Presentación actualmente activa</value></data>
+  <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Presentación seleccionada · Vídeo actualmente activo</value></data>
 </root>

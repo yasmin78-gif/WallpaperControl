@@ -101,7 +101,7 @@ internal static class PackageTrackingTests
             && refreshed.NotificationState.NotifiedEventIds.Contains("keep"), "Packages refresh preserves name identity and notification metadata");
         check(service.Shipments.Single(s => s.Id == second.Id).LastSuccessfulRefresh == second.LastSuccessfulRefresh
             && service.RefreshFailures.ContainsKey(second.Id), "Packages offline retains last known shipment and timestamp");
-        check(provider.Created == 3 && provider.Ids.SequenceEqual(new[] { initial.ProviderTrackerId!, second.ProviderTrackerId! }), "Packages refresh uses only existing tracker IDs and no POST");
+        check(provider.Created == 3 && provider.Ids.SequenceEqual(new[] { initial.ProviderTrackerId!, second.ProviderTrackerId! }), "Packages refresh preserves tracker identities without creating local shipments");
         check(new App.TrackingStore(path).Shipments.Any(s => s.Id == initial.Id && s.DeliveredAt != null), "Packages delivered state survives restart");
         provider.Get = id => Task.FromResult(Snapshot(id)); await service.RefreshAsync();
         check(service.RefreshFailures.Count == 0, "Packages successful retry clears per-shipment errors");

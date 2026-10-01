@@ -90,7 +90,8 @@ internal sealed class PackageTrackingService : IDisposable
             foreach (var existing in Shipments)
             {
                 linked.Token.ThrowIfCancellationRequested();
-                if (existing.TrackingMode != "provider") continue;
+                if (existing.TrackingMode != "provider" || existing.StatusMilestone == "delivered"
+                    || AmazonLogistics.Recognizes(existing.TrackingNumber)) continue;
                 // Re-evaluate immediately before each request: disabling or suspending stops the remainder of a cycle.
                 if (eligible != null && !eligible(existing)) continue;
                 try
@@ -98,10 +99,13 @@ internal sealed class PackageTrackingService : IDisposable
                     if (existing.Provider != provider.ProviderId || string.IsNullOrWhiteSpace(existing.ProviderTrackerId))
                         throw new TrackingProviderException(TrackingProviderFailure.TrackerNotFound);
                     starting?.Invoke(existing);
-                    var snapshot = await provider.GetTrackingAsync(existing.ProviderTrackerId, linked.Token);
+                    var snapshot = await provider.RefreshTrackingAsync(existing, linked.Token);
                     linked.Token.ThrowIfCancellationRequested();
+                    if (!string.Equals(snapshot.ProviderTrackerId, existing.ProviderTrackerId, StringComparison.Ordinal))
+                        throw new TrackingProviderException(TrackingProviderFailure.InvalidResponse);
                     if (!store.Save(snapshot with { Id = existing.Id, DisplayName = existing.DisplayName,
                         ProviderTrackerId = existing.ProviderTrackerId, CreatedAt = existing.CreatedAt,
+                        TrackingNumber = existing.TrackingNumber, RequestedCarrierCode = existing.RequestedCarrierCode,
                         NotificationState = existing.NotificationState, AdditionalData = existing.AdditionalData }))
                     { storageFailed = true; continue; }
                     RefreshFailures.Remove(existing.Id);

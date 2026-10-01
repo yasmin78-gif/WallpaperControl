@@ -10,4 +10,6 @@ internal interface ITrackingProvider
     Task<TrackedShipment> CreateTrackerAsync(string trackingNumber, string? carrierCode = null,
         CancellationToken cancellationToken = default);
     Task<TrackedShipment> GetTrackingAsync(string providerTrackerId, CancellationToken cancellationToken = default);
+    Task<TrackedShipment> RefreshTrackingAsync(TrackedShipment shipment, CancellationToken cancellationToken = default)
+        => GetTrackingAsync(shipment.ProviderTrackerId!, cancellationToken);
 }

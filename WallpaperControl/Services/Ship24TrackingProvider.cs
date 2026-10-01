@@ -42,6 +42,9 @@ internal sealed partial class Ship24TrackingProvider : ITrackingProvider, IDispo
 
     public async Task<TrackedShipment> CreateTrackerAsync(string trackingNumber, string? carrierCode = null,
         CancellationToken cancellationToken = default)
+        => await TrackAsync(trackingNumber, carrierCode, "Create", cancellationToken).ConfigureAwait(false);
+
+    private async Task<TrackedShipment> TrackAsync(string trackingNumber, string? carrierCode, string operation, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(trackingNumber) || trackingNumber.Length is < 5 or > 50
@@ -49,8 +52,8 @@ internal sealed partial class Ship24TrackingProvider : ITrackingProvider, IDispo
             throw new TrackingProviderException(TrackingProviderFailure.InvalidTrackingNumber);
         var body = new Dictionary<string, object> { ["trackingNumber"] = trackingNumber };
         if (!string.IsNullOrWhiteSpace(carrierCode)) body["courierCode"] = new[] { carrierCode };
-        using var json = await SendAsync(HttpMethod.Post, "/public/v1/trackers/track", body, "Create", cancellationToken).ConfigureAwait(false);
-        return Map(json.RootElement, trackingNumber, false);
+        using var json = await SendAsync(HttpMethod.Post, "/public/v1/trackers/track", body, operation, cancellationToken).ConfigureAwait(false);
+        return Map(json.RootElement, trackingNumber, false) with { RequestedCarrierCode = carrierCode };
     }
 
     public async Task<TrackedShipment> GetTrackingAsync(string providerTrackerId, CancellationToken cancellationToken = default)
@@ -61,6 +64,20 @@ internal sealed partial class Ship24TrackingProvider : ITrackingProvider, IDispo
         using var json = await SendAsync(HttpMethod.Get, "/public/v1/trackers/" + Uri.EscapeDataString(providerTrackerId) + "/results",
             null, "Get", cancellationToken).ConfigureAwait(false);
         return Map(json.RootElement, providerTrackerId, true);
+    }
+
+    public async Task<TrackedShipment> RefreshTrackingAsync(TrackedShipment shipment, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(shipment.ProviderTrackerId))
+            throw new TrackingProviderException(TrackingProviderFailure.TrackerNotFound);
+        // Replay creation inputs, never the courier inferred by the provider.
+        var result = await TrackAsync(shipment.TrackingNumber, shipment.RequestedCarrierCode, "Refresh", cancellationToken).ConfigureAwait(false);
+        if (!string.Equals(result.ProviderTrackerId, shipment.ProviderTrackerId, StringComparison.Ordinal))
+        {
+            AppLogger.Info("Ship24 Refresh: InvalidResponse; tracker identity mismatch.");
+            throw new TrackingProviderException(TrackingProviderFailure.InvalidResponse);
+        }
+        return result;
     }
 
     private async Task<JsonDocument> SendAsync(HttpMethod method, string path, object? body, string operation, CancellationToken token)

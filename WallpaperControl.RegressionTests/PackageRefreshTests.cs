@@ -110,7 +110,7 @@ internal static class PackageRefreshTests
             f.Clock.Advance(120); await f.Scheduler.EvaluateAsync();
             check(f.Provider.Gets.Count == 2, "Package refresh newly delivered stops automatic polling");
             await f.Service.RefreshAsync();
-            check(f.Provider.Gets.Count == 3 && f.Provider.Creates == 0, "Package refresh delivered manual GET remains possible without POST");
+            check(f.Provider.Gets.Count == 2 && f.Provider.Creates == 0, "Package refresh delivered manual request is skipped");
         }
         foreach (var failure in new[] { App.TrackingProviderFailure.QuotaExhausted, App.TrackingProviderFailure.RateLimit,
             App.TrackingProviderFailure.Unauthorized, App.TrackingProviderFailure.InvalidCredential, App.TrackingProviderFailure.MissingCredential,

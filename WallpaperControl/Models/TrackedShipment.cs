@@ -15,6 +15,8 @@ internal sealed record TrackedShipment
     public string TrackingNumber { get; init; } = string.Empty;
     public string? DisplayName { get; init; }
     public string? CarrierCode { get; init; }
+    // Original optional POST input; response CarrierCode may be auto-detected.
+    public string? RequestedCarrierCode { get; init; }
     public string? StatusCategory { get; init; } = "unknown";
     public string? StatusMilestone { get; init; } = "unknown";
     public DateTimeOffset? EstimatedDelivery { get; init; }

@@ -27,9 +27,10 @@ namespace WallpaperControl
             ObserveScheduler();
             if (IsDisposed) return;
             UpdateSpanPositionCaption(Screen.AllScreens.Length);
-            if (fullscreenPolicy.IsPaused) return;
+            if (fullscreenPolicy.IsPaused) { UpdateVideoControls(); return; }
             CheckSlideshowStatus();
             if (servicesEnabled) UpdateWallpaperPositionDisplay();
+            UpdateVideoControls();
         }
 
         private static DesktopSlideshowState ReadNativeSlideshowStatus()

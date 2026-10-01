@@ -59,7 +59,7 @@ internal static class AmazonLogisticsTests
         var remote = service.Shipments.Single(s => s.TrackingMode == "provider");
         check(service.SetManualDelivered(remote.Id, true).Outcome == App.PackageOperation.Missing, "Amazon manual action cannot change provider status");
         store.Save(remote with { TrackingNumber = "DE0123456789" }); await service.RefreshAsync();
-        check(provider.Gets == 2, "Amazon existing provider-backed DE shipment is not silently converted");
+        check(provider.Gets == 1 && service.Shipments.Single(s => s.Id == remote.Id).TrackingMode == "provider", "Amazon recognized legacy shipment skips provider without silently rewriting metadata");
         var json = JsonNode.Parse(File.ReadAllText(path))!;
         var remoteNode = json["Shipments"]!.AsArray().Single(s => s!["TrackingMode"]!.GetValue<string>() == "provider")!.DeepClone();
         remoteNode.AsObject().Remove("TrackingMode"); remoteNode.AsObject().Remove("StatusSource");

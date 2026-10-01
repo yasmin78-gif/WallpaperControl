@@ -1615,7 +1615,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="ModeVideoWallpaper" xml:space="preserve"><value>Video-Hintergrund</value></data>
   <data name="VideoApply" xml:space="preserve"><value>Anwenden / Video starten</value></data>
   <data name="VideoBrowse" xml:space="preserve"><value>Lokale MP4 auswählen</value></data>
-  <data name="VideoActive" xml:space="preserve"><value>Video-Hintergrund aktiv · stumm · Endlosschleife · Fill</value></data>
+  <data name="VideoActive" xml:space="preserve"><value>Video läuft</value></data>
   <data name="VideoInitializing" xml:space="preserve"><value>Video wird vorbereitet …</value></data>
   <data name="VideoRecovering" xml:space="preserve"><value>Desktop-Anbindung wird wiederhergestellt …</value></data>
   <data name="VideoManualPaused" xml:space="preserve"><value>Video manuell pausiert</value></data>
@@ -1626,4 +1626,11 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VideoErrorPlayback" xml:space="preserve"><value>Video nicht verfügbar. Unterstützt wird MP4 mit H.264. Der statische Hintergrund bleibt erhalten.</value></data>
   <data name="VideoErrorRecovery" xml:space="preserve"><value>Desktop-Anbindung fehlgeschlagen. Bitte Video erneut anwenden.</value></data>
   <data name="VideoErrorMonitor" xml:space="preserve"><value>Video-Hintergrund unterstützt derzeit genau einen aktiven Monitor.</value></data>
+  <data name="VideoStart" xml:space="preserve"><value>Video starten</value></data>
+  <data name="VideoChange" xml:space="preserve"><value>Video wechseln</value></data>
+  <data name="ImageStart" xml:space="preserve"><value>Slideshow starten</value></data>
+  <data name="VideoSelectedFile" xml:space="preserve"><value>Ausgewähltes Video</value></data>
+  <data name="VideoNoSelection" xml:space="preserve"><value>Kein Video ausgewählt</value></data>
+  <data name="VideoSelectedImagesActive" xml:space="preserve"><value>Video ausgewählt · Slideshow derzeit aktiv</value></data>
+  <data name="ImagesSelectedVideoActive" xml:space="preserve"><value>Slideshow ausgewählt · Video derzeit aktiv</value></data>
 </root>

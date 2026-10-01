@@ -18,6 +18,9 @@ public partial class MainForm
     private readonly MainFormButton videoApplyButton = new();
     private readonly MainFormButton videoPauseButton = new();
     private readonly Label videoStatusLabel = new();
+    private readonly Label videoFileLabel = new() { AutoEllipsis = true };
+    private readonly MainFormButton imageApplyButton = new();
+    private bool VideoConfigurationSelected => wallpaperModeCombo.SelectedIndex == 1;
     private bool videoUiLoading;
     private string? videoSelectionError;
     private readonly Func<int> videoMonitorCount = () => Screen.AllScreens.Length;
@@ -34,11 +37,11 @@ public partial class MainForm
 
     private void InitializeVideoWallpaperUi()
     {
-        videoCard.Controls.AddRange(new Control[] { modeHeading, videoPathText, videoBrowseButton, videoApplyButton, videoPauseButton, videoStatusLabel });
-        wallpaperContent!.Controls.AddRange(new Control[] { videoCard, wallpaperModeCombo });
+        videoCard.Controls.AddRange(new Control[] { modeHeading, videoFileLabel, videoBrowseButton, videoApplyButton, videoPauseButton, videoStatusLabel });
+        wallpaperContent!.Controls.AddRange(new Control[] { videoCard, wallpaperModeCombo, imageApplyButton, videoStatusLabel });
         videoPathText.Text = servicesEnabled ? appSettings.LoadVideoWallpaperPath() : "";
         videoPathText.AccessibleName = Localization.Get("VideoBrowse");
-        videoPathText.TextChanged += (_, _) => toolTip.SetToolTip(videoPathText, videoPathText.Text);
+        videoPathText.TextChanged += (_, _) => UpdateVideoControls();
         modeHeading.Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold);
         videoBrowseButton.Click += (_, _) =>
         {
@@ -48,12 +51,11 @@ public partial class MainForm
         videoApplyButton.Click += async (_, _) => await ApplyWallpaperModeAsync(
             wallpaperModeCombo.SelectedIndex == 1 ? WallpaperOperatingMode.VideoWallpaper : WallpaperOperatingMode.ImageSlideshow);
         videoPauseButton.Click += async (_, _) => await ToggleSlideshowPauseAsync(refreshDisplay: false);
-        wallpaperModeCombo.SelectedIndexChanged += async (_, _) =>
+        imageApplyButton.Click += async (_, _) => await ApplyWallpaperModeAsync(WallpaperOperatingMode.ImageSlideshow);
+        wallpaperModeCombo.SelectedIndexChanged += (_, _) =>
         {
             if (videoUiLoading) return;
-            if (wallpaperModeCombo.SelectedIndex == 0) videoSelectionError = null;
-            if (wallpaperModeCombo.SelectedIndex == 0 && wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
-                await ApplyWallpaperModeAsync(WallpaperOperatingMode.ImageSlideshow);
+            if (wallpaperModeCombo.SelectedIndex == 0) { videoSelectionError = null; CheckSlideshowStatus(); }
             UpdateVideoControls();
         };
         LocalizeVideoWallpaperUi();
@@ -66,9 +68,10 @@ public partial class MainForm
         wallpaperModeCombo.Items.AddRange(new object[] { Localization.Get("ModeImageSlideshow"), Localization.Get("ModeVideoWallpaper") });
         wallpaperModeCombo.SelectedIndex = selection;
         videoUiLoading = false;
-        modeHeading.Text = Localization.Get("WallpaperModeHeading");
-        wallpaperModeCombo.AccessibleName = modeHeading.Text;
-        videoApplyButton.Text = Localization.Get("VideoApply");
+        modeHeading.Text = Localization.Get("VideoSelectedFile");
+        imageApplyButton.Text = Localization.Get("ImageStart");
+        wallpaperModeCombo.AccessibleName = Localization.Get("WallpaperModeHeading");
+
         videoPathText.AccessibleName = Localization.Get("VideoBrowse");
         toolTip.SetToolTip(videoBrowseButton, Localization.Get("VideoBrowse"));
         toolTip.SetToolTip(videoPathText, videoPathText.Text);
@@ -78,8 +81,13 @@ public partial class MainForm
     {
         bool video = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper;
         bool selected = wallpaperModeCombo.SelectedIndex == 1;
-        videoCard.Visible = selected || video || videoSelectionError != null;
-        slideshowCard.Visible = displayCard.Visible = currentWallpaperCard.Visible = nextWallpaperButton.Visible = !video;
+        videoCard.Visible = selected;
+        imageApplyButton.Visible = !selected && video;
+        videoApplyButton.Text = Localization.Get(video && videoWallpaper?.HasSession == true ? "VideoChange" : "VideoStart");
+        videoFileLabel.Text = string.IsNullOrWhiteSpace(videoPathText.Text) ? Localization.Get("VideoNoSelection") : Path.GetFileName(videoPathText.Text);
+        videoFileLabel.AccessibleName = Localization.Get("VideoSelectedFile");
+        toolTip.SetToolTip(videoFileLabel, videoPathText.Text);
+        slideshowCard.Visible = displayCard.Visible = currentWallpaperCard.Visible = nextWallpaperButton.Visible = !selected;
         videoPathText.Enabled = videoBrowseButton.Enabled = selected;
         slideshowCard.Enabled = displayCard.Enabled = !video;
         videoApplyButton.Enabled = !selected || videoMonitorCount() == 1;
@@ -91,7 +99,10 @@ public partial class MainForm
             VideoWallpaperState.Paused => (videoWallpaper.PauseReasons & VideoPauseReason.Manual) != 0 ? "VideoManualPaused" : "VideoFullscreenPaused",
             _ => "VideoActive"
         });
-        videoStatusLabel.Text = Localization.Get(key);
+        videoStatusLabel.Text = videoSelectionError != null ? Localization.Get(key)
+            : selected != video ? Localization.Get(selected ? "VideoSelectedImagesActive" : "ImagesSelectedVideoActive")
+            : video ? Localization.Get(key) : "";
+        videoStatusLabel.Visible = selected || video;
         bool manualVideoPause = ((videoWallpaper?.PauseReasons ?? VideoPauseReason.None) & VideoPauseReason.Manual) != 0;
         videoPauseButton.Text = Localization.Get(manualVideoPause ? "VideoResume" : "VideoPause");
         videoPauseButton.Enabled = video && videoWallpaper?.HasSession == true;
@@ -99,14 +110,15 @@ public partial class MainForm
         {
             UpdateTrayPauseText();
             if (videoLiveTestItem != null) videoLiveTestItem.Enabled = false;
-            statusLabel.Visible = true; statusLabel.Text = videoStatusLabel.Text;
+            statusLabel.Visible = false;
             activateButton.Visible = false;
             nextWallpaperButton.Enabled = pinButton.Enabled = rejectButton.Enabled = undoRejectButton.Enabled = false;
             pauseButton.Enabled = videoWallpaper?.HasSession == true;
             pauseButton.Text = videoPauseButton.Text;
-            SetWarningLayout(false);
+            SetNormalLayout();
         }
         else if (videoLiveTestItem != null) videoLiveTestItem.Enabled = true;
+        if (selected) statusLabel.Visible = activateButton.Visible = false;
         LayoutWallpaperPage();
     }
     private VideoWallpaperController EnsureVideoWallpaper()
@@ -220,7 +232,6 @@ public partial class MainForm
             wallpaperModeChange.Release();
             if (request == wallpaperModeRequest && !wallpaperOwnership.Closed && !IsDisposed && !Disposing)
             {
-                videoUiLoading = true; wallpaperModeCombo.SelectedIndex = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper ? 1 : 0; videoUiLoading = false;
                 CheckSlideshowStatus(); UpdateVideoControls();
             }
         }
@@ -316,6 +327,7 @@ public partial class MainForm
         // Exiting video leaves a static desktop. Persisted mode is resumed next
         // launch, so do not restart a competing Windows slideshow on shutdown.
         savedImageMode?.Dispose(); savedImageMode = null;
+        videoPathText.Dispose();
         videoCard.Dispose();
     }
 }

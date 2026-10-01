@@ -64,6 +64,7 @@ try
     if (args.Contains("--packages")) { PackageTrackingTests.Run(Check); Console.WriteLine($"All {passed} package checks passed."); return 0; }
     if (args.Contains("--amazon")) { AmazonLogisticsTests.Run(Check); Console.WriteLine($"All {passed} Amazon checks passed."); return 0; }
     if (args.Contains("--package-refresh")) { PackageRefreshTests.Run(Check); Console.WriteLine($"All {passed} package refresh checks passed."); return 0; }
+    PostRefreshTests.Run(Check);
     PackageRefreshTests.Run(Check);
     AmazonLogisticsTests.Run(Check);
     PackageTrackingTests.Run(Check);

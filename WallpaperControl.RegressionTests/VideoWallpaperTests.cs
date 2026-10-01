@@ -211,7 +211,7 @@ internal static class VideoWallpaperTests
             {
                 typeof(App.Localization).GetMethod("ApplyLanguage", Members)!.Invoke(null, new object[] { language, false });
                 var ownResources = resources.GetResourceSet(language == "de" ? System.Globalization.CultureInfo.InvariantCulture : new(language), true, false);
-                foreach (string key in new[] { "WallpaperModeHeading", "ModeImageSlideshow", "ModeVideoWallpaper", "VideoApply", "VideoBrowse", "VideoActive", "VideoInitializing", "VideoRecovering", "VideoManualPaused", "VideoFullscreenPaused", "VideoPause", "VideoResume", "VideoErrorFile", "VideoErrorPlayback", "VideoErrorRecovery", "VideoErrorMonitor" })
+                foreach (string key in new[] { "VideoStart", "VideoChange", "ImageStart", "VideoSelectedFile", "VideoNoSelection", "VideoSelectedImagesActive", "ImagesSelectedVideoActive", "WallpaperModeHeading", "ModeImageSlideshow", "ModeVideoWallpaper", "VideoApply", "VideoBrowse", "VideoActive", "VideoInitializing", "VideoRecovering", "VideoManualPaused", "VideoFullscreenPaused", "VideoPause", "VideoResume", "VideoErrorFile", "VideoErrorPlayback", "VideoErrorRecovery", "VideoErrorMonitor" })
                     check(!string.IsNullOrWhiteSpace(ownResources?.GetString(key)) && App.Localization.Get(key) != key, $"Video localization {language}: {key}");
             }
             using var widgets = new App.WidgetManager(() => { }, registryPath: widgetKey,
@@ -222,9 +222,17 @@ internal static class VideoWallpaperTests
             var controller = new App.VideoWallpaperController(desktop, _ => { });
             Set(main, "videoWallpaper", controller);
             Field<TextBox>(main, "videoPathText").Text = @"C:\test.mp4";
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 1;
             Set(main, "customSlideshowEngineActive", true);
             using var cancelled = new CancellationTokenSource();
             Set(main, "customWallpaperCancellation", cancelled);
+            DateTime configuredDeadline = Field<DateTime>(main, "customSlideshowNextChange");
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 0;
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 1;
+            check(Field<Panel>(main, "videoCard").Visible && !Field<Panel>(main, "slideshowCard").Visible, "Video configuration immediately replaces image controls");
+            check(Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages && Field<bool>(main, "customSlideshowEngineActive") && !cancelled.IsCancellationRequested && configuredDeadline == Field<DateTime>(main, "customSlideshowNextChange"), "Video selection keeps image runtime, transition and deadline");
+            check(Field<Label>(main, "videoFileLabel").Text == "test.mp4", "Video primary selection shows filename only");
+            check(Field<Button>(main, "videoApplyButton").Text == App.Localization.Get("VideoStart"), "Video start action localized before playback");
             Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.VideoWallpaper)!);
             check(cancelled.IsCancellationRequested, "Video UI: entering cancels active image transition");
             main.GetType().GetField("customWallpaperCancellation", Members)!.SetValue(main, null);
@@ -232,6 +240,12 @@ internal static class VideoWallpaperTests
             check(!Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages, "Video UI: image timer callbacks excluded");
             check(ReferenceEquals(Field<App.WidgetManager>(main, "widgetManager"), widgets), "Video UI: widget subsystem retained");
             check(!Field<Button>(main, "nextWallpaperButton").Enabled && !Field<Panel>(main, "slideshowCard").Enabled, "Video UI: image actions disabled");
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 0;
+            check(Field<Panel>(main, "slideshowCard").Visible && !Field<Panel>(main, "videoCard").Visible, "Image selection immediately shows image configuration");
+            check(!Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages && !desktop.Last.Disposed && desktop.Last.Playing, "Image selection keeps video runtime alive");
+            check(Field<Button>(main, "imageApplyButton").Visible && Field<Label>(main, "videoStatusLabel").Text == App.Localization.Get("ImagesSelectedVideoActive"), "Image selection explains active video and offers explicit transition");
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 1;
+            check(Field<Button>(main, "videoApplyButton").Text == App.Localization.Get("VideoChange"), "Running video offers localized change action");
             bool imageWrite = false;
             main.ApplyExplicitWallpaper(() => imageWrite = true, true);
             check(!imageWrite, "Video UI: statistics selection cannot write native wallpaper");
@@ -316,6 +330,15 @@ internal static class VideoWallpaperTests
             Pump((Task)Invoke(main, "ApplyWallpaperModeAsync", App.WallpaperOperatingMode.ImageSlideshow)!);
             check(stableVideo.Disposed && Field<bool>(main, "customSlideshowEngineActive") == imageWasActive,
                 "Phase 2 UI: returning to images after rejected switch frees the retained player");
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 1;
+            Field<TextBox>(main, "videoPathText").Text = @"C:	est.mp4";
+            Field<Button>(main, "videoApplyButton").PerformClick();
+            Application.DoEvents();
+            check(!Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages, "Video Start button explicitly enters video runtime");
+            Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 0;
+            Field<Button>(main, "imageApplyButton").PerformClick();
+            Application.DoEvents();
+            check(Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages && desktop.Last.Disposed, "Slideshow Start button explicitly stops video and restores images");
             foreach (bool dark in new[] { false, true })
             {
                 Set(main, "darkMode", dark); Invoke(main, "ApplyWallpaperPageTheme");
