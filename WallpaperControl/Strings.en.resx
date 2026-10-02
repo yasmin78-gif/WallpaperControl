@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1646,4 +1646,35 @@ Would you like to open the release page?</value>
   <data name="VideoRestart" xml:space="preserve"><value>Restart video</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choose a video. The image wallpaper remains active until then.</value></data>
   <data name="PackageDeliveredGroup" xml:space="preserve"><value>Delivered ({0})</value></data>
+  <data name="TwitchTitle" xml:space="preserve"><value>Twitch</value></data>
+  <data name="TwitchEnabled" xml:space="preserve"><value>Enable Twitch widget</value></data>
+  <data name="TwitchDisconnected" xml:space="preserve"><value>Not connected to Twitch</value></data>
+  <data name="TwitchConnected" xml:space="preserve"><value>Connected as {0}</value></data>
+  <data name="TwitchConnect" xml:space="preserve"><value>Connect to Twitch</value></data>
+  <data name="TwitchDisconnect" xml:space="preserve"><value>Disconnect Twitch</value></data>
+  <data name="TwitchPrivacy" xml:space="preserve"><value>Data is retrieved directly from Twitch. WallpaperControl receives permission to read the channels you follow.</value></data>
+  <data name="TwitchRefreshHint" xml:space="preserve"><value>Automatic refresh at the selected interval; paused during fullscreen and sleep.</value></data>
+  <data name="TwitchEmpty" xml:space="preserve"><value>None of your followed channels are live right now.</value></data>
+  <data name="TwitchViewers" xml:space="preserve"><value>{0} viewers · Live for {1} h</value></data>
+  <data name="TwitchUpdated" xml:space="preserve"><value>Updated: {0}</value></data>
+  <data name="TwitchAuthorizing" xml:space="preserve"><value>Preparing Twitch sign-in …</value></data>
+  <data name="TwitchEnterCode" xml:space="preserve"><value>Approve the connection on Twitch’s website. If asked, enter this code:</value></data>
+  <data name="TwitchBrowserError" xml:space="preserve"><value>Could not open the browser. Please try again.</value></data>
+  <data name="TwitchCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="TwitchErrorOffline" xml:space="preserve"><value>No internet connection.</value></data>
+  <data name="TwitchErrorUnavailable" xml:space="preserve"><value>Twitch is currently unavailable.</value></data>
+  <data name="TwitchErrorCancelled" xml:space="preserve"><value>Twitch sign-in cancelled.</value></data>
+  <data name="TwitchErrorExpired" xml:space="preserve"><value>The sign-in code expired. Please connect again.</value></data>
+  <data name="TwitchErrorReconnect" xml:space="preserve"><value>Twitch connection is no longer valid. Please reconnect.</value></data>
+  <data name="TwitchErrorUnauthorized" xml:space="preserve"><value>Twitch did not authorize the request. Please check the connection.</value></data>
+  <data name="TwitchErrorRateLimit" xml:space="preserve"><value>Twitch request limit reached. Refresh will resume later.</value></data>
+  <data name="TwitchErrorInvalidResponse" xml:space="preserve"><value>Twitch returned invalid data. Please try again later.</value></data>
+  <data name="TwitchErrorStorage" xml:space="preserve"><value>Could not securely save or load the Twitch connection.</value></data>
+  <data name="TwitchBusy" xml:space="preserve"><value>Twitch is busy. Please try again shortly.</value></data>
+  <data name="TwitchRefreshInterval" xml:space="preserve"><value>Refresh interval</value></data>
+  <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} min</value></data>
+  <data name="TwitchLoading" xml:space="preserve"><value>Loading Twitch …</value></data>
+  <data name="TwitchLiveNotifications" xml:space="preserve"><value>Notify when a channel goes live</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch: channel is live</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} is live now. Click to open the channel.</value></data>
 </root>

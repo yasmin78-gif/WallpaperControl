@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1618,4 +1618,35 @@
   <data name="VideoRestart" xml:space="preserve"><value>動画を再開始</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>動画を選択してください。それまでは画像の壁紙が表示されます。</value></data>
   <data name="PackageDeliveredGroup" xml:space="preserve"><value>配達済み ({0})</value></data>
+  <data name="TwitchTitle" xml:space="preserve"><value>Twitch</value></data>
+  <data name="TwitchEnabled" xml:space="preserve"><value>Twitchウィジェットを有効にする</value></data>
+  <data name="TwitchDisconnected" xml:space="preserve"><value>Twitchに未接続</value></data>
+  <data name="TwitchConnected" xml:space="preserve"><value>{0} として接続済み</value></data>
+  <data name="TwitchConnect" xml:space="preserve"><value>Twitchに接続</value></data>
+  <data name="TwitchDisconnect" xml:space="preserve"><value>Twitchとの接続を解除</value></data>
+  <data name="TwitchPrivacy" xml:space="preserve"><value>データはTwitchから直接取得されます。WallpaperControlにはフォロー中のチャンネルを読み取る権限が付与されます。</value></data>
+  <data name="TwitchRefreshHint" xml:space="preserve"><value>選択した間隔で自動更新します。全画面表示中とスリープ中は停止します。</value></data>
+  <data name="TwitchEmpty" xml:space="preserve"><value>フォロー中のチャンネルは現在配信していません。</value></data>
+  <data name="TwitchViewers" xml:space="preserve"><value>視聴者 {0} 人 · 配信時間 {1}</value></data>
+  <data name="TwitchUpdated" xml:space="preserve"><value>更新: {0}</value></data>
+  <data name="TwitchAuthorizing" xml:space="preserve"><value>Twitchへの接続を準備中…</value></data>
+  <data name="TwitchEnterCode" xml:space="preserve"><value>Twitchのウェブサイトで接続を承認してください。必要な場合はこのコードを入力してください:</value></data>
+  <data name="TwitchBrowserError" xml:space="preserve"><value>ブラウザーを開けませんでした。もう一度お試しください。</value></data>
+  <data name="TwitchCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="TwitchErrorOffline" xml:space="preserve"><value>インターネットに接続されていません。</value></data>
+  <data name="TwitchErrorUnavailable" xml:space="preserve"><value>現在Twitchに接続できません。</value></data>
+  <data name="TwitchErrorCancelled" xml:space="preserve"><value>Twitchへの接続をキャンセルしました。</value></data>
+  <data name="TwitchErrorExpired" xml:space="preserve"><value>接続コードの有効期限が切れました。再接続してください。</value></data>
+  <data name="TwitchErrorReconnect" xml:space="preserve"><value>Twitchとの接続が無効になりました。再接続してください。</value></data>
+  <data name="TwitchErrorUnauthorized" xml:space="preserve"><value>Twitchがリクエストを許可しませんでした。接続を確認してください。</value></data>
+  <data name="TwitchErrorRateLimit" xml:space="preserve"><value>Twitchのリクエスト上限に達しました。後ほど更新します。</value></data>
+  <data name="TwitchErrorInvalidResponse" xml:space="preserve"><value>Twitchから無効なデータが返されました。後ほどお試しください。</value></data>
+  <data name="TwitchErrorStorage" xml:space="preserve"><value>Twitchの接続情報を安全に保存または読み込めませんでした。</value></data>
+  <data name="TwitchBusy" xml:space="preserve"><value>Twitchの処理中です。少し待ってから再度お試しください。</value></data>
+  <data name="TwitchRefreshInterval" xml:space="preserve"><value>更新間隔</value></data>
+  <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} 分</value></data>
+  <data name="TwitchLoading" xml:space="preserve"><value>Twitch を読み込み中 …</value></data>
+  <data name="TwitchLiveNotifications" xml:space="preserve"><value>チャンネルが配信を開始したら通知する</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch：配信開始</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} が配信を開始しました。クリックしてチャンネルを開きます。</value></data>
 </root>

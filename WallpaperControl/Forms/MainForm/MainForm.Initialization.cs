@@ -552,6 +552,9 @@ namespace WallpaperControl
 
             trayIcon.DoubleClick +=
                 (_, _) => RestoreFromTray();
+            twitchBalloonNotifications = new(trayIcon);
+            widgetManager.ShowTwitchNotification = twitchBalloonNotifications.Show;
+            widgetManager.ClearTwitchNotifications = twitchBalloonNotifications.Clear;
 
             wallpaperRefreshTimer =
                 new System.Windows.Forms.Timer

@@ -34,6 +34,7 @@ namespace WallpaperControl
                 calendarSources = new(value.CalendarSources);
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
+                LoadTwitchControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -89,6 +90,7 @@ namespace WallpaperControl
             {
                 Localize(Controls);
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
+                RefreshWidgetStyleChoices(twitchStyle, (SystemWidgetStyle)Math.Max(0, twitchStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(packageStyle, (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex));
                 RefreshClockStyleChoices(GetSelectedClockStyle()); RefreshSystemStyleChoices(GetSelectedSystemStyle());
                 RefreshWeatherStyleChoices(GetSelectedWeatherStyle()); RefreshNextStyleChoices(GetSelectedNextStyle());
@@ -113,6 +115,8 @@ namespace WallpaperControl
                 LocalizeWebControls();
                 LocalizePackageInterval(PackageIntervalMinutes);
                 UpdatePackageConnection();
+                UpdateTwitchConnection();
+                LocalizeTwitchInterval(TwitchIntervalMinutes);
                 navigation.BackColor = AppTheme.SidebarBackground(dark);
                 UpdateSelection();
             }
@@ -141,6 +145,7 @@ namespace WallpaperControl
             if (disposing)
             {
                 DisposeWebControls();
+                DisposeTwitchControls();
                 navigation.Dispose(); pages.Dispose();
                 calendarMaximumHeightNumeric?.Dispose(); notesManageButton.Dispose();
                 notesEnabled.Dispose(); notesLocked.Dispose(); notesMaximumHeight.Dispose(); notesStyle.Dispose(); wallpaperInfoFontSize.Dispose();

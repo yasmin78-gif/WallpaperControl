@@ -105,6 +105,12 @@ try
     { ProductionVideoIntegrationChecks.Native(args[1], Check); Console.WriteLine($"All {passed} production native checks passed."); return 0; }
     if (args.Length is 1 or 2 && args[0] == "--package-delivered-checks")
     { PackageDeliveredGroupTests.Run(Check, args.Length == 2 ? args[1] : null); Console.WriteLine($"All {passed} delivered package widget checks passed."); return 0; }
+    if (args.Length is 1 or 2 && args[0] == "--twitch-compact-checks")
+    { TwitchCompactTests.Run(Check, args.Length == 2 ? args[1] : null); Console.WriteLine("All focused Twitch compact/avatar checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--twitch-notification-checks")
+    { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
+    if (args.Length is 1 or 2 && args[0] == "--twitch-checks")
+    { TwitchTests.Run(Check, args.Length == 2 ? args[1] : null); Console.WriteLine("All focused Twitch checks passed."); return 0; }
     LoopAudioProbeTests.Run(Check);
     MpvControllerIntegrationTests.Run(Check);
     VideoAudioTests.Run(Check);

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1646,4 +1646,35 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VideoRestart" xml:space="preserve"><value>Video neu starten</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Wähle ein Video. Bis dahin bleibt der Bildhintergrund aktiv.</value></data>
   <data name="PackageDeliveredGroup" xml:space="preserve"><value>Zugestellt ({0})</value></data>
+  <data name="TwitchTitle" xml:space="preserve"><value>Twitch</value></data>
+  <data name="TwitchEnabled" xml:space="preserve"><value>Twitch-Widget aktivieren</value></data>
+  <data name="TwitchDisconnected" xml:space="preserve"><value>Nicht mit Twitch verbunden</value></data>
+  <data name="TwitchConnected" xml:space="preserve"><value>Verbunden als {0}</value></data>
+  <data name="TwitchConnect" xml:space="preserve"><value>Mit Twitch verbinden</value></data>
+  <data name="TwitchDisconnect" xml:space="preserve"><value>Twitch-Verbindung trennen</value></data>
+  <data name="TwitchPrivacy" xml:space="preserve"><value>Daten werden direkt von Twitch abgerufen. WallpaperControl erhält die Berechtigung, deine gefolgten Kanäle zu lesen.</value></data>
+  <data name="TwitchRefreshHint" xml:space="preserve"><value>Automatische Aktualisierung im gewählten Intervall; bei Vollbild und Standby pausiert.</value></data>
+  <data name="TwitchEmpty" xml:space="preserve"><value>Derzeit ist keiner deiner gefolgten Kanäle live.</value></data>
+  <data name="TwitchViewers" xml:space="preserve"><value>{0} Zuschauer · Live seit {1} h</value></data>
+  <data name="TwitchUpdated" xml:space="preserve"><value>Aktualisiert: {0}</value></data>
+  <data name="TwitchAuthorizing" xml:space="preserve"><value>Twitch-Anmeldung wird vorbereitet …</value></data>
+  <data name="TwitchEnterCode" xml:space="preserve"><value>Bitte bestätige die Verbindung auf der Twitch-Webseite. Falls gefragt, gib diesen Code ein:</value></data>
+  <data name="TwitchBrowserError" xml:space="preserve"><value>Der Browser konnte nicht geöffnet werden. Bitte erneut versuchen.</value></data>
+  <data name="TwitchCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="TwitchErrorOffline" xml:space="preserve"><value>Keine Internetverbindung.</value></data>
+  <data name="TwitchErrorUnavailable" xml:space="preserve"><value>Twitch ist momentan nicht erreichbar.</value></data>
+  <data name="TwitchErrorCancelled" xml:space="preserve"><value>Twitch-Anmeldung abgebrochen.</value></data>
+  <data name="TwitchErrorExpired" xml:space="preserve"><value>Der Anmeldecode ist abgelaufen. Bitte erneut verbinden.</value></data>
+  <data name="TwitchErrorReconnect" xml:space="preserve"><value>Twitch-Verbindung nicht mehr gültig. Bitte erneut verbinden.</value></data>
+  <data name="TwitchErrorUnauthorized" xml:space="preserve"><value>Twitch hat die Anfrage nicht autorisiert. Bitte Verbindung prüfen.</value></data>
+  <data name="TwitchErrorRateLimit" xml:space="preserve"><value>Twitch-Anfragelimit erreicht. Aktualisierung wird später nachgeholt.</value></data>
+  <data name="TwitchErrorInvalidResponse" xml:space="preserve"><value>Twitch hat ungültige Daten geliefert. Bitte später erneut versuchen.</value></data>
+  <data name="TwitchErrorStorage" xml:space="preserve"><value>Twitch-Verbindung konnte nicht sicher gespeichert oder geladen werden.</value></data>
+  <data name="TwitchBusy" xml:space="preserve"><value>Twitch ist gerade beschäftigt. Bitte gleich erneut versuchen.</value></data>
+  <data name="TwitchRefreshInterval" xml:space="preserve"><value>Aktualisierungsintervall</value></data>
+  <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} min</value></data>
+  <data name="TwitchLoading" xml:space="preserve"><value>Twitch wird geladen …</value></data>
+  <data name="TwitchLiveNotifications" xml:space="preserve"><value>Benachrichtigen, wenn ein Kanal live geht</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch: Kanal ist live</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} ist jetzt live. Zum Kanal öffnen klicken.</value></data>
 </root>

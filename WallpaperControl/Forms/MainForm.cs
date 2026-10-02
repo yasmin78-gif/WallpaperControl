@@ -167,6 +167,7 @@ namespace WallpaperControl
                 rejectMenu.Dispose();
 
                 trayIcon.Visible = false;
+                twitchBalloonNotifications.Dispose();
                 trayIcon.Dispose();
                 trayMenu.Dispose();
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1646,4 +1646,35 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VideoRestart" xml:space="preserve"><value>Redémarrer la vidéo</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choisissez une vidéo. Le fond d’écran image reste actif en attendant.</value></data>
   <data name="PackageDeliveredGroup" xml:space="preserve"><value>Livré ({0})</value></data>
+  <data name="TwitchTitle" xml:space="preserve"><value>Twitch</value></data>
+  <data name="TwitchEnabled" xml:space="preserve"><value>Activer le widget Twitch</value></data>
+  <data name="TwitchDisconnected" xml:space="preserve"><value>Non connecté à Twitch</value></data>
+  <data name="TwitchConnected" xml:space="preserve"><value>Connecté en tant que {0}</value></data>
+  <data name="TwitchConnect" xml:space="preserve"><value>Se connecter à Twitch</value></data>
+  <data name="TwitchDisconnect" xml:space="preserve"><value>Déconnecter Twitch</value></data>
+  <data name="TwitchPrivacy" xml:space="preserve"><value>Les données sont obtenues directement auprès de Twitch. WallpaperControl reçoit l’autorisation de lire les chaînes que vous suivez.</value></data>
+  <data name="TwitchRefreshHint" xml:space="preserve"><value>Actualisation automatique selon l’intervalle choisi ; suspendue en plein écran et en veille.</value></data>
+  <data name="TwitchEmpty" xml:space="preserve"><value>Aucune des chaînes que vous suivez n’est en direct.</value></data>
+  <data name="TwitchViewers" xml:space="preserve"><value>{0} spectateurs · En direct depuis {1} h</value></data>
+  <data name="TwitchUpdated" xml:space="preserve"><value>Mis à jour : {0}</value></data>
+  <data name="TwitchAuthorizing" xml:space="preserve"><value>Préparation de la connexion Twitch …</value></data>
+  <data name="TwitchEnterCode" xml:space="preserve"><value>Confirmez la connexion sur le site de Twitch. Si demandé, saisissez ce code :</value></data>
+  <data name="TwitchBrowserError" xml:space="preserve"><value>Impossible d’ouvrir le navigateur. Réessayez.</value></data>
+  <data name="TwitchCancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="TwitchErrorOffline" xml:space="preserve"><value>Pas de connexion Internet.</value></data>
+  <data name="TwitchErrorUnavailable" xml:space="preserve"><value>Twitch est momentanément indisponible.</value></data>
+  <data name="TwitchErrorCancelled" xml:space="preserve"><value>Connexion Twitch annulée.</value></data>
+  <data name="TwitchErrorExpired" xml:space="preserve"><value>Le code a expiré. Veuillez vous reconnecter.</value></data>
+  <data name="TwitchErrorReconnect" xml:space="preserve"><value>La connexion Twitch n’est plus valide. Veuillez vous reconnecter.</value></data>
+  <data name="TwitchErrorUnauthorized" xml:space="preserve"><value>Twitch n’a pas autorisé la requête. Vérifiez la connexion.</value></data>
+  <data name="TwitchErrorRateLimit" xml:space="preserve"><value>Limite de requêtes Twitch atteinte. L’actualisation reprendra plus tard.</value></data>
+  <data name="TwitchErrorInvalidResponse" xml:space="preserve"><value>Twitch a renvoyé des données invalides. Réessayez plus tard.</value></data>
+  <data name="TwitchErrorStorage" xml:space="preserve"><value>Impossible d’enregistrer ou de charger la connexion Twitch de manière sécurisée.</value></data>
+  <data name="TwitchBusy" xml:space="preserve"><value>Twitch est occupé. Réessayez dans un instant.</value></data>
+  <data name="TwitchRefreshInterval" xml:space="preserve"><value>Intervalle d’actualisation</value></data>
+  <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} min</value></data>
+  <data name="TwitchLoading" xml:space="preserve"><value>Chargement de Twitch …</value></data>
+  <data name="TwitchLiveNotifications" xml:space="preserve"><value>Notifier quand une chaîne passe en direct</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch : chaîne en direct</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} est en direct. Cliquez pour ouvrir la chaîne.</value></data>
 </root>

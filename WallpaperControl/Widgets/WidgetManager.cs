@@ -77,6 +77,10 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            settings.TwitchEnabled = previewSettings.TwitchEnabled; settings.TwitchLocked = previewSettings.TwitchLocked;
+            settings.TwitchStyle = previewSettings.TwitchStyle; settings.TwitchMaximumHeight = previewSettings.TwitchMaximumHeight;
+            settings.TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(previewSettings.TwitchRefreshMinutes);
+            settings.TwitchLiveNotifications = previewSettings.TwitchLiveNotifications;
             settings.PackageEnabled = previewSettings.PackageEnabled;
             settings.PackageLocked = previewSettings.PackageLocked;
             settings.PackageStyle = previewSettings.PackageStyle;
@@ -141,6 +145,7 @@ namespace WallpaperControl
             // owns the enable/lock/size values; drag operations belong to the
             // widget windows themselves.
             WebWidgetSettings webGeometry = settings.Web.Clone();
+            Point twitchLocation = settings.TwitchLocation;
             Point packageLocation = settings.PackageLocation;
             Point notesLocation = settings.NotesLocation;
             Point clockLocation = settings.ClockLocation;
@@ -152,6 +157,7 @@ namespace WallpaperControl
 
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
+            settings.TwitchLocation = twitchLocation;
             settings.PackageLocation = packageLocation;
             settings.NotesLocation = notesLocation;
             settings.ClockLocation = clockLocation;
@@ -192,6 +198,7 @@ namespace WallpaperControl
             // settings dialog is modal. The Lock checkboxes themselves still
             // apply immediately, so the preview always matches the current UI.
             ApplyPackageWidget(target, restoreLocations);
+            ApplyTwitchWidget(target, restoreLocations);
             ApplyWebWidget(target, restoreLocations);
             bool effectiveClockLocked = target.ClockLocked;
             bool effectiveNextLocked = target.NextLocked;
@@ -682,7 +689,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); }
+        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -722,6 +729,9 @@ namespace WallpaperControl
             if (resumed) RefreshWallpaperInfo();
             packageWidget?.SetActivitySuspended(suspended);
             packageScheduler?.SetSuspended(suspended);
+            twitchWidget?.SetActivitySuspended(suspended); twitchScheduler?.SetSuspended(suspended);
+            twitchNotifications?.SetSuspended(suspended || packagePowerSuspended);
+            if (suspended) ClearTwitchNotifications?.Invoke();
             notesWidget?.SetActivitySuspended(suspended);
             clock?.SetActivitySuspended(suspended);
             systemWidget?.SetActivitySuspended(suspended);
@@ -735,6 +745,7 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            DisposeTwitch();
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
             packageScheduler?.Dispose(); packageScheduler = null;

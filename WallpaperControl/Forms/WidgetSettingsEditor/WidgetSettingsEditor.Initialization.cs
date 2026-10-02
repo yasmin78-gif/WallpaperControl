@@ -29,6 +29,7 @@ namespace WallpaperControl
             TabPage notesPage = AddPage("NotesTitle", "▤"); InitializeNotesPage(notesPage);
             InitializeWebPage(AddPage("WebTitle", "⊕"));
             InitializePackagePage(AddPage("PackageTitle", "◇"));
+            InitializeTwitchPage(AddPage("TwitchTitle", "◈"));
             #region Clock widget page
 
             Label widgetsTitle = new Label

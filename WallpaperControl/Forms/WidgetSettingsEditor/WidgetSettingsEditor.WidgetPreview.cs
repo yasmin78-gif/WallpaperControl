@@ -30,6 +30,10 @@ namespace WallpaperControl
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
             ReadWebControls(preview.Web);
+            preview.TwitchEnabled = twitchEnabled.Checked; preview.TwitchLocked = twitchLocked.Checked;
+            preview.TwitchStyle = (SystemWidgetStyle)Math.Max(0, twitchStyle.SelectedIndex); preview.TwitchMaximumHeight = (int)twitchMaximum.Value;
+            preview.TwitchRefreshMinutes = TwitchIntervalMinutes;
+            preview.TwitchLiveNotifications = twitchNotifications.Checked;
             preview.PackageEnabled = packageEnabled.Checked; preview.PackageLocked = packageLocked.Checked; preview.PackageMaximumHeight = (int)packageMaximum.Value;
             preview.PackageStyle = (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex);
             preview.PackageAutomaticRefresh = packageAutomatic.Checked; preview.PackageRefreshMinutes = PackageIntervalMinutes;

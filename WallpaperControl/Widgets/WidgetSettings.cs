@@ -12,6 +12,13 @@ namespace WallpaperControl
         private bool loadFailed;
         public WebWidgetSettings Web { get; set; } = new();
 
+        public bool TwitchEnabled { get; set; }
+        public bool TwitchLocked { get; set; }
+        public bool TwitchLiveNotifications { get; set; }
+        public SystemWidgetStyle TwitchStyle { get; set; } = SystemWidgetStyle.Minimal;
+        public int TwitchMaximumHeight { get; set; } = 500;
+        public int TwitchRefreshMinutes { get; set; } = 5;
+        public Point TwitchLocation { get; set; } = new(1100, 400);
         public bool PackageEnabled { get; set; }
         public bool PackageLocked { get; set; }
         public bool PackageAutomaticRefresh { get; set; } = true;
@@ -85,6 +92,13 @@ namespace WallpaperControl
                 if (key == null) return result;
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
 
+                result.TwitchEnabled = ReadBool(key, "TwitchWidgetEnabled", false);
+                result.TwitchLocked = ReadBool(key, "TwitchWidgetLocked", false);
+                result.TwitchLiveNotifications = ReadBool(key, "TwitchLiveNotifications", false);
+                result.TwitchStyle = ReadSystemStyle(key, "TwitchWidgetStyle", SystemWidgetStyle.Minimal);
+                result.TwitchMaximumHeight = CalendarViewport.NormalizeMaximum(ReadInt(key, "TwitchWidgetMaximumHeight", 500));
+                result.TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(ReadInt(key, "TwitchRefreshMinutes", 5));
+                result.TwitchLocation = new Point(ReadInt(key, "TwitchWidgetX", 1100), ReadInt(key, "TwitchWidgetY", 400));
                 result.PackageEnabled = ReadBool(key, "PackageWidgetEnabled", false);
                 result.PackageLocked = ReadBool(key, "PackageWidgetLocked", false);
                 result.PackageAutomaticRefresh = ReadBool(key, "PackageAutomaticRefresh", true);
@@ -173,6 +187,14 @@ namespace WallpaperControl
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
                 Web.Normalize();
                 key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
+                key.SetValue("TwitchWidgetEnabled", TwitchEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("TwitchWidgetLocked", TwitchLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("TwitchLiveNotifications", TwitchLiveNotifications ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("TwitchWidgetStyle", (int)TwitchStyle, RegistryValueKind.DWord);
+                key.SetValue("TwitchWidgetMaximumHeight", CalendarViewport.NormalizeMaximum(TwitchMaximumHeight), RegistryValueKind.DWord);
+                key.SetValue("TwitchRefreshMinutes", TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes), RegistryValueKind.DWord);
+                key.SetValue("TwitchWidgetX", TwitchLocation.X, RegistryValueKind.DWord);
+                key.SetValue("TwitchWidgetY", TwitchLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("PackageWidgetEnabled", PackageEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("PackageWidgetLocked", PackageLocked ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("PackageAutomaticRefresh", PackageAutomaticRefresh ? 1 : 0, RegistryValueKind.DWord);
@@ -254,6 +276,9 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
+            TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,
+            TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes),
+            TwitchLiveNotifications = TwitchLiveNotifications,
             PackageEnabled = PackageEnabled, PackageLocked = PackageLocked, PackageMaximumHeight = PackageMaximumHeight, PackageLocation = PackageLocation,
             PackageStyle = PackageStyle, PackageAutomaticRefresh = PackageAutomaticRefresh, PackageRefreshMinutes = PackageRefreshScheduler.NormalizeInterval(PackageRefreshMinutes),
             NotesEnabled = NotesEnabled,
