@@ -149,7 +149,8 @@ namespace WallpaperControl
                     closeToTrayEnabled,
                     automaticUpdateCheckEnabled,
                     pauseOnFullscreen,
-                    windowOpacityPercent);
+                    windowOpacityPercent,
+                    widgetManager.Settings.NotificationSound);
 
             string languageBefore =
                 Localization.CurrentLanguage;
@@ -293,6 +294,13 @@ namespace WallpaperControl
                 ApplyWindowsTheme();
             }
 
+            WidgetSettings notificationSettings = widgetManager.Settings;
+            if (notificationSettings.NotificationSound != dialog.NotificationSound)
+            {
+                notificationSettings.NotificationSound = dialog.NotificationSound;
+                widgetManager.CommitPreview(notificationSettings);
+            }
+            widgetEditor?.LoadSettings(widgetManager.Settings);
             UpdateWidgetPresentation();
 
             if (IsHandleCreated)

@@ -104,6 +104,7 @@ namespace WallpaperControl
 
                 RefreshThemeChoices(
                     previewThemeMode);
+                LocalizeNotificationSounds(SelectedNotificationSound);
 
                 SetComboValues(
                     nextModifierCombo,

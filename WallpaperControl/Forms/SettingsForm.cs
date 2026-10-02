@@ -16,6 +16,7 @@ namespace WallpaperControl
         private void ResetAllSettings()
         {
             SetDefaultHotkeys();
+            LocalizeNotificationSounds(NotificationSoundKind.Chime);
 
             rejectRootTextBox.Text = "";
             rejectSubfolderCheckBox.Checked = true;
@@ -180,6 +181,7 @@ namespace WallpaperControl
             Localization.SetLanguage(
                 previewLanguageCode);
 
+            NotificationSound = SelectedNotificationSound;
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -221,6 +223,7 @@ namespace WallpaperControl
             if (disposing)
             {
                 manualUpdateCancellation?.Cancel();
+                notificationPreviewSound.Dispose();
                 SystemEvents.UserPreferenceChanged -=
                     SystemEvents_UserPreferenceChanged;
 

@@ -112,16 +112,26 @@ internal static class NotificationFeatureTests
             using var editor = new App.WidgetSettingsEditor(new App.WidgetSettings { NotificationSound = App.NotificationSoundKind.Off, PackageStatusNotifications = true });
             check(editor.ReadWidgetSettings(false).NotificationSound == App.NotificationSoundKind.Off && editor.ReadWidgetSettings(false).PackageStatusNotifications,
                 "Editor loads sound and package notification preferences");
-            var combo = (ComboBox)typeof(App.WidgetSettingsEditor).GetField("notificationSound", Flags)!.GetValue(editor)!;
+            check(!editor.WidgetKeys.Contains("NotificationSettings"), "Global notification page is absent from widget navigation");
+            editor.ResetDefaults();
+            check(editor.ReadWidgetSettings(false).NotificationSound == App.NotificationSoundKind.Off, "Widget defaults preserve global sound preference");
+            using var dialog = new App.SettingsForm(false, "system", 3, 0x27, 3, 0x50, 3, 0x45, 7, 0x52, "", true, false, true, true, true, 80, App.NotificationSoundKind.Off);
+            var combo = (ComboBox)typeof(App.SettingsForm).GetField("notificationSound", Flags)!.GetValue(dialog)!;
+            var tabs = (TabControl)typeof(App.SettingsForm).GetField("settingsTabControl", Flags)!.GetValue(dialog)!;
+            check(tabs.TabPages.Cast<TabPage>().Any(page => (string?)page.Tag == "NotificationSettings"), "Global settings contain notification page");
+            check(combo.SelectedIndex == 0 && dialog.NotificationSound == App.NotificationSoundKind.Off, "Global settings load saved sound");
             check(combo.Items.Count == 3, "Sound UI exposes exactly three choices");
             combo.SelectedIndex = 2;
             foreach (var language in new[] { "de", "en", "fr", "es", "ja" })
             {
-                editor.ApplyPresentation(false, language);
-                check(editor.ReadWidgetSettings(false).NotificationSound == App.NotificationSoundKind.Chime, "Language change preserves selected tone " + language);
+                typeof(App.SettingsForm).GetMethod("ApplyPreviewLocalization", Flags)!.Invoke(dialog, new object[] { language });
+                check(combo.SelectedIndex == 2, "Language change preserves selected tone " + language);
                 foreach (var key in new[] { "NotificationSettings", "NotificationSoundPreview", "NotificationSoundChime", "PackageStatusNotifications", "PackageStatusNotificationTitle", "PackageStatusNotificationBody" })
                     check(App.Localization.Get(key, language) != key, "Notification localization " + language + "/" + key);
             }
+            check(dialog.NotificationSound == App.NotificationSoundKind.Off, "Editing and localization do not accept preference before saving");
+            typeof(App.SettingsForm).GetMethod("SaveAndClose", Flags)!.Invoke(dialog, null);
+            check(dialog.DialogResult == DialogResult.OK && dialog.NotificationSound == App.NotificationSoundKind.Chime, "Global save captures selected sound");
             using var wav = typeof(App.NotificationSounds).Assembly.GetManifestResourceStream("WallpaperControl.NotificationChime.wav")!;
             using var binary = new BinaryReader(wav);
             check(new string(binary.ReadChars(4)) == "RIFF" && wav.Length == 44144, "Embedded chime is a complete half-second mono PCM WAV");

@@ -30,7 +30,6 @@ namespace WallpaperControl
             InitializeWebPage(AddPage("WebTitle", "⊕"));
             InitializePackagePage(AddPage("PackageTitle", "◇"));
             InitializeTwitchPage(AddPage("TwitchTitle", "◈"));
-            InitializeNotificationPage(AddPage("NotificationSettings", "♪"));
             #region Clock widget page
 
             Label widgetsTitle = new Label

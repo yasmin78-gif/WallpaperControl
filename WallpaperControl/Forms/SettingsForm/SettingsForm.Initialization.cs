@@ -47,7 +47,8 @@ namespace WallpaperControl
             bool closeToTrayEnabled,
             bool automaticUpdateCheckEnabled,
             bool pauseOnFullscreen,
-            int windowOpacityPercent)
+            int windowOpacityPercent,
+            NotificationSoundKind notificationSound = NotificationSoundKind.Chime)
         {
             #region Window and preview state
 
@@ -134,12 +135,15 @@ namespace WallpaperControl
             TabPage rejectPage = CreateSettingsPage("SettingsNavReject");
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
+            TabPage notificationPage = CreateSettingsPage("NotificationSettings");
+            InitializeNotificationPage(notificationPage, notificationSound);
 
             tabControl.TabPages.Add(hotkeysPage);
             tabControl.TabPages.Add(generalPage);
             tabControl.TabPages.Add(rejectPage);
             tabControl.TabPages.Add(appearancePage);
             tabControl.TabPages.Add(languagePage);
+            tabControl.TabPages.Add(notificationPage);
 
             AddSettingsNavigationButton(navigationPanel, tabControl, generalPage, "⚙", "SettingsNavGeneral", 72);
             AddSettingsNavigationButton(navigationPanel, tabControl, rejectPage, "▣", "SettingsNavReject", 118);
@@ -148,6 +152,7 @@ namespace WallpaperControl
             settingsAppearanceNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, appearancePage, "◐", "SettingsNavAppearance", 210);
             settingsLanguageNavigationButton = AddSettingsNavigationButton(navigationPanel, tabControl, languagePage, "◎", "SettingsNavLanguage", 256);
 
+            AddSettingsNavigationButton(navigationPanel, tabControl, notificationPage, "♪", "NotificationSettings", 302);
             tabControl.SelectedTab = generalPage;
             UpdateSettingsNavigationSelection();
             tabControl.SelectedIndexChanged += (_, _) => UpdateSettingsNavigationSelection();
