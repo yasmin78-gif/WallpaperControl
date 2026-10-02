@@ -218,54 +218,6 @@ MP4/H.264 como fondo de escritorio.
 El motor Estándar utiliza el runtime mínimo de libmpv incluido. Sus
 bibliotecas nativas se instalan por separado del ejecutable single-file.
 
-## 📦 Seguimiento de paquetes
-
-Wallpaper Control 2.1.0 añade un widget de escritorio nativo para el
-seguimiento de envíos.
-
--   Seguimiento mediante **Ship24**
--   Añadir, renombrar, editar y eliminar envíos
--   Estado, historial de eventos y previsión de entrega disponible
--   Actualización manual y automática cada **15, 30, 60 o 120 minutos**
--   Respeta pantalla completa, suspensión/reanudación y envíos
-    entregados
--   Protección contra actualizaciones simultáneas y solicitudes
-    repetidas innecesarias
--   Errores claros para credenciales, cuota, límites de frecuencia y red
--   Configuración de Ship24 con prueba de conexión; la clave API se
-    guarda cifrada para el usuario actual
--   La hora de última actualización refleja la última consulta correcta
-    aunque el estado no cambie
--   Datos locales con copia de seguridad y recuperación frente a daños
--   Posición, bloqueo y altura máxima configurables, con estilos
-    **Minimal**, **Clean** y **Glow**
-
-### Envíos entregados y notificaciones
-
-Los envíos entregados se agrupan en una sección desplegable
-**Entregado**, de modo que los envíos activos permanezcan visibles de
-inmediato. Los elementos entregados se conservan y pueden seguir
-desplegándose cuando sea necesario.
-
-Se pueden activar notificaciones opcionales para los cambios de estado.
-Al hacer clic en una notificación de paquete se abren los detalles del
-envío correspondiente.
-
-### Amazon Logistics
-
-Los números compatibles **DE** y **TBA** de Amazon Logistics se
-reconocen localmente y no consumen consultas de Ship24. Los detalles en
-directo siguen disponibles en Amazon. Pueden marcarse manualmente como
-entregados y dicha marca puede revertirse.
-
-Cuando está activo el modo **Fondo de vídeo**, los widgets **Información
-del fondo** y **Siguiente fondo** se ocultan temporalmente porque
-corresponden a fondos de imagen. Al volver al modo de presentación de
-imágenes reaparecen automáticamente si están activados. Sus ajustes y
-posiciones se conservan.
-
-Cuando está activo el modo **Fondo de vídeo**, los widgets **Información del fondo** y **Siguiente fondo** se ocultan temporalmente porque corresponden a fondos de imagen. Al volver al modo de presentación de imágenes reaparecen automáticamente si están activados. Sus ajustes y posiciones se conservan.
-
 ## 🎮 Pausa a pantalla completa
 
 Wallpaper Control puede reducir automáticamente la actividad en segundo
@@ -484,6 +436,54 @@ visualizaciones totales y el récord. El tamaño de fuente se ajusta entre
 **10--24 px**. Se pueden ocultar extensiones y varios sufijos separados
 por comas únicamente en el nombre mostrado. Los nombres largos se
 acortan automáticamente. Admite **Minimal**, **Clean** y **Glow**.
+
+### 📦 Seguimiento de paquetes
+
+Wallpaper Control 2.1.0 añade un widget de escritorio nativo para el
+seguimiento de envíos.
+
+-   Seguimiento mediante **Ship24**
+-   Añadir, renombrar, editar y eliminar envíos
+-   Estado, historial de eventos y previsión de entrega disponible
+-   Actualización manual y automática cada **15, 30, 60 o 120 minutos**
+-   Respeta pantalla completa, suspensión/reanudación y envíos
+    entregados
+-   Protección contra actualizaciones simultáneas y solicitudes
+    repetidas innecesarias
+-   Errores claros para credenciales, cuota, límites de frecuencia y red
+-   Configuración de Ship24 con prueba de conexión; la clave API se
+    guarda cifrada para el usuario actual
+-   La hora de última actualización refleja la última consulta correcta
+    aunque el estado no cambie
+-   Datos locales con copia de seguridad y recuperación frente a daños
+-   Posición, bloqueo y altura máxima configurables, con estilos
+    **Minimal**, **Clean** y **Glow**
+
+#### Envíos entregados y notificaciones
+
+Los envíos entregados se agrupan en una sección desplegable
+**Entregado**, de modo que los envíos activos permanezcan visibles de
+inmediato. Los elementos entregados se conservan y pueden seguir
+desplegándose cuando sea necesario.
+
+Se pueden activar notificaciones opcionales para los cambios de estado.
+Al hacer clic en una notificación de paquete se abren los detalles del
+envío correspondiente.
+
+#### Amazon Logistics
+
+Los números compatibles **DE** y **TBA** de Amazon Logistics se
+reconocen localmente y no consumen consultas de Ship24. Los detalles en
+directo siguen disponibles en Amazon. Pueden marcarse manualmente como
+entregados y dicha marca puede revertirse.
+
+Cuando está activo el modo **Fondo de vídeo**, los widgets **Información
+del fondo** y **Siguiente fondo** se ocultan temporalmente porque
+corresponden a fondos de imagen. Al volver al modo de presentación de
+imágenes reaparecen automáticamente si están activados. Sus ajustes y
+posiciones se conservan.
+
+Cuando está activo el modo **Fondo de vídeo**, los widgets **Información del fondo** y **Siguiente fondo** se ocultan temporalmente porque corresponden a fondos de imagen. Al volver al modo de presentación de imágenes reaparecen automáticamente si están activados. Sus ajustes y posiciones se conservan.
 
 ### 📺 Twitch
 

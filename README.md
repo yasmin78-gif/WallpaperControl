@@ -206,55 +206,6 @@ libraries are installed separately from the application's single-file
 executable because they must remain available as native files at
 runtime.
 
-## 📦 Package Tracking
-
-Wallpaper Control 2.1.0 adds a native desktop widget for shipment
-tracking.
-
--   Shipment tracking through **Ship24**
--   Add, rename, edit and remove shipments
--   Detailed status, event history and available delivery estimates
--   Manual refresh and automatic refresh every **15, 30, 60 or 120
-    minutes**
--   Automatic refresh respects fullscreen mode, system suspend/resume
-    and delivered shipments
--   Protection against concurrent refreshes and unnecessary repeated
-    requests
--   Clear errors for credentials, quota limits, rate limits and network
-    problems
--   Ship24 setup includes a connection test; the API key is encrypted
-    for the current Windows user
--   Last-updated time reflects the last successful refresh even when
-    shipment status did not change
--   Local tracking data includes backup and corruption recovery
--   Configurable position, position lock, maximum height and
-    **Minimal**, **Clean** and **Glow** styles
-
-### Delivered shipments & notifications
-
-Delivered shipments are grouped in a collapsible **Delivered** section
-so active shipments remain easy to see. Delivered items are retained and
-can still be expanded when needed.
-
-Optional status-change notifications can be enabled for package
-tracking. Clicking a package notification opens the corresponding
-shipment details.
-
-### Amazon Logistics
-
-Supported Amazon Logistics **DE** and **TBA** tracking numbers are
-recognized locally and do not consume Ship24 tracking requests. Live
-shipment details remain available through Amazon. These shipments can be
-marked as delivered manually, and that mark can be reverted.
-
-When **Video Wallpaper** mode is active, the **Wallpaper Info** and
-**Next Wallpaper** widgets are temporarily hidden because they apply to
-image wallpapers. Switching back to Image Slideshow restores them
-automatically if they are enabled. Their settings and positions are
-preserved.
-
-When **Video Wallpaper** mode is active, the **Wallpaper Info** and **Next Wallpaper** widgets are temporarily hidden because they apply to image wallpapers. Switching back to Image Slideshow restores them automatically if they are enabled. Their settings and positions are preserved.
-
 ## 🎮 Fullscreen Pause
 
 Wallpaper Control can automatically reduce background activity while a
@@ -462,6 +413,55 @@ record. Font size is adjustable from **10--24 px**. File extensions can
 be hidden, and multiple comma-separated filename suffixes can be removed
 from the displayed name only. Long names are automatically shortened.
 The widget supports **Minimal**, **Clean** and **Glow** styles.
+
+### 📦 Package Tracking
+
+Wallpaper Control 2.1.0 adds a native desktop widget for shipment
+tracking.
+
+-   Shipment tracking through **Ship24**
+-   Add, rename, edit and remove shipments
+-   Detailed status, event history and available delivery estimates
+-   Manual refresh and automatic refresh every **15, 30, 60 or 120
+    minutes**
+-   Automatic refresh respects fullscreen mode, system suspend/resume
+    and delivered shipments
+-   Protection against concurrent refreshes and unnecessary repeated
+    requests
+-   Clear errors for credentials, quota limits, rate limits and network
+    problems
+-   Ship24 setup includes a connection test; the API key is encrypted
+    for the current Windows user
+-   Last-updated time reflects the last successful refresh even when
+    shipment status did not change
+-   Local tracking data includes backup and corruption recovery
+-   Configurable position, position lock, maximum height and
+    **Minimal**, **Clean** and **Glow** styles
+
+#### Delivered shipments & notifications
+
+Delivered shipments are grouped in a collapsible **Delivered** section
+so active shipments remain easy to see. Delivered items are retained and
+can still be expanded when needed.
+
+Optional status-change notifications can be enabled for package
+tracking. Clicking a package notification opens the corresponding
+shipment details.
+
+#### Amazon Logistics
+
+Supported Amazon Logistics **DE** and **TBA** tracking numbers are
+recognized locally and do not consume Ship24 tracking requests. Live
+shipment details remain available through Amazon. These shipments can be
+marked as delivered manually, and that mark can be reverted.
+
+When **Video Wallpaper** mode is active, the **Wallpaper Info** and
+**Next Wallpaper** widgets are temporarily hidden because they apply to
+image wallpapers. Switching back to Image Slideshow restores them
+automatically if they are enabled. Their settings and positions are
+preserved.
+
+When **Video Wallpaper** mode is active, the **Wallpaper Info** and **Next Wallpaper** widgets are temporarily hidden because they apply to image wallpapers. Switching back to Image Slideshow restores them automatically if they are enabled. Their settings and positions are preserved.
 
 ### 📺 Twitch
 

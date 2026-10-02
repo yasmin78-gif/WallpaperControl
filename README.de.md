@@ -221,59 +221,6 @@ Ihre nativen Bibliotheken werden getrennt von der Single-File-Anwendung
 installiert, da sie zur Laufzeit als eigenständige Dateien verfügbar
 sein müssen.
 
-## 📦 Paketverfolgung
-
-Wallpaper Control 2.1.0 enthält ein natives Desktop-Widget zur
-Sendungsverfolgung.
-
--   Sendungsverfolgung über **Ship24**
--   Sendungen hinzufügen, umbenennen, bearbeiten und löschen
--   Detailansicht mit Status, Ereignisverlauf und verfügbarer
-    Lieferprognose
--   Manuelle Aktualisierung und automatische Aktualisierung alle **15,
-    30, 60 oder 120 Minuten**
--   Automatische Aktualisierungen berücksichtigen Vollbildmodus,
-    Energiesuspendierung/-fortsetzung und bereits zugestellte Sendungen
--   Schutz vor parallelen Aktualisierungen und unnötigen
-    Wiederholungsanfragen
--   Klare Fehleranzeigen für Zugangsdaten, Kontingent, Ratenbegrenzung
-    und Netzwerkprobleme
--   Ship24-Einrichtung mit Verbindungstest; der API-Schlüssel wird für
-    den aktuellen Windows-Benutzer verschlüsselt gespeichert
--   „Zuletzt aktualisiert" zeigt die letzte erfolgreiche Aktualisierung,
-    auch wenn sich der Sendungsstatus nicht geändert hat
--   Lokale Trackingdaten mit Sicherung und Schutz gegen beschädigte
-    Daten
--   Konfigurierbare Position, Positionssperre, maximale Höhe sowie
-    **Minimal**, **Clean** und **Glow**
-
-### Zugestellte Sendungen & Benachrichtigungen
-
-Zugestellte Sendungen werden in einem aufklappbaren Bereich
-**Zugestellt** zusammengefasst, damit aktive Sendungen sofort sichtbar
-bleiben. Zugestellte Einträge bleiben erhalten und können bei Bedarf
-weiterhin aufgeklappt werden.
-
-Optional können Benachrichtigungen bei Statusänderungen aktiviert
-werden. Ein Klick auf eine Paketmeldung öffnet die zugehörigen
-Sendungsdetails.
-
-### Amazon Logistics
-
-Unterstützte **DE**- und **TBA**-Sendungsnummern von Amazon Logistics
-werden lokal erkannt und verbrauchen keine Ship24-Abfragen. Der
-eigentliche Live-Trackingstatus bleibt bei Amazon verfügbar. Diese
-Sendungen können manuell als zugestellt markiert werden; die Markierung
-lässt sich wieder zurücknehmen.
-
-Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und
-**Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf
-Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen
-sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und
-Positionen bleiben erhalten.
-
-Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und **Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und Positionen bleiben erhalten.
-
 ## 🎮 Vollbildpause
 
 Wallpaper Control kann die Hintergrundaktivität automatisch reduzieren,
@@ -497,6 +444,59 @@ werden; außerdem lassen sich mehrere komma-getrennte Suffixe
 ausschließlich aus dem angezeigten Namen entfernen. Lange Namen werden
 automatisch gekürzt. Das Widget unterstützt **Minimal**, **Clean** und
 **Glow**.
+
+### 📦 Paketverfolgung
+
+Wallpaper Control 2.1.0 enthält ein natives Desktop-Widget zur
+Sendungsverfolgung.
+
+-   Sendungsverfolgung über **Ship24**
+-   Sendungen hinzufügen, umbenennen, bearbeiten und löschen
+-   Detailansicht mit Status, Ereignisverlauf und verfügbarer
+    Lieferprognose
+-   Manuelle Aktualisierung und automatische Aktualisierung alle **15,
+    30, 60 oder 120 Minuten**
+-   Automatische Aktualisierungen berücksichtigen Vollbildmodus,
+    Energiesuspendierung/-fortsetzung und bereits zugestellte Sendungen
+-   Schutz vor parallelen Aktualisierungen und unnötigen
+    Wiederholungsanfragen
+-   Klare Fehleranzeigen für Zugangsdaten, Kontingent, Ratenbegrenzung
+    und Netzwerkprobleme
+-   Ship24-Einrichtung mit Verbindungstest; der API-Schlüssel wird für
+    den aktuellen Windows-Benutzer verschlüsselt gespeichert
+-   „Zuletzt aktualisiert" zeigt die letzte erfolgreiche Aktualisierung,
+    auch wenn sich der Sendungsstatus nicht geändert hat
+-   Lokale Trackingdaten mit Sicherung und Schutz gegen beschädigte
+    Daten
+-   Konfigurierbare Position, Positionssperre, maximale Höhe sowie
+    **Minimal**, **Clean** und **Glow**
+
+#### Zugestellte Sendungen & Benachrichtigungen
+
+Zugestellte Sendungen werden in einem aufklappbaren Bereich
+**Zugestellt** zusammengefasst, damit aktive Sendungen sofort sichtbar
+bleiben. Zugestellte Einträge bleiben erhalten und können bei Bedarf
+weiterhin aufgeklappt werden.
+
+Optional können Benachrichtigungen bei Statusänderungen aktiviert
+werden. Ein Klick auf eine Paketmeldung öffnet die zugehörigen
+Sendungsdetails.
+
+#### Amazon Logistics
+
+Unterstützte **DE**- und **TBA**-Sendungsnummern von Amazon Logistics
+werden lokal erkannt und verbrauchen keine Ship24-Abfragen. Der
+eigentliche Live-Trackingstatus bleibt bei Amazon verfügbar. Diese
+Sendungen können manuell als zugestellt markiert werden; die Markierung
+lässt sich wieder zurücknehmen.
+
+Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und
+**Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf
+Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen
+sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und
+Positionen bleiben erhalten.
+
+Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und **Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und Positionen bleiben erhalten.
 
 ### 📺 Twitch
 

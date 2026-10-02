@@ -224,56 +224,6 @@ Le moteur Standard utilise le runtime minimal libmpv fourni. Ses
 bibliothèques natives sont installées séparément de l'exécutable
 single-file.
 
-## 📦 Suivi des colis
-
-Wallpaper Control 2.1.0 ajoute un widget de bureau natif pour le suivi
-des envois.
-
--   Suivi via **Ship24**
--   Ajout, renommage, modification et suppression des envois
--   État détaillé, historique des événements et estimation de livraison
-    disponible
--   Actualisation manuelle et automatique toutes les **15, 30, 60 ou 120
-    minutes**
--   Respect du plein écran, de la suspension/reprise et des envois déjà
-    livrés
--   Protection contre les actualisations simultanées et les requêtes
-    répétées inutiles
--   Erreurs claires pour les identifiants, le quota, les limites de
-    requêtes et le réseau
--   Configuration Ship24 avec test de connexion ; la clé API est
-    chiffrée pour l'utilisateur Windows actuel
--   La dernière actualisation correspond à la dernière requête réussie
-    même si l'état n'a pas changé
--   Données locales avec sauvegarde et récupération en cas de corruption
--   Position, verrouillage et hauteur maximale configurables, avec
-    **Minimal**, **Clean** et **Glow**
-
-### Colis livrés et notifications
-
-Les colis livrés sont regroupés dans une section repliable **Livré**
-afin que les envois actifs restent immédiatement visibles. Les éléments
-livrés sont conservés et peuvent toujours être développés si nécessaire.
-
-Des notifications facultatives peuvent signaler les changements d'état.
-Un clic sur une notification de colis ouvre les détails de l'envoi
-correspondant.
-
-### Amazon Logistics
-
-Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
-reconnus localement et ne consomment pas de requêtes Ship24. Les détails
-en direct restent disponibles sur Amazon. Ces envois peuvent être
-marqués manuellement comme livrés et ce marquage peut être annulé.
-
-Lorsque le mode **Fond d'écran vidéo** est actif, les widgets
-**Informations sur le fond d'écran** et **Fond d'écran suivant** sont
-temporairement masqués, car ils concernent les fonds d'écran fixes. Ils
-réapparaissent automatiquement lors du retour au diaporama d'images
-s'ils sont activés. Leurs paramètres et positions sont conservés.
-
-Lorsque le mode **Fond d'écran vidéo** est actif, les widgets **Informations sur le fond d'écran** et **Fond d'écran suivant** sont temporairement masqués, car ils concernent les fonds d'écran fixes. Ils réapparaissent automatiquement lors du retour au diaporama d'images s'ils sont activés. Leurs paramètres et positions sont conservés.
-
 ## 🎮 Pause en plein écran
 
 Wallpaper Control peut réduire automatiquement l'activité en
@@ -499,6 +449,56 @@ des affichages et le record. La taille de police est réglable de
 virgules peuvent être masqués uniquement dans le nom affiché. Les noms
 longs sont automatiquement raccourcis. Le widget prend en charge
 **Minimal**, **Clean** et **Glow**.
+
+### 📦 Suivi des colis
+
+Wallpaper Control 2.1.0 ajoute un widget de bureau natif pour le suivi
+des envois.
+
+-   Suivi via **Ship24**
+-   Ajout, renommage, modification et suppression des envois
+-   État détaillé, historique des événements et estimation de livraison
+    disponible
+-   Actualisation manuelle et automatique toutes les **15, 30, 60 ou 120
+    minutes**
+-   Respect du plein écran, de la suspension/reprise et des envois déjà
+    livrés
+-   Protection contre les actualisations simultanées et les requêtes
+    répétées inutiles
+-   Erreurs claires pour les identifiants, le quota, les limites de
+    requêtes et le réseau
+-   Configuration Ship24 avec test de connexion ; la clé API est
+    chiffrée pour l'utilisateur Windows actuel
+-   La dernière actualisation correspond à la dernière requête réussie
+    même si l'état n'a pas changé
+-   Données locales avec sauvegarde et récupération en cas de corruption
+-   Position, verrouillage et hauteur maximale configurables, avec
+    **Minimal**, **Clean** et **Glow**
+
+#### Colis livrés et notifications
+
+Les colis livrés sont regroupés dans une section repliable **Livré**
+afin que les envois actifs restent immédiatement visibles. Les éléments
+livrés sont conservés et peuvent toujours être développés si nécessaire.
+
+Des notifications facultatives peuvent signaler les changements d'état.
+Un clic sur une notification de colis ouvre les détails de l'envoi
+correspondant.
+
+#### Amazon Logistics
+
+Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
+reconnus localement et ne consomment pas de requêtes Ship24. Les détails
+en direct restent disponibles sur Amazon. Ces envois peuvent être
+marqués manuellement comme livrés et ce marquage peut être annulé.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets
+**Informations sur le fond d'écran** et **Fond d'écran suivant** sont
+temporairement masqués, car ils concernent les fonds d'écran fixes. Ils
+réapparaissent automatiquement lors du retour au diaporama d'images
+s'ils sont activés. Leurs paramètres et positions sont conservés.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets **Informations sur le fond d'écran** et **Fond d'écran suivant** sont temporairement masqués, car ils concernent les fonds d'écran fixes. Ils réapparaissent automatiquement lors du retour au diaporama d'images s'ils sont activés. Leurs paramètres et positions sont conservés.
 
 ### 📺 Twitch
 
