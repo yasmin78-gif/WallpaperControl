@@ -1645,4 +1645,5 @@ Versión instalada: {0}
   <data name="VideoEngineActive" xml:space="preserve"><value>Motor de vídeo activo: {0}</value></data>
   <data name="VideoRestart" xml:space="preserve"><value>Reiniciar vídeo</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Selecciona un vídeo. Mientras tanto, el fondo de imágenes permanece activo.</value></data>
+  <data name="PackageDeliveredGroup" xml:space="preserve"><value>Entregado ({0})</value></data>
 </root>

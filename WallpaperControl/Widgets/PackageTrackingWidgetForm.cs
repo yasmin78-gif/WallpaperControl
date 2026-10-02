@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 
 namespace WallpaperControl;
 
@@ -12,6 +13,9 @@ internal sealed class PackageTrackingWidgetForm : Form
     private readonly Action<Guid> details;
     private readonly Action? add;
     private bool addPressed;
+    private bool deliveredExpanded, deliveredPressed;
+    private RectangleF deliveredBounds;
+    private const int DeliveredGroupHeight = 32;
     private readonly WidgetDragHandler drag;
     private readonly CancellationTokenSource lifetime = new();
     private readonly List<(Guid Id, RectangleF Bounds)> rows = new();
@@ -45,7 +49,7 @@ internal sealed class PackageTrackingWidgetForm : Form
     internal void SetActivitySuspended(bool value)
     {
         suspended = value;
-        if (value) { pressed = null; addPressed = false; thumbDragging = false; Capture = false; }
+        if (value) { pressed = null; addPressed = deliveredPressed = false; thumbDragging = false; Capture = false; }
         else Render(); // Only cached data, never a resume request.
     }
     protected override void OnShown(EventArgs e) { base.OnShown(e); Render(); }
@@ -80,12 +84,17 @@ internal sealed class PackageTrackingWidgetForm : Form
     internal Bitmap RenderBitmap(int heightLimit = 2000, int dpi = 96)
     {
         var shipments = service.Shipments;
+        // Stable partition of the existing order; grouping is presentation only.
+        var active = shipments.Where(s => s.StatusMilestone != "delivered").ToArray();
+        var delivered = shipments.Where(s => s.StatusMilestone == "delivered").ToArray();
         string lang = settings.ClockLanguageCode;
         string EventSummary(TrackedShipment s) => AmazonLogistics.IsLocal(s) ? Localization.Get("PackageAmazonOnly", lang) : string.Join(" · ", new[] { s.LastRelevantEvent?.Location,
             PackagePresentation.Date(s.LastRelevantEvent?.OccurredAt, lang) }.Where(v => !string.IsNullOrWhiteSpace(v)));
         float Height(TrackedShipment s) => 80 + (EventSummary(s).Length > 0 ? 24 : 0)
             + (s.EstimatedDelivery != null ? 24 : 0) + (service.RefreshFailures.ContainsKey(s.Id) ? 24 : 0);
-        viewport.Update(Math.Max(40, shipments.Sum(Height)), settings.PackageMaximumHeight, heightLimit, dpi);
+        float contentHeight = active.Sum(Height) + (delivered.Length > 0 ? DeliveredGroupHeight : 0)
+            + (deliveredExpanded ? delivered.Sum(Height) : 0);
+        viewport.Update(Math.Max(40, contentHeight), settings.PackageMaximumHeight, heightLimit, dpi);
         Bitmap bitmap = new((int)Math.Ceiling(LogicalWidth * viewport.Scale), viewport.PhysicalHeight, PixelFormat.Format32bppPArgb);
         try
         {
@@ -122,11 +131,11 @@ internal sealed class PackageTrackingWidgetForm : Form
                 g.FillRectangle(accent, 16, 40, LogicalWidth - 32, settings.PackageStyle == SystemWidgetStyle.Glow ? 2 : 1);
             g.DrawString(service.Busy ? "…" : "↻", heading, accent, RefreshBounds, line);
             WidgetDrawing.DrawAddIcon(g, AddBounds, service.Busy ? muted.Color : accent.Color);
-            rows.Clear(); var state = g.Save(); g.SetClip(viewport.ContentBounds);
+            rows.Clear(); deliveredBounds = RectangleF.Empty;
+            var state = g.Save(); g.SetClip(viewport.ContentBounds);
             using var separator = new Pen(Color.FromArgb(dark ? 70 : 55, muted.Color), 1);
             float y = CalendarViewport.HeaderHeight - viewport.ScrollOffset;
-            int index = 0;
-            foreach (var s in shipments)
+            void DrawShipment(TrackedShipment s, bool separatorBelow)
             {
                 var bounds = new RectangleF(14, y, viewport.ContentBounds.Width - 4, Height(s));
                 if (bounds.Bottom >= viewport.ContentBounds.Top && bounds.Top < viewport.ContentBounds.Bottom)
@@ -141,11 +150,21 @@ internal sealed class PackageTrackingWidgetForm : Form
                     if (summary.Length > 0) { Draw(summary, offset, muted); offset += 24; }
                     if (s.EstimatedDelivery != null) { Draw(PackagePresentation.Format("PackageEta", PackagePresentation.Date(s.EstimatedDelivery, lang), lang), offset, muted); offset += 24; }
                     if (service.RefreshFailures.ContainsKey(s.Id)) Draw(Localization.Get("PackageRefreshShort", lang), offset, muted);
-                    if (index < shipments.Count - 1)
+                    if (separatorBelow)
                         g.DrawLine(separator, bounds.Left, bounds.Bottom - 4, bounds.Right, bounds.Bottom - 4);
                 }
                 y += Height(s);
-                index++;
+            }
+            for (int i = 0; i < active.Length; i++) DrawShipment(active[i], i < active.Length - 1);
+            if (delivered.Length > 0)
+            {
+                deliveredBounds = new RectangleF(14, y, viewport.ContentBounds.Width - 4, DeliveredGroupHeight);
+                if (active.Length > 0) g.DrawLine(separator, deliveredBounds.Left, y, deliveredBounds.Right, y);
+                string title = string.Format(CultureInfo.GetCultureInfo(lang), Localization.Get("PackageDeliveredGroup", lang), delivered.Length);
+                g.DrawString((deliveredExpanded ? "▾ " : "▸ ") + title, heading, text, deliveredBounds, line);
+                y += DeliveredGroupHeight;
+                if (deliveredExpanded)
+                    for (int i = 0; i < delivered.Length; i++) DrawShipment(delivered[i], i < delivered.Length - 1);
             }
             if (shipments.Count == 0) g.DrawString(Localization.Get("PackageEmpty", lang), font, muted, viewport.ContentBounds, line);
             g.Restore(state);
@@ -169,6 +188,11 @@ internal sealed class PackageTrackingWidgetForm : Form
         return rows.Where(r => r.Bounds.Contains(logical)).Select(r => (Guid?)r.Id).FirstOrDefault();
     }
     internal bool HitTestAdd(Point point) => AddBounds.Contains(new PointF(point.X / viewport.Scale, point.Y / viewport.Scale));
+    internal bool HitTestDeliveredGroup(Point point)
+    {
+        PointF logical = new(point.X / viewport.Scale, point.Y / viewport.Scale);
+        return viewport.ContentBounds.Contains(logical) && deliveredBounds.Contains(logical);
+    }
     internal bool ScrollWheel(Point point, int delta, int lines)
     {
         if (suspended || widgetDragging || thumbDragging || !viewport.ContentBounds.Contains(new PointF(point.X / viewport.Scale, point.Y / viewport.Scale))) return false;
@@ -187,14 +211,21 @@ internal sealed class PackageTrackingWidgetForm : Form
             else { viewport.SetOffset(viewport.ScrollOffset + (logical.Y < viewport.Thumb.Top ? -1 : 1) * viewport.ViewportHeight); Render(); }
             return;
         }
+        if (HitTestDeliveredGroup(e.Location)) { deliveredPressed = true; Capture = true; return; }
         pressed = HitTest(e.Location); if (pressed != null) { Capture = true; return; }
         widgetDragging = !settings.PackageLocked; base.OnMouseDown(e);
     }
     protected override void OnMouseMove(MouseEventArgs e)
-    { if (thumbDragging) { viewport.DragThumb(e.Y / viewport.Scale, thumbGrabOffset); Render(); } else if (pressed == null && !addPressed) base.OnMouseMove(e); }
+    { if (thumbDragging) { viewport.DragThumb(e.Y / viewport.Scale, thumbGrabOffset); Render(); } else if (pressed == null && !addPressed && !deliveredPressed) base.OnMouseMove(e); }
     protected override async void OnMouseUp(MouseEventArgs e)
     {
         if (e.Button != MouseButtons.Left) return;
+        if (deliveredPressed)
+        {
+            deliveredPressed = false; Capture = false;
+            if (!suspended && HitTestDeliveredGroup(e.Location)) { deliveredExpanded = !deliveredExpanded; Render(); }
+            return;
+        }
         if (addPressed)
         {
             addPressed = false; Capture = false;
@@ -216,7 +247,7 @@ internal sealed class PackageTrackingWidgetForm : Form
     }
     protected override void OnMouseCaptureChanged(EventArgs e)
     {
-        if (!Capture) { pressed = null; addPressed = false; thumbDragging = false; if (widgetDragging) { widgetDragging = false; base.OnMouseUp(new(MouseButtons.Left, 1, 0, 0, 0)); } }
+        if (!Capture) { pressed = null; addPressed = deliveredPressed = false; thumbDragging = false; if (widgetDragging) { widgetDragging = false; base.OnMouseUp(new(MouseButtons.Left, 1, 0, 0, 0)); } }
         base.OnMouseCaptureChanged(e);
     }
     protected override void Dispose(bool disposing)

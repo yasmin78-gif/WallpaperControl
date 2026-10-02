@@ -1645,4 +1645,5 @@ Would you like to open the release page?</value>
   <data name="VideoEngineActive" xml:space="preserve"><value>Active video engine: {0}</value></data>
   <data name="VideoRestart" xml:space="preserve"><value>Restart video</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choose a video. The image wallpaper remains active until then.</value></data>
+  <data name="PackageDeliveredGroup" xml:space="preserve"><value>Delivered ({0})</value></data>
 </root>

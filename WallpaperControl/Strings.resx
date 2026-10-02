@@ -1645,4 +1645,5 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VideoEngineActive" xml:space="preserve"><value>Aktive Video-Engine: {0}</value></data>
   <data name="VideoRestart" xml:space="preserve"><value>Video neu starten</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Wähle ein Video. Bis dahin bleibt der Bildhintergrund aktiv.</value></data>
+  <data name="PackageDeliveredGroup" xml:space="preserve"><value>Zugestellt ({0})</value></data>
 </root>

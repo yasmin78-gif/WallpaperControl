@@ -1617,4 +1617,5 @@
   <data name="VideoEngineActive" xml:space="preserve"><value>使用中の動画エンジン：{0}</value></data>
   <data name="VideoRestart" xml:space="preserve"><value>動画を再開始</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>動画を選択してください。それまでは画像の壁紙が表示されます。</value></data>
+  <data name="PackageDeliveredGroup" xml:space="preserve"><value>配達済み ({0})</value></data>
 </root>

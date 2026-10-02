@@ -1645,4 +1645,5 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VideoEngineActive" xml:space="preserve"><value>Moteur vidéo actif : {0}</value></data>
   <data name="VideoRestart" xml:space="preserve"><value>Redémarrer la vidéo</value></data>
   <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choisissez une vidéo. Le fond d’écran image reste actif en attendant.</value></data>
+  <data name="PackageDeliveredGroup" xml:space="preserve"><value>Livré ({0})</value></data>
 </root>

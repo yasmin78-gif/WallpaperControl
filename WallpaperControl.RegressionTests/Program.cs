@@ -103,6 +103,8 @@ try
     { ProductionVideoIntegrationChecks.Run(Check); MpvProfileChecks.Run(); CandidatePackageChecks.Run(Path.Combine(AppContext.BaseDirectory, "video-runtime", "package")); Console.WriteLine($"All {passed} production integration checks passed."); return 0; }
     if (args.Length == 2 && args[0] == "--production-video-native")
     { ProductionVideoIntegrationChecks.Native(args[1], Check); Console.WriteLine($"All {passed} production native checks passed."); return 0; }
+    if (args.Length is 1 or 2 && args[0] == "--package-delivered-checks")
+    { PackageDeliveredGroupTests.Run(Check, args.Length == 2 ? args[1] : null); Console.WriteLine($"All {passed} delivered package widget checks passed."); return 0; }
     LoopAudioProbeTests.Run(Check);
     MpvControllerIntegrationTests.Run(Check);
     VideoAudioTests.Run(Check);
