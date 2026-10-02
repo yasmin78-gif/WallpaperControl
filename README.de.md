@@ -15,7 +15,7 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.0.2**
+**Aktuelle Version: v2.1.0**
 
 ## ✨ Funktionen
 
@@ -189,6 +189,74 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
         Abstände
     -   Separates Zurücksetzen des Erscheinungsbilds
     -   Lokalisierte Benutzeroberfläche
+
+## 🎬 Video-Hintergründe
+
+Wallpaper Control 2.1.0 ergänzt einen eigenen Modus für lokale
+MP4-/H.264-Video-Hintergründe.
+
+-   **libmpv mit D3D11** ist die Standard-Video-Engine und ermöglicht
+    nahezu nahtlose Loops
+-   **Media Foundation / MFPlay** bleibt als auswählbare
+    Kompatibilitäts-Engine verfügbar
+-   Bildschirmfüllende Fill-Darstellung ohne Verzerrung
+-   Endlose Wiederholung mit optionalem Ton und einstellbarer Lautstärke
+-   Manuelles Pausieren/Fortsetzen sowie automatische Pause bei
+    Vollbildanwendungen
+-   Videos laufen hinter Desktop-Symbolen und Wallpaper-Control-Widgets
+    und unterstützen **Desktop anzeigen** / **Win+D**
+-   Begrenzte Wiederherstellung bei verlorener Desktop-Anbindung,
+    einschließlich Explorer-Neustarts
+-   Die Auswahl von Bild-Diashow oder Video-Hintergrund aktiviert den
+    gewählten Modus sofort
+-   Eine neu ausgewählte Videodatei startet unmittelbar; das aktuelle
+    Video kann gezielt neu gestartet werden
+-   Der gespeicherte Videomodus wird beim Start automatisch
+    wiederhergestellt
+-   Ist kein gültiges Video konfiguriert, bleibt der sichere
+    Bildhintergrund aktiv
+-   Die Standard-Runtime wird streng geprüft; fehlt sie oder ist sie
+    beschädigt, wechselt Wallpaper Control sichtbar zur
+    Kompatibilitäts-Engine, ohne die bevorzugte Engine zu überschreiben
+
+Die Standard-Engine verwendet die mitgelieferte minimale libmpv-Runtime.
+Ihre nativen Bibliotheken werden getrennt von der Single-File-Anwendung
+installiert, da sie zur Laufzeit als eigenständige Dateien verfügbar
+sein müssen.
+
+## 📦 Paketverfolgung
+
+Wallpaper Control 2.1.0 enthält ein natives Desktop-Widget zur
+Sendungsverfolgung.
+
+-   Sendungsverfolgung über **Ship24**
+-   Sendungen hinzufügen, umbenennen, bearbeiten und löschen
+-   Detailansicht mit Status, Ereignisverlauf und verfügbarer
+    Lieferprognose
+-   Manuelle Aktualisierung und automatische Aktualisierung alle **15,
+    30, 60 oder 120 Minuten**
+-   Automatische Aktualisierungen berücksichtigen Vollbildmodus,
+    Energiesuspendierung/-fortsetzung und bereits zugestellte Sendungen
+-   Schutz vor parallelen Aktualisierungen und unnötigen
+    Wiederholungsanfragen
+-   Klare Fehleranzeigen für Zugangsdaten, Kontingent, Ratenbegrenzung
+    und Netzwerkprobleme
+-   Ship24-Einrichtung mit Verbindungstest; der API-Schlüssel wird für
+    den aktuellen Windows-Benutzer verschlüsselt gespeichert
+-   „Zuletzt aktualisiert" zeigt die letzte erfolgreiche Aktualisierung,
+    auch wenn sich der Sendungsstatus nicht geändert hat
+-   Lokale Trackingdaten mit Sicherung und Schutz gegen beschädigte
+    Daten
+-   Konfigurierbare Position, Positionssperre, maximale Höhe sowie
+    **Minimal**, **Clean** und **Glow**
+
+### Amazon Logistics
+
+Unterstützte **DE**- und **TBA**-Sendungsnummern von Amazon Logistics
+werden lokal erkannt und verbrauchen keine Ship24-Abfragen. Der
+eigentliche Live-Trackingstatus bleibt bei Amazon verfügbar. Diese
+Sendungen können manuell als zugestellt markiert werden; die Markierung
+lässt sich wieder zurücknehmen.
 
 ## 🎮 Vollbildpause
 
@@ -416,15 +484,36 @@ automatisch gekürzt. Das Widget unterstützt **Minimal**, **Clean** und
 
 ### 📝 Notizen & Reminder
 
-Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel, Beschreibung sowie optional Datum und Uhrzeit enthalten und über das Widget und den eigenen Manager erstellt, bearbeitet, erledigt, gelöscht und wieder geöffnet werden.
+Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und
+Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel,
+Beschreibung sowie optional Datum und Uhrzeit enthalten und über das
+Widget und den eigenen Manager erstellt, bearbeitet, erledigt, gelöscht
+und wieder geöffnet werden.
 
-Täglich wiederkehrende Aufgaben können mit Startdatum und optionaler Uhrzeit angelegt werden. Das Erledigen gilt nur für den aktuellen Tag; am nächsten Tag erscheint die Aufgabe automatisch wieder offen, ohne Duplikate zu erzeugen. Heute erledigte Aufgaben werden mit ihrer Erledigungszeit im einklappbaren Bereich **Heute erledigt** gesammelt.
+Täglich wiederkehrende Aufgaben können mit Startdatum und optionaler
+Uhrzeit angelegt werden. Das Erledigen gilt nur für den aktuellen Tag;
+am nächsten Tag erscheint die Aufgabe automatisch wieder offen, ohne
+Duplikate zu erzeugen. Heute erledigte Aufgaben werden mit ihrer
+Erledigungszeit im einklappbaren Bereich **Heute erledigt** gesammelt.
 
-Popup-Erinnerungen können **zur Fälligkeit** oder **5 / 10 Minuten vorher** ausgelöst werden, auch bei täglichen Aufgaben. Sie erscheinen über normalen Fenstern, ohne den Fokus zu übernehmen. Während eine Vollbildanwendung aktiv ist, werden Erinnerungen zurückgehalten und anschließend angezeigt. Der vollständige Notiztext wird angezeigt; längere Inhalte sind scrollbar.
+Popup-Erinnerungen können **zur Fälligkeit** oder **5 / 10 Minuten
+vorher** ausgelöst werden, auch bei täglichen Aufgaben. Sie erscheinen
+über normalen Fenstern, ohne den Fokus zu übernehmen. Während eine
+Vollbildanwendung aktiv ist, werden Erinnerungen zurückgehalten und
+anschließend angezeigt. Der vollständige Notiztext wird angezeigt;
+längere Inhalte sind scrollbar.
 
-Die Popups bieten **Erledigt**, **Schließen** und die kontextabhängige Aktion **Später**. Bei mehreren Möglichkeiten öffnet Später ein Auswahlmenü; gibt es nur eine, wird sie direkt ausgeführt. Erinnerungs- und Schlummerzustand bleiben über Neustarts hinweg erhalten.
+Die Popups bieten **Erledigt**, **Schließen** und die kontextabhängige
+Aktion **Später**. Bei mehreren Möglichkeiten öffnet Später ein
+Auswahlmenü; gibt es nur eine, wird sie direkt ausgeführt. Erinnerungs-
+und Schlummerzustand bleiben über Neustarts hinweg erhalten.
 
-Die kompakte Darstellung reduziert den Platzbedarf kurzer Einträge. Inhalt und Maximalhöhe bleiben wie bisher konfigurierbar. Verwaltung und Editor folgen dem aktuellen Hell-/Dunkel-Design. Die Daten werden lokal als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget unterstützt **Minimal**, **Clean** und **Glow**.
+Die kompakte Darstellung reduziert den Platzbedarf kurzer Einträge.
+Inhalt und Maximalhöhe bleiben wie bisher konfigurierbar. Verwaltung und
+Editor folgen dem aktuellen Hell-/Dunkel-Design. Die Daten werden lokal
+als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter
+Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget
+unterstützt **Minimal**, **Clean** und **Glow**.
 
 ### Nächstes Wallpaper
 

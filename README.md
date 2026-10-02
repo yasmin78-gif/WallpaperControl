@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.0.2**
+**Current release: v2.1.0**
 
 ## ✨ Features
 
@@ -172,6 +172,71 @@ exits.
     -   Improved keyboard tab order and consistent spacing
     -   Separate appearance reset
     -   Localized interface
+
+## 🎬 Video Wallpapers
+
+Wallpaper Control 2.1.0 adds a dedicated mode for local MP4/H.264 video
+wallpapers.
+
+-   **libmpv with D3D11** is the Standard video engine and provides
+    nearly seamless loops
+-   **Media Foundation / MFPlay** remains available as a selectable
+    Compatibility engine
+-   Full-screen Fill rendering without distortion
+-   Continuous looping with optional audio and adjustable volume
+-   Manual pause and resume, plus automatic pause while fullscreen
+    applications are active
+-   Video is rendered behind desktop icons and Wallpaper Control widgets
+    and supports **Show Desktop** / **Win+D**
+-   Bounded recovery after loss of the desktop connection, including
+    Explorer restarts
+-   Selecting Image Slideshow or Video Wallpaper activates that mode
+    immediately
+-   Selecting a new video starts it immediately; the current video can
+    also be restarted explicitly
+-   The saved video mode is restored automatically when Wallpaper
+    Control starts
+-   If no valid video is configured, the safe image wallpaper remains
+    active
+-   The Standard runtime is strictly validated; if unavailable or
+    damaged, Wallpaper Control visibly falls back to Compatibility
+    without changing the preferred engine
+
+The Standard engine uses the bundled minimal libmpv runtime. Its native
+libraries are installed separately from the application's single-file
+executable because they must remain available as native files at
+runtime.
+
+## 📦 Package Tracking
+
+Wallpaper Control 2.1.0 adds a native desktop widget for shipment
+tracking.
+
+-   Shipment tracking through **Ship24**
+-   Add, rename, edit and remove shipments
+-   Detailed status, event history and available delivery estimates
+-   Manual refresh and automatic refresh every **15, 30, 60 or 120
+    minutes**
+-   Automatic refresh respects fullscreen mode, system suspend/resume
+    and delivered shipments
+-   Protection against concurrent refreshes and unnecessary repeated
+    requests
+-   Clear errors for credentials, quota limits, rate limits and network
+    problems
+-   Ship24 setup includes a connection test; the API key is encrypted
+    for the current Windows user
+-   Last-updated time reflects the last successful refresh even when
+    shipment status did not change
+-   Local tracking data includes backup and corruption recovery
+-   Configurable position, position lock, maximum height and
+    **Minimal**, **Clean** and **Glow** styles
+
+### Amazon Logistics
+
+Supported Amazon Logistics **DE** and **TBA** tracking numbers are
+recognized locally and do not consume Ship24 tracking requests. Live
+shipment details remain available through Amazon. These shipments can be
+marked as delivered manually, and that mark can be reverted.
 
 ## 🎮 Fullscreen Pause
 
@@ -383,15 +448,37 @@ The widget supports **Minimal**, **Clean** and **Glow** styles.
 
 ### 📝 Notes & Reminders
 
-The Notes & Reminders widget provides lightweight local task and reminder management directly on the desktop. Notes can contain a title, description and optional date/time. Entries can be created, edited, completed, deleted and reopened through the widget and its dedicated manager.
+The Notes & Reminders widget provides lightweight local task and
+reminder management directly on the desktop. Notes can contain a title,
+description and optional date/time. Entries can be created, edited,
+completed, deleted and reopened through the widget and its dedicated
+manager.
 
-Daily recurring tasks can be configured with a start date and optional time. Completing a daily task applies only to the current day; it automatically appears open again on the following day without creating duplicates. Tasks completed today are collected in a collapsible **Completed Today** section with their completion time and can be reopened.
+Daily recurring tasks can be configured with a start date and optional
+time. Completing a daily task applies only to the current day; it
+automatically appears open again on the following day without creating
+duplicates. Tasks completed today are collected in a collapsible
+**Completed Today** section with their completion time and can be
+reopened.
 
-Popup reminders can be configured for the due time or **5 / 10 minutes before**, including for daily recurring tasks. They appear above normal windows without taking focus. While a fullscreen application is active, reminders are held back until fullscreen mode ends. The complete note text is displayed and longer content can be scrolled.
+Popup reminders can be configured for the due time or **5 / 10 minutes
+before**, including for daily recurring tasks. They appear above normal
+windows without taking focus. While a fullscreen application is active,
+reminders are held back until fullscreen mode ends. The complete note
+text is displayed and longer content can be scrolled.
 
-Reminder popups provide **Done**, **Close** and a context-sensitive **Later** action. With multiple postponement options, Later opens a selection menu; with only one option, it is applied directly. Reminder and snooze state is preserved across application restarts.
+Reminder popups provide **Done**, **Close** and a context-sensitive
+**Later** action. With multiple postponement options, Later opens a
+selection menu; with only one option, it is applied directly. Reminder
+and snooze state is preserved across application restarts.
 
-The compact layout reduces vertical space for short entries. The content scrolls below a fixed header, maximum height is configurable, and controls remain usable while the widget position is locked. The manager and editor follow the current Light/Dark theme. Data is stored locally as JSON using atomic writes, backup and damaged-file protection. Existing notes remain compatible. The widget supports **Minimal**, **Clean** and **Glow** styles.
+The compact layout reduces vertical space for short entries. The content
+scrolls below a fixed header, maximum height is configurable, and
+controls remain usable while the widget position is locked. The manager
+and editor follow the current Light/Dark theme. Data is stored locally
+as JSON using atomic writes, backup and damaged-file protection.
+Existing notes remain compatible. The widget supports **Minimal**,
+**Clean** and **Glow** styles.
 
 ### Next Wallpaper
 

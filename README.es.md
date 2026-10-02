@@ -15,7 +15,7 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.0.2**
+**Versión actual: v2.1.0**
 
 ## ✨ Funciones
 
@@ -190,6 +190,65 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
     -   Orden de tabulación mejorado y espaciado uniforme
     -   Restablecimiento independiente de la apariencia
     -   Interfaz localizada
+
+## 🎬 Fondos de vídeo
+
+Wallpaper Control 2.1.0 añade un modo dedicado para vídeos locales
+MP4/H.264 como fondo de escritorio.
+
+-   **libmpv con D3D11** es el motor Estándar y ofrece bucles
+    prácticamente continuos
+-   **Media Foundation / MFPlay** sigue disponible como motor de
+    Compatibilidad
+-   Representación Fill a pantalla completa sin distorsión
+-   Repetición continua con audio opcional y volumen ajustable
+-   Pausa/reanudación manual y pausa automática con aplicaciones a
+    pantalla completa
+-   El vídeo se muestra detrás de los iconos y widgets y admite
+    **Mostrar escritorio** / **Win+D**
+-   Recuperación limitada tras perder la conexión con el escritorio,
+    incluidos reinicios de Explorer
+-   Seleccionar Presentación de imágenes o Fondo de vídeo activa
+    inmediatamente el modo
+-   Un vídeo recién seleccionado comienza inmediatamente y el actual
+    puede reiniciarse
+-   El modo de vídeo guardado se restaura automáticamente al iniciar
+-   Sin un vídeo válido permanece activo el fondo de imagen seguro
+-   El runtime Estándar se valida estrictamente; si falta o está dañado,
+    se usa Compatibilidad de forma visible sin cambiar la preferencia
+    del usuario
+
+El motor Estándar utiliza el runtime mínimo de libmpv incluido. Sus
+bibliotecas nativas se instalan por separado del ejecutable single-file.
+
+## 📦 Seguimiento de paquetes
+
+Wallpaper Control 2.1.0 añade un widget de escritorio nativo para el
+seguimiento de envíos.
+
+-   Seguimiento mediante **Ship24**
+-   Añadir, renombrar, editar y eliminar envíos
+-   Estado, historial de eventos y previsión de entrega disponible
+-   Actualización manual y automática cada **15, 30, 60 o 120 minutos**
+-   Respeta pantalla completa, suspensión/reanudación y envíos
+    entregados
+-   Protección contra actualizaciones simultáneas y solicitudes
+    repetidas innecesarias
+-   Errores claros para credenciales, cuota, límites de frecuencia y red
+-   Configuración de Ship24 con prueba de conexión; la clave API se
+    guarda cifrada para el usuario actual
+-   La hora de última actualización refleja la última consulta correcta
+    aunque el estado no cambie
+-   Datos locales con copia de seguridad y recuperación frente a daños
+-   Posición, bloqueo y altura máxima configurables, con estilos
+    **Minimal**, **Clean** y **Glow**
+
+### Amazon Logistics
+
+Los números compatibles **DE** y **TBA** de Amazon Logistics se
+reconocen localmente y no consumen consultas de Ship24. Los detalles en
+directo siguen disponibles en Amazon. Pueden marcarse manualmente como
+entregados y dicha marca puede revertirse.
 
 ## 🎮 Pausa a pantalla completa
 
@@ -412,15 +471,34 @@ acortan automáticamente. Admite **Minimal**, **Clean** y **Glow**.
 
 ### 📝 Notas y recordatorios
 
-El widget Notas y recordatorios permite gestionar localmente tareas y recordatorios en el escritorio. Las entradas pueden incluir título, descripción y fecha/hora opcionales, y pueden crearse, editarse, completarse, eliminarse y reabrirse.
+El widget Notas y recordatorios permite gestionar localmente tareas y
+recordatorios en el escritorio. Las entradas pueden incluir título,
+descripción y fecha/hora opcionales, y pueden crearse, editarse,
+completarse, eliminarse y reabrirse.
 
-Las tareas diarias recurrentes pueden configurarse con una fecha de inicio y una hora opcional. Completar una tarea diaria solo se aplica al día actual y vuelve a aparecer automáticamente al día siguiente sin crear duplicados. Las tareas completadas hoy se agrupan con su hora de finalización en la sección plegable **Completadas hoy**.
+Las tareas diarias recurrentes pueden configurarse con una fecha de
+inicio y una hora opcional. Completar una tarea diaria solo se aplica al
+día actual y vuelve a aparecer automáticamente al día siguiente sin
+crear duplicados. Las tareas completadas hoy se agrupan con su hora de
+finalización en la sección plegable **Completadas hoy**.
 
-Los recordatorios emergentes pueden activarse **al vencer** o **5 / 10 minutos antes**, también para tareas diarias. Aparecen sobre las ventanas normales sin quitar el foco. Durante una aplicación a pantalla completa, se aplazan hasta salir del modo de pantalla completa. Se muestra el texto completo de la nota y el contenido largo puede desplazarse.
+Los recordatorios emergentes pueden activarse **al vencer** o **5 / 10
+minutos antes**, también para tareas diarias. Aparecen sobre las
+ventanas normales sin quitar el foco. Durante una aplicación a pantalla
+completa, se aplazan hasta salir del modo de pantalla completa. Se
+muestra el texto completo de la nota y el contenido largo puede
+desplazarse.
 
-Los recordatorios ofrecen **Completado**, **Cerrar** y la acción contextual **Más tarde**. Si hay varias opciones, Más tarde abre un menú de selección; si solo hay una, se aplica directamente. El estado de los recordatorios y aplazamientos se conserva tras reiniciar.
+Los recordatorios ofrecen **Completado**, **Cerrar** y la acción
+contextual **Más tarde**. Si hay varias opciones, Más tarde abre un menú
+de selección; si solo hay una, se aplica directamente. El estado de los
+recordatorios y aplazamientos se conserva tras reiniciar.
 
-El diseño compacto reduce el espacio necesario para las entradas cortas. Los datos se guardan localmente como JSON con escritura atómica, copia de seguridad y protección frente a archivos dañados. Las notas existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y **Glow**.
+El diseño compacto reduce el espacio necesario para las entradas cortas.
+Los datos se guardan localmente como JSON con escritura atómica, copia
+de seguridad y protección frente a archivos dañados. Las notas
+existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y
+**Glow**.
 
 ### Siguiente fondo
 

@@ -15,7 +15,7 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.0.2**
+**Version actuelle : v2.1.0**
 
 ## ✨ Fonctionnalités
 
@@ -197,6 +197,68 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Ordre de tabulation au clavier amélioré et espacement cohérent
     -   Réinitialisation séparée de l'apparence
     -   Interface localisée
+
+## 🎬 Fonds d'écran vidéo
+
+Wallpaper Control 2.1.0 ajoute un mode dédié aux vidéos locales
+MP4/H.264 utilisées comme fond d'écran.
+
+-   **libmpv avec D3D11** est le moteur Standard et offre des boucles
+    presque transparentes
+-   **Media Foundation / MFPlay** reste disponible comme moteur de
+    Compatibilité
+-   Affichage Fill plein écran sans déformation
+-   Lecture en boucle avec son optionnel et volume réglable
+-   Pause/reprise manuelle et pause automatique en plein écran
+-   La vidéo est affichée derrière les icônes et widgets et prend en
+    charge **Afficher le bureau** / **Win+D**
+-   Récupération limitée après perte de la connexion au bureau, y
+    compris après un redémarrage d'Explorer
+-   Choisir Diaporama d'images ou Fond d'écran vidéo active
+    immédiatement le mode
+-   Une nouvelle vidéo démarre immédiatement et la vidéo actuelle peut
+    être redémarrée
+-   Le mode vidéo enregistré est restauré automatiquement au démarrage
+-   Sans vidéo valide, le fond d'image sûr reste actif
+-   Le runtime Standard est vérifié strictement ; s'il manque ou est
+    endommagé, le moteur de Compatibilité est utilisé de façon visible
+    sans modifier la préférence
+
+Le moteur Standard utilise le runtime minimal libmpv fourni. Ses
+bibliothèques natives sont installées séparément de l'exécutable
+single-file.
+
+## 📦 Suivi des colis
+
+Wallpaper Control 2.1.0 ajoute un widget de bureau natif pour le suivi
+des envois.
+
+-   Suivi via **Ship24**
+-   Ajout, renommage, modification et suppression des envois
+-   État détaillé, historique des événements et estimation de livraison
+    disponible
+-   Actualisation manuelle et automatique toutes les **15, 30, 60 ou 120
+    minutes**
+-   Respect du plein écran, de la suspension/reprise et des envois déjà
+    livrés
+-   Protection contre les actualisations simultanées et les requêtes
+    répétées inutiles
+-   Erreurs claires pour les identifiants, le quota, les limites de
+    requêtes et le réseau
+-   Configuration Ship24 avec test de connexion ; la clé API est
+    chiffrée pour l'utilisateur Windows actuel
+-   La dernière actualisation correspond à la dernière requête réussie
+    même si l'état n'a pas changé
+-   Données locales avec sauvegarde et récupération en cas de corruption
+-   Position, verrouillage et hauteur maximale configurables, avec
+    **Minimal**, **Clean** et **Glow**
+
+### Amazon Logistics
+
+Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
+reconnus localement et ne consomment pas de requêtes Ship24. Les détails
+en direct restent disponibles sur Amazon. Ces envois peuvent être
+marqués manuellement comme livrés et ce marquage peut être annulé.
 
 ## 🎮 Pause en plein écran
 
@@ -426,15 +488,36 @@ longs sont automatiquement raccourcis. Le widget prend en charge
 
 ### 📝 Notes et rappels
 
-Le widget Notes et rappels permet de gérer localement des tâches et rappels directement sur le bureau. Les entrées peuvent contenir un titre, une description ainsi qu'une date et une heure facultatives, et peuvent être créées, modifiées, terminées, supprimées et rouvertes.
+Le widget Notes et rappels permet de gérer localement des tâches et
+rappels directement sur le bureau. Les entrées peuvent contenir un
+titre, une description ainsi qu'une date et une heure facultatives, et
+peuvent être créées, modifiées, terminées, supprimées et rouvertes.
 
-Les tâches quotidiennes récurrentes peuvent être configurées avec une date de début et une heure facultative. Une tâche terminée ne l'est que pour le jour en cours et réapparaît automatiquement le lendemain sans créer de doublons. Les tâches terminées aujourd'hui sont regroupées avec leur heure d'achèvement dans la section repliable **Terminées aujourd'hui**.
+Les tâches quotidiennes récurrentes peuvent être configurées avec une
+date de début et une heure facultative. Une tâche terminée ne l'est que
+pour le jour en cours et réapparaît automatiquement le lendemain sans
+créer de doublons. Les tâches terminées aujourd'hui sont regroupées avec
+leur heure d'achèvement dans la section repliable **Terminées
+aujourd'hui**.
 
-Des rappels contextuels peuvent être déclenchés **à l'échéance** ou **5 / 10 minutes avant**, y compris pour les tâches quotidiennes. Ils s'affichent au-dessus des fenêtres normales sans prendre le focus. En plein écran, les rappels sont différés jusqu'à la fin du mode plein écran. Le texte complet de la note est affiché et les contenus longs peuvent défiler.
+Des rappels contextuels peuvent être déclenchés **à l'échéance** ou **5
+/ 10 minutes avant**, y compris pour les tâches quotidiennes. Ils
+s'affichent au-dessus des fenêtres normales sans prendre le focus. En
+plein écran, les rappels sont différés jusqu'à la fin du mode plein
+écran. Le texte complet de la note est affiché et les contenus longs
+peuvent défiler.
 
-Les rappels proposent **Terminé**, **Fermer** et l'action contextuelle **Plus tard**. Si plusieurs options sont disponibles, Plus tard ouvre un menu de sélection ; s'il n'en reste qu'une, elle est appliquée directement. L'état des rappels et des reports est conservé après un redémarrage.
+Les rappels proposent **Terminé**, **Fermer** et l'action contextuelle
+**Plus tard**. Si plusieurs options sont disponibles, Plus tard ouvre un
+menu de sélection ; s'il n'en reste qu'une, elle est appliquée
+directement. L'état des rappels et des reports est conservé après un
+redémarrage.
 
-La présentation compacte réduit l'espace nécessaire aux entrées courtes. Les données sont stockées localement en JSON avec écriture atomique, sauvegarde et protection des fichiers endommagés. Les notes existantes restent compatibles. Le widget prend en charge **Minimal**, **Clean** et **Glow**.
+La présentation compacte réduit l'espace nécessaire aux entrées courtes.
+Les données sont stockées localement en JSON avec écriture atomique,
+sauvegarde et protection des fichiers endommagés. Les notes existantes
+restent compatibles. Le widget prend en charge **Minimal**, **Clean** et
+**Glow**.
 
 ### Fond d'écran suivant
 
