@@ -53,6 +53,8 @@ exits.
     -   Compact Wallpaper Info widget with current wallpaper statistics
     -   Notes & Reminders widget with local task/reminder management,
         including daily recurring tasks
+    -   Package Tracking widget with Ship24 support, automatic refresh, status notifications, and local Amazon Logistics handling
+    -   Twitch widget showing currently live followed channels, profile pictures, categories, viewer counts, stream duration, and optional live notifications
     -   Resizable and collapsible Web widget powered by Microsoft
         WebView2
     -   Optional Next Wallpaper button

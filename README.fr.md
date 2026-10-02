@@ -59,6 +59,8 @@ gestion native des fonds d'écran lorsque l'application se ferme.
         statistiques du fond actuel
     -   Widget Notes et rappels avec gestion locale des tâches et
         rappels
+    -   Widget de suivi des colis avec prise en charge de Ship24, actualisation automatique, notifications d'état et gestion locale d'Amazon Logistics
+    -   Widget Twitch affichant les chaînes suivies actuellement en direct, les images de profil, les catégories, le nombre de spectateurs, la durée du direct et des notifications facultatives
     -   Widget Web redimensionnable et repliable basé sur Microsoft
         WebView2
     -   Bouton optionnel Fond d'écran suivant

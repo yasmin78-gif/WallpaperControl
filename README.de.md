@@ -525,6 +525,8 @@ Die Twitch-Anmeldung verwendet den öffentlichen Device-Code-Flow und
 fordert nur die Berechtigung zum Lesen der gefolgten Kanäle an.
 
 ### 📝 Notizen & Reminder
+    -   Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Amazon-Logistics-Behandlung
+    -   Twitch-Widget mit aktuell live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
 
 Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und
 Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel,

@@ -58,6 +58,8 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
         fondo actual
     -   Widget de Notas y recordatorios con gestión local de tareas y
         recordatorios
+    -   Widget de seguimiento de paquetes con Ship24, actualización automática, notificaciones de estado y gestión local de Amazon Logistics
+    -   Widget de Twitch con los canales seguidos que están en directo, imágenes de perfil, categorías, espectadores, duración de la emisión y notificaciones opcionales
     -   Widget Web redimensionable y plegable basado en Microsoft
         WebView2
     -   Botón opcional Siguiente fondo
