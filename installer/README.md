@@ -21,6 +21,12 @@ temporary directory, compiles the setup, and writes a SHA-256 checksum alongside
 in `artifacts/installer`. Do not change the stable `AppId` between releases: it
 allows later installers to reuse the existing installation and uninstall entry.
 
+The accepted Standard video runtime stays external in `video-runtime/package`,
+including all four pinned DLLs and its manifest. The single-file application still
+includes the .NET runtime, while the video package retains its required on-disk
+layout. The build checks every video DLL hash before compiling the installer.
+SBOM, notices, licenses and corresponding-source materials are installed alongside it.
+
 ## Installation and upgrades
 
 - Exit Wallpaper Control from its tray menu before installation, including any

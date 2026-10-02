@@ -48,6 +48,24 @@ try {
     if ((Get-Item -LiteralPath $exe).VersionInfo.FileVersion -ne $fileVersion) {
         throw 'Published executable version does not match the project version.'
     }
+    # The pinned video runtime must remain external even in a single-file app.
+    # Its loader resolves the complete package relative to the installed EXE.
+    $sourcePackage = Join-Path $repo 'WallpaperControl/video-runtime/package'
+    $publishedPackage = Join-Path $publish 'video-runtime/package'
+    $manifestPath = Join-Path $sourcePackage 'runtime-package.json'
+    $publishedManifest = Join-Path $publishedPackage 'runtime-package.json'
+    if ((Get-FileHash -LiteralPath $manifestPath).Hash -ne (Get-FileHash -LiteralPath $publishedManifest).Hash) {
+        throw 'Published video runtime manifest differs from the accepted package.'
+    }
+    $runtimeManifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    foreach ($runtimeFile in $runtimeManifest.files) {
+        $publishedFile = Join-Path $publishedPackage $runtimeFile.name
+        if (!(Test-Path -LiteralPath $publishedFile -PathType Leaf) -or
+            (Get-Item -LiteralPath $publishedFile).Length -ne $runtimeFile.size -or
+            (Get-FileHash -LiteralPath $publishedFile -Algorithm SHA256).Hash -ne $runtimeFile.sha256) {
+            throw "Published video runtime DLL missing or modified: $($runtimeFile.name)"
+        }
+    }
     & $InnoCompiler "/DAppVersion=$version" "/DPublishDir=$publish" "/DOutputDir=$output" `
         (Join-Path $PSScriptRoot 'WallpaperControl.iss')
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed: $LASTEXITCODE" }
