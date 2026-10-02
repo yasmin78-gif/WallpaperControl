@@ -159,6 +159,7 @@ public partial class MainForm
                 : string.Format(Localization.Get("VideoEngineActive"), Localization.Get(backend.Effective == VideoEngine.Standard ? "VideoEngineStandard" : "VideoEngineCompatibility"))
             : "";
         videoEngineStatus.Visible = !string.IsNullOrEmpty(videoEngineStatus.Text);
+        UpdateVideoEngineStatusColor();
         bool manualVideoPause = ((videoWallpaper?.PauseReasons ?? VideoPauseReason.None) & VideoPauseReason.Manual) != 0;
         videoPauseButton.Text = Localization.Get(manualVideoPause ? "VideoResume" : "VideoPause");
         videoPauseButton.Enabled = video && videoWallpaper?.HasSession == true;
@@ -177,6 +178,14 @@ public partial class MainForm
         if (selected) statusLabel.Visible = activateButton.Visible = false;
         LayoutWallpaperPage();
     }
+    private void UpdateVideoEngineStatusColor()
+    {
+        bool fallback = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper && currentVideoBackend?.Fallback == true;
+        videoEngineStatus.ForeColor = fallback
+            ? darkMode ? Color.FromArgb(245, 160, 145) : Color.Firebrick
+            : AppTheme.TextPrimary(darkMode);
+    }
+
     private async Task SelectVideoEngineAsync(VideoEngine preferred)
     {
         if (videoUiLoading) return;

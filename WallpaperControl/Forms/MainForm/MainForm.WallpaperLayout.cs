@@ -72,6 +72,7 @@ namespace WallpaperControl
             modeHeading.ForeColor = videoFileLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             foreach (Control control in new Control[] { videoEngineHeading, videoStandardRadio, videoCompatibilityRadio, videoStandardDescription, videoCompatibilityDescription, videoEngineStatus })
             { control.ForeColor = AppTheme.TextPrimary(darkMode); control.BackColor = AppTheme.PanelBackground(darkMode); }
+            UpdateVideoEngineStatusColor();
             videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoPathText.BackColor = AppTheme.InputBackground(darkMode);
             videoPathText.ForeColor = AppTheme.TextPrimary(darkMode);
