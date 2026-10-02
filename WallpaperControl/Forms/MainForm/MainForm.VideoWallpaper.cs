@@ -145,7 +145,7 @@ public partial class MainForm
     private VideoWallpaperController EnsureVideoWallpaper()
     {
         if (videoWallpaper != null) return videoWallpaper;
-        videoWallpaper = new(new MediaFoundationVideoDesktop(this), message => AppLogger.Info($"Video wallpaper: pid={Environment.ProcessId}; " + message));
+        videoWallpaper = new(VideoBackendFactory.Create(this), message => AppLogger.Info($"Video wallpaper: pid={Environment.ProcessId}; " + message));
         videoWallpaper.SetAudio(videoSoundCheck.Checked, videoVolumeSlider.Value);
         videoWallpaper.Changed += VideoWallpaperChanged;
         return videoWallpaper;
@@ -170,7 +170,7 @@ public partial class MainForm
         // Cancel only an obsolete candidate. Keep the published video until a
         // new one is ready; returning to images releases video immediately.
         if (mode == WallpaperOperatingMode.VideoWallpaper) videoWallpaper?.CancelPendingStart();
-        else videoWallpaper?.Stop();
+        else if (videoWallpaper != null) await videoWallpaper.StopAsync();
         await wallpaperModeChange.WaitAsync();
         try
         {
@@ -224,7 +224,7 @@ public partial class MainForm
                     videoSelectionError = engine.ErrorKey;
                     if (!engine.HasSession)
                     {
-                        engine.Stop();
+                        await engine.StopAsync();
                         wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
                         RestoreImageMode();
                         if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
@@ -243,7 +243,7 @@ public partial class MainForm
         {
             AppLogger.Info($"Wallpaper mode change failed; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
             if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
-            videoWallpaper?.Stop();
+            if (videoWallpaper != null) await videoWallpaper.StopAsync();
             wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
             RestoreImageMode();
             if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);

@@ -20,7 +20,7 @@ namespace WallpaperControl
             ObserveRuntimeResources();
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
-                if (videoWallpaper != null) _ = videoWallpaper.TickAsync();
+                if (videoWallpaper != null) _ = ObserveVideoRecoveryAsync();
                 UpdateVideoControls();
                 return;
             }
@@ -31,6 +31,24 @@ namespace WallpaperControl
             CheckSlideshowStatus();
             if (servicesEnabled) UpdateWallpaperPositionDisplay();
             UpdateVideoControls();
+        }
+        private bool videoRecoveryFallback;
+        private async Task ObserveVideoRecoveryAsync()
+        {
+            if (videoWallpaper == null) return;
+            await videoWallpaper.TickAsync();
+            if (!videoRecoveryFallback && !wallpaperOwnership.Closed && wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper &&
+                videoWallpaper.State == VideoWallpaperState.Failed && !videoWallpaper.HasSession && !videoWallpaper.ChangePending)
+            {
+                videoRecoveryFallback = true;
+                try
+                {
+                    string error = videoWallpaper.ErrorKey;
+                    await ApplyWallpaperModeAsync(WallpaperOperatingMode.ImageSlideshow);
+                    videoSelectionError = error; UpdateVideoControls();
+                }
+                finally { videoRecoveryFallback = false; }
+            }
         }
 
         private static DesktopSlideshowState ReadNativeSlideshowStatus()

@@ -40,7 +40,20 @@ namespace WallpaperControl
 
             try
             {
-                if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.VideoWallpaper)
+                string? developmentVideo = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--video-file=", StringComparison.Ordinal))?[13..];
+                bool explicitBackend = Environment.GetCommandLineArgs().Any(a => a.StartsWith("--video-backend=", StringComparison.Ordinal));
+                if (explicitBackend && developmentVideo != null)
+                {
+                    videoPathText.Text = developmentVideo;
+                    videoUiLoading = true; wallpaperModeCombo.SelectedIndex = 1; videoUiLoading = false;
+                    await ApplyWallpaperModeAsync(WallpaperOperatingMode.VideoWallpaper);
+                    // Ephemeral measurement overrides: never save sound/volume.
+                    string? testVolume = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--video-test-audio=", StringComparison.Ordinal))?[19..];
+                    if (int.TryParse(testVolume, out int volume)) videoWallpaper?.SetAudio(true, volume);
+                    string? testSeconds = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--video-test-seconds=", StringComparison.Ordinal))?[21..];
+                    if (int.TryParse(testSeconds, out int seconds) && seconds is > 0 and <= 3600) _ = EndDevelopmentVideoRunAsync(seconds);
+                }
+                else if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.VideoWallpaper)
                 {
                     videoPathText.Text = appSettings.LoadVideoWallpaperPath();
                     await ApplyWallpaperModeAsync(WallpaperOperatingMode.VideoWallpaper);
@@ -237,6 +250,7 @@ namespace WallpaperControl
         /// Handles close-to-tray behavior and coordinates slideshow restoration before exiting.
         /// </summary>
         /// <param name="e">The event data supplied by WinForms or the event source.</param>
+        private bool videoShutdownStarted, videoShutdownFinished;
         protected override void OnFormClosing(
             FormClosingEventArgs e)
         {
@@ -272,6 +286,20 @@ namespace WallpaperControl
                 return;
             }
 
+            // Keep the real UI message loop alive while native Win32 output
+            // retires on its worker. No synchronous join or DoEvents on exit.
+            if (videoWallpaper != null && !videoShutdownFinished)
+            {
+                e.Cancel = true;
+                if (!videoShutdownStarted)
+                {
+                    videoShutdownStarted = true;
+                    _ = StopVideoAndCloseAsync();
+                }
+                base.OnFormClosing(e);
+                return;
+            }
+
             // Return slideshow ownership to Windows on exit. Its last native image
             // may become visible; a synthetic handoff is unreliable on Windows 11.
             if (customSlideshowEngineActive)
@@ -291,6 +319,22 @@ namespace WallpaperControl
             statistics.Save();
 
             base.OnFormClosing(e);
+        }
+        private async Task EndDevelopmentVideoRunAsync(int seconds)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(seconds));
+            if (!IsDisposed)
+            {
+                await ApplyWallpaperModeAsync(WallpaperOperatingMode.ImageSlideshow);
+                exitRequested = true; Close();
+            }
+        }
+        private async Task StopVideoAndCloseAsync()
+        {
+            wallpaperModeRequest++; wallpaperOwnership.Close();
+            if (videoWallpaper != null) await videoWallpaper.StopAsync();
+            videoShutdownFinished = true;
+            if (!IsDisposed) Close();
         }
 
         /// <summary>

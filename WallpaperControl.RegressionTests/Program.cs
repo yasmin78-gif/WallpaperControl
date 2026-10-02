@@ -7,6 +7,67 @@ using System.IO.Pipes;
 try
 {
     if (args.Contains("--fail-test")) throw new Exception("Intentional test failure.");
+    if (args.Length == 5 && args[0] == "--mpv-application-loop")
+    { MpvApplicationLoopProbe.Run(args[1], args[2], args[3], int.Parse(args[4])); return 0; }
+    if (args.Length == 5 && args[0] == "--mpv-production")
+    { MpvProductionNativeChecks.Run(args[1], args[2], args[3], int.Parse(args[4])); return 0; }
+    if (args.Length == 3 && args[0] == "--libmpv-audio-handoff-checks")
+    {
+        LibMpvAudioHandoffChecks.Run(args[1],args[2]); return 0;
+    }
+    if (args.Length == 3 && args[0] == "--libmpv-fill-checks")
+    {
+        LibMpvPreparationChecks.Fill(args[1],args[2]); return 0;
+    }
+    if (args.Length == 3 && args[0] == "--libmpv-test-surface")
+    {
+        LibMpvDesktopChecks.Surface(args[1]=="full",int.Parse(args[2])); return 0;
+    }
+    if (args.Length == 3 && args[0] == "--libmpv-preparation-checks")
+    {
+        LibMpvPreparationChecks.Run(args[1],args[2]); return 0;
+    }
+    if (args.Length == 3 && args[0] == "--libmpv-desktop-checks")
+    {
+        LibMpvDesktopChecks.Run(args[1],args[2]); return 0;
+    }
+    if (args.Length is 5 or 6 && args[0] == "--libmpv-switch")
+    {
+        LibMpvSwitchDiagnostics.Run(args[1], args[2], args[3], int.Parse(args[4]),args.Length==6 && args[5]=="idle");
+        return 0;
+    }
+    if (args.Length == 4 && args[0] == "--libmpv-desktop-loop")
+    {
+        LibMpvLoopDiagnostics.Run(args[1], args[2], int.Parse(args[3]), desktop: true);
+        return 0;
+    }
+    if (args.Length == 4 && args[0] == "--libmpv-desktop")
+    {
+        LibMpvDesktopDiagnostics.Run(args[1], args[2], int.Parse(args[3]));
+        return 0;
+    }
+    if (args.Length == 2 && args[0] == "--audio-background-check")
+    {
+        LoopAudioProbe.MeasureBackground(int.Parse(args[1]));
+        return 0;
+    }
+    if (args.Length is 4 or 5 && args[0] == "--libmpv-loop")
+    {
+        LibMpvLoopDiagnostics.Run(args[1], args[2], int.Parse(args[3]), args.Length == 5 ? double.Parse(args[4], System.Globalization.CultureInfo.InvariantCulture) : 21.54434690031884);
+        return 0;
+    }
+    if(args.Length>0 && args[0].StartsWith("--libmpv",StringComparison.Ordinal))
+        throw new ArgumentException("Invalid isolated libmpv diagnostic arguments");
+    if (args.Length == 3 && args[0] == "--media-engine-loop")
+    {
+        MediaEngineLoopDiagnostics.Run(args[1], int.Parse(args[2]));
+        return 0;
+    }
+    if (args.Length is 3 or 4 && args[0] == "--video-loop-timing")
+    {
+        VideoLoopTimingDiagnostics.Run(args[1], int.Parse(args[2]), args.Length == 4 ? args[3] : null);
+        return 0;
+    }
     if (args.Length == 2 && args[0] == "--video-handle-count-pid")
     {
         Console.WriteLine($"Kernel handles for pid={args[1]}: {NativeHandleSnapshot.Capture(int.Parse(args[1])).Total}");
@@ -33,10 +94,13 @@ try
         Console.WriteLine("PASS: " + name);
         passed++;
     }
+    if (args.Length == 1 && args[0] == "--mpv-controller-checks") { MpvControllerIntegrationTests.Run(Check); Console.WriteLine($"All {passed} mpv controller checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-native") { VideoNativeSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} native video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-native-phase2") { VideoNativeSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 native video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-desktop") { VideoDesktopSmokeTests.Run(args[1], Check); Console.WriteLine($"All {passed} desktop video checks passed."); return 0; }
     if (args.Length >= 2 && args[0] == "--video-desktop-phase2") { VideoDesktopSmokeTests.Run(args[1], Check, phase2Only: true); Console.WriteLine($"All {passed} Phase 2 desktop video checks passed."); return 0; }
+    LoopAudioProbeTests.Run(Check);
+    MpvControllerIntegrationTests.Run(Check);
     VideoAudioTests.Run(Check);
     VideoPresentationTests.Run(Check);
     RuntimeResourceTelemetryTests.Run(Check);

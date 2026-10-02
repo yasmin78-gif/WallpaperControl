@@ -41,6 +41,7 @@ internal static class VideoNativeSmokeTests
             Application.Run(loop);
         });
         thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join(); work.GetAwaiter().GetResult();
+        if (!phase2Only) VideoLoopTimingDiagnostics.Run(Path.Combine(fixtures, "loop-colors.mp4"), 10, "queued-seek-play", check);
     }
     private static void Loops(string file, Action<bool, string> check)
     {

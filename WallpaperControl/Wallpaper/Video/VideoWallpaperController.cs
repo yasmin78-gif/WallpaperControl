@@ -6,20 +6,26 @@ internal enum VideoWallpaperState { Stopped, Initializing, Playing, Paused, Reco
 internal readonly record struct VideoShellGeneration(nint Shell, nint Host, nint DefView, uint ProcessId, long ProcessStartTicks);
 internal interface IVideoSession : IDisposable
 {
+    ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
+    Task PresentAsync(CancellationToken cancellation) { cancellation.ThrowIfCancellationRequested(); Present(); return Task.CompletedTask; }
     Task InitializeAsync(CancellationToken cancellation);
     // Candidates stay hidden until a real composited sample is ready.
     Task PrepareAsync(CancellationToken cancellation) => Task.CompletedTask;
     void Present() { }
     void SetAudio(bool enabled, int volume) { }
+    Task SynchronizePolicyAsync(CancellationToken cancellation) => Task.CompletedTask;
     bool IsAttached(VideoShellGeneration shell);
     long Position { get; }
     void Play();
     void Pause();
     void Seek(long position);
+    Task SeekAsync(long position, CancellationToken cancellation) { cancellation.ThrowIfCancellationRequested(); Seek(position); return Task.CompletedTask; }
     event Action<Exception>? Failed;
 }
 internal interface IVideoDesktop
 {
+    string BackendName => "Windows Media Foundation/MFPlay";
+    bool RecoverNativeFailures => false;
     int MonitorCount { get; }
     Task ValidateAsync(string path, CancellationToken cancellation);
     bool FileExists(string path);
@@ -31,29 +37,31 @@ internal interface IVideoDesktop
 // Publication alone replaces a stable session; stale continuations own no state.
 internal sealed class VideoWallpaperController : IDisposable
 {
-    private sealed class OwnedSession(IVideoSession value, Action<string> log) : IDisposable
+    private sealed class OwnedSession(IVideoSession value, Action<string> log)
     {
         internal IVideoSession Value { get; } = value;
         internal Action<Exception>? Handler;
         internal bool AudioFailed;
-        private bool disposed;
-        public void Dispose()
+        private Task? retirement;
+        public Task DisposeAsync() => retirement ??= RetireAsync();
+        private async Task RetireAsync()
         {
-            if (disposed) return;
-            disposed = true;
             if (Handler != null) Value.Failed -= Handler;
             Handler = null;
-            try { Value.Dispose(); log("session released; cleanup completed"); }
+            try { await Value.DisposeAsync(); log("session released; cleanup completed"); }
             catch (Exception ex) { log($"session cleanup failed; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}"); }
         }
     }
     private readonly IVideoDesktop desktop;
     private readonly Func<DateTime> now;
     private readonly Action<string> log;
+    private readonly SemaphoreSlim lifecycle = new(1, 1);
+    private Task cleanup = Task.CompletedTask;
+    private bool retiringPublished;
     private OwnedSession? session, initializingSession;
     private CancellationTokenSource? cancellation;
     private VideoShellGeneration? shell;
-    private int generation, attempts;
+    private int generation, attempts, policyRevision;
     private bool disposed, desired, ticking, recoverable, starting;
     private long position;
     private string path = "";
@@ -75,7 +83,8 @@ internal sealed class VideoWallpaperController : IDisposable
     {
         if (disposed) return;
         SoundEnabled = enabled; Volume = Math.Clamp(volume, 0, 100);
-        if (session != null) ApplyAudio(session);
+        policyRevision++;
+        if (session != null && !retiringPublished) ApplyAudio(session);
     }
     private void ApplyAudio(OwnedSession owned)
     {
@@ -95,8 +104,10 @@ internal sealed class VideoWallpaperController : IDisposable
     {
         generation++;
         cancellation?.Cancel(); cancellation?.Dispose(); cancellation = null;
+        // The transaction owns its candidate until its finally has joined
+        // native retirement. Cancellation cannot create a third player.
         var pending = initializingSession; initializingSession = null;
-        pending?.Dispose();
+        if (pending != null) QueueCleanup(pending);
     }
     internal void CancelPendingStart()
     {
@@ -117,9 +128,13 @@ internal sealed class VideoWallpaperController : IDisposable
         var token = cancellation.Token;
         Status(VideoWallpaperState.Initializing);
         log($"media change requested; request={lease}; from={path}; to={selectedPath}");
-        log("initialization; technology=Windows Media Foundation/MFPlay; mute=true; fill=true");
+        log($"initialization; technology={desktop.BackendName}; mute=true; fill=true");
+        bool entered = false;
         try
         {
+            await lifecycle.WaitAsync(token); entered = true;
+            await cleanup;
+            if (!Current(lease)) return false;
             if (desktop.MonitorCount != 1) { RejectChange("VideoErrorMonitor"); return false; }
             if (!desktop.FileExists(selectedPath) || !string.Equals(Path.GetExtension(selectedPath), ".mp4", StringComparison.OrdinalIgnoreCase))
             { RejectChange("VideoErrorFile"); return false; }
@@ -139,7 +154,7 @@ internal sealed class VideoWallpaperController : IDisposable
         }
         catch (OperationCanceledException) when (!Current(lease) || token.IsCancellationRequested) { return false; }
         catch (Exception ex) { if (Current(lease)) RejectChange("VideoErrorPlayback", ex); return false; }
-        finally { if (Current(lease)) starting = false; }
+        finally { if (Current(lease)) starting = false; if (entered) lifecycle.Release(); }
     }
     private bool Current(int lease) => !disposed && desired && generation == lease;
     private async Task<bool> InitializeAsync(int lease, CancellationToken token, string file, VideoShellGeneration target, long restorePosition)
@@ -155,35 +170,51 @@ internal sealed class VideoWallpaperController : IDisposable
             {
                 initializationError = ex;
                 if (!ReferenceEquals(session, owned)) return;
-                log($"Media Foundation error; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+                log($"video backend error; technology={desktop.BackendName}; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
                 if (starting)
                 {
                     // An old decoder error cannot dispose a newer candidate.
-                    session = null; owned.Dispose(); recoverable = false;
+                    session = null; QueueCleanup(owned); recoverable = false;
                 }
+                else if (desktop.RecoverNativeFailures && recoverable && State != VideoWallpaperState.Recovering) BeginIncident();
                 else Fail("VideoErrorPlayback", ex);
             };
             candidate.Value.Failed += candidate.Handler;
-            await candidate.Value.InitializeAsync(token);
+            await candidate.Value.InitializeAsync(token).WaitAsync(token);
             if (!Current(lease)) return false;
-            if (restorePosition > 0) candidate.Value.Seek(restorePosition);
-            await candidate.Value.PrepareAsync(token);
+            if (restorePosition > 0) await candidate.Value.SeekAsync(restorePosition, token);
+            await candidate.Value.PrepareAsync(token).WaitAsync(token);
             if (!Current(lease)) return false;
             if (initializationError != null) throw initializationError;
             if (desktop.ResolveShell() != target || !candidate.Value.IsAttached(target))
                 throw new InvalidOperationException("Shell changed during video initialization");
-            ApplyPolicy(candidate.Value); // Latest reasons; still hidden on failure.
-            candidate.Value.Present();
+            ApplyPolicy(candidate.Value); // MFPlay policy errors still reject before commit; mpv remains paused until published.
+            await candidate.Value.PresentAsync(token).WaitAsync(token);
             if (!Current(lease)) return false;
             var old = session;
             session = candidate; initializingSession = null; candidate = null;
             path = file; shell = target; position = restorePosition; recoverable = true; ErrorKey = ""; starting = false;
             // Complete old playback shutdown before unmuting the published player.
             // Candidates never receive enabled audio, including stale continuations.
-            old?.Dispose();
-            ApplyAudio(session);
+            retiringPublished = true;
+            try { if (old != null) await old.DisposeAsync(); await cleanup; }
+            finally { retiringPublished = false; }
+            // A newer request can cancel immediately after the explicit commit.
+            // The committed B remains stable; never reactivate a stopped B.
+            if (!ReferenceEquals(session, owned)) return false;
+            int policy;
+            do
+            {
+                policy = policyRevision;
+                ApplyPolicy(owned.Value); ApplyAudio(owned);
+                // A committed B stays stable even if a later request cancelled
+                // the preparation token. Wait for real native policy replies.
+                await owned.Value.SynchronizePolicyAsync(CancellationToken.None);
+            }
+            while (ReferenceEquals(session, owned) && policy != policyRevision);
+            if (!ReferenceEquals(session, owned)) return false;
             log($"video started; request={lease}; file={file}; reasons={PauseReasons}");
-            Status(PolicyState);
+            if (Current(lease)) Status(PolicyState);
             LogPlayback();
             if (attempts > 0) log($"recovery success; attempts={attempts}");
             else log("media change committed; previous session released");
@@ -192,7 +223,7 @@ internal sealed class VideoWallpaperController : IDisposable
         finally
         {
             if (ReferenceEquals(initializingSession, candidate)) initializingSession = null;
-            candidate?.Dispose();
+            if (candidate != null) await candidate.DisposeAsync();
         }
     }
     private void LogPlayback() => log(PauseReasons == VideoPauseReason.None ? "playback resumed; reasons=None" : $"playback paused; reasons={PauseReasons}");
@@ -202,12 +233,13 @@ internal sealed class VideoWallpaperController : IDisposable
         var previous = PauseReasons;
         PauseReasons = enabled ? previous | reason : previous & ~reason;
         if (previous == PauseReasons) return;
+        policyRevision++;
         log($"pause policy; reason={reason}; enabled={enabled}; reasons={PauseReasons}");
         try
         {
             if (session != null)
             {
-                ApplyPolicy(session.Value);
+                if (!retiringPublished) ApplyPolicy(session.Value);
                 if (!starting) Status(PolicyState); else Changed?.Invoke();
                 LogPlayback();
             }
@@ -222,9 +254,17 @@ internal sealed class VideoWallpaperController : IDisposable
     private void ReleaseSession()
     {
         var old = session; session = null;
-        var pending = initializingSession; initializingSession = null;
-        old?.Dispose();
-        if (!ReferenceEquals(pending, old)) pending?.Dispose();
+        if (old != null) QueueCleanup(old);
+        // The active transaction retires its own candidate after cancellation.
+    }
+    private void QueueCleanup(OwnedSession value) => cleanup = JoinCleanupAsync(cleanup, value);
+    private static async Task JoinCleanupAsync(Task previous, OwnedSession value)
+    { await previous; await value.DisposeAsync(); }
+    internal async Task StopAsync()
+    {
+        Stop();
+        await lifecycle.WaitAsync();
+        try { await cleanup; log("playback stopped; cleanup completed"); } finally { lifecycle.Release(); }
     }
     private void BeginIncident()
     {
@@ -238,13 +278,22 @@ internal sealed class VideoWallpaperController : IDisposable
         ticking = true;
         int lease = generation;
         var token = cancellation?.Token ?? CancellationToken.None;
+        bool entered = false;
         try
         {
+            await lifecycle.WaitAsync(token); entered = true;
+            await cleanup;
+            if (!Current(lease)) return;
             if (!desktop.FileExists(path)) { recoverable = false; Fail("VideoErrorFile"); return; }
             if (desktop.MonitorCount != 1) { recoverable = false; Fail("VideoErrorMonitor"); return; }
             var resolved = desktop.ResolveShell();
             bool newShell = resolved != null && resolved != shell;
-            if (newShell) { log("Shell generation changed"); shell = resolved; BeginIncident(); }
+            if (newShell)
+            {
+                log("Shell generation changed"); shell = resolved;
+                if (State != VideoWallpaperState.Recovering) BeginIncident();
+                else log("shell loss coalesced with current recovery incident");
+            }
             else if (session != null && (resolved == null || !session.Value.IsAttached(resolved.Value)))
             { log("renderer lost"); BeginIncident(); }
             if (State == VideoWallpaperState.Recovering && now() >= nextAttempt)
@@ -255,6 +304,7 @@ internal sealed class VideoWallpaperController : IDisposable
                     var target = desktop.ResolveShell() ?? throw new InvalidOperationException("Shell hierarchy unavailable");
                     await desktop.ValidateAsync(path, token);
                     if (!Current(lease)) return;
+                    await cleanup;
                     await InitializeAsync(lease, token, path, target, position);
                 }
                 catch (Exception ex) when (Current(lease))
@@ -269,7 +319,7 @@ internal sealed class VideoWallpaperController : IDisposable
         }
         catch (OperationCanceledException) when (!Current(lease)) { }
         catch (Exception ex) { if (Current(lease)) Fail("VideoErrorPlayback", ex); }
-        finally { ticking = false; }
+        finally { ticking = false; if (entered) lifecycle.Release(); }
     }
     private void RejectChange(string key, Exception? ex = null)
     {
@@ -290,7 +340,7 @@ internal sealed class VideoWallpaperController : IDisposable
     {
         InvalidatePending(); desired = starting = false;
         ReleaseSession(); attempts = 0; ErrorKey = ""; recoverable = false; path = ""; shell = null; position = 0;
-        Status(VideoWallpaperState.Stopped); log("playback stopped; cleanup completed");
+        Status(VideoWallpaperState.Stopped); log("playback stop requested; native cleanup queued");
     }
     public void Dispose() { if (disposed) return; disposed = true; Stop(); Changed = null; }
 }

@@ -22,7 +22,18 @@ internal static class VideoNative
     [DllImport("user32.dll")] internal static extern bool ScreenToClient(nint hwnd, ref Point point);
     [DllImport("user32.dll")] internal static extern nint GetWindowDpiAwarenessContext(nint hwnd);
     [DllImport("user32.dll")] internal static extern nint SetThreadDpiAwarenessContext(nint context);
+    [DllImport("user32.dll", SetLastError = true)] private static extern nint SendMessageTimeout(nint hwnd, uint message, nint wParam, nint lParam, uint flags, uint timeout, out nint result);
     private static string Class(nint hwnd) { var text = new StringBuilder(256); GetClassName(hwnd, text, text.Capacity); return text.ToString(); }
+
+    internal static bool EnsureRaisedComposition(VideoShellGeneration shell)
+    {
+        // The same Explorer request used by the existing image host. A newly
+        // restarted shell can have valid layered DefView HWNDs while its desktop
+        // background still occludes sibling renderers. Request composition once
+        // per shell generation, never in response to mere occlusion/Win+D.
+        if (Resolve() != shell) return false;
+        return SendMessageTimeout(shell.Shell, 0x052C, 0xD, 1, 2, 1000, out _) != 0;
+    }
 
     internal static void ConfigureDesktopComposition(nint renderer, nint defView)
     {
