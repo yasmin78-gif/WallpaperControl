@@ -1,0 +1,360 @@
+diff --git a/WallpaperControl.RegressionTests/Program.cs b/WallpaperControl.RegressionTests/Program.cs
+index bd74e5f..10565c4 100644
+--- a/WallpaperControl.RegressionTests/Program.cs
++++ b/WallpaperControl.RegressionTests/Program.cs
+@@ -6,6 +6,9 @@ using System.IO.Pipes;
+ 
+ try
+ {
++    if (args.Length == 1 && args[0] == "--mpv-profile-checks") { MpvProfileChecks.Run(); return 0; }
++    if (args.Length == 2 && args[0] == "--candidate-package-checks") { CandidatePackageChecks.Run(args[1]); return 0; }
++    if (args.Length >= 2 && args[0] == "--candidate-live-ui") { CandidateLiveUiChecks.Run(args[1]); return 0; }
+     if (args.Contains("--fail-test")) throw new Exception("Intentional test failure.");
+     if (args.Length == 5 && args[0] == "--mpv-application-loop")
+     { MpvApplicationLoopProbe.Run(args[1], args[2], args[3], int.Parse(args[4])); return 0; }
+diff --git a/WallpaperControl/Wallpaper/Video/MpvClient.cs b/WallpaperControl/Wallpaper/Video/MpvClient.cs
+index ea8c891..bf0872c 100644
+--- a/WallpaperControl/Wallpaper/Video/MpvClient.cs
++++ b/WallpaperControl/Wallpaper/Video/MpvClient.cs
+@@ -50,19 +50,11 @@ internal sealed class MpvClient : IAsyncDisposable
+             handle = runtime.Export<Create>("mpv_create")();
+             if (handle == 0) throw new InvalidOperationException("mpv_create failed");
+             Interlocked.Increment(ref LiveClients);
+-            var options = new Dictionary<string, string>
+-            {
+-                ["wid"] = hwnd.ToString(CultureInfo.InvariantCulture), ["config"] = "no", ["load-scripts"] = "no", ["terminal"] = "no",
+-                ["vo"] = "gpu", ["gpu-api"] = "d3d11", ["gpu-context"] = "d3d11", ["hwdec"] = "d3d11va",
+-                ["keepaspect"] = "yes", ["panscan"] = "1", ["loop-file"] = "inf", ["ao"] = "wasapi", ["audio-exclusive"] = "no", ["audio-device"] = "auto",
+-                ["input-default-bindings"] = "no", ["input-vo-keyboard"] = "no", ["input-media-keys"] = "no", ["media-controls"] = "no",
+-                ["osd-level"] = "0", ["osc"] = "no", ["stop-screensaver"] = "no", ["video-latency-hacks"] = "no", ["mute"] = "yes", ["volume"] = "0"
+-            };
+             var option = runtime.Export<Text>("mpv_set_option_string");
+-            foreach (var pair in options) Check(option(handle, pair.Key, pair.Value));
++            runtime.Profile.Apply(hwnd, (key, value) => option(handle, key, value));
+             Check(runtime.Export<Logs>("mpv_request_log_messages")(handle, "v"));
+             Check(runtime.Export<Simple>("mpv_initialize")(handle));
+-            if (Read("mpv-version") != MpvRuntime.Build) throw new NotSupportedException("Pinned mpv build mismatch");
++            if (Read("mpv-version") != runtime.ExpectedBuild) throw new NotSupportedException("Pinned mpv build mismatch");
+             runtime.Export<SetWake>("mpv_set_wakeup_callback")(handle, wakeCallback, 0);
+             initialized.TrySetResult();
+             ScheduleDrain();
+diff --git a/WallpaperControl/Wallpaper/Video/MpvRuntime.cs b/WallpaperControl/Wallpaper/Video/MpvRuntime.cs
+index a9fdd08..7f6faf6 100644
+--- a/WallpaperControl/Wallpaper/Video/MpvRuntime.cs
++++ b/WallpaperControl/Wallpaper/Video/MpvRuntime.cs
+@@ -13,12 +13,23 @@ internal sealed class MpvRuntime
+     private static MpvRuntime? current;
+     private readonly nint library;
+     internal string Location { get; }
++    private readonly bool minimal;
++    internal string ExpectedBuild { get; } = Build;
++    internal MpvOptionProfile Profile => minimal ? MpvOptionProfile.MinimalR1 : MpvOptionProfile.Proven;
+     private MpvRuntime(string path)
+     {
+         if (!Environment.Is64BitProcess || RuntimeInformation.ProcessArchitecture != Architecture.X64)
+             throw new PlatformNotSupportedException("Pinned mpv requires x64");
+         using var file = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+-        if (Convert.ToHexString(SHA256.HashData(file)) != Hash) throw new InvalidDataException("Pinned mpv hash mismatch");
++        string actualHash = Convert.ToHexString(SHA256.HashData(file));
++        CandidatePackageValidation.Lease? packageLease = null;
++        if (actualHash == "91A96C03DC56F7FA4D146F3E23CE491C478DABCB7F101BA6509BEC538C6A95FC")
++        {
++            packageLease = CandidatePackageValidation.Acquire(Path.GetDirectoryName(path)!, "AF320392B27FB679FD09981FC628AF395242F152059E15C44F772DCD43D72C0F");
++            minimal = true; ExpectedBuild = CandidatePackageValidation.Identity;
++        }
++        else if (actualHash != Hash) throw new InvalidDataException("Pinned mpv hash mismatch");
++        using var validatedPackage = packageLease;
+         using var reader = new BinaryReader(file, System.Text.Encoding.UTF8, true);
+         file.Position = 0x3c; int pe = reader.ReadInt32(); file.Position = pe;
+         if (reader.ReadUInt32() != 0x4550 || reader.ReadUInt16() != 0x8664)
+diff --git a/WallpaperControl/Wallpaper/Video/VideoBackendFactory.cs b/WallpaperControl/Wallpaper/Video/VideoBackendFactory.cs
+index 4a95de2..8efeccb 100644
+--- a/WallpaperControl/Wallpaper/Video/VideoBackendFactory.cs
++++ b/WallpaperControl/Wallpaper/Video/VideoBackendFactory.cs
+@@ -13,7 +13,7 @@ internal static class VideoBackendFactory
+         try
+         {
+             var runtime = MpvRuntime.Open(path ?? Path.Combine(AppContext.BaseDirectory, "video-runtime", "libmpv-2.dll"));
+-            AppLogger.Info($"Video backend selected: libmpv/D3D11; pinned={MpvRuntime.Build}");
++            AppLogger.Info($"Video backend selected: libmpv/D3D11; pinned={runtime.ExpectedBuild}");
+             return new MpvVideoDesktop(dispatcher, runtime);
+         }
+         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or BadImageFormatException or NotSupportedException or System.Security.SecurityException or DllNotFoundException or EntryPointNotFoundException)
+diff --git a/WallpaperControl.RegressionTests/CandidateLiveUiChecks.cs b/WallpaperControl.RegressionTests/CandidateLiveUiChecks.cs
+new file mode 100644
+index 0000000..1605d8d
+--- /dev/null
++++ b/WallpaperControl.RegressionTests/CandidateLiveUiChecks.cs
+@@ -0,0 +1,72 @@
++extern alias WallpaperApp;
++using App = WallpaperApp::WallpaperControl;
++using Video = WallpaperApp::WallpaperControl.Video;
++using System.Diagnostics;
++using System.Reflection;
++internal static class CandidateLiveUiChecks
++{
++    [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint hwnd);
++    [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern void keybd_event(byte key,byte scan,uint flags,nuint extra);
++    private static readonly BindingFlags Fields=BindingFlags.Instance|BindingFlags.NonPublic;
++    private static T Field<T>(object obj,string name)=>(T)obj.GetType().GetField(name,Fields)!.GetValue(obj)!;
++    private static Video.MpvVideoSession Active(App.VideoWallpaperController controller)
++    {object owned=Field<object>(controller,"session");return (Video.MpvVideoSession)owned.GetType().GetProperty("Value",Fields)!.GetValue(owned)!;}
++    internal static void Run(string fixtures)
++    {
++        Exception? error=null;
++        var thread=new Thread(()=>
++        {
++            using var form=new App.MainForm();
++            form.Shown+=async(_,_)=>
++            {
++                form.Hide();
++                try { await CheckAsync(form,fixtures); }
++                catch(Exception e){error=e;}
++                finally { typeof(App.MainForm).GetField("exitRequested",Fields)!.SetValue(form,true);form.Close(); }
++            };
++            Application.Run(form);
++        });thread.SetApartmentState(ApartmentState.STA);thread.Start();thread.Join();if(error!=null)throw error;
++    }
++    private static async Task CheckAsync(App.MainForm form,string fixtures)
++    {
++        int passed=0;void Check(bool ok,string name){if(!ok)throw new Exception("FAIL "+name);passed++;Console.WriteLine("PASS "+name);}
++        async Task Until(Func<bool> predicate){var clock=Stopwatch.StartNew();while(!predicate()){if(clock.ElapsedMilliseconds>15000)throw new TimeoutException("Real application state did not settle");await Task.Delay(30);}}
++        await Until(()=>Field<App.VideoWallpaperController?>(form,"videoWallpaper")?.HasSession==true);
++        var controller=Field<App.VideoWallpaperController>(form,"videoWallpaper");
++        Check(Field<bool>(form,"servicesEnabled")&&Video.MpvClient.LiveClients==1,"Full-service MainForm starts candidate through normal video controls");
++        var sound=Field<CheckBox>(form,"videoSoundCheck");var volume=Field<TrackBar>(form,"videoVolumeSlider");var path=Field<TextBox>(form,"videoPathText");var combo=Field<ComboBox>(form,"wallpaperModeCombo");
++        sound.Checked=true;
++        foreach(int v in new[]{0,1,50,100})
++        {
++            volume.Value=v;await Active(controller).SynchronizePolicyAsync(CancellationToken.None);var state=await Active(controller).SnapshotAsync();
++            Check(state["mute"]=="no"&&Math.Abs(double.Parse(state["volume"]!,System.Globalization.CultureInfo.InvariantCulture)-Video.MpvVideoSession.MapVolume(v))<0.001,"Actual sound/volume controls reach native player: "+v);
++        }
++        sound.Checked=false;await Active(controller).SynchronizePolicyAsync(CancellationToken.None);Check((await Active(controller).SnapshotAsync())["mute"]=="yes","Actual sound switch mutes native player");
++        typeof(Button).GetMethod("OnClick",Fields)!.Invoke(Field<Button>(form,"videoPauseButton"),[EventArgs.Empty]);await Until(()=>controller.PauseReasons.HasFlag(App.VideoPauseReason.Manual));await Active(controller).SynchronizePolicyAsync(CancellationToken.None);Check((await Active(controller).SnapshotAsync())["pause"]=="yes","Actual pause button pauses native player");
++        typeof(Button).GetMethod("OnClick",Fields)!.Invoke(Field<Button>(form,"videoPauseButton"),[EventArgs.Empty]);await Until(()=>!controller.PauseReasons.HasFlag(App.VideoPauseReason.Manual));await Active(controller).SynchronizePolicyAsync(CancellationToken.None);Check((await Active(controller).SnapshotAsync())["pause"]=="no","Actual pause button resumes native player");
++        async Task Apply(string file){path.Text=Path.Combine(fixtures,file);combo.SelectedIndex=1;await (Task)typeof(App.MainForm).GetMethod("ApplyWallpaperModeAsync",Fields)!.Invoke(form,[App.WallpaperOperatingMode.VideoWallpaper])!;}
++        long old=Active(controller).Id;await Apply("switch-colors.mp4");Check(Active(controller).Id!=old&&Video.MpvClient.LiveClients==1,"Actual MainForm A to B retires old player");
++        old=Active(controller).Id;await Apply("switch-colors.mp4");Check(Active(controller).Id!=old&&Video.MpvClient.LiveClients==1,"Actual MainForm same-file reapply owns one player");
++        var a=Apply("switch-colors.mp4");var b=Apply("loop-black.mp4");var c=Apply("loop-colors.mp4");await Task.WhenAll(a,b,c);
++        Check(Field<string>(Active(controller),"file")==Path.Combine(fixtures,"loop-colors.mp4")&&Video.MpvClient.LiveClients==1&&Video.MpvVideoSession.PeakSessions<=2,"Actual rapid A/B/C keeps only latest player and max two sessions");
++        typeof(App.MainForm).GetField("pauseOnFullscreen",Fields)!.SetValue(form,true);
++        using(var cover=Process.Start(new ProcessStartInfo(Environment.ProcessPath!){UseShellExecute=false,ArgumentList={"--libmpv-test-surface","full","5"}})!)
++        {
++            await Until(()=> { cover.Refresh(); return cover.MainWindowHandle!=0; });
++            keybd_event(0x12,0,0,0); keybd_event(0x12,0,2,0);
++            bool focused=SetForegroundWindow(cover.MainWindowHandle); await Task.Delay(150);
++            Console.WriteLine($"FULLSCREEN cover=0x{cover.MainWindowHandle:X} focusRequest={focused} detected={App.FullscreenActivityDetector.GetFullscreenState()}");
++            var deadline=Stopwatch.StartNew();
++            while(!controller.PauseReasons.HasFlag(App.VideoPauseReason.Fullscreen)&&deadline.ElapsedMilliseconds<4000){await(Task)typeof(App.MainForm).GetMethod("UpdateFullscreenPauseAsync",Fields)!.Invoke(form,null)!;await Task.Delay(50);}
++            Check(controller.PauseReasons.HasFlag(App.VideoPauseReason.Fullscreen),"Full-service MainForm detects real external fullscreen and pauses");
++            await cover.WaitForExitAsync();
++        }
++        var exitClock=Stopwatch.StartNew();while(controller.PauseReasons.HasFlag(App.VideoPauseReason.Fullscreen)&&exitClock.ElapsedMilliseconds<8000){await(Task)typeof(App.MainForm).GetMethod("UpdateFullscreenPauseAsync",Fields)!.Invoke(form,null)!;await Task.Delay(100);}
++        Check(!controller.PauseReasons.HasFlag(App.VideoPauseReason.Fullscreen),"Full-service MainForm resumes after external fullscreen exits");
++        combo.SelectedIndex=0;await(Task)typeof(App.MainForm).GetMethod("ApplyWallpaperModeAsync",Fields)!.Invoke(form,[App.WallpaperOperatingMode.ImageSlideshow])!;
++        Check(!controller.HasSession&&Video.MpvClient.LiveClients==0&&Video.MpvVideoSession.LiveSessions==0,"Actual video to image retires every client/session");
++        await Apply("loop-colors.mp4");Check(controller.HasSession&&Video.MpvClient.LiveClients==1,"Actual image to video starts one candidate");
++        await controller.StopAsync();Check(Video.MpvClient.LiveClients==0&&Video.MpvVideoSession.LiveSessions==0,"Actual clean video stop leaves zero clients/sessions");
++        Console.WriteLine("LIVE-UI checks="+passed);
++    }
++}
+diff --git a/WallpaperControl.RegressionTests/CandidatePackageChecks.cs b/WallpaperControl.RegressionTests/CandidatePackageChecks.cs
+new file mode 100644
+index 0000000..ffb8c32
+--- /dev/null
++++ b/WallpaperControl.RegressionTests/CandidatePackageChecks.cs
+@@ -0,0 +1,44 @@
++extern alias WallpaperApp;
++using CandidatePackageValidation = WallpaperApp::WallpaperControl.Video.CandidatePackageValidation;
++using System.Security.Cryptography;
++using System.Text.Json.Nodes;
++internal static class CandidatePackageChecks
++{
++    internal static void Run(string source)
++    {
++        int count=0;
++        void Check(bool ok,string message) { if(!ok)throw new Exception(message); Console.WriteLine("PASS "+message);count++; }
++        string root=Path.Combine(Path.GetTempPath(),"wc-package-check-"+Guid.NewGuid().ToString("N"));
++        Directory.CreateDirectory(root);
++        string originalHash=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(source,"runtime-package.json"))));
++        void Reset() { foreach(string p in Directory.GetFiles(source))File.Copy(p,Path.Combine(root,Path.GetFileName(p)),true); }
++        bool Reject(string hash) { try { CandidatePackageValidation.Validate(root,hash); return false; } catch(Exception ex) when(ex is IOException or InvalidDataException or BadImageFormatException) { return true; } }
++        string Rewrite(Action<JsonObject> mutate) { string path=Path.Combine(root,"runtime-package.json");var node=JsonNode.Parse(File.ReadAllText(path))!.AsObject();mutate(node);File.WriteAllText(path,node.ToJsonString());return Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))); }
++        try
++        {
++            Reset();CandidatePackageValidation.Validate(root,originalHash);Check(true,"Complete exact package accepted");
++            foreach(string name in new[]{"libmpv-2.dll","libspirv-cross-c-shared.dll","libc++.dll","libunwind.dll"})
++            {
++                Reset();File.Delete(Path.Combine(root,name));Check(Reject(originalHash),"Missing DLL rejected: "+name);
++                Reset();using(var file=File.OpenWrite(Path.Combine(root,name))){file.Position=file.Length-1;file.WriteByte(42);}Check(Reject(originalHash),"Modified DLL rejected: "+name);
++            }
++            Reset();File.AppendAllText(Path.Combine(root,"runtime-package.json")," ");Check(Reject(originalHash),"Wrong exact manifest rejected");
++            foreach(var pair in new[]{("clientApi","2.6"),("architecture","arm64"),("buildIdentity","mpv v0.41.0-UNKNOWN"),("profile","auto"),("packageVersion","2")})
++            { Reset();string changedHash=Rewrite(n=>n[pair.Item1]=pair.Item2);Check(Reject(changedHash),"Explicit descriptor field rejected: "+pair.Item1); }
++            // Trusted-hash injection here exercises PE defense in depth, not a production acceptance path.
++            Reset();string dll=Path.Combine(root,"libmpv-2.dll");byte[] data=File.ReadAllBytes(dll);int pe=BitConverter.ToInt32(data,0x3c);data[pe+4]=0x4c;data[pe+5]=0x01;File.WriteAllBytes(dll,data);
++            string altered=Rewrite(n=> { foreach(var file in n["files"]!.AsArray())if(file!["name"]!.GetValue<string>()=="libmpv-2.dll")file["sha256"]=Convert.ToHexString(SHA256.HashData(data)); });
++            Check(Reject(altered),"Wrong DLL PE architecture rejected even with test-trusted changed hash");
++            CandidatePackageValidation.ValidateNative(0x20005, CandidatePackageValidation.Identity);
++            Check(true, "Exact native API/build pair accepted");
++            foreach(var pair in new[]{(0x20006u,CandidatePackageValidation.Identity),(0x20005u,"mpv v0.41.0-UNKNOWN")})
++            {
++                bool rejected=false;
++                try { CandidatePackageValidation.ValidateNative(pair.Item1,pair.Item2); } catch(NotSupportedException) { rejected=true; }
++                Check(rejected,"Wrong native API/custom build rejected");
++            }
++            Console.WriteLine("PACKAGE checks="+count);
++        }
++        finally { Directory.Delete(root,true); }
++    }
++}
+diff --git a/WallpaperControl.RegressionTests/MpvProfileChecks.cs b/WallpaperControl.RegressionTests/MpvProfileChecks.cs
+new file mode 100644
+index 0000000..01198bb
+--- /dev/null
++++ b/WallpaperControl.RegressionTests/MpvProfileChecks.cs
+@@ -0,0 +1,31 @@
++extern alias WallpaperApp;
++using Video = WallpaperApp::WallpaperControl.Video;
++internal static class MpvProfileChecks
++{
++    internal static void Run()
++    {
++        int count = 0;
++        void Check(bool ok, string message) { if (!ok) throw new Exception(message); Console.WriteLine("PASS " + message); count++; }
++        var old = Video.MpvOptionProfile.Proven.Options(123);
++        var minimal = Video.MpvOptionProfile.MinimalR1.Options(123);
++        Check(!minimal.ContainsKey("osc"), "Minimal profile omits OSC");
++        Check(!minimal.ContainsKey("load-scripts"), "Minimal profile omits script loader");
++        Check(old.Count == 24 && old["osc"] == "no" && old["load-scripts"] == "no", "Proven profile retains all 24 original options");
++        Check(minimal.Count == old.Count - 2 && minimal.All(p => old[p.Key] == p.Value), "Every other option remains identical");
++        var sent = new Dictionary<string,string>();
++        Video.MpvOptionProfile.MinimalR1.Apply(123, (key,value) => { sent.Add(key,value); return 0; });
++        Check(sent.Count == minimal.Count && minimal.All(p => sent[p.Key] == p.Value), "Every required option is sent");
++        foreach (int error in new[]{-5,-3})
++        {
++            bool fatal = false;
++            try { Video.MpvOptionProfile.MinimalR1.Apply(123, (key,value) => key == "vo" ? error : 0); }
++            catch (InvalidOperationException) { fatal = true; }
++            Check(fatal, "Unexpected option error remains fatal: " + error);
++        }
++        bool oldFatal = false;
++        try { Video.MpvOptionProfile.Proven.Apply(123, (key,value) => key == "osc" ? -5 : 0); }
++        catch (InvalidOperationException) { oldFatal = true; }
++        Check(oldFatal && Video.MpvOptionProfile.Proven.Options(123).ContainsKey("osc"), "No fallback or capability guessing after unknown option");
++        Console.WriteLine("PROFILE checks=" + count);
++    }
++}
+diff --git a/WallpaperControl/Wallpaper/Video/CandidatePackageValidation.cs b/WallpaperControl/Wallpaper/Video/CandidatePackageValidation.cs
+new file mode 100644
+index 0000000..ee566e8
+--- /dev/null
++++ b/WallpaperControl/Wallpaper/Video/CandidatePackageValidation.cs
+@@ -0,0 +1,68 @@
++namespace WallpaperControl.Video;
++
++using System.Security.Cryptography;
++using System.Text.Json;
++
++// Exact candidate package validator used only by this isolated compatibility copy.
++internal static class CandidatePackageValidation
++{
++    internal const string Identity = "mpv v0.41.0-wc-minimal-r1-x64-api2.5-g3186d369f9f090cd1363be0ac46a037824b702c6";
++    internal const string MpvCommit = "3186d369f9f090cd1363be0ac46a037824b702c6";
++    internal const string FfmpegCommit = "5a54fcf75e0245111075b1c31593ba1919c25306";
++    private static readonly string[] Names = ["libmpv-2.dll", "libspirv-cross-c-shared.dll", "libc++.dll", "libunwind.dll"];
++    internal static void ValidateNative(uint api, string identity)
++    {
++        if (api != 0x20005) throw new NotSupportedException("Exact candidate native API mismatch");
++        if (identity != Identity) throw new NotSupportedException("Exact candidate native build identity mismatch");
++    }
++    internal sealed class Lease : IDisposable
++    {
++        private readonly List<FileStream> streams = [];
++        internal FileStream Open(string path)
++        {
++            var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
++            streams.Add(stream); return stream;
++        }
++        public void Dispose() { foreach (var stream in streams) stream.Dispose(); streams.Clear(); }
++    }
++    internal static void Validate(string directory, string trustedManifestHash)
++    { using var lease = Acquire(directory, trustedManifestHash); }
++    internal static Lease Acquire(string directory, string trustedManifestHash)
++    {
++        var lease = new Lease();
++        try
++        {
++        using var memory = new MemoryStream();
++        lease.Open(Path.Combine(directory, "runtime-package.json")).CopyTo(memory);
++        byte[] bytes = memory.ToArray();
++        if (Convert.ToHexString(SHA256.HashData(bytes)) != trustedManifestHash) throw new InvalidDataException("Package manifest hash mismatch");
++        using var doc = JsonDocument.Parse(bytes); var root = doc.RootElement;
++        void Expected(string key, string value) { if (root.GetProperty(key).GetString() != value) throw new InvalidDataException("Package " + key + " mismatch"); }
++        Expected("packageId", "WallpaperControl.libmpv.minimal"); Expected("packageVersion", "1");
++        Expected("mpvCommit", MpvCommit); Expected("ffmpegCommit", FfmpegCommit);
++        Expected("clientApi", "2.5"); Expected("architecture", "x64"); Expected("buildIdentity", Identity);
++        Expected("profile", "wc-minimal-r1-script-free");
++        var files = root.GetProperty("files").EnumerateArray().ToArray();
++        if (files.Length != Names.Length || !files.Select(f => f.GetProperty("name").GetString()).Order().SequenceEqual(Names.Order()))
++            throw new InvalidDataException("Package file set mismatch");
++        long total = 0;
++        foreach (var file in files)
++        {
++            string path = Path.Combine(directory, file.GetProperty("name").GetString()!);
++            var stream = lease.Open(path);
++            total += stream.Length;
++            if (stream.Length != file.GetProperty("size").GetInt64() || Convert.ToHexString(SHA256.HashData(stream)) != file.GetProperty("sha256").GetString())
++                throw new InvalidDataException("Package DLL hash/size mismatch");
++            using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true);
++            stream.Position = 0; if (reader.ReadUInt16() != 0x5A4D) throw new BadImageFormatException("Missing MZ header");
++            stream.Position = 0x3c; int offset = reader.ReadInt32();
++            if (offset < 64 || offset > stream.Length - 26) throw new BadImageFormatException("Invalid PE offset");
++            stream.Position = offset;
++            if (reader.ReadUInt32() != 0x4550 || reader.ReadUInt16() != 0x8664) throw new BadImageFormatException("Package requires x64 PE");
++        }
++        if (total != root.GetProperty("totalSize").GetInt64()) throw new InvalidDataException("Package total size mismatch");
++        return lease;
++        }
++        catch { lease.Dispose(); throw; }
++    }
++}
+diff --git a/WallpaperControl/Wallpaper/Video/MpvOptionProfile.cs b/WallpaperControl/Wallpaper/Video/MpvOptionProfile.cs
+new file mode 100644
+index 0000000..5944933
+--- /dev/null
++++ b/WallpaperControl/Wallpaper/Video/MpvOptionProfile.cs
+@@ -0,0 +1,33 @@
++namespace WallpaperControl.Video;
++
++// Explicit package capabilities. Never inferred from option errors or native discovery.
++internal sealed class MpvOptionProfile
++{
++    private readonly bool scriptFree;
++    internal static readonly MpvOptionProfile Proven = new(false);
++    internal static readonly MpvOptionProfile MinimalR1 = new(true);
++    private MpvOptionProfile(bool scriptFree) => this.scriptFree = scriptFree;
++    internal IReadOnlyDictionary<string, string> Options(nint hwnd)
++    {
++        var options = new Dictionary<string, string>
++            {
++                ["wid"] = hwnd.ToString(System.Globalization.CultureInfo.InvariantCulture), ["config"] = "no", ["load-scripts"] = "no", ["terminal"] = "no",
++                ["vo"] = "gpu", ["gpu-api"] = "d3d11", ["gpu-context"] = "d3d11", ["hwdec"] = "d3d11va",
++                ["keepaspect"] = "yes", ["panscan"] = "1", ["loop-file"] = "inf", ["ao"] = "wasapi", ["audio-exclusive"] = "no", ["audio-device"] = "auto",
++                ["input-default-bindings"] = "no", ["input-vo-keyboard"] = "no", ["input-media-keys"] = "no", ["media-controls"] = "no",
++                ["osd-level"] = "0", ["osc"] = "no", ["stop-screensaver"] = "no", ["video-latency-hacks"] = "no", ["mute"] = "yes", ["volume"] = "0"
++            };
++        // These options do not exist when OSC and scripting/plugins are absent
++        // from the exact pinned build. Every remaining option is still required.
++        if (scriptFree) { options.Remove("osc"); options.Remove("load-scripts"); }
++        return options;
++    }
++    internal void Apply(nint hwnd, Func<string, string, int> set)
++    {
++        foreach (var pair in Options(hwnd))
++        {
++            int error = set(pair.Key, pair.Value);
++            if (error < 0) throw new InvalidOperationException($"Required mpv option '{pair.Key}' failed: {error}");
++        }
++    }
++}

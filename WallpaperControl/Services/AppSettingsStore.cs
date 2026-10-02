@@ -37,6 +37,17 @@ namespace WallpaperControl
     // supplied for tests, leaving real user settings untouched.
     internal sealed class AppSettingsStore
     {
+        internal VideoEngine LoadVideoEngine()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(registryPath);
+                return key?.GetValue("VideoEngine") is string value && value == nameof(VideoEngine.Compatibility)
+                    ? VideoEngine.Compatibility : VideoEngine.Standard;
+            }
+            catch { return VideoEngine.Standard; }
+        }
+        internal void SaveVideoEngine(VideoEngine engine) => WriteValue("VideoEngine", engine.ToString(), RegistryValueKind.String);
         internal WallpaperOperatingMode LoadWallpaperOperatingMode()
         {
             try

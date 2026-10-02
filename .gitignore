@@ -365,3 +365,7 @@ FodyWeavers.xsd
 
 # Generated publish payloads, installers, and checksums
 /artifacts/
+
+# Accepted Standard video engine and its exact corresponding source
+!WallpaperControl/video-runtime/package/*.dll
+!WallpaperControl/video-runtime/corresponding-source.zip

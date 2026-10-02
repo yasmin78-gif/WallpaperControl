@@ -1,0 +1,44 @@
+{
+  "packageId": "WallpaperControl.libmpv.minimal",
+  "packageVersion": "1",
+  "mpvCommit": "3186d369f9f090cd1363be0ac46a037824b702c6",
+  "ffmpegCommit": "5a54fcf75e0245111075b1c31593ba1919c25306",
+  "clientApi": "2.5",
+  "architecture": "x64",
+  "buildIdentity": "mpv v0.41.0-wc-minimal-r1-x64-api2.5-g3186d369f9f090cd1363be0ac46a037824b702c6",
+  "files": [
+    {
+      "name": "libc++.dll",
+      "size": 1540608,
+      "sha256": "07FF64D3CC17535EBC945739D9B746AFFAC354BC7CBF1AC6584BE81F825F1060"
+    },
+    {
+      "name": "libmpv-2.dll",
+      "size": 18783744,
+      "sha256": "91A96C03DC56F7FA4D146F3E23CE491C478DABCB7F101BA6509BEC538C6A95FC"
+    },
+    {
+      "name": "libspirv-cross-c-shared.dll",
+      "size": 2242048,
+      "sha256": "7709708196C4BC6410BEBAE19C99F386598AE050260A4891E0852FC49CE8059C"
+    },
+    {
+      "name": "libunwind.dll",
+      "size": 60416,
+      "sha256": "2C5DE2F3090CC6E04AF82D8F5D40A343EBAB9D5413D4DE07FBAB650C5511556D"
+    }
+  ],
+  "totalSize": 22626816,
+  "profile": "wc-minimal-r1-script-free",
+  "capabilities": {
+    "osc": false,
+    "lua": false,
+    "javascript": false,
+    "cPlugins": false,
+    "d3d11": true,
+    "d3d11va": true,
+    "wasapi": true
+  },
+  "sbom": "../SBOM.json",
+  "licenses": "../THIRD_PARTY_NOTICES.md"
+}

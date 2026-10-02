@@ -1608,4 +1608,13 @@
   <data name="VideoSound" xml:space="preserve"><value>音声</value></data>
   <data name="VideoVolume" xml:space="preserve"><value>音量</value></data>
   <data name="VideoVolumeFormat" xml:space="preserve"><value>音量: {0}%</value></data>
+  <data name="VideoEngineHeading" xml:space="preserve"><value>動画エンジン</value></data>
+  <data name="VideoEngineStandard" xml:space="preserve"><value>標準</value></data>
+  <data name="VideoEngineCompatibility" xml:space="preserve"><value>互換性</value></data>
+  <data name="VideoEngineStandardDescription" xml:space="preserve"><value>推奨。より滑らかで、つなぎ目がほとんど目立たない動画再生。</value></data>
+  <data name="VideoEngineCompatibilityDescription" xml:space="preserve"><value>標準エンジンが安定して動作しない場合に使う、Windowsの代替再生エンジン。</value></data>
+  <data name="VideoEngineFallback" xml:space="preserve"><value>標準の動画エンジンを読み込めませんでした。互換性エンジンを使用しています。</value></data>
+  <data name="VideoEngineActive" xml:space="preserve"><value>使用中の動画エンジン：{0}</value></data>
+  <data name="VideoRestart" xml:space="preserve"><value>動画を再開始</value></data>
+  <data name="VideoChooseFileSafe" xml:space="preserve"><value>動画を選択してください。それまでは画像の壁紙が表示されます。</value></data>
 </root>

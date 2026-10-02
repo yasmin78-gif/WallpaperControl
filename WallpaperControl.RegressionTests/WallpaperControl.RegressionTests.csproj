@@ -8,6 +8,7 @@
     <ApplicationManifest>../WallpaperControl/app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WallpaperControl/Wallpaper/Video/VideoEngine.cs" Link="VideoEngine.cs" />
     <Compile Include="../WallpaperControl/Wallpaper/Video/WallpaperOperatingMode.cs" Link="WallpaperOperatingMode.cs" />
     <ProjectReference Include="../WallpaperControl/WallpaperControl.csproj" Aliases="WallpaperApp" />
     <Compile Include="../WallpaperControl/Services/FullscreenActivityDetector.cs" Link="FullscreenActivityDetector.cs" />

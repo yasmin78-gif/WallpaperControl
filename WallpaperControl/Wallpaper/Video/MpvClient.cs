@@ -50,19 +50,11 @@ internal sealed class MpvClient : IAsyncDisposable
             handle = runtime.Export<Create>("mpv_create")();
             if (handle == 0) throw new InvalidOperationException("mpv_create failed");
             Interlocked.Increment(ref LiveClients);
-            var options = new Dictionary<string, string>
-            {
-                ["wid"] = hwnd.ToString(CultureInfo.InvariantCulture), ["config"] = "no", ["load-scripts"] = "no", ["terminal"] = "no",
-                ["vo"] = "gpu", ["gpu-api"] = "d3d11", ["gpu-context"] = "d3d11", ["hwdec"] = "d3d11va",
-                ["keepaspect"] = "yes", ["panscan"] = "1", ["loop-file"] = "inf", ["ao"] = "wasapi", ["audio-exclusive"] = "no", ["audio-device"] = "auto",
-                ["input-default-bindings"] = "no", ["input-vo-keyboard"] = "no", ["input-media-keys"] = "no", ["media-controls"] = "no",
-                ["osd-level"] = "0", ["osc"] = "no", ["stop-screensaver"] = "no", ["video-latency-hacks"] = "no", ["mute"] = "yes", ["volume"] = "0"
-            };
             var option = runtime.Export<Text>("mpv_set_option_string");
-            foreach (var pair in options) Check(option(handle, pair.Key, pair.Value));
+            runtime.Profile.Apply(hwnd, (key, value) => option(handle, key, value));
             Check(runtime.Export<Logs>("mpv_request_log_messages")(handle, "v"));
             Check(runtime.Export<Simple>("mpv_initialize")(handle));
-            if (Read("mpv-version") != MpvRuntime.Build) throw new NotSupportedException("Pinned mpv build mismatch");
+            if (Read("mpv-version") != runtime.ExpectedBuild) throw new NotSupportedException("Pinned mpv build mismatch");
             runtime.Export<SetWake>("mpv_set_wakeup_callback")(handle, wakeCallback, 0);
             initialized.TrySetResult();
             ScheduleDrain();

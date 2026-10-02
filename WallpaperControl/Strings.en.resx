@@ -1636,4 +1636,13 @@ Would you like to open the release page?</value>
   <data name="VideoSound" xml:space="preserve"><value>Sound</value></data>
   <data name="VideoVolume" xml:space="preserve"><value>Volume</value></data>
   <data name="VideoVolumeFormat" xml:space="preserve"><value>Volume: {0}%</value></data>
+  <data name="VideoEngineHeading" xml:space="preserve"><value>Video engine</value></data>
+  <data name="VideoEngineStandard" xml:space="preserve"><value>Standard</value></data>
+  <data name="VideoEngineCompatibility" xml:space="preserve"><value>Compatibility</value></data>
+  <data name="VideoEngineStandardDescription" xml:space="preserve"><value>Recommended. Better and nearly seamless video playback.</value></data>
+  <data name="VideoEngineCompatibilityDescription" xml:space="preserve"><value>Alternative Windows playback engine for systems where Standard does not work reliably.</value></data>
+  <data name="VideoEngineFallback" xml:space="preserve"><value>The Standard video engine could not be loaded. Compatibility is being used.</value></data>
+  <data name="VideoEngineActive" xml:space="preserve"><value>Active video engine: {0}</value></data>
+  <data name="VideoRestart" xml:space="preserve"><value>Restart video</value></data>
+  <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choose a video. The image wallpaper remains active until then.</value></data>
 </root>

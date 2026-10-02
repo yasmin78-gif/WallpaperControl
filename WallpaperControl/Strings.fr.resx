@@ -1636,4 +1636,13 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VideoSound" xml:space="preserve"><value>Son</value></data>
   <data name="VideoVolume" xml:space="preserve"><value>Volume</value></data>
   <data name="VideoVolumeFormat" xml:space="preserve"><value>Volume : {0} %</value></data>
+  <data name="VideoEngineHeading" xml:space="preserve"><value>Moteur vidéo</value></data>
+  <data name="VideoEngineStandard" xml:space="preserve"><value>Standard</value></data>
+  <data name="VideoEngineCompatibility" xml:space="preserve"><value>Compatibilité</value></data>
+  <data name="VideoEngineStandardDescription" xml:space="preserve"><value>Recommandé. Lecture vidéo améliorée et presque sans interruption.</value></data>
+  <data name="VideoEngineCompatibilityDescription" xml:space="preserve"><value>Moteur de lecture Windows alternatif si Standard ne fonctionne pas de manière fiable.</value></data>
+  <data name="VideoEngineFallback" xml:space="preserve"><value>Le moteur vidéo Standard n’a pas pu être chargé. Compatibilité est utilisé.</value></data>
+  <data name="VideoEngineActive" xml:space="preserve"><value>Moteur vidéo actif : {0}</value></data>
+  <data name="VideoRestart" xml:space="preserve"><value>Redémarrer la vidéo</value></data>
+  <data name="VideoChooseFileSafe" xml:space="preserve"><value>Choisissez une vidéo. Le fond d’écran image reste actif en attendant.</value></data>
 </root>

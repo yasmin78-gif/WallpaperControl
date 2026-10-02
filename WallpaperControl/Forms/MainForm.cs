@@ -46,7 +46,7 @@ namespace WallpaperControl
                 {
                     videoPathText.Text = developmentVideo;
                     videoUiLoading = true; wallpaperModeCombo.SelectedIndex = 1; videoUiLoading = false;
-                    await ApplyWallpaperModeAsync(WallpaperOperatingMode.VideoWallpaper);
+                    await RestoreStartupVideoAsync(WallpaperOperatingMode.VideoWallpaper, videoPathText.Text);
                     // Ephemeral measurement overrides: never save sound/volume.
                     string? testVolume = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--video-test-audio=", StringComparison.Ordinal))?[19..];
                     if (int.TryParse(testVolume, out int volume)) videoWallpaper?.SetAudio(true, volume);
@@ -56,7 +56,7 @@ namespace WallpaperControl
                 else if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.VideoWallpaper)
                 {
                     videoPathText.Text = appSettings.LoadVideoWallpaperPath();
-                    await ApplyWallpaperModeAsync(WallpaperOperatingMode.VideoWallpaper);
+                    await RestoreStartupVideoAsync(WallpaperOperatingMode.VideoWallpaper, videoPathText.Text);
                 }
                 else
                 {

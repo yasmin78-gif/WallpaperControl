@@ -70,12 +70,14 @@ namespace WallpaperControl
             videoSoundCheck.ForeColor = videoVolumeLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoSoundCheck.BackColor = videoVolumeSlider.BackColor = AppTheme.PanelBackground(darkMode);
             modeHeading.ForeColor = videoFileLabel.ForeColor = AppTheme.TextPrimary(darkMode);
+            foreach (Control control in new Control[] { videoEngineHeading, videoStandardRadio, videoCompatibilityRadio, videoStandardDescription, videoCompatibilityDescription, videoEngineStatus })
+            { control.ForeColor = AppTheme.TextPrimary(darkMode); control.BackColor = AppTheme.PanelBackground(darkMode); }
             videoStatusLabel.ForeColor = AppTheme.TextPrimary(darkMode);
             videoPathText.BackColor = AppTheme.InputBackground(darkMode);
             videoPathText.ForeColor = AppTheme.TextPrimary(darkMode);
             wallpaperModeCombo.BackColor = AppTheme.InputBackground(darkMode);
             wallpaperModeCombo.ForeColor = AppTheme.TextPrimary(darkMode);
-            foreach (Button button in new[] { videoBrowseButton, videoApplyButton, videoPauseButton, imageApplyButton })
+            foreach (Button button in new[] { videoBrowseButton, videoApplyButton, videoPauseButton })
             { button.BackColor = AppTheme.ControlBackground(darkMode); button.ForeColor = AppTheme.TextPrimary(darkMode); }
         }
 
@@ -143,8 +145,6 @@ namespace WallpaperControl
                 int top = Math.Max(LabelAt(mainHeading, 0, 0, width - selectorWidth - small, 32),
                     InputAt(wallpaperModeCombo, width - selectorWidth, 0, selectorWidth)) + gap;
                 if (videoStatusLabel.Visible) top = LabelAt(videoStatusLabel, 0, top, width) + small;
-                if (imageApplyButton.Visible)
-                { imageApplyButton.SetBounds(0, top, width, Px(36)); top = imageApplyButton.Bottom + gap; }
                 if (wallpaperWarning && !VideoConfigurationSelected && wallpaperOwnership.AllowsImages)
                 {
                     top = LabelAt(statusLabel, 0, top, width) + small;
@@ -156,7 +156,13 @@ namespace WallpaperControl
                 }
 
                 int videoWidth = Math.Max(1, width - 2 * padding);
-                int videoY = LabelAt(modeHeading, padding, padding, videoWidth, 28) + small;
+                int videoY = LabelAt(videoEngineHeading, padding, padding, videoWidth, 28) + small;
+                videoStandardRadio.SetBounds(padding, videoY, videoWidth, Px(30));
+                videoY = LabelAt(videoStandardDescription, padding + Px(24), videoStandardRadio.Bottom, videoWidth - Px(24)) + small;
+                videoCompatibilityRadio.SetBounds(padding, videoY, videoWidth, Px(30));
+                videoY = LabelAt(videoCompatibilityDescription, padding + Px(24), videoCompatibilityRadio.Bottom, videoWidth - Px(24)) + small;
+                if (videoEngineStatus.Visible) videoY = LabelAt(videoEngineStatus, padding, videoY, videoWidth) + small;
+                videoY = LabelAt(modeHeading, padding, videoY + small, videoWidth, 28) + small;
                 int videoBrowseWidth = Px(54);
                 videoFileLabel.SetBounds(padding, videoY, Math.Max(1, videoWidth - videoBrowseWidth - small), Px(32));
                 videoBrowseButton.SetBounds(padding + videoWidth - videoBrowseWidth, videoY, videoBrowseWidth, Px(32));

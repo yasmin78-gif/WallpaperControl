@@ -1636,4 +1636,13 @@ Versión instalada: {0}
   <data name="VideoSound" xml:space="preserve"><value>Sonido</value></data>
   <data name="VideoVolume" xml:space="preserve"><value>Volumen</value></data>
   <data name="VideoVolumeFormat" xml:space="preserve"><value>Volumen: {0}%</value></data>
+  <data name="VideoEngineHeading" xml:space="preserve"><value>Motor de vídeo</value></data>
+  <data name="VideoEngineStandard" xml:space="preserve"><value>Estándar</value></data>
+  <data name="VideoEngineCompatibility" xml:space="preserve"><value>Compatibilidad</value></data>
+  <data name="VideoEngineStandardDescription" xml:space="preserve"><value>Recomendado. Mejor reproducción de vídeo, casi sin interrupciones.</value></data>
+  <data name="VideoEngineCompatibilityDescription" xml:space="preserve"><value>Motor de reproducción de Windows alternativo si Estándar no funciona de forma fiable.</value></data>
+  <data name="VideoEngineFallback" xml:space="preserve"><value>No se pudo cargar el motor de vídeo Estándar. Se está usando Compatibilidad.</value></data>
+  <data name="VideoEngineActive" xml:space="preserve"><value>Motor de vídeo activo: {0}</value></data>
+  <data name="VideoRestart" xml:space="preserve"><value>Reiniciar vídeo</value></data>
+  <data name="VideoChooseFileSafe" xml:space="preserve"><value>Selecciona un vídeo. Mientras tanto, el fondo de imágenes permanece activo.</value></data>
 </root>

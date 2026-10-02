@@ -243,9 +243,9 @@ internal static class VideoWallpaperTests
             Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 0;
             check(Field<Panel>(main, "slideshowCard").Visible && !Field<Panel>(main, "videoCard").Visible, "Image selection immediately shows image configuration");
             check(!Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages && !desktop.Last.Disposed && desktop.Last.Playing, "Image selection keeps video runtime alive");
-            check(Field<Button>(main, "imageApplyButton").Visible && Field<Label>(main, "videoStatusLabel").Text == App.Localization.Get("ImagesSelectedVideoActive"), "Image selection explains active video and offers explicit transition");
+            check(controller.HasSession, "Programmatic image selection does not change the active video");
             Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 1;
-            check(Field<Button>(main, "videoApplyButton").Text == App.Localization.Get("VideoChange"), "Running video offers localized change action");
+            check(Field<Button>(main, "videoApplyButton").Text == App.Localization.Get("VideoRestart"), "Running video offers localized restart action");
             bool imageWrite = false;
             main.ApplyExplicitWallpaper(() => imageWrite = true, true);
             check(!imageWrite, "Video UI: statistics selection cannot write native wallpaper");
@@ -336,7 +336,7 @@ internal static class VideoWallpaperTests
             Application.DoEvents();
             check(!Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages, "Video Start button explicitly enters video runtime");
             Field<ComboBox>(main, "wallpaperModeCombo").SelectedIndex = 0;
-            Field<Button>(main, "imageApplyButton").PerformClick();
+            typeof(ComboBox).GetMethod("OnSelectionChangeCommitted", Members)!.Invoke(Field<ComboBox>(main, "wallpaperModeCombo"), new object[] { EventArgs.Empty });
             Application.DoEvents();
             check(Field<App.WallpaperModeOwnership>(main, "wallpaperOwnership").AllowsImages && desktop.Last.Disposed, "Slideshow Start button explicitly stops video and restores images");
             foreach (bool dark in new[] { false, true })

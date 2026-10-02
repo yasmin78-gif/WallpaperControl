@@ -1636,4 +1636,13 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VideoSound" xml:space="preserve"><value>Ton</value></data>
   <data name="VideoVolume" xml:space="preserve"><value>Lautstärke</value></data>
   <data name="VideoVolumeFormat" xml:space="preserve"><value>Lautstärke: {0}%</value></data>
+  <data name="VideoEngineHeading" xml:space="preserve"><value>Video-Engine</value></data>
+  <data name="VideoEngineStandard" xml:space="preserve"><value>Standard</value></data>
+  <data name="VideoEngineCompatibility" xml:space="preserve"><value>Kompatibilität</value></data>
+  <data name="VideoEngineStandardDescription" xml:space="preserve"><value>Empfohlen. Bessere und nahezu nahtlose Videowiedergabe.</value></data>
+  <data name="VideoEngineCompatibilityDescription" xml:space="preserve"><value>Alternative Windows-Wiedergabe für Systeme, auf denen Standard nicht zuverlässig funktioniert.</value></data>
+  <data name="VideoEngineFallback" xml:space="preserve"><value>Die Standard-Video-Engine konnte nicht geladen werden. Kompatibilität wird verwendet.</value></data>
+  <data name="VideoEngineActive" xml:space="preserve"><value>Aktive Video-Engine: {0}</value></data>
+  <data name="VideoRestart" xml:space="preserve"><value>Video neu starten</value></data>
+  <data name="VideoChooseFileSafe" xml:space="preserve"><value>Wähle ein Video. Bis dahin bleibt der Bildhintergrund aktiv.</value></data>
 </root>
