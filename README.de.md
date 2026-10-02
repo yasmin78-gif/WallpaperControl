@@ -51,25 +51,22 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Einstellbare Übergangsdauer
     -   Desktop-Symbole und Desktop-Tools bleiben über der
         Übergangsebene sichtbar
--   🕐 **Native Desktop-Widgets**
-    -   Uhr-Widget mit 5 wählbaren Designs
-    -   Systemmonitor-Widget
-    -   Wetter-Widget mit optionaler 3-Tage-Vorhersage
-    -   Kalender-Widget mit iCalendar-/ICS-Unterstützung
-    -   Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen
-        Wallpaper
-    -   Notizen-&-Reminder-Widget mit lokaler Aufgaben- und
-        Erinnerungsverwaltung
-    -   Größenveränderbares und einklappbares Web-Widget auf Basis von
-        Microsoft WebView2
-    -   Optionaler Nächstes-Wallpaper-Button
-    -   Widgets können unabhängig voneinander frei auf dem Desktop
-        positioniert werden
-    -   Position jedes Widgets kann separat gesperrt werden
-    -   Widget-Positionen und Einstellungen werden gespeichert
-    -   Live-Vorschau der Widgets beim Ändern der Einstellungen
-    -   Widgets bleiben Teil des Desktops und liegen nicht über normalen
-        Anwendungsfenstern
+- 🕐 **Native Desktop-Widgets**
+  - Uhr-Widget mit 5 wählbaren Designs
+  - Systemmonitor-Widget
+  - Wetter-Widget mit optionaler 3-Tage-Vorhersage
+  - Kalender-Widget mit iCalendar-/ICS-Unterstützung
+  - Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen Wallpaper
+  - Notizen-&-Reminder-Widget mit lokaler Aufgaben- und Erinnerungsverwaltung, einschließlich täglich wiederkehrender Aufgaben
+  - Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Unterstützung für Amazon Logistics
+  - Twitch-Widget mit live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
+  - Größenveränderbares und einklappbares Web-Widget auf Basis von Microsoft WebView2
+  - Optionaler Nächstes-Wallpaper-Button
+  - Widgets können unabhängig voneinander frei auf dem Desktop positioniert werden
+  - Position jedes Widgets kann separat gesperrt werden
+  - Widget-Positionen und Einstellungen werden gespeichert
+  - Live-Vorschau der Widgets beim Ändern der Einstellungen
+  - Widgets bleiben Teil des Desktops und liegen nicht über normalen Anwendungsfenstern
 -   🖥️ **Windows-Integration**
     -   Nutzt native Windows-Wallpaper-APIs und stellt gleichzeitig eine
         eigene Zeitsteuerung und Übergangs-Engine bereit
