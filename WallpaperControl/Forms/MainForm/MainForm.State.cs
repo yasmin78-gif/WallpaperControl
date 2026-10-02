@@ -15,7 +15,7 @@ namespace WallpaperControl
         private readonly AppSettingsStore appSettings = new();
         private readonly List<Font> ownedFonts = new();
         private readonly WidgetManager widgetManager;
-        private readonly TwitchBalloonNotifications twitchBalloonNotifications;
+        private readonly DesktopNotifications desktopNotifications;
         private const string WindowsSlideshowRegistryPath =
             @"Control Panel\Personalization\Desktop Slideshow";
 

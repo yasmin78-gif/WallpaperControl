@@ -29,6 +29,8 @@ namespace WallpaperControl
         internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.NotificationSound = SelectedNotificationSound;
+            preview.PackageStatusNotifications = packageNotifications.Checked;
             ReadWebControls(preview.Web);
             preview.TwitchEnabled = twitchEnabled.Checked; preview.TwitchLocked = twitchLocked.Checked;
             preview.TwitchStyle = (SystemWidgetStyle)Math.Max(0, twitchStyle.SelectedIndex); preview.TwitchMaximumHeight = (int)twitchMaximum.Value;

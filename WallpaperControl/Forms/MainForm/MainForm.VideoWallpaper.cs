@@ -258,6 +258,12 @@ public partial class MainForm
 
     private Task ApplyWallpaperModeAsync(WallpaperOperatingMode mode) => ApplyWallpaperModeCoreAsync(mode);
 
+    private void SwitchWallpaperOperatingMode(WallpaperOperatingMode mode)
+    {
+        wallpaperOwnership.Switch(mode);
+        widgetManager.SetWallpaperMode(mode);
+    }
+
     private async Task ApplyWallpaperModeCoreAsync(WallpaperOperatingMode mode, bool replaceEngine = false)
     {
         // Reject unsupported topology before touching native wallpaper paths,
@@ -286,7 +292,7 @@ public partial class MainForm
                     if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper && videoWallpaper?.HasSession != true)
                     {
                         savedImageMode ??= CaptureImageMode();
-                        wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
+                        SwitchWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
                         RestoreImageMode();
                         if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
                     }
@@ -305,7 +311,7 @@ public partial class MainForm
                     }
                     if (wallpaperOwnership.AllowsImages)
                     {
-                        wallpaperOwnership.Switch(mode);
+                        SwitchWallpaperOperatingMode(mode);
                         AppLogger.Info("Wallpaper operating mode: VideoWallpaper; image ownership suspended");
                         customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
                         customWallpaperCancellation?.Cancel();
@@ -342,7 +348,7 @@ public partial class MainForm
                     {
                         await engine.StopAsync();
                         savedImageMode ??= CaptureImageMode();
-                        wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
+                        SwitchWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
                         RestoreImageMode();
                         if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
                     }
@@ -352,7 +358,7 @@ public partial class MainForm
             {
                 if (videoWallpaper != null) await videoWallpaper.StopAsync();
                 if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
-                wallpaperOwnership.Switch(mode);
+                SwitchWallpaperOperatingMode(mode);
                 AppLogger.Info("Wallpaper operating mode: ImageSlideshow; video ownership released");
                 RestoreImageMode();
                 if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(mode);
@@ -363,7 +369,7 @@ public partial class MainForm
             AppLogger.Info($"Wallpaper mode change failed; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
             if (request != wallpaperModeRequest || wallpaperOwnership.Closed) return;
             if (videoWallpaper != null) await videoWallpaper.StopAsync();
-            wallpaperOwnership.Switch(WallpaperOperatingMode.ImageSlideshow);
+            SwitchWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
             RestoreImageMode();
             if (servicesEnabled) appSettings.SaveWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
             videoSelectionError = "VideoErrorPlayback";

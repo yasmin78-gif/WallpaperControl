@@ -1677,4 +1677,14 @@ Versión instalada: {0}
   <data name="TwitchLiveNotifications" xml:space="preserve"><value>Avisar cuando un canal comience a emitir</value></data>
   <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch: canal en directo</value></data>
   <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} está en directo. Haz clic para abrir el canal.</value></data>
+  <data name="NotificationSettings" xml:space="preserve"><value>Notificaciones</value></data>
+  <data name="NotificationSound" xml:space="preserve"><value>Sonido de notificación</value></data>
+  <data name="NotificationSoundOff" xml:space="preserve"><value>Desactivado</value></data>
+  <data name="NotificationSoundWindows" xml:space="preserve"><value>Predeterminado de Windows</value></data>
+  <data name="NotificationSoundChime" xml:space="preserve"><value>Campanilla de dos tonos</value></data>
+  <data name="NotificationSoundPreview" xml:space="preserve"><value>Escuchar sonido</value></data>
+  <data name="NotificationSoundHint" xml:space="preserve"><value>Este sonido se aplica a Twitch, a los cambios de estado de paquetes y a los recordatorios de notas.</value></data>
+  <data name="PackageStatusNotifications" xml:space="preserve"><value>Avisar cuando cambie el estado de un paquete</value></data>
+  <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Estado del paquete actualizado</value></data>
+  <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}: {1}. Haz clic para abrir los detalles del paquete.</value></data>
 </root>

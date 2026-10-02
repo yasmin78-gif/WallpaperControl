@@ -18,6 +18,7 @@ internal sealed partial class WidgetSettingsEditor
     private TwitchService? twitchService;
     private Action<IWin32Window, string, bool>? twitchLogin;
     private readonly CancellationTokenSource twitchLifetime = new();
+    private bool twitchControlsDisposed;
     internal void ConfigureTwitch(TwitchService service, Action<IWin32Window, string, bool> login)
     {
         if (twitchService != null) twitchService.Changed -= UpdateTwitchConnection;
@@ -60,5 +61,5 @@ internal sealed partial class WidgetSettingsEditor
     private void LoadTwitchControls(WidgetSettings value)
     { twitchEnabled.Checked = value.TwitchEnabled; twitchLocked.Checked = value.TwitchLocked; twitchNotifications.Checked = value.TwitchLiveNotifications; twitchMaximum.Value = CalendarViewport.NormalizeMaximum(value.TwitchMaximumHeight); RefreshWidgetStyleChoices(twitchStyle, value.TwitchStyle); LocalizeTwitchInterval(value.TwitchRefreshMinutes); UpdateTwitchConnection(); }
     private void DisposeTwitchControls()
-    { twitchLifetime.Cancel(); twitchLifetime.Dispose(); if (twitchService != null) twitchService.Changed -= UpdateTwitchConnection; }
+    { if (twitchControlsDisposed) return; twitchControlsDisposed = true; twitchLifetime.Cancel(); twitchLifetime.Dispose(); if (twitchService != null) twitchService.Changed -= UpdateTwitchConnection; }
 }

@@ -5,14 +5,28 @@ internal sealed partial class WidgetManager
     private PackageTrackingService? packages;
     private PackageRefreshScheduler? packageScheduler;
     private bool packagePowerSuspended;
+    private PackageStatusNotifications? packageNotifications;
+    private bool packageAlertsEnabled;
+    internal Action<TrackedShipment, string>? ShowPackageNotification { get; set; }
+    internal Action? ClearPackageNotifications { get; set; }
     internal void SetPackagePowerSuspended(bool value)
-    { packagePowerSuspended = value; packageScheduler?.SetPowerSuspended(value); }
+    { packagePowerSuspended = value; packageNotifications?.SetSuspended(value || activitySuspended); if (value) ClearPackageNotifications?.Invoke(); packageScheduler?.SetPowerSuspended(value); }
     private PackageTrackingWidgetForm? packageWidget;
     private bool packageDialogOpen;
     private readonly TrackingCredentialStore packageCredentialStore;
     private TrackingCredentialStore PackageCredentials => packageCredentialStore;
     // Ship24 documents up to one minute for first tracking results; allow that without retrying POST.
-    private PackageTrackingService Packages => packages ??= new(new TrackingStore(), new Ship24TrackingProvider(PackageCredentials, timeout: TimeSpan.FromSeconds(75)));
+    private PackageTrackingService Packages
+    {
+        get
+        {
+            packages ??= new(new TrackingStore(), new Ship24TrackingProvider(PackageCredentials, timeout: TimeSpan.FromSeconds(75)));
+            packageNotifications ??= new(packages, shipment => ShowPackageNotification?.Invoke(shipment, settings.ClockLanguageCode));
+            packageNotifications.Configure(packageAlertsEnabled); packageNotifications.SetSuspended(activitySuspended || packagePowerSuspended);
+            return packages;
+        }
+    }
+    internal void OpenPackageNotification(Guid id) { if (Packages.Shipments.Any(shipment => shipment.Id == id)) PackageDetails(id); }
     internal bool PackageHasCredential() => PackageCredentials.Load("ship24", out _) is TrackingCredentialLoadResult.Loaded or TrackingCredentialLoadResult.Recovered;
     internal void ShowPackages(IWin32Window? owner, string language, string action)
     {
@@ -36,6 +50,9 @@ internal sealed partial class WidgetManager
     }
     private void ApplyPackageWidget(WidgetSettings target, bool restoreLocations)
     {
+        packageAlertsEnabled = target.PackageStatusNotifications;
+        if (packages != null) { _ = Packages; }
+        if (!packageAlertsEnabled) ClearPackageNotifications?.Invoke();
         if (!target.PackageEnabled)
         {
             packageScheduler?.Dispose(); packageScheduler = null;

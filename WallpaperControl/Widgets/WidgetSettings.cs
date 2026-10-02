@@ -11,6 +11,8 @@ namespace WallpaperControl
         internal const string RegistryPath = @"Software\WallpaperControl";
         private bool loadFailed;
         public WebWidgetSettings Web { get; set; } = new();
+        public NotificationSoundKind NotificationSound { get; set; } = NotificationSoundKind.Chime;
+        public bool PackageStatusNotifications { get; set; }
 
         public bool TwitchEnabled { get; set; }
         public bool TwitchLocked { get; set; }
@@ -91,6 +93,8 @@ namespace WallpaperControl
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
+                result.NotificationSound = NotificationSounds.Normalize(ReadInt(key, "NotificationSound", (int)NotificationSoundKind.Chime));
+                result.PackageStatusNotifications = ReadBool(key, "PackageStatusNotifications", false);
 
                 result.TwitchEnabled = ReadBool(key, "TwitchWidgetEnabled", false);
                 result.TwitchLocked = ReadBool(key, "TwitchWidgetLocked", false);
@@ -186,6 +190,8 @@ namespace WallpaperControl
             {
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
                 Web.Normalize();
+                key.SetValue("NotificationSound", (int)NotificationSounds.Normalize((int)NotificationSound), RegistryValueKind.DWord);
+                key.SetValue("PackageStatusNotifications", PackageStatusNotifications ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
                 key.SetValue("TwitchWidgetEnabled", TwitchEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TwitchWidgetLocked", TwitchLocked ? 1 : 0, RegistryValueKind.DWord);
@@ -276,6 +282,7 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
+            NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,
             TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,
             TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes),
             TwitchLiveNotifications = TwitchLiveNotifications,

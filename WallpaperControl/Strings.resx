@@ -1677,4 +1677,14 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="TwitchLiveNotifications" xml:space="preserve"><value>Benachrichtigen, wenn ein Kanal live geht</value></data>
   <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch: Kanal ist live</value></data>
   <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} ist jetzt live. Zum Kanal öffnen klicken.</value></data>
+  <data name="NotificationSettings" xml:space="preserve"><value>Benachrichtigungen</value></data>
+  <data name="NotificationSound" xml:space="preserve"><value>Benachrichtigungston</value></data>
+  <data name="NotificationSoundOff" xml:space="preserve"><value>Aus</value></data>
+  <data name="NotificationSoundWindows" xml:space="preserve"><value>Windows-Standard</value></data>
+  <data name="NotificationSoundChime" xml:space="preserve"><value>Zweiklang</value></data>
+  <data name="NotificationSoundPreview" xml:space="preserve"><value>Ton vorhören</value></data>
+  <data name="NotificationSoundHint" xml:space="preserve"><value>Dieser Ton gilt für Twitch, Paket-Statusänderungen und Notiz-Erinnerungen.</value></data>
+  <data name="PackageStatusNotifications" xml:space="preserve"><value>Bei Änderungen des Paket-Status benachrichtigen</value></data>
+  <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Paket-Status geändert</value></data>
+  <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}: {1}. Zum Öffnen der Paketdetails klicken.</value></data>
 </root>

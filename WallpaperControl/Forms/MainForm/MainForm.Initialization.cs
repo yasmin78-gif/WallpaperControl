@@ -552,9 +552,14 @@ namespace WallpaperControl
 
             trayIcon.DoubleClick +=
                 (_, _) => RestoreFromTray();
-            twitchBalloonNotifications = new(trayIcon);
-            widgetManager.ShowTwitchNotification = twitchBalloonNotifications.Show;
-            widgetManager.ClearTwitchNotifications = twitchBalloonNotifications.Clear;
+            desktopNotifications = new(trayIcon, sound: () => widgetManager.NotificationSound, playSound: widgetManager.PlayNotificationSound);
+            widgetManager.ShowTwitchNotification = desktopNotifications.Show;
+            widgetManager.ClearTwitchNotifications = () => desktopNotifications.Clear("twitch");
+            widgetManager.ShowPackageNotification = (shipment, language) => desktopNotifications.Show(
+                Localization.Get("PackageStatusNotificationTitle", language),
+                string.Format(Localization.Get("PackageStatusNotificationBody", language), PackagePresentation.Name(shipment, language), PackagePresentation.ShipmentStatus(shipment, language)),
+                () => widgetManager.OpenPackageNotification(shipment.Id), "package");
+            widgetManager.ClearPackageNotifications = () => desktopNotifications.Clear("package");
 
             wallpaperRefreshTimer =
                 new System.Windows.Forms.Timer
@@ -662,7 +667,7 @@ namespace WallpaperControl
             else if (Screen.AllScreens.Length == 1)
             {
                 // Reserve ownership before any timer, hotkey or startup host can run.
-                wallpaperOwnership.Switch(WallpaperOperatingMode.VideoWallpaper);
+                SwitchWallpaperOperatingMode(WallpaperOperatingMode.VideoWallpaper);
                 videoPathText.Text = appSettings.LoadVideoWallpaperPath();
                 videoUiLoading = true; wallpaperModeCombo.SelectedIndex = 1; videoUiLoading = false;
             }

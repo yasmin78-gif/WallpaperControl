@@ -9,10 +9,14 @@ namespace WallpaperControl
         private readonly string registryPath;
         private readonly NotesStore notesStore;
         private NoteReminderService? noteReminders;
+        private readonly NotificationSounds notificationSounds = new();
+        internal NotificationSoundKind NotificationSound { get; private set; } = NotificationSoundKind.Chime;
+        internal void PlayNotificationSound(NotificationSoundKind sound) => notificationSounds.Play(sound);
         internal void StartNoteReminders()
         {
             if (noteReminders != null) return;
-            noteReminders = new NoteReminderService(notesStore, () => settings.ClockLanguageCode);
+            noteReminders = new NoteReminderService(notesStore, () => settings.ClockLanguageCode,
+                sound: () => notificationSounds.Play(NotificationSound));
             noteReminders.Start();
         }
         private NotesWidgetForm? notesWidget;
@@ -47,6 +51,7 @@ namespace WallpaperControl
             packages = packageTrackingService;
             packageCredentialStore = packageCredentials ?? new TrackingCredentialStore();
             settings = WidgetSettings.Load(registryPath);
+            NotificationSound = settings.NotificationSound;
             desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
         }
 
@@ -77,6 +82,7 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            settings.NotificationSound = previewSettings.NotificationSound; settings.PackageStatusNotifications = previewSettings.PackageStatusNotifications;
             settings.TwitchEnabled = previewSettings.TwitchEnabled; settings.TwitchLocked = previewSettings.TwitchLocked;
             settings.TwitchStyle = previewSettings.TwitchStyle; settings.TwitchMaximumHeight = previewSettings.TwitchMaximumHeight;
             settings.TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(previewSettings.TwitchRefreshMinutes);
@@ -194,6 +200,7 @@ namespace WallpaperControl
         /// <param name="restoreLocations">True to restore saved positions as well as visual preferences.</param>
         private void ApplyVisualState(WidgetSettings target, bool restoreLocations)
         {
+            NotificationSound = NotificationSounds.Normalize((int)target.NotificationSound);
             // Preview mode keeps the widget windows interactive even though the
             // settings dialog is modal. The Lock checkboxes themselves still
             // apply immediately, so the preview always matches the current UI.
@@ -274,9 +281,7 @@ namespace WallpaperControl
                         SaveNextLocation);
 
                     RegisterDesktopWidget(nextWidget);
-                    nextWidget.Show();
-
-                    if (!DesktopWidgetNative.AttachToDesktop(nextWidget, target.NextLocation))
+                    if (!ShowWallpaperWidget(nextWidget, target.NextLocation))
                     {
                         nextWidget.Hide();
                         AppLogger.Warning(
@@ -302,7 +307,7 @@ namespace WallpaperControl
                             nextWidget.Size);
                     }
 
-                    DesktopWidgetNative.KeepOnDesktop(nextWidget);
+                    ShowWallpaperWidget(nextWidget, nextWidget.Location);
                     if (previewMode)
                     {
                         DesktopWidgetNative.EnableInteraction(nextWidget);
@@ -497,8 +502,7 @@ namespace WallpaperControl
                     });
                     wallpaperInfoWidget.SetActivitySuspended(activitySuspended);
                     RegisterDesktopWidget(wallpaperInfoWidget);
-                    wallpaperInfoWidget.Show();
-                    if (!DesktopWidgetNative.AttachToDesktop(wallpaperInfoWidget, target.WallpaperInfoLocation))
+                    if (!ShowWallpaperWidget(wallpaperInfoWidget, target.WallpaperInfoLocation))
                     {
                         wallpaperInfoWidget.Hide();
                         AppLogger.Warning("Wallpaper info widget could not be attached to the desktop.",
@@ -511,7 +515,7 @@ namespace WallpaperControl
                     wallpaperInfoWidget.Apply(target);
                     if (restoreLocations)
                         wallpaperInfoWidget.Location = WidgetSettings.EnsureVisible(target.WallpaperInfoLocation, wallpaperInfoWidget.Size);
-                    DesktopWidgetNative.KeepOnDesktop(wallpaperInfoWidget);
+                    ShowWallpaperWidget(wallpaperInfoWidget, wallpaperInfoWidget.Location);
                     if (previewMode) DesktopWidgetNative.EnableInteraction(wallpaperInfoWidget);
                 }
                 RefreshWallpaperInfo();
@@ -660,9 +664,9 @@ namespace WallpaperControl
         /// Restores one visible widget without changing its parent, owner, position, or rendering model.
         /// </summary>
         /// <param name="widget">The widget to restore when it is currently available.</param>
-        private static void RestoreDesktopWidget(Form? widget)
+        private void RestoreDesktopWidget(Form? widget)
         {
-            if (widget == null || widget.IsDisposed || !widget.IsHandleCreated || !widget.Visible)
+            if (widget == null || widget.IsDisposed || !ModeAllowsWidget(widget) || !widget.IsHandleCreated || !widget.Visible)
                 return;
 
             DesktopWidgetNative.KeepOnDesktop(widget);
@@ -671,7 +675,7 @@ namespace WallpaperControl
         /// <summary>Reads a coherent UI-thread snapshot only for an active, unsuspended widget.</summary>
         internal void RefreshWallpaperInfo()
         {
-            if (activitySuspended || wallpaperInfoWidget == null || wallpaperInfoWidget.IsDisposed) return;
+            if (activitySuspended || wallpaperMode != WallpaperOperatingMode.ImageSlideshow || wallpaperInfoWidget == null || wallpaperInfoWidget.IsDisposed) return;
             wallpaperInfoWidget.SetData(wallpaperInfoSource?.Invoke(settings.WallpaperInfoShowAdvanced) ?? default);
         }
 
@@ -729,6 +733,8 @@ namespace WallpaperControl
             if (resumed) RefreshWallpaperInfo();
             packageWidget?.SetActivitySuspended(suspended);
             packageScheduler?.SetSuspended(suspended);
+            packageNotifications?.SetSuspended(suspended || packagePowerSuspended);
+            if (suspended) ClearPackageNotifications?.Invoke();
             twitchWidget?.SetActivitySuspended(suspended); twitchScheduler?.SetSuspended(suspended);
             twitchNotifications?.SetSuspended(suspended || packagePowerSuspended);
             if (suspended) ClearTwitchNotifications?.Invoke();
@@ -750,6 +756,9 @@ namespace WallpaperControl
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
             packageScheduler?.Dispose(); packageScheduler = null;
             packages?.Dispose(); packages = null;
+            packageNotifications?.Dispose(); packageNotifications = null;
+            ShowPackageNotification = null; ClearPackageNotifications = null;
+            notificationSounds.Dispose();
             desktopShowMonitor.Dispose();
             webWidget?.Close(); webWidget?.Dispose(); webWidget = null;
 

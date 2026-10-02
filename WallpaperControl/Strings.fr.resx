@@ -1677,4 +1677,14 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="TwitchLiveNotifications" xml:space="preserve"><value>Notifier quand une chaîne passe en direct</value></data>
   <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch : chaîne en direct</value></data>
   <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} est en direct. Cliquez pour ouvrir la chaîne.</value></data>
+  <data name="NotificationSettings" xml:space="preserve"><value>Notifications</value></data>
+  <data name="NotificationSound" xml:space="preserve"><value>Son de notification</value></data>
+  <data name="NotificationSoundOff" xml:space="preserve"><value>Désactivé</value></data>
+  <data name="NotificationSoundWindows" xml:space="preserve"><value>Son Windows</value></data>
+  <data name="NotificationSoundChime" xml:space="preserve"><value>Carillon à deux notes</value></data>
+  <data name="NotificationSoundPreview" xml:space="preserve"><value>Écouter le son</value></data>
+  <data name="NotificationSoundHint" xml:space="preserve"><value>Ce son s’applique à Twitch, aux changements de statut des colis et aux rappels de notes.</value></data>
+  <data name="PackageStatusNotifications" xml:space="preserve"><value>Notifier les changements de statut des colis</value></data>
+  <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Statut du colis modifié</value></data>
+  <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0} : {1}. Cliquez pour ouvrir les détails du colis.</value></data>
 </root>

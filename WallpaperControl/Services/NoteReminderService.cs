@@ -44,17 +44,19 @@ internal sealed class NoteReminderService : IDisposable
     private readonly NotesStore store;
     private readonly Func<string> language;
     private readonly Func<bool?> fullscreen;
+    private readonly Action? sound;
     private readonly System.Windows.Forms.Timer timer = new() { Interval = 500 };
     private NoteReminderPopup? popup;
     private NoteReminder? current;
     private bool ticking;
     private bool disposed;
 
-    internal NoteReminderService(NotesStore store, Func<string> language, Func<bool?>? fullscreen = null)
+    internal NoteReminderService(NotesStore store, Func<string> language, Func<bool?>? fullscreen = null, Action? sound = null)
     {
         this.store = store;
         this.language = language;
         this.fullscreen = fullscreen ?? FullscreenActivityDetector.GetFullscreenState;
+        this.sound = sound;
         timer.Tick += (_, _) => Tick();
     }
 
@@ -93,6 +95,8 @@ internal sealed class NoteReminderService : IDisposable
             popup = new NoteReminderPopup(language(), action => HandleAction(action));
             popup.UpdateContent(pending.Entry, reminder.Due, now);
             popup.Show();
+            try { sound?.Invoke(); }
+            catch (Exception ex) { AppLogger.Info($"Reminder sound unavailable: {ex.GetType().Name}."); }
         }
         finally { ticking = false; }
     }

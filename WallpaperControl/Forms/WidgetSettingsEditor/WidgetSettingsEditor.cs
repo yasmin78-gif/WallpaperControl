@@ -35,6 +35,7 @@ namespace WallpaperControl
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
                 LoadTwitchControls(value);
+                LoadNotificationControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -117,6 +118,7 @@ namespace WallpaperControl
                 UpdatePackageConnection();
                 UpdateTwitchConnection();
                 LocalizeTwitchInterval(TwitchIntervalMinutes);
+                LocalizeNotificationSounds(SelectedNotificationSound);
                 navigation.BackColor = AppTheme.SidebarBackground(dark);
                 UpdateSelection();
             }
@@ -146,6 +148,7 @@ namespace WallpaperControl
             {
                 DisposeWebControls();
                 DisposeTwitchControls();
+                notificationPreviewSound.Dispose();
                 navigation.Dispose(); pages.Dispose();
                 calendarMaximumHeightNumeric?.Dispose(); notesManageButton.Dispose();
                 notesEnabled.Dispose(); notesLocked.Dispose(); notesMaximumHeight.Dispose(); notesStyle.Dispose(); wallpaperInfoFontSize.Dispose();

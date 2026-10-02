@@ -11,6 +11,7 @@ internal sealed class PackageTrackingService : IDisposable
     private readonly CancellationTokenSource lifetime = new();
     private bool disposed;
     internal event Action? Changed;
+    internal event Action<TrackedShipment, TrackedShipment>? Refreshed;
     internal event Action? Disposing;
     internal bool Busy { get; private set; }
     internal bool CanWrite => store.CanWrite;
@@ -103,12 +104,14 @@ internal sealed class PackageTrackingService : IDisposable
                     linked.Token.ThrowIfCancellationRequested();
                     if (!string.Equals(snapshot.ProviderTrackerId, existing.ProviderTrackerId, StringComparison.Ordinal))
                         throw new TrackingProviderException(TrackingProviderFailure.InvalidResponse);
-                    if (!store.Save(snapshot with { Id = existing.Id, DisplayName = existing.DisplayName,
+                    var updated = snapshot with { Id = existing.Id, DisplayName = existing.DisplayName,
                         ProviderTrackerId = existing.ProviderTrackerId, CreatedAt = existing.CreatedAt,
                         TrackingNumber = existing.TrackingNumber, RequestedCarrierCode = existing.RequestedCarrierCode,
-                        NotificationState = existing.NotificationState, AdditionalData = existing.AdditionalData }))
+                        NotificationState = existing.NotificationState, AdditionalData = existing.AdditionalData };
+                    if (!store.Save(updated))
                     { storageFailed = true; continue; }
                     RefreshFailures.Remove(existing.Id);
+                    Refreshed?.Invoke(existing, updated);
                 }
                 catch (TrackingProviderException ex) { failed = true; RefreshFailures[existing.Id] = ex.Failure; }
             }
@@ -122,6 +125,6 @@ internal sealed class PackageTrackingService : IDisposable
         if (disposed) return;
         disposed = true; Disposing?.Invoke(); Disposing = null; lifetime.Cancel();
         if (provider is IDisposable resource) resource.Dispose();
-        lifetime.Dispose(); Changed = null;
+        lifetime.Dispose(); Changed = null; Refreshed = null;
     }
 }
