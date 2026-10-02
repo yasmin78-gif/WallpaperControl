@@ -51,22 +51,22 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Einstellbare Übergangsdauer
     -   Desktop-Symbole und Desktop-Tools bleiben über der
         Übergangsebene sichtbar
-- 🕐 **Native Desktop-Widgets**
-  - Uhr-Widget mit 5 wählbaren Designs
-  - Systemmonitor-Widget
-  - Wetter-Widget mit optionaler 3-Tage-Vorhersage
-  - Kalender-Widget mit iCalendar-/ICS-Unterstützung
-  - Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen Wallpaper
-  - Notizen-&-Reminder-Widget mit lokaler Aufgaben- und Erinnerungsverwaltung, einschließlich täglich wiederkehrender Aufgaben
-  - Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Unterstützung für Amazon Logistics
-  - Twitch-Widget mit live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
-  - Größenveränderbares und einklappbares Web-Widget auf Basis von Microsoft WebView2
-  - Optionaler Nächstes-Wallpaper-Button
-  - Widgets können unabhängig voneinander frei auf dem Desktop positioniert werden
-  - Position jedes Widgets kann separat gesperrt werden
-  - Widget-Positionen und Einstellungen werden gespeichert
-  - Live-Vorschau der Widgets beim Ändern der Einstellungen
-  - Widgets bleiben Teil des Desktops und liegen nicht über normalen Anwendungsfenstern
+-   🕐 **Native Desktop-Widgets**
+    -   Uhr-Widget mit 5 wählbaren Designs
+    -   Systemmonitor-Widget
+    -   Wetter-Widget mit optionaler 3-Tage-Vorhersage
+    -   Kalender-Widget mit iCalendar-/ICS-Unterstützung
+    -   Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen Wallpaper
+    -   Notizen-&-Reminder-Widget mit lokaler Aufgaben- und Erinnerungsverwaltung, einschließlich täglich wiederkehrender Aufgaben
+    -   Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Unterstützung für Amazon Logistics
+    -   Twitch-Widget mit live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
+    -   Größenveränderbares und einklappbares Web-Widget auf Basis von Microsoft WebView2
+    -   Optionaler Nächstes-Wallpaper-Button
+    -   Widgets können unabhängig voneinander frei auf dem Desktop positioniert werden
+    -   Position jedes Widgets kann separat gesperrt werden
+    -   Widget-Positionen und Einstellungen werden gespeichert
+    -   Live-Vorschau der Widgets beim Ändern der Einstellungen
+    -   Widgets bleiben Teil des Desktops und liegen nicht über normalen Anwendungsfenstern
 -   🖥️ **Windows-Integration**
     -   Nutzt native Windows-Wallpaper-APIs und stellt gleichzeitig eine
         eigene Zeitsteuerung und Übergangs-Engine bereit
@@ -98,7 +98,7 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Top-10-, Top-25- und vollständige Statistikansichten
     -   Dashboard-Kennzahlen für am häufigsten, am seltensten und
         durchschnittlich angezeigte Wallpaper
-    -   Gleichmäßigkeit der Verteilung metric
+    -   Kennzahl zur Gleichmäßigkeit der Verteilung
     -   Top-10-Wallpaper-Diagramm
     -   Durchschnittliche Wiederkehrzeit von Wallpapern
     -   Analyse vernachlässigter Wallpaper
@@ -271,6 +271,8 @@ Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und
 Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen
 sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und
 Positionen bleiben erhalten.
+
+Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und **Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und Positionen bleiben erhalten.
 
 ## 🎮 Vollbildpause
 
@@ -522,8 +524,6 @@ Die Twitch-Anmeldung verwendet den öffentlichen Device-Code-Flow und
 fordert nur die Berechtigung zum Lesen der gefolgten Kanäle an.
 
 ### 📝 Notizen & Reminder
-    -   Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Amazon-Logistics-Behandlung
-    -   Twitch-Widget mit aktuell live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
 
 Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und
 Erinnerungsverwaltung direkt auf dem Desktop. Einträge können Titel,
@@ -668,7 +668,7 @@ Dadurch lässt sich Wallpaper Control in eigene Skripte, Launcher,
 Automatisierungstools oder andere Desktop-Anwendungen integrieren, ohne
 das Hauptfenster zu öffnen.
 
-### Uhr Widget State
+### Status des Uhr-Widgets
 
 Externe Anwendungen können durch Auslesen des folgenden Schlüssels
 feststellen, ob die native Wallpaper-Control-Uhr aktiviert ist:
@@ -778,49 +778,22 @@ beim Start der Setup-Datei eine Sicherheitswarnung anzeigen.
 
 ## 🔒 Datenschutz
 
-Wallpaper Control speichert Anwendungseinstellungen,
-Wallpaper-Statistiken, Notizen und Reminder lokal auf deinem Computer.
+Wallpaper Control speichert Anwendungseinstellungen, Wallpaper-Statistiken, Notizen und Reminder lokal auf deinem Computer.
 
 Es ist kein Wallpaper-Control-Konto erforderlich.
 
-Die meisten Funktionen, darunter Wallpaper-Verwaltung,
-Diashow-Steuerung, Übergänge, Vollbilderkennung und Statistiken,
-arbeiten vollständig lokal.
+Die meisten Funktionen, darunter Wallpaper-Verwaltung, Diashow-Steuerung, Übergänge, Vollbilderkennung und Statistiken, arbeiten vollständig lokal.
 
 Einige optionale Funktionen benötigen eine Internetverbindung:
 
--   Das **Wetter-Widget** verbindet sich mit Open-Meteo, um
-    Wetterinformationen abzurufen.
--   Das **Kalender-Widget** verbindet sich mit den konfigurierten
-    iCalendar-/ICS-Adressen, um Kalenderdaten abzurufen.
--   Die optionale **Update-Prüfung** verbindet sich mit GitHub Releases,
-    um festzustellen, ob eine neuere Version von Wallpaper Control
-    verfügbar ist. Automatische Prüfungen können deaktiviert werden, und
-    Wallpaper Control lädt oder installiert Updates niemals automatisch.
--   Das **Web-Widget** verbindet sich mit der von dir konfigurierten
-    Website und verwendet ein dauerhaftes
-    Microsoft-WebView2-Browserprofil für Cookies und Website-Sitzungen.
-    Wallpaper Control liest oder speichert keine Website-Passwörter.
+-   Das **Wetter-Widget** verbindet sich mit Open-Meteo, um Wetterinformationen abzurufen.
+-   Das **Kalender-Widget** verbindet sich mit den konfigurierten iCalendar-/ICS-Adressen. Private ICS-Adressen werden per DPAPI für den aktuellen Windows-Benutzer geschützt. Der Kalenderzugriff ist schreibgeschützt.
+-   Die optionale **Update-Prüfung** verbindet sich mit GitHub Releases. Automatische Prüfungen können deaktiviert werden; Wallpaper Control lädt oder installiert Updates niemals automatisch.
+-   Das **Web-Widget** verbindet sich mit der konfigurierten Website und verwendet ein dauerhaftes Microsoft-WebView2-Browserprofil für Cookies und Website-Sitzungen. Wallpaper Control liest oder speichert keine Website-Passwörter.
+-   Das **Paketverfolgungs-Widget** verbindet sich für unterstützte Sendungen mit Ship24. Der Ship24-API-Schlüssel wird per DPAPI für den aktuellen Windows-Benutzer geschützt. Unterstützte Amazon-Logistics-DE/TBA-Sendungen werden lokal behandelt und verwenden keine Ship24-Abfragen.
+-   Das **Twitch-Widget** verbindet sich direkt mit Twitch, um den Benutzer anzumelden sowie aktuell live sendende gefolgte Kanäle und Profilbilder abzurufen. OAuth-Tokens werden per DPAPI für den aktuellen Windows-Benutzer geschützt.
 
-Private ICS-Adressen, die für das Kalender-Widget konfiguriert sind,
-werden für den aktuellen Windows-Benutzer verschlüsselt mit der Windows
-Data Protection API (DPAPI) gespeichert.
-
-Der Kalenderzugriff ist schreibgeschützt. Wallpaper Control verändert
-keine Termine oder Kalenderdaten.
-
--   Das **Paketverfolgungs-Widget** verbindet sich für unterstützte
-    Sendungen mit Ship24. Der Ship24-API-Schlüssel wird per DPAPI für
-    den aktuellen Windows-Benutzer geschützt. Unterstützte
-    Amazon-Logistics-DE/TBA-Sendungen werden lokal behandelt und
-    verwenden keine Ship24-Abfragen.
--   Das **Twitch-Widget** verbindet sich direkt mit Twitch, um den
-    Benutzer anzumelden sowie aktuell live sendende gefolgte Kanäle und
-    Profilbilder abzurufen. OAuth-Tokens werden per DPAPI für den
-    aktuellen Windows-Benutzer geschützt.
-
-Diagnoseprotokolle werden lokal gespeichert und nur bei Bedarf zur
-Fehlersuche erstellt.
+Diagnoseprotokolle werden lokal gespeichert und nur bei Bedarf zur Fehlersuche erstellt.
 
 ## 🛠️ Entwickelt mit
 

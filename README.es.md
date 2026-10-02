@@ -54,22 +54,17 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
     -   Widget de monitorización del sistema
     -   Widget del tiempo con previsión opcional de 3 días
     -   Widget de calendario compatible con iCalendar / ICS
-    -   Widget compacto de información del fondo con estadísticas del
-        fondo actual
-    -   Widget de Notas y recordatorios con gestión local de tareas y
-        recordatorios
+    -   Widget compacto de información del fondo con estadísticas del fondo actual
+    -   Widget de Notas y recordatorios con gestión local de tareas y recordatorios, incluidas tareas diarias recurrentes
     -   Widget de seguimiento de paquetes con Ship24, actualización automática, notificaciones de estado y gestión local de Amazon Logistics
     -   Widget de Twitch con los canales seguidos que están en directo, imágenes de perfil, categorías, espectadores, duración de la emisión y notificaciones opcionales
-    -   Widget Web redimensionable y plegable basado en Microsoft
-        WebView2
+    -   Widget Web redimensionable y plegable basado en Microsoft WebView2
     -   Botón opcional Siguiente fondo
-    -   Los widgets pueden colocarse independientemente en cualquier
-        parte del escritorio
+    -   Los widgets pueden colocarse independientemente en cualquier parte del escritorio
     -   Bloqueo independiente de posición para cada widget
     -   Se recuerdan las posiciones y configuraciones de los widgets
     -   Vista previa en directo al cambiar la configuración
-    -   Los widgets forman parte del escritorio y no permanecen sobre
-        las ventanas normales
+    -   Los widgets forman parte del escritorio y no permanecen sobre las ventanas normales
 -   🖥️ **Integración con Windows**
     -   Se integra con las API nativas de fondos de Windows y aporta su
         propio motor de temporización y transiciones
@@ -102,7 +97,7 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
     -   Vistas de Top 10, Top 25 y estadísticas completas
     -   Métricas del panel para los fondos más vistos, menos vistos y el
         promedio de visualizaciones
-    -   Uniformidad de distribución metric
+    -   Métrica de uniformidad de la distribución
     -   Gráfico Top 10 de fondos
     -   Tiempo medio de reaparición de los fondos
     -   Análisis de fondos poco mostrados
@@ -268,6 +263,8 @@ del fondo** y **Siguiente fondo** se ocultan temporalmente porque
 corresponden a fondos de imagen. Al volver al modo de presentación de
 imágenes reaparecen automáticamente si están activados. Sus ajustes y
 posiciones se conservan.
+
+Cuando está activo el modo **Fondo de vídeo**, los widgets **Información del fondo** y **Siguiente fondo** se ocultan temporalmente porque corresponden a fondos de imagen. Al volver al modo de presentación de imágenes reaparecen automáticamente si están activados. Sus ajustes y posiciones se conservan.
 
 ## 🎮 Pausa a pantalla completa
 
@@ -654,7 +651,7 @@ Esto permite integrar Wallpaper Control con scripts personalizados,
 lanzadores, herramientas de automatización u otras aplicaciones sin
 abrir la ventana principal.
 
-### Reloj Widget State
+### Estado del widget Reloj
 
 Las aplicaciones externas pueden determinar si el reloj nativo de
 Wallpaper Control está activado leyendo:
@@ -772,35 +769,22 @@ Windows puede mostrar una advertencia de seguridad al ejecutarlo.
 
 ## 🔒 Privacidad
 
-Wallpaper Control almacena localmente en tu equipo la configuración y
-las estadísticas de fondos.
+Wallpaper Control almacena localmente en tu equipo la configuración, las estadísticas de fondos, las notas y los recordatorios.
 
 No se requiere una cuenta de Wallpaper Control.
 
-La mayoría de las funciones, incluida la gestión de fondos, la
-presentación, las transiciones, la detección de pantalla completa y las
-estadísticas, funcionan completamente de forma local.
+La mayoría de las funciones, incluida la gestión de fondos, la presentación, las transiciones, la detección de pantalla completa y las estadísticas, funcionan completamente de forma local.
 
 Algunas funciones opcionales requieren conexión a Internet:
 
--   El **widget Tiempo** se conecta a Open-Meteo para obtener
-    información meteorológica.
--   El **widget Calendario** se conecta a las direcciones iCalendar /
-    ICS configuradas para obtener datos.
--   La **comprobación de actualizaciones** opcional se conecta a GitHub
-    Releases para determinar si existe una versión más reciente. Las
-    comprobaciones automáticas pueden desactivarse y Wallpaper Control
-    nunca descarga ni instala actualizaciones automáticamente.
+-   El **widget Tiempo** se conecta a Open-Meteo para obtener información meteorológica.
+-   El **widget Calendario** se conecta a las direcciones iCalendar / ICS configuradas. Las direcciones ICS privadas se protegen para el usuario actual de Windows mediante DPAPI. El acceso al calendario es de solo lectura.
+-   La **comprobación de actualizaciones** opcional se conecta a GitHub Releases. Las comprobaciones automáticas pueden desactivarse y Wallpaper Control nunca descarga ni instala actualizaciones automáticamente.
+-   El **widget Web** se conecta al sitio configurado y utiliza un perfil persistente de Microsoft WebView2 para cookies y sesiones. Wallpaper Control no lee ni almacena contraseñas de sitios web.
+-   El **widget de seguimiento de paquetes** se conecta a Ship24 para los envíos compatibles. La clave API de Ship24 se protege para el usuario actual de Windows mediante DPAPI. Los envíos compatibles de Amazon Logistics DE/TBA se gestionan localmente y no utilizan solicitudes de Ship24.
+-   El **widget de Twitch** se conecta directamente a Twitch para autenticar al usuario y obtener los canales seguidos que están en directo y sus imágenes de perfil. Los tokens OAuth se protegen para el usuario actual de Windows mediante DPAPI.
 
-Las direcciones ICS privadas configuradas para el widget Calendario se
-almacenan cifradas mediante Windows Data Protection API (DPAPI) para el
-usuario actual de Windows.
-
-El acceso al calendario es de solo lectura. Wallpaper Control no
-modifica citas ni datos del calendario.
-
-Los registros de diagnóstico se almacenan localmente y solo se crean
-cuando son necesarios para resolver problemas.
+Los registros de diagnóstico se almacenan localmente y solo se crean cuando son necesarios para resolver problemas.
 
 ## 🛠️ Desarrollado con
 

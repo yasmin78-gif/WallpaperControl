@@ -55,23 +55,17 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Widget de surveillance du système
     -   Widget Météo avec prévisions optionnelles sur 3 jours
     -   Widget Calendrier avec prise en charge d'iCalendar / ICS
-    -   Widget compact d'informations sur le fond d'écran avec
-        statistiques du fond actuel
-    -   Widget Notes et rappels avec gestion locale des tâches et
-        rappels
+    -   Widget compact d'informations sur le fond d'écran avec statistiques du fond actuel
+    -   Widget Notes et rappels avec gestion locale des tâches et rappels, y compris les tâches quotidiennes récurrentes
     -   Widget de suivi des colis avec prise en charge de Ship24, actualisation automatique, notifications d'état et gestion locale d'Amazon Logistics
     -   Widget Twitch affichant les chaînes suivies actuellement en direct, les images de profil, les catégories, le nombre de spectateurs, la durée du direct et des notifications facultatives
-    -   Widget Web redimensionnable et repliable basé sur Microsoft
-        WebView2
+    -   Widget Web redimensionnable et repliable basé sur Microsoft WebView2
     -   Bouton optionnel Fond d'écran suivant
-    -   Positionnement indépendant des widgets n'importe où sur le
-        bureau
+    -   Positionnement indépendant des widgets n'importe où sur le bureau
     -   Verrouillage indépendant de la position de chaque widget
     -   Mémorisation des positions et paramètres des widgets
-    -   Aperçu en direct des widgets pendant la modification des
-        paramètres
-    -   Les widgets restent intégrés au bureau et ne demeurent pas
-        au-dessus des fenêtres d'applications normales
+    -   Aperçu en direct des widgets pendant la modification des paramètres
+    -   Les widgets restent intégrés au bureau et ne demeurent pas au-dessus des fenêtres d'applications normales
 -   🖥️ **Intégration Windows**
     -   Utilise les API natives de fonds d'écran de Windows tout en
         fournissant son propre moteur de planification et de transitions
@@ -105,7 +99,7 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Vues Top 10, Top 25 et statistiques complètes
     -   Indicateurs pour les fonds d'écran les plus affichés, les moins
         affichés et la moyenne des affichages
-    -   Régularité de la distribution metric
+    -   Indicateur de régularité de la distribution
     -   Graphique Top 10 des fonds d'écran
     -   Temps moyen de réapparition des fonds d'écran
     -   Analyse des fonds d'écran rarement affichés
@@ -277,6 +271,8 @@ Lorsque le mode **Fond d'écran vidéo** est actif, les widgets
 temporairement masqués, car ils concernent les fonds d'écran fixes. Ils
 réapparaissent automatiquement lors du retour au diaporama d'images
 s'ils sont activés. Leurs paramètres et positions sont conservés.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets **Informations sur le fond d'écran** et **Fond d'écran suivant** sont temporairement masqués, car ils concernent les fonds d'écran fixes. Ils réapparaissent automatiquement lors du retour au diaporama d'images s'ils sont activés. Leurs paramètres et positions sont conservés.
 
 ## 🎮 Pause en plein écran
 
@@ -673,7 +669,7 @@ Cela permet d'intégrer Wallpaper Control à des scripts personnalisés,
 lanceurs, outils d'automatisation ou autres applications de bureau sans
 ouvrir la fenêtre principale.
 
-### Horloge Widget State
+### État du widget Horloge
 
 Les applications externes peuvent déterminer si l'horloge native de
 Wallpaper Control est activée en lisant :
@@ -794,36 +790,22 @@ peut donc afficher un avertissement de sécurité lors de son lancement.
 
 ## 🔒 Confidentialité
 
-Wallpaper Control stocke localement sur votre ordinateur ses paramètres
-et statistiques de fonds d'écran.
+Wallpaper Control stocke localement sur votre ordinateur ses paramètres, les statistiques de fonds d'écran, les notes et les rappels.
 
 Aucun compte Wallpaper Control n'est requis.
 
-La plupart des fonctions, notamment la gestion des fonds d'écran, le
-diaporama, les transitions, la détection du plein écran et les
-statistiques, fonctionnent entièrement en local.
+La plupart des fonctions, notamment la gestion des fonds d'écran, le diaporama, les transitions, la détection du plein écran et les statistiques, fonctionnent entièrement en local.
 
 Certaines fonctions optionnelles nécessitent une connexion Internet :
 
--   Le **widget Météo** se connecte à Open-Meteo pour récupérer les
-    informations météorologiques.
--   Le **widget Calendrier** se connecte aux adresses iCalendar / ICS
-    configurées pour récupérer les données.
--   La **vérification des mises à jour** optionnelle se connecte à
-    GitHub Releases pour déterminer si une nouvelle version est
-    disponible. Les vérifications automatiques peuvent être désactivées
-    et Wallpaper Control ne télécharge ni n'installe jamais de mise à
-    jour automatiquement.
+-   Le **widget Météo** se connecte à Open-Meteo pour récupérer les informations météorologiques.
+-   Le **widget Calendrier** se connecte aux adresses iCalendar / ICS configurées. Les adresses ICS privées sont protégées pour l'utilisateur Windows actuel via DPAPI. L'accès au calendrier est en lecture seule.
+-   La **vérification des mises à jour** optionnelle se connecte à GitHub Releases. Les vérifications automatiques peuvent être désactivées et Wallpaper Control ne télécharge ni n'installe jamais de mise à jour automatiquement.
+-   Le **widget Web** se connecte au site configuré et utilise un profil Microsoft WebView2 persistant pour les cookies et les sessions. Wallpaper Control ne lit ni ne stocke les mots de passe des sites.
+-   Le **widget de suivi des colis** se connecte à Ship24 pour les envois pris en charge. La clé API Ship24 est protégée pour l'utilisateur Windows actuel via DPAPI. Les envois Amazon Logistics DE/TBA pris en charge sont gérés localement et n'utilisent pas de requêtes Ship24.
+-   Le **widget Twitch** se connecte directement à Twitch pour authentifier l'utilisateur et récupérer les chaînes suivies actuellement en direct ainsi que leurs images de profil. Les jetons OAuth sont protégés pour l'utilisateur Windows actuel via DPAPI.
 
-Les adresses ICS privées configurées pour le widget Calendrier sont
-stockées sous forme chiffrée à l'aide de la Windows Data Protection API
-(DPAPI) pour l'utilisateur Windows actuel.
-
-L'accès au calendrier est en lecture seule. Wallpaper Control ne modifie
-ni les rendez-vous ni les données du calendrier.
-
-Les journaux de diagnostic sont stockés localement et ne sont créés
-qu'en cas de besoin pour le dépannage.
+Les journaux de diagnostic sont stockés localement et ne sont créés qu'en cas de besoin pour le dépannage.
 
 ## 🛠️ Développé avec
 
