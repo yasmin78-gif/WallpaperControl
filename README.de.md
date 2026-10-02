@@ -15,7 +15,7 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.1.0**
+**Aktuelle Version: v2.1.1**
 
 ## ✨ Funktionen
 
@@ -250,6 +250,17 @@ Sendungsverfolgung.
 -   Konfigurierbare Position, Positionssperre, maximale Höhe sowie
     **Minimal**, **Clean** und **Glow**
 
+### Zugestellte Sendungen & Benachrichtigungen
+
+Zugestellte Sendungen werden in einem aufklappbaren Bereich
+**Zugestellt** zusammengefasst, damit aktive Sendungen sofort sichtbar
+bleiben. Zugestellte Einträge bleiben erhalten und können bei Bedarf
+weiterhin aufgeklappt werden.
+
+Optional können Benachrichtigungen bei Statusänderungen aktiviert
+werden. Ein Klick auf eine Paketmeldung öffnet die zugehörigen
+Sendungsdetails.
+
 ### Amazon Logistics
 
 Unterstützte **DE**- und **TBA**-Sendungsnummern von Amazon Logistics
@@ -257,6 +268,12 @@ werden lokal erkannt und verbrauchen keine Ship24-Abfragen. Der
 eigentliche Live-Trackingstatus bleibt bei Amazon verfügbar. Diese
 Sendungen können manuell als zugestellt markiert werden; die Markierung
 lässt sich wieder zurücknehmen.
+
+Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und
+**Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf
+Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen
+sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und
+Positionen bleiben erhalten.
 
 ## 🎮 Vollbildpause
 
@@ -482,6 +499,31 @@ ausschließlich aus dem angezeigten Namen entfernen. Lange Namen werden
 automatisch gekürzt. Das Widget unterstützt **Minimal**, **Clean** und
 **Glow**.
 
+### 📺 Twitch
+
+Das Twitch-Widget zeigt, welche Kanäle, denen du folgst, aktuell live
+sind.
+
+-   Twitch-Konto direkt mit Wallpaper Control verbinden
+-   Anzeige von Profilbild, Kanalname, Kategorie, Zuschauerzahl und
+    bisheriger Streamdauer
+-   Klick auf einen Kanal öffnet ihn im Standardbrowser
+-   Aktualisierungsintervall **1, 5, 10 oder 15 Minuten**
+-   Aktualisierungen werden auf volle Minuten ausgerichtet; beim Start
+    erfolgt sofort eine Abfrage
+-   Getrennte Zustände für Laden, fehlende Verbindung und keinen aktuell
+    live sendenden Kanal
+-   Optionale Benachrichtigung, wenn ein gefolgter Kanal live geht
+-   Bereits beim Start laufende Streams lösen keine Meldung aus;
+    doppelte Meldungen werden verhindert
+-   Profilbilder werden im Arbeitsspeicher zwischengespeichert; bei
+    fehlenden Bildern erscheint eine Ersatzdarstellung
+-   Konfigurierbare maximale Höhe mit Scrollfunktion
+-   Unterstützt **Minimal**, **Clean** und **Glow**
+
+Die Twitch-Anmeldung verwendet den öffentlichen Device-Code-Flow und
+fordert nur die Berechtigung zum Lesen der gefolgten Kanäle an.
+
 ### 📝 Notizen & Reminder
 
 Das Notizen-&-Reminder-Widget bietet eine lokale Aufgaben- und
@@ -529,6 +571,18 @@ Konfigurationen verwenden standardmäßig weiterhin das bisherige
 Es kann unabhängig von den anderen Widgets positioniert und gesperrt
 werden und verwendet dieselbe Wallpaper-Wechsel- und Übergangslogik wie
 die Hauptanwendung.
+
+## 🔔 Benachrichtigungen
+
+Wallpaper Control verwendet ein gemeinsames Benachrichtigungssystem für
+Notizen & Reminder, Paketverfolgung und Twitch.
+
+Für Benachrichtigungstöne stehen **Aus**, **Windows-Standard** und
+**Zweiklang** zur Verfügung; der gewählte Ton kann in den Einstellungen
+vorgehört werden. Treffen mehrere Twitch- oder Paketmeldungen
+gleichzeitig ein, werden sie nacheinander mit der jeweils passenden
+Klickaktion angezeigt. Nicht mehr sinnvolle Meldungen in der
+Warteschlange verfallen nach zwei Minuten.
 
 ## 📊 Statistiken
 
@@ -755,6 +809,16 @@ Data Protection API (DPAPI) gespeichert.
 
 Der Kalenderzugriff ist schreibgeschützt. Wallpaper Control verändert
 keine Termine oder Kalenderdaten.
+
+-   Das **Paketverfolgungs-Widget** verbindet sich für unterstützte
+    Sendungen mit Ship24. Der Ship24-API-Schlüssel wird per DPAPI für
+    den aktuellen Windows-Benutzer geschützt. Unterstützte
+    Amazon-Logistics-DE/TBA-Sendungen werden lokal behandelt und
+    verwenden keine Ship24-Abfragen.
+-   Das **Twitch-Widget** verbindet sich direkt mit Twitch, um den
+    Benutzer anzumelden sowie aktuell live sendende gefolgte Kanäle und
+    Profilbilder abzurufen. OAuth-Tokens werden per DPAPI für den
+    aktuellen Windows-Benutzer geschützt.
 
 Diagnoseprotokolle werden lokal gespeichert und nur bei Bedarf zur
 Fehlersuche erstellt.

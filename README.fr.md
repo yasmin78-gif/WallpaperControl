@@ -15,7 +15,7 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.1.0**
+**Version actuelle : v2.1.1**
 
 ## ✨ Fonctionnalités
 
@@ -253,12 +253,28 @@ des envois.
 -   Position, verrouillage et hauteur maximale configurables, avec
     **Minimal**, **Clean** et **Glow**
 
+### Colis livrés et notifications
+
+Les colis livrés sont regroupés dans une section repliable **Livré**
+afin que les envois actifs restent immédiatement visibles. Les éléments
+livrés sont conservés et peuvent toujours être développés si nécessaire.
+
+Des notifications facultatives peuvent signaler les changements d'état.
+Un clic sur une notification de colis ouvre les détails de l'envoi
+correspondant.
+
 ### Amazon Logistics
 
 Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
 reconnus localement et ne consomment pas de requêtes Ship24. Les détails
 en direct restent disponibles sur Amazon. Ces envois peuvent être
 marqués manuellement comme livrés et ce marquage peut être annulé.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets
+**Informations sur le fond d'écran** et **Fond d'écran suivant** sont
+temporairement masqués, car ils concernent les fonds d'écran fixes. Ils
+réapparaissent automatiquement lors du retour au diaporama d'images
+s'ils sont activés. Leurs paramètres et positions sont conservés.
 
 ## 🎮 Pause en plein écran
 
@@ -486,6 +502,32 @@ virgules peuvent être masqués uniquement dans le nom affiché. Les noms
 longs sont automatiquement raccourcis. Le widget prend en charge
 **Minimal**, **Clean** et **Glow**.
 
+### 📺 Twitch
+
+Le widget Twitch affiche les chaînes que vous suivez et qui sont
+actuellement en direct.
+
+-   Connexion du compte Twitch directement depuis Wallpaper Control
+-   Affichage de l'image de profil, du nom de la chaîne, de la
+    catégorie, du nombre de spectateurs et de la durée actuelle du
+    direct
+-   Un clic sur une chaîne l'ouvre dans le navigateur par défaut
+-   Intervalle d'actualisation de **1, 5, 10 ou 15 minutes**
+-   Actualisations alignées sur les minutes pleines, avec une
+    vérification immédiate au démarrage
+-   États distincts pour le chargement, l'absence de connexion et
+    l'absence de chaînes en direct
+-   Notification facultative lorsqu'une chaîne suivie passe en direct
+-   Les directs déjà actifs au démarrage ne déclenchent pas de
+    notification et les doublons sont évités
+-   Les images de profil sont mises en cache en mémoire avec une image
+    de remplacement si nécessaire
+-   Hauteur maximale configurable avec défilement
+-   Prend en charge les styles **Minimal**, **Clean** et **Glow**
+
+L'authentification Twitch utilise le flux public par code d'appareil et
+ne demande que l'autorisation nécessaire pour lire les chaînes suivies.
+
 ### 📝 Notes et rappels
 
 Le widget Notes et rappels permet de gérer localement des tâches et
@@ -532,6 +574,18 @@ existantes continuent d'utiliser l'apparence **Minimal** par défaut.
 Il peut être positionné et verrouillé indépendamment des autres widgets
 et utilise la même logique de changement et de transition que
 l'application principale.
+
+## 🔔 Notifications
+
+Wallpaper Control utilise un système de notifications commun pour Notes
+et rappels, le suivi des colis et Twitch.
+
+Les sons de notification peuvent être réglés sur **Désactivé**,
+**Windows par défaut** ou **Deux tons**, avec une fonction d'aperçu dans
+les paramètres. Lorsque plusieurs notifications Twitch ou de colis
+arrivent ensemble, elles sont affichées successivement avec l'action de
+clic appropriée. Les notifications en attente devenues obsolètes
+expirent après deux minutes.
 
 ## 📊 Statistiques
 
@@ -651,6 +705,16 @@ ouverte ne sont appliquées définitivement qu'après enregistrement.
 
 Wallpaper Control comprend une journalisation légère destinée aux
 erreurs et défaillances inattendues.
+
+-   Le **widget de suivi des colis** se connecte à Ship24 pour les
+    envois pris en charge. La clé API Ship24 est protégée pour
+    l'utilisateur Windows actuel via DPAPI. Les envois Amazon Logistics
+    DE/TBA pris en charge sont gérés localement et n'utilisent pas de
+    requêtes Ship24.
+-   Le **widget Twitch** se connecte directement à Twitch pour
+    authentifier l'utilisateur et récupérer les chaînes suivies
+    actuellement en direct ainsi que leurs images de profil. Les jetons
+    OAuth sont protégés pour l'utilisateur Windows actuel via DPAPI.
 
 Les journaux ne sont créés qu'en cas de besoin et sont stockés dans :
 

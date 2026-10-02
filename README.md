@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.1.0**
+**Current release: v2.1.1**
 
 ## ✨ Features
 
@@ -231,12 +231,28 @@ tracking.
 -   Configurable position, position lock, maximum height and
     **Minimal**, **Clean** and **Glow** styles
 
+### Delivered shipments & notifications
+
+Delivered shipments are grouped in a collapsible **Delivered** section
+so active shipments remain easy to see. Delivered items are retained and
+can still be expanded when needed.
+
+Optional status-change notifications can be enabled for package
+tracking. Clicking a package notification opens the corresponding
+shipment details.
+
 ### Amazon Logistics
 
 Supported Amazon Logistics **DE** and **TBA** tracking numbers are
 recognized locally and do not consume Ship24 tracking requests. Live
 shipment details remain available through Amazon. These shipments can be
 marked as delivered manually, and that mark can be reverted.
+
+When **Video Wallpaper** mode is active, the **Wallpaper Info** and
+**Next Wallpaper** widgets are temporarily hidden because they apply to
+image wallpapers. Switching back to Image Slideshow restores them
+automatically if they are enabled. Their settings and positions are
+preserved.
 
 ## 🎮 Fullscreen Pause
 
@@ -446,6 +462,30 @@ be hidden, and multiple comma-separated filename suffixes can be removed
 from the displayed name only. Long names are automatically shortened.
 The widget supports **Minimal**, **Clean** and **Glow** styles.
 
+### 📺 Twitch
+
+The Twitch widget shows which channels you follow are currently live.
+
+-   Connect your Twitch account directly from Wallpaper Control
+-   Shows profile picture, channel name, category, viewer count and
+    current stream duration
+-   Click a channel to open it in your default browser
+-   Refresh interval can be set to **1, 5, 10 or 15 minutes**
+-   Refreshes are aligned to full minutes, with an immediate check at
+    startup
+-   Separate states for loading, disconnected accounts and no live
+    channels
+-   Optional notifications when a followed channel goes live
+-   Streams already live at startup do not trigger notifications, and
+    duplicate alerts are prevented
+-   Profile images are cached in memory and use a fallback when
+    unavailable
+-   Configurable maximum height with scrolling
+-   Supports **Minimal**, **Clean** and **Glow** styles
+
+Twitch authentication uses the public-device authorization flow and
+requests only the permission required to read followed channels.
+
 ### 📝 Notes & Reminders
 
 The Notes & Reminders widget provides lightweight local task and
@@ -493,6 +533,17 @@ continue to use the previous **Minimal** appearance by default.
 It can be positioned and locked independently from the other widgets and
 uses the same wallpaper switching and transition handling as the main
 application.
+
+## 🔔 Notifications
+
+Wallpaper Control uses a shared notification system for Notes &
+Reminders, package tracking and Twitch.
+
+Notification sounds can be set to **Off**, **Windows Default** or
+**Two-Tone**, with a preview available in Settings. When multiple Twitch
+or package notifications arrive together, they are shown one after
+another with the appropriate click action. Queued notifications that are
+no longer useful expire after two minutes.
 
 ## 📊 Statistics
 
@@ -712,6 +763,15 @@ Windows user.
 
 Calendar access is read-only. Wallpaper Control does not modify
 appointments or calendar data.
+
+-   The **Package Tracking widget** connects to Ship24 for supported
+    shipments. The Ship24 API key is protected for the current Windows
+    user using DPAPI. Supported Amazon Logistics DE/TBA shipments are
+    handled locally and do not use Ship24 requests.
+-   The **Twitch widget** connects directly to Twitch to authenticate
+    the user and retrieve currently live followed channels and profile
+    images. OAuth tokens are protected for the current Windows user
+    using DPAPI.
 
 Diagnostic logs are stored locally and are only created when needed for
 troubleshooting.
