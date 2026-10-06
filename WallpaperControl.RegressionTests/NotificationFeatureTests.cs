@@ -108,6 +108,11 @@ internal static class NotificationFeatureTests
                 check(App.WidgetSettings.Load(registry).NotificationSound == sound && settings.Clone().NotificationSound == sound,
                     "Sound preference persists and clones " + sound);
             }
+            var diagnosticShipment = new App.TrackedShipment { TrackingNumber = "123456789012345", StatusMilestone = "in_transit\r\nFake", Events = [] };
+            var summary = App.TrackingDiagnostics.Summary(diagnosticShipment);
+            check(summary.Contains("latestEventUtc=unknown") && !summary.Contains(diagnosticShipment.TrackingNumber) && !summary.Contains('\n'), "Tracking diagnostics tolerate missing dates and omit raw numbers and line breaks");
+            diagnosticShipment = diagnosticShipment with { Events = [new App.TrackingEvent { OccurredAt = DateTimeOffset.Parse("2026-10-06T11:54:00+02:00") }, new App.TrackingEvent { OccurredAt = DateTimeOffset.Parse("2026-10-06T09:31:00+02:00") }] };
+            check(App.TrackingDiagnostics.Summary(diagnosticShipment).Contains("latestEventUtc=2026-10-06T09:54:00.0000000+00:00"), "Tracking diagnostics select newest event and normalize UTC");
             check(App.NotificationSounds.Normalize(99) == App.NotificationSoundKind.Chime, "Unsupported sound value falls back safely");
             using var editor = new App.WidgetSettingsEditor(new App.WidgetSettings { NotificationSound = App.NotificationSoundKind.Off, PackageStatusNotifications = true });
             check(editor.ReadWidgetSettings(false).NotificationSound == App.NotificationSoundKind.Off && editor.ReadWidgetSettings(false).PackageStatusNotifications,

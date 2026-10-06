@@ -53,7 +53,9 @@ internal sealed partial class Ship24TrackingProvider : ITrackingProvider, IDispo
         var body = new Dictionary<string, object> { ["trackingNumber"] = trackingNumber };
         if (!string.IsNullOrWhiteSpace(carrierCode)) body["courierCode"] = new[] { carrierCode };
         using var json = await SendAsync(HttpMethod.Post, "/public/v1/trackers/track", body, operation, cancellationToken).ConfigureAwait(false);
-        return Map(json.RootElement, trackingNumber, false) with { RequestedCarrierCode = carrierCode };
+        var mapped = Map(json.RootElement, trackingNumber, false) with { RequestedCarrierCode = carrierCode };
+        AppLogger.Info($"Ship24 {operation}: returned; {TrackingDiagnostics.Summary(mapped)}");
+        return mapped;
     }
 
     public async Task<TrackedShipment> GetTrackingAsync(string providerTrackerId, CancellationToken cancellationToken = default)
@@ -63,7 +65,9 @@ internal sealed partial class Ship24TrackingProvider : ITrackingProvider, IDispo
             throw new TrackingProviderException(TrackingProviderFailure.TrackerNotFound);
         using var json = await SendAsync(HttpMethod.Get, "/public/v1/trackers/" + Uri.EscapeDataString(providerTrackerId) + "/results",
             null, "Get", cancellationToken).ConfigureAwait(false);
-        return Map(json.RootElement, providerTrackerId, true);
+        var mapped = Map(json.RootElement, providerTrackerId, true);
+        AppLogger.Info($"Ship24 Get: returned; {TrackingDiagnostics.Summary(mapped)}");
+        return mapped;
     }
 
     public async Task<TrackedShipment> RefreshTrackingAsync(TrackedShipment shipment, CancellationToken cancellationToken = default)

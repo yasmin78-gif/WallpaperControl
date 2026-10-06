@@ -24,7 +24,8 @@ internal static class PackageDeliveredGroupTests
     private static App.TrackedShipment Shipment(string number, bool delivered) => new()
     {
         Provider = "ship24", ProviderTrackerId = number, TrackingNumber = number, DisplayName = number,
-        StatusMilestone = delivered ? "delivered" : "in_transit", LastSuccessfulRefresh = DateTimeOffset.UtcNow
+        StatusMilestone = delivered ? "delivered" : "in_transit", LastSuccessfulRefresh = DateTimeOffset.UtcNow,
+        DeliveredAt = delivered ? DateTimeOffset.Now.AddDays(-1) : null
     };
     private sealed class Provider : App.ITrackingProvider
     {
@@ -60,7 +61,8 @@ internal static class PackageDeliveredGroupTests
             var provider = new Provider(); using var service = new App.PackageTrackingService(store, provider);
             var settings = new App.WidgetSettings { PackageMaximumHeight = 700, PackageLocked = true, ClockLanguageCode = "de" };
             int details = 0;
-            using var widget = new App.PackageTrackingWidgetForm(service, settings, _ => { }, _ => details++);
+            var clock = DateTimeOffset.Now;
+            using var widget = new App.PackageTrackingWidgetForm(service, settings, _ => { }, _ => details++, now: () => clock);
             using var collapsed = widget.RenderBitmap();
             check(Rows(widget).SequenceEqual(new[] { a1.Id, a2.Id }), "Two active rows remain ordered; three delivered rows hidden");
             check(!Field<bool>(widget, "deliveredExpanded") && widget.HitTestDeliveredGroup(GroupPoint(widget)), "Delivered defaults collapsed; full row is clickable");
@@ -99,12 +101,15 @@ internal static class PackageDeliveredGroupTests
             }
             settings.PackageMaximumHeight = 700; widget.Apply(settings);
             provider.Deliver = a1.TrackingNumber; service.RefreshAsync().GetAwaiter().GetResult();
+            using (var today = widget.RenderBitmap())
+                check(Rows(widget).Contains(a1.Id), "Newly delivered shipment remains visible on delivery day");
+            clock = new DateTimeOffset(DateTime.Now.Date.AddDays(1));
             using (var changed = widget.RenderBitmap())
                 check(Rows(widget).SequenceEqual(new[] { a2.Id }) && service.Shipments.Count(s => s.StatusMilestone == "delivered") == 4, "Refresh moves delivered item out of active group");
             Click(widget, GroupPoint(widget)); using (var changed = widget.RenderBitmap())
                 // Existing store updates append refreshed entries; preserve that order too.
                 check(Rows(widget).SequenceEqual(new[] { a2.Id, d1.Id, d2.Id, d3.Id, a1.Id }), "Newly delivered group retains existing refreshed store order");
-            using (var recreated = new App.PackageTrackingWidgetForm(service, settings, _ => { }, _ => { }))
+            using (var recreated = new App.PackageTrackingWidgetForm(service, settings, _ => { }, _ => { }, now: () => clock))
             using (var image = recreated.RenderBitmap())
                 check(!Field<bool>(recreated, "deliveredExpanded") && Rows(recreated).SequenceEqual(new[] { a2.Id }), "Widget recreation resets expanded state");
             foreach (bool delivered in new[] { false, true })
@@ -125,7 +130,8 @@ internal static class PackageDeliveredGroupTests
             using var amazonService = new App.PackageTrackingService(amazonStore, new Provider());
             using var amazonWidget = new App.PackageTrackingWidgetForm(amazonService, settings, _ => { }, _ => { });
             amazonService.SetManualDelivered(amazon.Id, true); using (var image = amazonWidget.RenderBitmap())
-                check(Rows(amazonWidget).Length == 0 && !Field<RectangleF>(amazonWidget, "deliveredBounds").IsEmpty, "Manual Amazon delivery enters delivered group");
+                check(Rows(amazonWidget).SequenceEqual(new[] { amazon.Id }) && Field<RectangleF>(amazonWidget, "deliveredBounds").IsEmpty, "Manual Amazon delivery remains visible today");
+            check(App.PackageTrackingWidgetForm.GroupDelivered(amazonService.Shipments.Single(), new DateTimeOffset(DateTime.Now.Date.AddDays(1))), "Manual Amazon delivery enters group at next local midnight");
             amazonService.SetManualDelivered(amazon.Id, false); using (var image = amazonWidget.RenderBitmap())
                 check(Rows(amazonWidget).SequenceEqual(new[] { amazon.Id }) && Field<RectangleF>(amazonWidget, "deliveredBounds").IsEmpty, "Undo Amazon delivery returns item to active group");
         }

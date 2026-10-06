@@ -10,6 +10,8 @@ internal sealed class PackageTrackingWidgetForm : Form
     internal const int LogicalWidth = 390;
     private readonly CalendarViewport viewport = new(LogicalWidth);
     private readonly PackageTrackingService service;
+    private readonly Func<DateTimeOffset> now;
+    private readonly System.Windows.Forms.Timer midnightTimer = new();
     private readonly Action<Guid> details;
     private readonly Action? add;
     private bool addPressed;
@@ -28,7 +30,7 @@ internal sealed class PackageTrackingWidgetForm : Form
     internal static RectangleF RefreshBounds => new(LogicalWidth - 44, 12, 30, 28);
     internal static RectangleF AddBounds => new(LogicalWidth - 80, 12, 30, 28);
     internal RectangleF UpdatedBounds { get; private set; }
-    internal PackageTrackingWidgetForm(PackageTrackingService service, WidgetSettings settings, Action<Point> moved, Action<Guid> details, Action? add = null)
+    internal PackageTrackingWidgetForm(PackageTrackingService service, WidgetSettings settings, Action<Point> moved, Action<Guid> details, Action? add = null, Func<DateTimeOffset>? now = null)
     {
         this.service = service; this.settings = settings.Clone(); this.details = details; this.add = add; dark = NotesDialogStyle.ResolveDarkMode();
         Text = Localization.Get("PackageTitle", settings.ClockLanguageCode);
@@ -36,6 +38,24 @@ internal sealed class PackageTrackingWidgetForm : Form
         StartPosition = FormStartPosition.Manual; ClientSize = new(LogicalWidth, 120); Location = WidgetSettings.EnsureVisible(settings.PackageLocation, Size);
         drag = new WidgetDragHandler(this, () => this.settings.PackageLocked, Render, moved);
         service.Changed += RefreshData;
+        this.now = now ?? (() => DateTimeOffset.Now);
+        midnightTimer.Tick += (_, _) => { Render(); ScheduleMidnight(); };
+        ScheduleMidnight();
+    }
+    private void ScheduleMidnight()
+    {
+        var current = now().ToLocalTime();
+        var next = new DateTimeOffset(current.Date.AddDays(1));
+        midnightTimer.Interval = (int)Math.Clamp(Math.Ceiling((next - current).TotalMilliseconds), 1, int.MaxValue);
+        midnightTimer.Start();
+    }
+    internal static bool GroupDelivered(TrackedShipment shipment, DateTimeOffset current)
+    {
+        if (shipment.StatusMilestone != "delivered") return false;
+        var delivered = shipment.DeliveredAt
+            ?? shipment.Events.Where(e => e.StatusMilestone == "delivered").Select(e => e.OccurredAt).Max()
+            ?? shipment.LastSuccessfulRefresh ?? shipment.CreatedAt;
+        return delivered.ToLocalTime().Date < current.ToLocalTime().Date;
     }
     private void RefreshData()
     {
@@ -85,8 +105,9 @@ internal sealed class PackageTrackingWidgetForm : Form
     {
         var shipments = service.Shipments;
         // Stable partition of the existing order; grouping is presentation only.
-        var active = shipments.Where(s => s.StatusMilestone != "delivered").ToArray();
-        var delivered = shipments.Where(s => s.StatusMilestone == "delivered").ToArray();
+        var current = now();
+        var active = shipments.Where(s => !GroupDelivered(s, current)).ToArray();
+        var delivered = shipments.Where(s => GroupDelivered(s, current)).ToArray();
         string lang = settings.ClockLanguageCode;
         string EventSummary(TrackedShipment s) => AmazonLogistics.IsLocal(s) ? Localization.Get("PackageAmazonOnly", lang) : string.Join(" · ", new[] { s.LastRelevantEvent?.Location,
             PackagePresentation.Date(s.LastRelevantEvent?.OccurredAt, lang) }.Where(v => !string.IsNullOrWhiteSpace(v)));
@@ -251,5 +272,5 @@ internal sealed class PackageTrackingWidgetForm : Form
         base.OnMouseCaptureChanged(e);
     }
     protected override void Dispose(bool disposing)
-    { if (disposing && !IsDisposed) { lifetime.Cancel(); lifetime.Dispose(); service.Changed -= RefreshData; drag.Dispose(); } base.Dispose(disposing); }
+    { if (disposing && !IsDisposed) { midnightTimer.Dispose(); lifetime.Cancel(); lifetime.Dispose(); service.Changed -= RefreshData; drag.Dispose(); } base.Dispose(disposing); }
 }

@@ -105,11 +105,16 @@ internal sealed class PackageTrackingService : IDisposable
                     if (!string.Equals(snapshot.ProviderTrackerId, existing.ProviderTrackerId, StringComparison.Ordinal))
                         throw new TrackingProviderException(TrackingProviderFailure.InvalidResponse);
                     var updated = snapshot with { Id = existing.Id, DisplayName = existing.DisplayName,
+                        DeliveredAt = snapshot.StatusMilestone == "delivered"
+                            ? snapshot.DeliveredAt ?? snapshot.Events.Where(e => e.StatusMilestone == "delivered").Select(e => e.OccurredAt).Max()
+                                ?? (existing.StatusMilestone == "delivered" ? existing.DeliveredAt : null) ?? DateTimeOffset.UtcNow
+                            : snapshot.DeliveredAt,
                         ProviderTrackerId = existing.ProviderTrackerId, CreatedAt = existing.CreatedAt,
                         TrackingNumber = existing.TrackingNumber, RequestedCarrierCode = existing.RequestedCarrierCode,
                         NotificationState = existing.NotificationState, AdditionalData = existing.AdditionalData };
                     if (!store.Save(updated))
-                    { storageFailed = true; continue; }
+                    { AppLogger.Info($"Package refresh: not persisted; reason=storage-error; {TrackingDiagnostics.Summary(updated)}"); storageFailed = true; continue; }
+                    AppLogger.Info($"Package refresh: persisted; {TrackingDiagnostics.Summary(updated)}");
                     RefreshFailures.Remove(existing.Id);
                     Refreshed?.Invoke(existing, updated);
                 }
