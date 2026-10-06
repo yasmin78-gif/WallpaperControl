@@ -15,7 +15,7 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.1.0**
+**Version actuelle : v2.1.1**
 
 ## ✨ Fonctionnalités
 
@@ -55,21 +55,17 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Widget de surveillance du système
     -   Widget Météo avec prévisions optionnelles sur 3 jours
     -   Widget Calendrier avec prise en charge d'iCalendar / ICS
-    -   Widget compact d'informations sur le fond d'écran avec
-        statistiques du fond actuel
-    -   Widget Notes et rappels avec gestion locale des tâches et
-        rappels
-    -   Widget Web redimensionnable et repliable basé sur Microsoft
-        WebView2
+    -   Widget compact d'informations sur le fond d'écran avec statistiques du fond actuel
+    -   Widget Notes et rappels avec gestion locale des tâches et rappels, y compris les tâches quotidiennes récurrentes
+    -   Widget de suivi des colis avec prise en charge de Ship24, actualisation automatique, notifications d'état et gestion locale d'Amazon Logistics
+    -   Widget Twitch affichant les chaînes suivies actuellement en direct, les images de profil, les catégories, le nombre de spectateurs, la durée du direct et des notifications facultatives
+    -   Widget Web redimensionnable et repliable basé sur Microsoft WebView2
     -   Bouton optionnel Fond d'écran suivant
-    -   Positionnement indépendant des widgets n'importe où sur le
-        bureau
+    -   Positionnement indépendant des widgets n'importe où sur le bureau
     -   Verrouillage indépendant de la position de chaque widget
     -   Mémorisation des positions et paramètres des widgets
-    -   Aperçu en direct des widgets pendant la modification des
-        paramètres
-    -   Les widgets restent intégrés au bureau et ne demeurent pas
-        au-dessus des fenêtres d'applications normales
+    -   Aperçu en direct des widgets pendant la modification des paramètres
+    -   Les widgets restent intégrés au bureau et ne demeurent pas au-dessus des fenêtres d'applications normales
 -   🖥️ **Intégration Windows**
     -   Utilise les API natives de fonds d'écran de Windows tout en
         fournissant son propre moteur de planification et de transitions
@@ -103,7 +99,7 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Vues Top 10, Top 25 et statistiques complètes
     -   Indicateurs pour les fonds d'écran les plus affichés, les moins
         affichés et la moyenne des affichages
-    -   Régularité de la distribution metric
+    -   Indicateur de régularité de la distribution
     -   Graphique Top 10 des fonds d'écran
     -   Temps moyen de réapparition des fonds d'écran
     -   Analyse des fonds d'écran rarement affichés
@@ -227,38 +223,6 @@ MP4/H.264 utilisées comme fond d'écran.
 Le moteur Standard utilise le runtime minimal libmpv fourni. Ses
 bibliothèques natives sont installées séparément de l'exécutable
 single-file.
-
-## 📦 Suivi des colis
-
-Wallpaper Control 2.1.0 ajoute un widget de bureau natif pour le suivi
-des envois.
-
--   Suivi via **Ship24**
--   Ajout, renommage, modification et suppression des envois
--   État détaillé, historique des événements et estimation de livraison
-    disponible
--   Actualisation manuelle et automatique toutes les **15, 30, 60 ou 120
-    minutes**
--   Respect du plein écran, de la suspension/reprise et des envois déjà
-    livrés
--   Protection contre les actualisations simultanées et les requêtes
-    répétées inutiles
--   Erreurs claires pour les identifiants, le quota, les limites de
-    requêtes et le réseau
--   Configuration Ship24 avec test de connexion ; la clé API est
-    chiffrée pour l'utilisateur Windows actuel
--   La dernière actualisation correspond à la dernière requête réussie
-    même si l'état n'a pas changé
--   Données locales avec sauvegarde et récupération en cas de corruption
--   Position, verrouillage et hauteur maximale configurables, avec
-    **Minimal**, **Clean** et **Glow**
-
-### Amazon Logistics
-
-Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
-reconnus localement et ne consomment pas de requêtes Ship24. Les détails
-en direct restent disponibles sur Amazon. Ces envois peuvent être
-marqués manuellement comme livrés et ce marquage peut être annulé.
 
 ## 🎮 Pause en plein écran
 
@@ -486,6 +450,82 @@ virgules peuvent être masqués uniquement dans le nom affiché. Les noms
 longs sont automatiquement raccourcis. Le widget prend en charge
 **Minimal**, **Clean** et **Glow**.
 
+### 📦 Suivi des colis
+
+Wallpaper Control 2.1.0 ajoute un widget de bureau natif pour le suivi
+des envois.
+
+-   Suivi via **Ship24**
+-   Ajout, renommage, modification et suppression des envois
+-   État détaillé, historique des événements et estimation de livraison
+    disponible
+-   Actualisation manuelle et automatique toutes les **15, 30, 60 ou 120
+    minutes**
+-   Respect du plein écran, de la suspension/reprise et des envois déjà
+    livrés
+-   Protection contre les actualisations simultanées et les requêtes
+    répétées inutiles
+-   Erreurs claires pour les identifiants, le quota, les limites de
+    requêtes et le réseau
+-   Configuration Ship24 avec test de connexion ; la clé API est
+    chiffrée pour l'utilisateur Windows actuel
+-   La dernière actualisation correspond à la dernière requête réussie
+    même si l'état n'a pas changé
+-   Données locales avec sauvegarde et récupération en cas de corruption
+-   Position, verrouillage et hauteur maximale configurables, avec
+    **Minimal**, **Clean** et **Glow**
+
+#### Colis livrés et notifications
+
+Les colis livrés sont regroupés dans une section repliable **Livré**
+afin que les envois actifs restent immédiatement visibles. Les éléments
+livrés sont conservés et peuvent toujours être développés si nécessaire.
+
+Des notifications facultatives peuvent signaler les changements d'état.
+Un clic sur une notification de colis ouvre les détails de l'envoi
+correspondant.
+
+#### Amazon Logistics
+
+Les numéros Amazon Logistics **DE** et **TBA** pris en charge sont
+reconnus localement et ne consomment pas de requêtes Ship24. Les détails
+en direct restent disponibles sur Amazon. Ces envois peuvent être
+marqués manuellement comme livrés et ce marquage peut être annulé.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets
+**Informations sur le fond d'écran** et **Fond d'écran suivant** sont
+temporairement masqués, car ils concernent les fonds d'écran fixes. Ils
+réapparaissent automatiquement lors du retour au diaporama d'images
+s'ils sont activés. Leurs paramètres et positions sont conservés.
+
+Lorsque le mode **Fond d'écran vidéo** est actif, les widgets **Informations sur le fond d'écran** et **Fond d'écran suivant** sont temporairement masqués, car ils concernent les fonds d'écran fixes. Ils réapparaissent automatiquement lors du retour au diaporama d'images s'ils sont activés. Leurs paramètres et positions sont conservés.
+
+### 📺 Twitch
+
+Le widget Twitch affiche les chaînes que vous suivez et qui sont
+actuellement en direct.
+
+-   Connexion du compte Twitch directement depuis Wallpaper Control
+-   Affichage de l'image de profil, du nom de la chaîne, de la
+    catégorie, du nombre de spectateurs et de la durée actuelle du
+    direct
+-   Un clic sur une chaîne l'ouvre dans le navigateur par défaut
+-   Intervalle d'actualisation de **1, 5, 10 ou 15 minutes**
+-   Actualisations alignées sur les minutes pleines, avec une
+    vérification immédiate au démarrage
+-   États distincts pour le chargement, l'absence de connexion et
+    l'absence de chaînes en direct
+-   Notification facultative lorsqu'une chaîne suivie passe en direct
+-   Les directs déjà actifs au démarrage ne déclenchent pas de
+    notification et les doublons sont évités
+-   Les images de profil sont mises en cache en mémoire avec une image
+    de remplacement si nécessaire
+-   Hauteur maximale configurable avec défilement
+-   Prend en charge les styles **Minimal**, **Clean** et **Glow**
+
+L'authentification Twitch utilise le flux public par code d'appareil et
+ne demande que l'autorisation nécessaire pour lire les chaînes suivies.
+
 ### 📝 Notes et rappels
 
 Le widget Notes et rappels permet de gérer localement des tâches et
@@ -532,6 +572,18 @@ existantes continuent d'utiliser l'apparence **Minimal** par défaut.
 Il peut être positionné et verrouillé indépendamment des autres widgets
 et utilise la même logique de changement et de transition que
 l'application principale.
+
+## 🔔 Notifications
+
+Wallpaper Control utilise un système de notifications commun pour Notes
+et rappels, le suivi des colis et Twitch.
+
+Les sons de notification peuvent être réglés sur **Désactivé**,
+**Windows par défaut** ou **Deux tons**, avec une fonction d'aperçu dans
+les paramètres. Lorsque plusieurs notifications Twitch ou de colis
+arrivent ensemble, elles sont affichées successivement avec l'action de
+clic appropriée. Les notifications en attente devenues obsolètes
+expirent après deux minutes.
 
 ## 📊 Statistiques
 
@@ -617,7 +669,7 @@ Cela permet d'intégrer Wallpaper Control à des scripts personnalisés,
 lanceurs, outils d'automatisation ou autres applications de bureau sans
 ouvrir la fenêtre principale.
 
-### Horloge Widget State
+### État du widget Horloge
 
 Les applications externes peuvent déterminer si l'horloge native de
 Wallpaper Control est activée en lisant :
@@ -651,6 +703,16 @@ ouverte ne sont appliquées définitivement qu'après enregistrement.
 
 Wallpaper Control comprend une journalisation légère destinée aux
 erreurs et défaillances inattendues.
+
+-   Le **widget de suivi des colis** se connecte à Ship24 pour les
+    envois pris en charge. La clé API Ship24 est protégée pour
+    l'utilisateur Windows actuel via DPAPI. Les envois Amazon Logistics
+    DE/TBA pris en charge sont gérés localement et n'utilisent pas de
+    requêtes Ship24.
+-   Le **widget Twitch** se connecte directement à Twitch pour
+    authentifier l'utilisateur et récupérer les chaînes suivies
+    actuellement en direct ainsi que leurs images de profil. Les jetons
+    OAuth sont protégés pour l'utilisateur Windows actuel via DPAPI.
 
 Les journaux ne sont créés qu'en cas de besoin et sont stockés dans :
 
@@ -728,36 +790,22 @@ peut donc afficher un avertissement de sécurité lors de son lancement.
 
 ## 🔒 Confidentialité
 
-Wallpaper Control stocke localement sur votre ordinateur ses paramètres
-et statistiques de fonds d'écran.
+Wallpaper Control stocke localement sur votre ordinateur ses paramètres, les statistiques de fonds d'écran, les notes et les rappels.
 
 Aucun compte Wallpaper Control n'est requis.
 
-La plupart des fonctions, notamment la gestion des fonds d'écran, le
-diaporama, les transitions, la détection du plein écran et les
-statistiques, fonctionnent entièrement en local.
+La plupart des fonctions, notamment la gestion des fonds d'écran, le diaporama, les transitions, la détection du plein écran et les statistiques, fonctionnent entièrement en local.
 
 Certaines fonctions optionnelles nécessitent une connexion Internet :
 
--   Le **widget Météo** se connecte à Open-Meteo pour récupérer les
-    informations météorologiques.
--   Le **widget Calendrier** se connecte aux adresses iCalendar / ICS
-    configurées pour récupérer les données.
--   La **vérification des mises à jour** optionnelle se connecte à
-    GitHub Releases pour déterminer si une nouvelle version est
-    disponible. Les vérifications automatiques peuvent être désactivées
-    et Wallpaper Control ne télécharge ni n'installe jamais de mise à
-    jour automatiquement.
+-   Le **widget Météo** se connecte à Open-Meteo pour récupérer les informations météorologiques.
+-   Le **widget Calendrier** se connecte aux adresses iCalendar / ICS configurées. Les adresses ICS privées sont protégées pour l'utilisateur Windows actuel via DPAPI. L'accès au calendrier est en lecture seule.
+-   La **vérification des mises à jour** optionnelle se connecte à GitHub Releases. Les vérifications automatiques peuvent être désactivées et Wallpaper Control ne télécharge ni n'installe jamais de mise à jour automatiquement.
+-   Le **widget Web** se connecte au site configuré et utilise un profil Microsoft WebView2 persistant pour les cookies et les sessions. Wallpaper Control ne lit ni ne stocke les mots de passe des sites.
+-   Le **widget de suivi des colis** se connecte à Ship24 pour les envois pris en charge. La clé API Ship24 est protégée pour l'utilisateur Windows actuel via DPAPI. Les envois Amazon Logistics DE/TBA pris en charge sont gérés localement et n'utilisent pas de requêtes Ship24.
+-   Le **widget Twitch** se connecte directement à Twitch pour authentifier l'utilisateur et récupérer les chaînes suivies actuellement en direct ainsi que leurs images de profil. Les jetons OAuth sont protégés pour l'utilisateur Windows actuel via DPAPI.
 
-Les adresses ICS privées configurées pour le widget Calendrier sont
-stockées sous forme chiffrée à l'aide de la Windows Data Protection API
-(DPAPI) pour l'utilisateur Windows actuel.
-
-L'accès au calendrier est en lecture seule. Wallpaper Control ne modifie
-ni les rendez-vous ni les données du calendrier.
-
-Les journaux de diagnostic sont stockés localement et ne sont créés
-qu'en cas de besoin pour le dépannage.
+Les journaux de diagnostic sont stockés localement et ne sont créés qu'en cas de besoin pour le dépannage.
 
 ## 🛠️ Développé avec
 

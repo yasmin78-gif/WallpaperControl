@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.1.0**
+**Current release: v2.1.1**
 
 ## ✨ Features
 
@@ -51,17 +51,16 @@ exits.
     -   Weather widget with optional 3-day forecast
     -   Calendar widget with iCalendar / ICS support
     -   Compact Wallpaper Info widget with current wallpaper statistics
-    -   Notes & Reminders widget with local task/reminder management,
-        including daily recurring tasks
-    -   Resizable and collapsible Web widget powered by Microsoft
-        WebView2
+    -   Notes & Reminders widget with local task/reminder management, including daily recurring tasks
+    -   Package Tracking widget with Ship24 support, automatic refresh, status notifications, and local Amazon Logistics handling
+    -   Twitch widget showing currently live followed channels, profile pictures, categories, viewer counts, stream duration, and optional live notifications
+    -   Resizable and collapsible Web widget powered by Microsoft WebView2
     -   Optional Next Wallpaper button
     -   Widgets can be positioned independently anywhere on the desktop
     -   Independent position locking for each widget
     -   Widget positions and settings are remembered
     -   Live widget preview while changing settings
-    -   Widgets remain part of the desktop and do not stay above normal
-        application windows
+    -   Widgets remain part of the desktop and do not stay above normal application windows
 -   🖥️ **Windows integration**
     -   Integrates with native Windows wallpaper APIs while providing
         its own slideshow timing and transition engine
@@ -206,37 +205,6 @@ The Standard engine uses the bundled minimal libmpv runtime. Its native
 libraries are installed separately from the application's single-file
 executable because they must remain available as native files at
 runtime.
-
-## 📦 Package Tracking
-
-Wallpaper Control 2.1.0 adds a native desktop widget for shipment
-tracking.
-
--   Shipment tracking through **Ship24**
--   Add, rename, edit and remove shipments
--   Detailed status, event history and available delivery estimates
--   Manual refresh and automatic refresh every **15, 30, 60 or 120
-    minutes**
--   Automatic refresh respects fullscreen mode, system suspend/resume
-    and delivered shipments
--   Protection against concurrent refreshes and unnecessary repeated
-    requests
--   Clear errors for credentials, quota limits, rate limits and network
-    problems
--   Ship24 setup includes a connection test; the API key is encrypted
-    for the current Windows user
--   Last-updated time reflects the last successful refresh even when
-    shipment status did not change
--   Local tracking data includes backup and corruption recovery
--   Configurable position, position lock, maximum height and
-    **Minimal**, **Clean** and **Glow** styles
-
-### Amazon Logistics
-
-Supported Amazon Logistics **DE** and **TBA** tracking numbers are
-recognized locally and do not consume Ship24 tracking requests. Live
-shipment details remain available through Amazon. These shipments can be
-marked as delivered manually, and that mark can be reverted.
 
 ## 🎮 Fullscreen Pause
 
@@ -446,6 +414,79 @@ be hidden, and multiple comma-separated filename suffixes can be removed
 from the displayed name only. Long names are automatically shortened.
 The widget supports **Minimal**, **Clean** and **Glow** styles.
 
+### 📦 Package Tracking
+
+Wallpaper Control 2.1.0 adds a native desktop widget for shipment
+tracking.
+
+-   Shipment tracking through **Ship24**
+-   Add, rename, edit and remove shipments
+-   Detailed status, event history and available delivery estimates
+-   Manual refresh and automatic refresh every **15, 30, 60 or 120
+    minutes**
+-   Automatic refresh respects fullscreen mode, system suspend/resume
+    and delivered shipments
+-   Protection against concurrent refreshes and unnecessary repeated
+    requests
+-   Clear errors for credentials, quota limits, rate limits and network
+    problems
+-   Ship24 setup includes a connection test; the API key is encrypted
+    for the current Windows user
+-   Last-updated time reflects the last successful refresh even when
+    shipment status did not change
+-   Local tracking data includes backup and corruption recovery
+-   Configurable position, position lock, maximum height and
+    **Minimal**, **Clean** and **Glow** styles
+
+#### Delivered shipments & notifications
+
+Delivered shipments are grouped in a collapsible **Delivered** section
+so active shipments remain easy to see. Delivered items are retained and
+can still be expanded when needed.
+
+Optional status-change notifications can be enabled for package
+tracking. Clicking a package notification opens the corresponding
+shipment details.
+
+#### Amazon Logistics
+
+Supported Amazon Logistics **DE** and **TBA** tracking numbers are
+recognized locally and do not consume Ship24 tracking requests. Live
+shipment details remain available through Amazon. These shipments can be
+marked as delivered manually, and that mark can be reverted.
+
+When **Video Wallpaper** mode is active, the **Wallpaper Info** and
+**Next Wallpaper** widgets are temporarily hidden because they apply to
+image wallpapers. Switching back to Image Slideshow restores them
+automatically if they are enabled. Their settings and positions are
+preserved.
+
+When **Video Wallpaper** mode is active, the **Wallpaper Info** and **Next Wallpaper** widgets are temporarily hidden because they apply to image wallpapers. Switching back to Image Slideshow restores them automatically if they are enabled. Their settings and positions are preserved.
+
+### 📺 Twitch
+
+The Twitch widget shows which channels you follow are currently live.
+
+-   Connect your Twitch account directly from Wallpaper Control
+-   Shows profile picture, channel name, category, viewer count and
+    current stream duration
+-   Click a channel to open it in your default browser
+-   Refresh interval can be set to **1, 5, 10 or 15 minutes**
+-   Refreshes are aligned to full minutes, with an immediate check at
+    startup
+-   Separate states for loading, disconnected accounts and no live
+    channels
+-   Optional notifications when a followed channel goes live
+-   Streams already live at startup do not trigger notifications, and
+    duplicate alerts are prevented
+-   Profile images are cached in memory and use a fallback when
+    unavailable
+-   Configurable maximum height with scrolling
+-   Supports **Minimal**, **Clean** and **Glow** styles
+
+Twitch authentication uses the public-device authorization flow and
+requests only the permission required to read followed channels.
+
 ### 📝 Notes & Reminders
 
 The Notes & Reminders widget provides lightweight local task and
@@ -493,6 +534,17 @@ continue to use the previous **Minimal** appearance by default.
 It can be positioned and locked independently from the other widgets and
 uses the same wallpaper switching and transition handling as the main
 application.
+
+## 🔔 Notifications
+
+Wallpaper Control uses a shared notification system for Notes &
+Reminders, package tracking and Twitch.
+
+Notification sounds can be set to **Off**, **Windows Default** or
+**Two-Tone**, with a preview available in Settings. When multiple Twitch
+or package notifications arrive together, they are shown one after
+another with the appropriate click action. Queued notifications that are
+no longer useful expire after two minutes.
 
 ## 📊 Statistics
 
@@ -682,39 +734,22 @@ therefore display a security warning when the setup file is launched.
 
 ## 🔒 Privacy
 
-Wallpaper Control stores its application settings, wallpaper statistics,
-notes and reminders locally on your computer.
+Wallpaper Control stores application settings, wallpaper statistics, notes and reminders locally on your computer.
 
 No Wallpaper Control account is required.
 
-Most functionality, including wallpaper management, slideshow control,
-transitions, fullscreen detection and statistics, works entirely
-locally.
+Most functionality, including wallpaper management, slideshow control, transitions, fullscreen detection and statistics, works entirely locally.
 
 Some optional features require an internet connection:
 
--   The **Weather widget** connects to Open-Meteo to retrieve weather
-    information.
--   The **Calendar widget** connects to the configured iCalendar / ICS
-    addresses to retrieve calendar data.
--   The optional **Update Check** connects to GitHub Releases to
-    determine whether a newer Wallpaper Control version is available.
-    Automatic checks can be disabled, and Wallpaper Control never
-    downloads or installs updates automatically.
--   The **Web widget** connects to the website you configure and uses a
-    persistent Microsoft WebView2 browser profile for cookies and
-    website sessions. Wallpaper Control does not read or store website
-    passwords.
+-   The **Weather widget** connects to Open-Meteo to retrieve weather information.
+-   The **Calendar widget** connects to configured iCalendar / ICS addresses. Private ICS addresses are protected for the current Windows user using DPAPI. Calendar access is read-only.
+-   The optional **Update Check** connects to GitHub Releases. Automatic checks can be disabled, and Wallpaper Control never downloads or installs updates automatically.
+-   The **Web widget** connects to the website you configure and uses a persistent Microsoft WebView2 browser profile for cookies and website sessions. Wallpaper Control does not read or store website passwords.
+-   The **Package Tracking widget** connects to Ship24 for supported shipments. The Ship24 API key is protected for the current Windows user using DPAPI. Supported Amazon Logistics DE/TBA shipments are handled locally and do not use Ship24 requests.
+-   The **Twitch widget** connects directly to Twitch to authenticate the user and retrieve currently live followed channels and profile images. OAuth tokens are protected for the current Windows user using DPAPI.
 
-Private ICS addresses configured for the Calendar widget are stored
-encrypted using the Windows Data Protection API (DPAPI) for the current
-Windows user.
-
-Calendar access is read-only. Wallpaper Control does not modify
-appointments or calendar data.
-
-Diagnostic logs are stored locally and are only created when needed for
-troubleshooting.
+Diagnostic logs are stored locally and are only created when needed for troubleshooting.
 
 ## 🛠️ Built With
 
