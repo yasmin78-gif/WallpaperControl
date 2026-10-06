@@ -1,4 +1,4 @@
-namespace WallpaperControl;
+﻿namespace WallpaperControl;
 
 /// <summary>One bounded native queue for Twitch and packages, with a stable action per notice.</summary>
 internal sealed class DesktopNotifications : IDisposable
@@ -39,8 +39,8 @@ internal sealed class DesktopNotifications : IDisposable
     internal void Show(TwitchStream stream, string language)
     {
         if (TwitchLinks.Channel(stream.Login) is not Uri uri) return;
-        Show(Localization.Get("TwitchLiveNotificationTitle", language),
-            string.Format(Localization.Get("TwitchLiveNotificationBody", language), stream.DisplayName), () => open(uri), "twitch");
+        Show(string.Format(Localization.Get("TwitchLiveNotificationTitle", language), stream.DisplayName),
+            Localization.Get("TwitchLiveNotificationBody", language), () => open(uri), "twitch");
     }
     internal void Show(string title, string body, Action clicked, string group)
     {

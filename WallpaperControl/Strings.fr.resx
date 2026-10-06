@@ -1675,8 +1675,8 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} min</value></data>
   <data name="TwitchLoading" xml:space="preserve"><value>Chargement de Twitch …</value></data>
   <data name="TwitchLiveNotifications" xml:space="preserve"><value>Notifier quand une chaîne passe en direct</value></data>
-  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch : chaîne en direct</value></data>
-  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} est en direct. Cliquez pour ouvrir la chaîne.</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>{0} est en direct.</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>Cliquez pour ouvrir la chaîne.</value></data>
   <data name="NotificationSettings" xml:space="preserve"><value>Notifications</value></data>
   <data name="NotificationSound" xml:space="preserve"><value>Son de notification</value></data>
   <data name="NotificationSoundOff" xml:space="preserve"><value>Désactivé</value></data>

@@ -1675,8 +1675,8 @@ Would you like to open the release page?</value>
   <data name="TwitchRefreshMinutesFormat" xml:space="preserve"><value>{0} min</value></data>
   <data name="TwitchLoading" xml:space="preserve"><value>Loading Twitch …</value></data>
   <data name="TwitchLiveNotifications" xml:space="preserve"><value>Notify when a channel goes live</value></data>
-  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>Twitch: channel is live</value></data>
-  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>{0} is live now. Click to open the channel.</value></data>
+  <data name="TwitchLiveNotificationTitle" xml:space="preserve"><value>{0} is live now.</value></data>
+  <data name="TwitchLiveNotificationBody" xml:space="preserve"><value>Click to open the channel.</value></data>
   <data name="NotificationSettings" xml:space="preserve"><value>Notifications</value></data>
   <data name="NotificationSound" xml:space="preserve"><value>Notification sound</value></data>
   <data name="NotificationSoundOff" xml:space="preserve"><value>Off</value></data>

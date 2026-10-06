@@ -49,10 +49,10 @@ internal static class TwitchNotificationTests
                 using var icon = new System.Windows.Forms.NotifyIcon();
                 var shown = new List<string>(); var opened = new List<Uri>(); bool fullscreen = false;
                 using var balloons = new App.DesktopNotifications(icon, () => fullscreen,
-                    (title, body) => shown.Add(body), uri => { opened.Add(uri); return true; }, () => true);
+                    (title, body) => { shown.Add(title); check(body == "Zum Kanal öffnen klicken.", "Notification body contains only channel opening hint"); }, uri => { opened.Add(uri); return true; }, () => true);
                 var started = DateTimeOffset.UtcNow;
                 balloons.Show(Stream(1, started), "de"); balloons.Show(Stream(2, started), "de");
-                check(shown.Count == 1 && shown[0].Contains("Channel 1", StringComparison.Ordinal), "Native notifications serialize without replacing click target");
+                check(shown.Count == 1 && shown[0] == "Channel 1 ist jetzt live.", "Native notifications serialize without replacing click target");
                 balloons.OnClicked();
                 check(opened.Count == 1 && opened[0].AbsolutePath == "/channel1" && shown.Count == 2, "Native notification click opens its original channel and advances queue");
                 balloons.OnClosed();
