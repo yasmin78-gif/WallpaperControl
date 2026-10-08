@@ -149,10 +149,31 @@ internal sealed class NowPlayingService : INowPlayingService
         if (source.StartsWith("Microsoft.ZuneMusic_",StringComparison.OrdinalIgnoreCase)) return Localization.Get("NowPlayingMediaPlayer",language);
         if (source.StartsWith("AmazonMobileLLC.AmazonMusic_",StringComparison.OrdinalIgnoreCase)) return "Amazon Music";
         if (source.EndsWith(".exe",StringComparison.OrdinalIgnoreCase)) return Path.GetFileNameWithoutExtension(source);
+        string? packageName = PackageSourceName(source);
+        if (packageName != null) return packageName;
         // Chromium publishes IDs such as Vivaldi.<profile hash>, rather than an executable name.
         int dot = source.LastIndexOf('.');
         if (dot > 0 && source.Length-dot-1 >= 16 && source[(dot+1)..].All(char.IsAsciiLetterOrDigit)) return source[..dot];
         return source;
+    }
+    private static string? PackageSourceName(string source)
+    {
+        // Packaged AUMIDs: <package name>_<13-character publisher ID>!<application ID>.
+        // Validate the shape before shortening: arbitrary app IDs must retain their fallback.
+        int bang = source.IndexOf('!');
+        if (bang <= 0 || bang != source.LastIndexOf('!') || bang == source.Length-1) return null;
+        string family = source[..bang], app = source[(bang+1)..];
+        int underscore = family.LastIndexOf('_');
+        if (underscore <= 0 || family.Length-underscore-1 != 13) return null;
+        string package = family[..underscore], publisher = family[(underscore+1)..];
+        static bool Identifier(string value) => value.Length > 0 && value.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_');
+        if (!Identifier(package) || !Identifier(app) || !publisher.All(c => char.IsAsciiDigit(c) || c is >= 'a' and <= 'z')) return null;
+        static bool Useful(string value) => value.Length is > 0 and <= 80 && value.Any(char.IsAsciiLetter)
+            && !Guid.TryParse(value,out _) && !new[] { "App", "Application", "Main", "EntryPoint" }.Contains(value,StringComparer.OrdinalIgnoreCase);
+        string name = app.Split('.').Last();
+        if (Useful(name)) return name;
+        name = package.Split('.').Last();
+        return Useful(name) ? name : null;
     }
     public void Dispose()
     {

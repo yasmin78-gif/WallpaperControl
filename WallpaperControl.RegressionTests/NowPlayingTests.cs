@@ -68,6 +68,20 @@ internal static class NowPlayingTests
             check(App.NowPlayingService.SourceName("Vivaldi.7I3S7YDOZJL2HU5ELWYXIZUPXQ") == "Vivaldi" && App.NowPlayingService.SourceName("Spotify.exe") == "Spotify","Readable source names cover executable and Chromium profile IDs");
             check(App.NowPlayingService.SourceName("Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic","de") == "Medienwiedergabe","Windows media player displays localized friendly name");
             check(App.NowPlayingService.SourceName("AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0!AmazonMobileLLC.AmazonMusic") == "Amazon Music","Amazon packaged app displays friendly name");
+            foreach (var example in new[]
+            {
+                (Source: "OpenAI.ChatGPT-Desktop_2p2nqsd0c76g0!ChatGPT", Name: "ChatGPT"),
+                (Source: "Vendor.MusicPlayer_abcdefghijklm!Vendor.MusicPlayer", Name: "MusicPlayer"),
+                (Source: "Vendor.MusicPlayer_abcdefghijklm!App", Name: "MusicPlayer"),
+                (Source: "Vendor.MusicPlayer_abcdefghijklm!Main", Name: "MusicPlayer"),
+                (Source: "Vendor.Player_abcdefghijklm!12345", Name: "Player"),
+                (Source: "Vendor.App_abcdefghijklm!App", Name: "Vendor.App_abcdefghijklm!App"),
+                (Source: "Unknown source", Name: "Unknown source"),
+                (Source: "Vendor.Player_invalid!Player", Name: "Vendor.Player_invalid!Player"),
+                (Source: "Vendor.Player_abcdefghijklm!", Name: "Vendor.Player_abcdefghijklm!"),
+                (Source: "Vendor.Player_abcdefghijklm!App!Player", Name: "Vendor.Player_abcdefghijklm!App!Player"),
+                (Source: "Vendor.Player_abcdefghijklm!Unclear name", Name: "Vendor.Player_abcdefghijklm!Unclear name")
+            }) check(App.NowPlayingService.SourceName(example.Source) == example.Name,$"Packaged source normalization: {example.Source}");
             check(App.NowPlayingWidgetForm.FormatTime(TimeSpan.FromSeconds(161)) == "02:41" && App.NowPlayingWidgetForm.FormatTime(TimeSpan.FromSeconds(3661)) == "1:01:01","Minute and hour display formats");
             using var fake = new Fake { State = state };
             long clock = 0;
