@@ -1687,4 +1687,49 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PackageStatusNotifications" xml:space="preserve"><value>Bei Änderungen des Paket-Status benachrichtigen</value></data>
   <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Paket-Status geändert</value></data>
   <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}: {1}. Zum Öffnen der Paketdetails klicken.</value></data>
+  <data name="FeedTitle" xml:space="preserve"><value>Feeds</value></data>
+  <data name="FeedEnabled" xml:space="preserve"><value>Feed-Widget aktivieren</value></data>
+  <data name="FeedName" xml:space="preserve"><value>Titel des Feeds</value></data>
+  <data name="FeedAddress" xml:space="preserve"><value>Feed-Adresse (RSS/Atom)</value></data>
+  <data name="FeedAdd" xml:space="preserve"><value>Feed hinzufügen</value></data>
+  <data name="FeedEdit" xml:space="preserve"><value>Feed bearbeiten</value></data>
+  <data name="FeedManage" xml:space="preserve"><value>Feeds verwalten</value></data>
+  <data name="FeedCheck" xml:space="preserve"><value>Feed prüfen</value></data>
+  <data name="FeedChecking" xml:space="preserve"><value>Überprüfe …</value></data>
+  <data name="FeedReady" xml:space="preserve"><value>Feed erfolgreich geprüft</value></data>
+  <data name="FeedEmpty" xml:space="preserve"><value>Noch keine Feed-Beiträge. Über das Menü einen Feed hinzufügen.</value></data>
+  <data name="FeedRefreshFailed" xml:space="preserve"><value>Abruf fehlgeschlagen; bisherige Beiträge bleiben sichtbar.</value></data>
+  <data name="FeedUpdated" xml:space="preserve"><value>Aktualisiert: {0}</value></data>
+  <data name="FeedSelect" xml:space="preserve"><value>Feed auswählen</value></data>
+  <data name="FeedAll" xml:space="preserve"><value>Alle Feeds</value></data>
+  <data name="FeedDisplay" xml:space="preserve"><value>Anzeige auswählen</value></data>
+  <data name="FeedModeList" xml:space="preserve"><value>Liste</value></data>
+  <data name="FeedModeFocusFirst" xml:space="preserve"><value>Erstes Element fokussieren</value></data>
+  <data name="FeedModeTitles" xml:space="preserve"><value>Nur Titel</value></data>
+  <data name="FeedRefresh" xml:space="preserve"><value>Jetzt aktualisieren</value></data>
+  <data name="FeedHint" xml:space="preserve"><value>RSS und Atom. Klicke einen Beitrag zum Öffnen an. Über die drei Punkte kannst du Feeds und Anzeige verwalten.</value></data>
+  <data name="FeedInterval15" xml:space="preserve"><value>Alle 15 Minuten</value></data>
+  <data name="FeedInterval30" xml:space="preserve"><value>Alle 30 Minuten</value></data>
+  <data name="FeedInterval60" xml:space="preserve"><value>Stündlich</value></data>
+  <data name="FeedInterval120" xml:space="preserve"><value>Alle 2 Stunden</value></data>
+  <data name="FeedInterval360" xml:space="preserve"><value>Alle 6 Stunden</value></data>
+  <data name="FeedInterval720" xml:space="preserve"><value>Alle 12 Stunden</value></data>
+  <data name="FeedInterval1440" xml:space="preserve"><value>Täglich</value></data>
+  <data name="FeedInterval10080" xml:space="preserve"><value>Wöchentlich</value></data>
+  <data name="FeedInterval0" xml:space="preserve"><value>Nur manuell</value></data>
+  <data name="FeedPeriodSelect" xml:space="preserve"><value>Zeitraum auswählen</value></data>
+  <data name="FeedPeriodAll" xml:space="preserve"><value>Alle verfügbaren Beiträge</value></data>
+  <data name="FeedPeriodDay" xml:space="preserve"><value>Letzte 24 Stunden</value></data>
+  <data name="FeedPeriodWeek" xml:space="preserve"><value>Letzte 7 Tage</value></data>
+  <data name="FeedPeriodMonth" xml:space="preserve"><value>Letzter Monat</value></data>
+  <data name="FeedNoMatching" xml:space="preserve"><value>Keine Beiträge im ausgewählten Zeitraum.</value></data>
+  <data name="NotificationSoundSoft" xml:space="preserve"><value>Sanfter Einzelton</value></data>
+  <data name="NotificationSoundBell" xml:space="preserve"><value>Heller Glockenton</value></data>
+  <data name="NotificationSoundTriad" xml:space="preserve"><value>Dezenter Dreiklang</value></data>
+  <data name="NotesReminderTone" xml:space="preserve"><value>Notizerinnerungen</value></data>
+  <data name="NotificationTypeSoundHint" xml:space="preserve"><value>Wähle den Ton je Benachrichtigungstyp. „Aus“ zeigt Meldungen lautlos; die Meldungen selbst aktivierst du beim jeweiligen Widget oder Feed.</value></data>
+  <data name="FeedNotifications" xml:space="preserve"><value>Bei neuen Beiträgen benachrichtigen</value></data>
+  <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: {1} neue Beiträge</value></data>
+  <data name="FeedNotificationBody" xml:space="preserve"><value>Zum Anzeigen des Feeds klicken.</value></data>
+  <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 1 neuer Beitrag</value></data>
 </root>

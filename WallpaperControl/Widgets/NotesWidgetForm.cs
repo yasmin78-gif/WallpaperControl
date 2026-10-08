@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 
@@ -179,7 +179,7 @@ namespace WallpaperControl
                 g.Restore(state);
                 if (viewport.CanScroll)
                 {
-                    g.FillRectangle(muted, viewport.Track); g.FillRectangle(accent, viewport.Thumb);
+                    WidgetScrollbar.Draw(g, viewport);
                 }
                 Bitmap result = bitmap;
                 bitmap = null; // Ownership passes to the caller.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -29,6 +29,7 @@ namespace WallpaperControl
         internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.Feed.Enabled = feedEnabled.Checked; preview.Feed.Locked = feedLocked.Checked; preview.Feed.Style = (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex); preview.Feed.MaximumHeight = (int)feedHeight.Value;
             preview.PackageStatusNotifications = packageNotifications.Checked;
             ReadWebControls(preview.Web);
             preview.TwitchEnabled = twitchEnabled.Checked; preview.TwitchLocked = twitchLocked.Checked;

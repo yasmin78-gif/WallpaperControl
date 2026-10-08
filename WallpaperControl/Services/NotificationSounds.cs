@@ -1,8 +1,8 @@
-using System.Media;
+﻿using System.Media;
 
 namespace WallpaperControl;
 
-internal enum NotificationSoundKind { Off, WindowsStandard, Chime }
+internal enum NotificationSoundKind { Off, WindowsStandard, Chime, Soft, Bell, Triad }
 
 /// <summary>One cached, embedded WAV per owner; asynchronous playback never blocks the UI.</summary>
 internal sealed class NotificationSounds : IDisposable
@@ -10,6 +10,7 @@ internal sealed class NotificationSounds : IDisposable
     private Stream? stream;
     private SoundPlayer? player;
     private bool disposed;
+    private NotificationSoundKind loadedSound;
     internal static NotificationSoundKind Normalize(int value) => Enum.IsDefined(typeof(NotificationSoundKind), value)
         ? (NotificationSoundKind)value : NotificationSoundKind.Chime;
     internal void Play(NotificationSoundKind sound)
@@ -18,11 +19,13 @@ internal sealed class NotificationSounds : IDisposable
         try
         {
             if (sound == NotificationSoundKind.WindowsStandard) { SystemSounds.Asterisk.Play(); return; }
-            if (player == null)
+            if (player == null || loadedSound != sound)
             {
-                stream = typeof(NotificationSounds).Assembly.GetManifestResourceStream("WallpaperControl.NotificationChime.wav")
+                player?.Stop(); player?.Dispose(); stream?.Dispose(); player = null; stream = null;
+                string asset = sound switch { NotificationSoundKind.Soft => "Soft", NotificationSoundKind.Bell => "Bell", NotificationSoundKind.Triad => "Triad", _ => "Chime" };
+                stream = typeof(NotificationSounds).Assembly.GetManifestResourceStream($"WallpaperControl.Notification{asset}.wav")
                     ?? throw new InvalidOperationException("Notification sound resource missing.");
-                player = new SoundPlayer(stream); player.Load();
+                player = new SoundPlayer(stream); player.Load(); loadedSound = sound;
             }
             player.Play();
         }

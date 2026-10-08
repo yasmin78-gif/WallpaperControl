@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ namespace WallpaperControl
         private bool loadFailed;
         public WebWidgetSettings Web { get; set; } = new();
         public NotificationSoundKind NotificationSound { get; set; } = NotificationSoundKind.Chime;
+        public NotificationSoundPreferences NotificationTones { get; set; } = new();
+        public FeedWidgetSettings Feed { get; set; } = new();
         public bool PackageStatusNotifications { get; set; }
 
         public bool TwitchEnabled { get; set; }
@@ -92,8 +94,10 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.Feed = FeedWidgetSettings.Parse(key.GetValue("FeedWidgetConfiguration") as string ?? "{}");
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
                 result.NotificationSound = NotificationSounds.Normalize(ReadInt(key, "NotificationSound", (int)NotificationSoundKind.Chime));
+                result.NotificationTones = NotificationSoundPreferences.Parse(key.GetValue("NotificationTones") as string, result.NotificationSound);
                 result.PackageStatusNotifications = ReadBool(key, "PackageStatusNotifications", false);
 
                 result.TwitchEnabled = ReadBool(key, "TwitchWidgetEnabled", false);
@@ -191,6 +195,8 @@ namespace WallpaperControl
                 using RegistryKey key = Registry.CurrentUser.CreateSubKey(registryPath);
                 Web.Normalize();
                 key.SetValue("NotificationSound", (int)NotificationSounds.Normalize((int)NotificationSound), RegistryValueKind.DWord);
+                key.SetValue("NotificationTones", System.Text.Json.JsonSerializer.Serialize(NotificationTones), RegistryValueKind.String);
+                key.SetValue("FeedWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Feed), RegistryValueKind.String);
                 key.SetValue("PackageStatusNotifications", PackageStatusNotifications ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
                 key.SetValue("TwitchWidgetEnabled", TwitchEnabled ? 1 : 0, RegistryValueKind.DWord);
@@ -282,6 +288,7 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
+            Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
             NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,
             TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,
             TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes),

@@ -1,4 +1,4 @@
-namespace WallpaperControl;
+﻿namespace WallpaperControl;
 
 internal sealed partial class WidgetManager
 {
@@ -25,7 +25,7 @@ internal sealed partial class WidgetManager
         using var dialog = new TwitchConnectForm(Twitch, language, dark);
         if (dialog.ShowDialog(owner) == DialogResult.OK && twitchWidget != null) _ = Twitch.RefreshAsync();
     }
-    internal void SetTwitchPowerSuspended(bool value) { twitchNotifications?.SetSuspended(value || activitySuspended); if (value) ClearTwitchNotifications?.Invoke(); twitchScheduler?.SetPowerSuspended(value); twitchWidget?.SetPowerSuspended(value); }
+    internal void SetTwitchPowerSuspended(bool value) { feedWidget?.SetPowerSuspended(value); feeds?.SetSuspended(value || activitySuspended); twitchNotifications?.SetSuspended(value || activitySuspended); if (value) { ClearTwitchNotifications?.Invoke(); ClearFeedNotifications?.Invoke(); } twitchScheduler?.SetPowerSuspended(value); twitchWidget?.SetPowerSuspended(value); }
     private void ApplyTwitchWidget(WidgetSettings target, bool restoreLocations)
     {
         if (!target.TwitchEnabled)

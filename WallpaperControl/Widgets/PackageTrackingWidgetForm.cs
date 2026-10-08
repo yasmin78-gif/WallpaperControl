@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 
@@ -195,7 +195,7 @@ internal sealed class PackageTrackingWidgetForm : Form
             DateTimeOffset? updated = PackagePresentation.LastUpdate(shipments);
             if (updated != null && error == null)
                 g.DrawString(PackagePresentation.Format("PackageUpdated", PackagePresentation.Date(updated, lang), lang), font, muted, UpdatedBounds, line);
-            if (viewport.CanScroll) { g.FillRectangle(muted, viewport.Track); g.FillRectangle(accent, viewport.Thumb); }
+            WidgetScrollbar.Draw(g, viewport, dark);
             if (error != null) g.DrawString(error, font, muted, new RectangleF(14, viewport.LogicalHeight - 24, LogicalWidth - 28, 22), line);
             return bitmap;
         }

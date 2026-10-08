@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -150,7 +150,7 @@ namespace WallpaperControl
                     automaticUpdateCheckEnabled,
                     pauseOnFullscreen,
                     windowOpacityPercent,
-                    widgetManager.Settings.NotificationSound);
+                    widgetManager.Settings.NotificationSound, widgetManager.Settings.NotificationTones);
 
             string languageBefore =
                 Localization.CurrentLanguage;
@@ -295,9 +295,10 @@ namespace WallpaperControl
             }
 
             WidgetSettings notificationSettings = widgetManager.Settings;
-            if (notificationSettings.NotificationSound != dialog.NotificationSound)
+            if (notificationSettings.NotificationTones != dialog.NotificationTones)
             {
                 notificationSettings.NotificationSound = dialog.NotificationSound;
+                notificationSettings.NotificationTones = dialog.NotificationTones;
                 widgetManager.CommitPreview(notificationSettings);
             }
             widgetEditor?.LoadSettings(widgetManager.Settings);

@@ -1,4 +1,4 @@
-extern alias WallpaperApp;
+﻿extern alias WallpaperApp;
 using App = WallpaperApp::WallpaperControl;
 using System.Drawing;
 using System.Globalization;
@@ -9,7 +9,7 @@ internal static class WidgetNavigationTests
 {
     private const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
     private static readonly string[] Languages = { "de", "en", "fr", "es", "ja" };
-    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather", "WebTitle", "PackageTitle" };
+    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather", "WebTitle", "PackageTitle", "TwitchTitle", "FeedTitle" };
     private static readonly float[] Scales = { 1, 1.5f, 2 };
     private static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, Members)!.GetValue(value)!;
     private static object? Invoke(object value, string name, params object[] args) => value.GetType().GetMethod(name, Members)!.Invoke(value, args);
@@ -118,6 +118,8 @@ internal static class WidgetNavigationTests
         {
                 main.Opacity = 0; main.Show();
                 var editor = Field<App.WidgetSettingsEditor>(main, "widgetEditor");
+                using var isolatedTwitch = new App.TwitchService(new App.TwitchApi(), new App.TwitchTokenStore(RegistryPath()));
+                editor.ConfigureTwitch(isolatedTwitch, (_, _, _) => { });
                 var startupNavigation = Field<FlowLayoutPanel>(editor, "navigation");
                 int startupWidth = startupNavigation.Width;
                 main.WindowState = FormWindowState.Minimized;
@@ -143,7 +145,7 @@ internal static class WidgetNavigationTests
                 editor.ApplyPresentation(false, language);
                 check(editor.WidgetKeys.Order().SequenceEqual(Keys.Order()) && editor.WidgetKeys.Select(k => App.Localization.Get(k, language))
                     .SequenceEqual(editor.WidgetKeys.Select(k => App.Localization.Get(k, language)).OrderBy(n => n, StringComparer.Create(CultureInfo.GetCultureInfo(language), true))),
-                    $"V2 {language}/{scale} all nine widgets sort by their translated names");
+                    $"V2 {language}/{scale} all widgets sort by their translated names");
                 ScaleFonts(main, scale, scaledFonts);
                 main.Scale(new SizeF(scale, scale)); main.PerformLayout();
                 var navigation = Field<FlowLayoutPanel>(editor, "navigation");
@@ -159,7 +161,7 @@ internal static class WidgetNavigationTests
                 foreach (string key in Keys) { editor.SelectWidget(key); check(editor.SelectedKey == key, $"V2 {language}/{scale} opens {key}"); }
                 using App.SettingsForm general = new(false, "system", 0, 0, 0, 0, 0, 0, 0, 0, "", true, false, true, true, true, 92);
                 var generalPages = Field<TabControl>(general, "settingsTabControl");
-                check(generalPages.TabPages.Count == 5 && generalPages.TabPages.Cast<TabPage>().All(p => !Keys.Contains((string)p.Tag!)), $"V2 {language}/{scale} general Settings contains no widget configuration");
+                check(generalPages.TabPages.Count == 6 && generalPages.TabPages.Cast<TabPage>().All(p => !Keys.Contains((string)p.Tag!)), $"V2 {language}/{scale} general Settings contains no widget configuration");
                 foreach (bool dark in new[] { false, true })
                 {
                     typeof(App.MainForm).GetField("themeMode", Members)!.SetValue(main, dark ? "dark" : "light");

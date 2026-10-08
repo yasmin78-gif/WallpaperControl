@@ -1687,4 +1687,49 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="PackageStatusNotifications" xml:space="preserve"><value>Notifier les changements de statut des colis</value></data>
   <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Statut du colis modifié</value></data>
   <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0} : {1}. Cliquez pour ouvrir les détails du colis.</value></data>
+  <data name="FeedTitle" xml:space="preserve"><value>Flux</value></data>
+  <data name="FeedEnabled" xml:space="preserve"><value>Activer le widget de flux</value></data>
+  <data name="FeedName" xml:space="preserve"><value>Titre du flux</value></data>
+  <data name="FeedAddress" xml:space="preserve"><value>Adresse du flux (RSS/Atom)</value></data>
+  <data name="FeedAdd" xml:space="preserve"><value>Ajouter un flux</value></data>
+  <data name="FeedEdit" xml:space="preserve"><value>Modifier le flux</value></data>
+  <data name="FeedManage" xml:space="preserve"><value>Gérer les flux</value></data>
+  <data name="FeedCheck" xml:space="preserve"><value>Vérifier le flux</value></data>
+  <data name="FeedChecking" xml:space="preserve"><value>Vérification …</value></data>
+  <data name="FeedReady" xml:space="preserve"><value>Flux vérifié</value></data>
+  <data name="FeedEmpty" xml:space="preserve"><value>Aucun article. Ajoutez un flux via le menu.</value></data>
+  <data name="FeedRefreshFailed" xml:space="preserve"><value>Échec de mise à jour ; les articles restent visibles.</value></data>
+  <data name="FeedUpdated" xml:space="preserve"><value>Mis à jour : {0}</value></data>
+  <data name="FeedSelect" xml:space="preserve"><value>Choisir un flux</value></data>
+  <data name="FeedAll" xml:space="preserve"><value>Tous les flux</value></data>
+  <data name="FeedDisplay" xml:space="preserve"><value>Choisir l’affichage</value></data>
+  <data name="FeedModeList" xml:space="preserve"><value>Liste</value></data>
+  <data name="FeedModeFocusFirst" xml:space="preserve"><value>Mettre le premier article en avant</value></data>
+  <data name="FeedModeTitles" xml:space="preserve"><value>Titres uniquement</value></data>
+  <data name="FeedRefresh" xml:space="preserve"><value>Actualiser</value></data>
+  <data name="FeedHint" xml:space="preserve"><value>RSS et Atom. Cliquez sur un article pour l’ouvrir. Gérez les flux via le menu à trois points.</value></data>
+  <data name="FeedInterval15" xml:space="preserve"><value>15 min</value></data>
+  <data name="FeedInterval30" xml:space="preserve"><value>30 min</value></data>
+  <data name="FeedInterval60" xml:space="preserve"><value>1 h</value></data>
+  <data name="FeedInterval120" xml:space="preserve"><value>2 h</value></data>
+  <data name="FeedInterval360" xml:space="preserve"><value>6 h</value></data>
+  <data name="FeedInterval720" xml:space="preserve"><value>12 h</value></data>
+  <data name="FeedInterval1440" xml:space="preserve"><value>1 jour</value></data>
+  <data name="FeedInterval10080" xml:space="preserve"><value>1 semaine</value></data>
+  <data name="FeedInterval0" xml:space="preserve"><value>Manuellement</value></data>
+  <data name="FeedPeriodSelect" xml:space="preserve"><value>Choisir la période</value></data>
+  <data name="FeedPeriodAll" xml:space="preserve"><value>Tous les articles disponibles</value></data>
+  <data name="FeedPeriodDay" xml:space="preserve"><value>Dernières 24 heures</value></data>
+  <data name="FeedPeriodWeek" xml:space="preserve"><value>Derniers 7 jours</value></data>
+  <data name="FeedPeriodMonth" xml:space="preserve"><value>Dernier mois</value></data>
+  <data name="FeedNoMatching" xml:space="preserve"><value>Aucun article dans la période choisie.</value></data>
+  <data name="NotificationSoundSoft" xml:space="preserve"><value>Son doux</value></data>
+  <data name="NotificationSoundBell" xml:space="preserve"><value>Cloche claire</value></data>
+  <data name="NotificationSoundTriad" xml:space="preserve"><value>Carillon à trois notes</value></data>
+  <data name="NotesReminderTone" xml:space="preserve"><value>Rappels de notes</value></data>
+  <data name="NotificationTypeSoundHint" xml:space="preserve"><value>Choisissez un son par type. Désactivé laisse les notifications silencieuses. Activez les alertes dans le widget ou le flux.</value></data>
+  <data name="FeedNotifications" xml:space="preserve"><value>Notifier les nouveaux articles</value></data>
+  <data name="FeedNotificationTitle" xml:space="preserve"><value>{0} : {1} nouveaux articles</value></data>
+  <data name="FeedNotificationBody" xml:space="preserve"><value>Cliquez pour afficher le flux.</value></data>
+  <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0} : 1 nouvel article</value></data>
 </root>

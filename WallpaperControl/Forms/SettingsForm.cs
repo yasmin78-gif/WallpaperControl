@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -16,7 +16,7 @@ namespace WallpaperControl
         private void ResetAllSettings()
         {
             SetDefaultHotkeys();
-            LocalizeNotificationSounds(NotificationSoundKind.Chime);
+            ResetNotificationTones();
 
             rejectRootTextBox.Text = "";
             rejectSubfolderCheckBox.Checked = true;
@@ -181,7 +181,7 @@ namespace WallpaperControl
             Localization.SetLanguage(
                 previewLanguageCode);
 
-            NotificationSound = SelectedNotificationSound;
+            CaptureNotificationTones();
             DialogResult = DialogResult.OK;
             Close();
         }

@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 
@@ -174,7 +174,7 @@ internal sealed class TwitchWidgetForm : Form
             string footer = service.Error != TwitchError.None ? Localization.Get("TwitchError" + service.Error, lang)
                 : service.LastUpdated is DateTimeOffset updated ? string.Format(culture, Localization.Get("TwitchUpdated", lang), updated.ToLocalTime().ToString("g", culture)) : "";
             g.DrawString(footer, font, muted, new RectangleF(14, viewport.ContentBounds.Bottom, LogicalWidth - 28, 23), line);
-            if (viewport.CanScroll) { g.FillRectangle(muted, viewport.Track); g.FillRectangle(accent, viewport.Thumb); }
+            WidgetScrollbar.Draw(g, viewport, dark);
             return bitmap;
         }
         catch { bitmap.Dispose(); throw; }

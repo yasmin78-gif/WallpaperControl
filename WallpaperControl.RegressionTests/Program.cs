@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Collections.Concurrent;
 using WallpaperControl;
 using System.Text;
@@ -111,6 +111,12 @@ try
     { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--wallpaper-widget-mode-checks")
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--feed-notification-checks")
+    { FeedNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused feed notification and tone checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--widget-navigation-checks")
+    { WidgetNavigationTests.Run(Check); Console.WriteLine($"All {passed} focused widget navigation checks passed."); return 0; }
+    if (args.Length is 1 or 2 && args[0] == "--feed-checks")
+    { FeedTests.Run(Check, args.Length == 2 ? args[1] : null); Console.WriteLine($"All {passed} focused feed checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--notification-feature-checks")
     { NotificationFeatureTests.Run(Check); Console.WriteLine($"All {passed} focused sound/package notification checks passed."); return 0; }
     if (args.Length is 1 or 2 && args[0] == "--twitch-checks")

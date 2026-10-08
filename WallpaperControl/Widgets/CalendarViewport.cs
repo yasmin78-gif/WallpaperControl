@@ -24,7 +24,7 @@ namespace WallpaperControl
         internal float MaxScrollOffset => Math.Max(0, TotalContentHeight - ViewportHeight);
         internal bool CanScroll => MaxScrollOffset > 0 && ViewportHeight > 0;
         internal RectangleF ContentBounds => new(12, HeaderHeight, layoutWidth - (CanScroll ? 42 : 24), ViewportHeight);
-        internal RectangleF Track => CanScroll ? new(layoutWidth - 18, HeaderHeight, 6, ViewportHeight) : RectangleF.Empty;
+        internal RectangleF Track => CanScroll ? new(layoutWidth - 18, HeaderHeight, 10, ViewportHeight) : RectangleF.Empty;
         internal RectangleF Thumb
         {
             get

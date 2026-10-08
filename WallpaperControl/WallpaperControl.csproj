@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -31,6 +31,10 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="WallpaperControl.ico" />
+
+        <EmbeddedResource Include="Assets/NotificationSoft.wav" LogicalName="WallpaperControl.NotificationSoft.wav" />
+        <EmbeddedResource Include="Assets/NotificationBell.wav" LogicalName="WallpaperControl.NotificationBell.wav" />
+        <EmbeddedResource Include="Assets/NotificationTriad.wav" LogicalName="WallpaperControl.NotificationTriad.wav" />
         <EmbeddedResource Include="Assets/NotificationChime.wav" LogicalName="WallpaperControl.NotificationChime.wav" />
 		<PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
 		<PackageReference Include="Ical.Net" Version="5.2.3" />

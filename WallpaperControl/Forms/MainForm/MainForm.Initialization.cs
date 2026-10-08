@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -552,7 +552,7 @@ namespace WallpaperControl
 
             trayIcon.DoubleClick +=
                 (_, _) => RestoreFromTray();
-            desktopNotifications = new(trayIcon, sound: () => widgetManager.NotificationSound, playSound: widgetManager.PlayNotificationSound);
+            desktopNotifications = new(trayIcon, sound: () => widgetManager.NotificationSound, playSound: widgetManager.PlayNotificationSound, soundForGroup: widgetManager.GetNotificationSound);
             widgetManager.ShowTwitchNotification = desktopNotifications.Show;
             widgetManager.ClearTwitchNotifications = () => desktopNotifications.Clear("twitch");
             widgetManager.ShowPackageNotification = (shipment, language) => desktopNotifications.Show(
@@ -560,6 +560,10 @@ namespace WallpaperControl
                 string.Format(Localization.Get("PackageStatusNotificationBody", language), PackagePresentation.Name(shipment, language), PackagePresentation.ShipmentStatus(shipment, language)),
                 () => widgetManager.OpenPackageNotification(shipment.Id), "package");
             widgetManager.ClearPackageNotifications = () => desktopNotifications.Clear("package");
+            widgetManager.ShowFeedNotification = (source,count,language) => desktopNotifications.Show(
+                string.Format(Localization.Get(count == 1 ? "FeedNotificationTitleOne" : "FeedNotificationTitle",language),source.Title,count),
+                Localization.Get("FeedNotificationBody",language), () => widgetManager.OpenFeedNotification(source.Id), "feed");
+            widgetManager.ClearFeedNotifications = () => desktopNotifications.Clear("feed");
 
             wallpaperRefreshTimer =
                 new System.Windows.Forms.Timer

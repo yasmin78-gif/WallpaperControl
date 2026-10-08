@@ -1,4 +1,4 @@
-extern alias WallpaperApp;
+﻿extern alias WallpaperApp;
 using App = WallpaperApp::WallpaperControl;
 using Microsoft.Win32;
 using System.Reflection;
@@ -125,7 +125,7 @@ internal static class NotificationFeatureTests
             var tabs = (TabControl)typeof(App.SettingsForm).GetField("settingsTabControl", Flags)!.GetValue(dialog)!;
             check(tabs.TabPages.Cast<TabPage>().Any(page => (string?)page.Tag == "NotificationSettings"), "Global settings contain notification page");
             check(combo.SelectedIndex == 0 && dialog.NotificationSound == App.NotificationSoundKind.Off, "Global settings load saved sound");
-            check(combo.Items.Count == 3, "Sound UI exposes exactly three choices");
+            check(combo.Items.Count == 6, "Sound UI exposes all six tone choices");
             combo.SelectedIndex = 2;
             foreach (var language in new[] { "de", "en", "fr", "es", "ja" })
             {

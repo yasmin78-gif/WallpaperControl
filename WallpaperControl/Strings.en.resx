@@ -1687,4 +1687,49 @@ Would you like to open the release page?</value>
   <data name="PackageStatusNotifications" xml:space="preserve"><value>Notify when a package status changes</value></data>
   <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Package status changed</value></data>
   <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}: {1}. Click to open package details.</value></data>
+  <data name="FeedTitle" xml:space="preserve"><value>Feeds</value></data>
+  <data name="FeedEnabled" xml:space="preserve"><value>Enable feed widget</value></data>
+  <data name="FeedName" xml:space="preserve"><value>Feed title</value></data>
+  <data name="FeedAddress" xml:space="preserve"><value>Feed address (RSS/Atom)</value></data>
+  <data name="FeedAdd" xml:space="preserve"><value>Add feed</value></data>
+  <data name="FeedEdit" xml:space="preserve"><value>Edit feed</value></data>
+  <data name="FeedManage" xml:space="preserve"><value>Manage feeds</value></data>
+  <data name="FeedCheck" xml:space="preserve"><value>Check feed</value></data>
+  <data name="FeedChecking" xml:space="preserve"><value>Checking …</value></data>
+  <data name="FeedReady" xml:space="preserve"><value>Feed checked successfully</value></data>
+  <data name="FeedEmpty" xml:space="preserve"><value>No feed entries yet. Add a feed from the menu.</value></data>
+  <data name="FeedRefreshFailed" xml:space="preserve"><value>Refresh failed; existing entries remain visible.</value></data>
+  <data name="FeedUpdated" xml:space="preserve"><value>Updated: {0}</value></data>
+  <data name="FeedSelect" xml:space="preserve"><value>Select feed</value></data>
+  <data name="FeedAll" xml:space="preserve"><value>All feeds</value></data>
+  <data name="FeedDisplay" xml:space="preserve"><value>Select display</value></data>
+  <data name="FeedModeList" xml:space="preserve"><value>List</value></data>
+  <data name="FeedModeFocusFirst" xml:space="preserve"><value>Focus first item</value></data>
+  <data name="FeedModeTitles" xml:space="preserve"><value>Titles only</value></data>
+  <data name="FeedRefresh" xml:space="preserve"><value>Refresh now</value></data>
+  <data name="FeedHint" xml:space="preserve"><value>RSS and Atom. Click an entry to open it. Use the three-dot menu to manage feeds and display.</value></data>
+  <data name="FeedInterval15" xml:space="preserve"><value>Every 15 minutes</value></data>
+  <data name="FeedInterval30" xml:space="preserve"><value>Every 30 minutes</value></data>
+  <data name="FeedInterval60" xml:space="preserve"><value>Hourly</value></data>
+  <data name="FeedInterval120" xml:space="preserve"><value>Every 2 hours</value></data>
+  <data name="FeedInterval360" xml:space="preserve"><value>Every 6 hours</value></data>
+  <data name="FeedInterval720" xml:space="preserve"><value>Every 12 hours</value></data>
+  <data name="FeedInterval1440" xml:space="preserve"><value>Daily</value></data>
+  <data name="FeedInterval10080" xml:space="preserve"><value>Weekly</value></data>
+  <data name="FeedInterval0" xml:space="preserve"><value>Manual only</value></data>
+  <data name="FeedPeriodSelect" xml:space="preserve"><value>Select time range</value></data>
+  <data name="FeedPeriodAll" xml:space="preserve"><value>All available entries</value></data>
+  <data name="FeedPeriodDay" xml:space="preserve"><value>Last 24 hours</value></data>
+  <data name="FeedPeriodWeek" xml:space="preserve"><value>Last 7 days</value></data>
+  <data name="FeedPeriodMonth" xml:space="preserve"><value>Last month</value></data>
+  <data name="FeedNoMatching" xml:space="preserve"><value>No entries in the selected time range.</value></data>
+  <data name="NotificationSoundSoft" xml:space="preserve"><value>Soft tone</value></data>
+  <data name="NotificationSoundBell" xml:space="preserve"><value>Bright bell</value></data>
+  <data name="NotificationSoundTriad" xml:space="preserve"><value>Gentle three-tone chime</value></data>
+  <data name="NotesReminderTone" xml:space="preserve"><value>Note reminders</value></data>
+  <data name="NotificationTypeSoundHint" xml:space="preserve"><value>Choose a sound per notification type. Off keeps notifications silent. Enable notifications in the respective widget or feed.</value></data>
+  <data name="FeedNotifications" xml:space="preserve"><value>Notify about new entries</value></data>
+  <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: {1} new entries</value></data>
+  <data name="FeedNotificationBody" xml:space="preserve"><value>Click to view the feed.</value></data>
+  <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 1 new entry</value></data>
 </root>

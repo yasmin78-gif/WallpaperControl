@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -368,12 +368,7 @@ namespace WallpaperControl
                     {
                         GraphicsState scrollbarState = g.Save();
                         g.SetClip(new RectangleF(12, CalendarViewport.HeaderHeight, WidgetWidth - 24, viewport.ViewportHeight));
-                        using SolidBrush trackBrush = new(Color.FromArgb(70, titleColor));
-                        using SolidBrush thumbBrush = new(Color.FromArgb(210, titleColor));
-                        using Pen thumbBorder = new(Color.FromArgb(240, titleColor));
-                        g.FillRectangle(trackBrush, viewport.Track);
-                        g.FillRectangle(thumbBrush, viewport.Thumb);
-                        g.DrawRectangle(thumbBorder, viewport.Thumb.X, viewport.Thumb.Y, viewport.Thumb.Width, viewport.Thumb.Height);
+                        WidgetScrollbar.Draw(g, viewport);
                         g.Restore(scrollbarState);
                     }
 

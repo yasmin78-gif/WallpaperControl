@@ -1687,4 +1687,49 @@ Versión instalada: {0}
   <data name="PackageStatusNotifications" xml:space="preserve"><value>Avisar cuando cambie el estado de un paquete</value></data>
   <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>Estado del paquete actualizado</value></data>
   <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}: {1}. Haz clic para abrir los detalles del paquete.</value></data>
+  <data name="FeedTitle" xml:space="preserve"><value>Fuentes</value></data>
+  <data name="FeedEnabled" xml:space="preserve"><value>Activar widget de fuentes</value></data>
+  <data name="FeedName" xml:space="preserve"><value>Título de la fuente</value></data>
+  <data name="FeedAddress" xml:space="preserve"><value>Dirección (RSS/Atom)</value></data>
+  <data name="FeedAdd" xml:space="preserve"><value>Añadir fuente</value></data>
+  <data name="FeedEdit" xml:space="preserve"><value>Editar fuente</value></data>
+  <data name="FeedManage" xml:space="preserve"><value>Gestionar fuentes</value></data>
+  <data name="FeedCheck" xml:space="preserve"><value>Comprobar fuente</value></data>
+  <data name="FeedChecking" xml:space="preserve"><value>Comprobando …</value></data>
+  <data name="FeedReady" xml:space="preserve"><value>Fuente comprobada</value></data>
+  <data name="FeedEmpty" xml:space="preserve"><value>No hay artículos. Añade una fuente desde el menú.</value></data>
+  <data name="FeedRefreshFailed" xml:space="preserve"><value>Error al actualizar; los artículos anteriores siguen visibles.</value></data>
+  <data name="FeedUpdated" xml:space="preserve"><value>Actualizado: {0}</value></data>
+  <data name="FeedSelect" xml:space="preserve"><value>Seleccionar fuente</value></data>
+  <data name="FeedAll" xml:space="preserve"><value>Todas las fuentes</value></data>
+  <data name="FeedDisplay" xml:space="preserve"><value>Seleccionar vista</value></data>
+  <data name="FeedModeList" xml:space="preserve"><value>Lista</value></data>
+  <data name="FeedModeFocusFirst" xml:space="preserve"><value>Destacar primer artículo</value></data>
+  <data name="FeedModeTitles" xml:space="preserve"><value>Solo títulos</value></data>
+  <data name="FeedRefresh" xml:space="preserve"><value>Actualizar ahora</value></data>
+  <data name="FeedHint" xml:space="preserve"><value>RSS y Atom. Pulsa un artículo para abrirlo. Gestiona las fuentes desde el menú de tres puntos.</value></data>
+  <data name="FeedInterval15" xml:space="preserve"><value>15 min</value></data>
+  <data name="FeedInterval30" xml:space="preserve"><value>30 min</value></data>
+  <data name="FeedInterval60" xml:space="preserve"><value>1 h</value></data>
+  <data name="FeedInterval120" xml:space="preserve"><value>2 h</value></data>
+  <data name="FeedInterval360" xml:space="preserve"><value>6 h</value></data>
+  <data name="FeedInterval720" xml:space="preserve"><value>12 h</value></data>
+  <data name="FeedInterval1440" xml:space="preserve"><value>Diario</value></data>
+  <data name="FeedInterval10080" xml:space="preserve"><value>Semanal</value></data>
+  <data name="FeedInterval0" xml:space="preserve"><value>Solo manual</value></data>
+  <data name="FeedPeriodSelect" xml:space="preserve"><value>Seleccionar período</value></data>
+  <data name="FeedPeriodAll" xml:space="preserve"><value>Todos los artículos disponibles</value></data>
+  <data name="FeedPeriodDay" xml:space="preserve"><value>Últimas 24 horas</value></data>
+  <data name="FeedPeriodWeek" xml:space="preserve"><value>Últimos 7 días</value></data>
+  <data name="FeedPeriodMonth" xml:space="preserve"><value>Último mes</value></data>
+  <data name="FeedNoMatching" xml:space="preserve"><value>No hay artículos en el período seleccionado.</value></data>
+  <data name="NotificationSoundSoft" xml:space="preserve"><value>Tono suave</value></data>
+  <data name="NotificationSoundBell" xml:space="preserve"><value>Campana clara</value></data>
+  <data name="NotificationSoundTriad" xml:space="preserve"><value>Tres tonos suaves</value></data>
+  <data name="NotesReminderTone" xml:space="preserve"><value>Recordatorios de notas</value></data>
+  <data name="NotificationTypeSoundHint" xml:space="preserve"><value>Elige un sonido por tipo. Desactivado mantiene las notificaciones silenciosas. Activa las alertas en el widget o la fuente.</value></data>
+  <data name="FeedNotifications" xml:space="preserve"><value>Notificar nuevos artículos</value></data>
+  <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: {1} artículos nuevos</value></data>
+  <data name="FeedNotificationBody" xml:space="preserve"><value>Pulsa para ver la fuente.</value></data>
+  <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 1 artículo nuevo</value></data>
 </root>

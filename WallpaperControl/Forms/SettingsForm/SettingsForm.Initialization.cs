@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -48,7 +48,8 @@ namespace WallpaperControl
             bool automaticUpdateCheckEnabled,
             bool pauseOnFullscreen,
             int windowOpacityPercent,
-            NotificationSoundKind notificationSound = NotificationSoundKind.Chime)
+            NotificationSoundKind notificationSound = NotificationSoundKind.Chime,
+            NotificationSoundPreferences? notificationTones = null)
         {
             #region Window and preview state
 
@@ -136,7 +137,7 @@ namespace WallpaperControl
             TabPage appearancePage = CreateSettingsPage("SettingsNavAppearance");
             TabPage languagePage = CreateSettingsPage("SettingsNavLanguage");
             TabPage notificationPage = CreateSettingsPage("NotificationSettings");
-            InitializeNotificationPage(notificationPage, notificationSound);
+            InitializeNotificationPage(notificationPage, notificationSound, notificationTones);
 
             tabControl.TabPages.Add(hotkeysPage);
             tabControl.TabPages.Add(generalPage);

@@ -13,6 +13,7 @@ internal sealed class DesktopNotifications : IDisposable
     private Notice? active;
     private readonly NativeNotificationBridge? bridge;
     private readonly Func<NotificationSoundKind> sound;
+    private readonly Func<string, NotificationSoundKind>? soundForGroup;
     private readonly Action<NotificationSoundKind>? playSound;
     private NotificationSoundKind activeSound;
     private bool soundPlayed;
@@ -22,9 +23,10 @@ internal sealed class DesktopNotifications : IDisposable
     private bool showing, disposed, activating;
     internal DesktopNotifications(NotifyIcon icon, Func<bool?>? fullscreen = null,
         Action<string, string>? display = null, Func<Uri, bool>? open = null, Func<bool>? visible = null,
-        Func<NotificationSoundKind>? sound = null, Action<NotificationSoundKind>? playSound = null, Func<DateTimeOffset>? now = null)
+        Func<NotificationSoundKind>? sound = null, Action<NotificationSoundKind>? playSound = null, Func<DateTimeOffset>? now = null, Func<string, NotificationSoundKind>? soundForGroup = null)
     {
         this.icon = icon; this.fullscreen = fullscreen ?? FullscreenActivityDetector.GetFullscreenState;
+        this.soundForGroup = soundForGroup;
         this.sound = sound ?? (() => NotificationSoundKind.WindowsStandard); this.playSound = playSound;
         this.now = now ?? (() => DateTimeOffset.UtcNow);
         if (display == null) bridge = new(icon, OnShown, hidden: OnHidden);
@@ -72,7 +74,7 @@ internal sealed class DesktopNotifications : IDisposable
         while (pending.TryDequeue(out var item))
         {
             if (now() - item.Created >= TimeSpan.FromMinutes(2)) continue;
-            active = item; activeSound = sound(); soundPlayed = false; noticeDisplayed = false;
+            active = item; activeSound = soundForGroup?.Invoke(item.Group) ?? sound(); soundPlayed = false; noticeDisplayed = false;
             displayRequestedAt = now();
             showing = true;
             try { display(item.Title, item.Body); }
@@ -104,7 +106,7 @@ internal sealed class DesktopNotifications : IDisposable
         noticeDisplayed = true;
         if (soundPlayed || fullscreen() != false) return;
         soundPlayed = true;
-        if (activeSound == NotificationSoundKind.Chime)
+        if (activeSound is not (NotificationSoundKind.Off or NotificationSoundKind.WindowsStandard))
         {
             try { playSound?.Invoke(activeSound); }
             catch (Exception ex) { AppLogger.Info($"Notification sound unavailable: {ex.GetType().Name}."); }

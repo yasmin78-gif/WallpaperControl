@@ -1659,4 +1659,49 @@
   <data name="PackageStatusNotifications" xml:space="preserve"><value>荷物の状態が変わったら通知する</value></data>
   <data name="PackageStatusNotificationTitle" xml:space="preserve"><value>荷物の状態が変わりました</value></data>
   <data name="PackageStatusNotificationBody" xml:space="preserve"><value>{0}：{1}。クリックして荷物の詳細を開きます。</value></data>
+  <data name="FeedTitle" xml:space="preserve"><value>フィード</value></data>
+  <data name="FeedEnabled" xml:space="preserve"><value>フィードウィジェットを有効にする</value></data>
+  <data name="FeedName" xml:space="preserve"><value>フィードのタイトル</value></data>
+  <data name="FeedAddress" xml:space="preserve"><value>フィードURL (RSS/Atom)</value></data>
+  <data name="FeedAdd" xml:space="preserve"><value>フィードを追加</value></data>
+  <data name="FeedEdit" xml:space="preserve"><value>フィードを編集</value></data>
+  <data name="FeedManage" xml:space="preserve"><value>フィードを管理</value></data>
+  <data name="FeedCheck" xml:space="preserve"><value>フィードを確認</value></data>
+  <data name="FeedChecking" xml:space="preserve"><value>確認中 …</value></data>
+  <data name="FeedReady" xml:space="preserve"><value>フィードを確認しました</value></data>
+  <data name="FeedEmpty" xml:space="preserve"><value>記事がありません。メニューからフィードを追加してください。</value></data>
+  <data name="FeedRefreshFailed" xml:space="preserve"><value>更新に失敗しました。以前の記事を表示しています。</value></data>
+  <data name="FeedUpdated" xml:space="preserve"><value>更新: {0}</value></data>
+  <data name="FeedSelect" xml:space="preserve"><value>フィードを選択</value></data>
+  <data name="FeedAll" xml:space="preserve"><value>すべてのフィード</value></data>
+  <data name="FeedDisplay" xml:space="preserve"><value>表示を選択</value></data>
+  <data name="FeedModeList" xml:space="preserve"><value>リスト</value></data>
+  <data name="FeedModeFocusFirst" xml:space="preserve"><value>最初の記事を強調</value></data>
+  <data name="FeedModeTitles" xml:space="preserve"><value>タイトルのみ</value></data>
+  <data name="FeedRefresh" xml:space="preserve"><value>今すぐ更新</value></data>
+  <data name="FeedHint" xml:space="preserve"><value>RSSとAtomに対応。記事をクリックして開きます。三点メニューでフィードと表示を管理できます。</value></data>
+  <data name="FeedInterval15" xml:space="preserve"><value>15分</value></data>
+  <data name="FeedInterval30" xml:space="preserve"><value>30分</value></data>
+  <data name="FeedInterval60" xml:space="preserve"><value>1時間</value></data>
+  <data name="FeedInterval120" xml:space="preserve"><value>2時間</value></data>
+  <data name="FeedInterval360" xml:space="preserve"><value>6時間</value></data>
+  <data name="FeedInterval720" xml:space="preserve"><value>12時間</value></data>
+  <data name="FeedInterval1440" xml:space="preserve"><value>毎日</value></data>
+  <data name="FeedInterval10080" xml:space="preserve"><value>毎週</value></data>
+  <data name="FeedInterval0" xml:space="preserve"><value>手動のみ</value></data>
+  <data name="FeedPeriodSelect" xml:space="preserve"><value>期間を選択</value></data>
+  <data name="FeedPeriodAll" xml:space="preserve"><value>利用可能なすべての記事</value></data>
+  <data name="FeedPeriodDay" xml:space="preserve"><value>過去24時間</value></data>
+  <data name="FeedPeriodWeek" xml:space="preserve"><value>過去7日間</value></data>
+  <data name="FeedPeriodMonth" xml:space="preserve"><value>過去1か月</value></data>
+  <data name="FeedNoMatching" xml:space="preserve"><value>選択した期間の記事はありません。</value></data>
+  <data name="NotificationSoundSoft" xml:space="preserve"><value>柔らかな単音</value></data>
+  <data name="NotificationSoundBell" xml:space="preserve"><value>明るいベル</value></data>
+  <data name="NotificationSoundTriad" xml:space="preserve"><value>穏やかな三音</value></data>
+  <data name="NotesReminderTone" xml:space="preserve"><value>メモのリマインダー</value></data>
+  <data name="NotificationTypeSoundHint" xml:space="preserve"><value>種類ごとに通知音を選択します。オフは無音です。通知自体は各ウィジェットやフィードで有効にします。</value></data>
+  <data name="FeedNotifications" xml:space="preserve"><value>新しい記事を通知する</value></data>
+  <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: 新しい記事 {1} 件</value></data>
+  <data name="FeedNotificationBody" xml:space="preserve"><value>クリックしてフィードを表示します。</value></data>
+  <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 新しい記事 1 件</value></data>
 </root>

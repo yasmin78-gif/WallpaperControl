@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace WallpaperControl
 {
@@ -66,7 +66,11 @@ namespace WallpaperControl
             baseline = null;
             return true;
         }
-        private static bool Equal(WidgetSettings left, WidgetSettings right) =>
-            JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right);
+        private static bool Equal(WidgetSettings left, WidgetSettings right)
+        {
+            var comparable = right.Clone();
+            comparable.Feed.Sources = left.Feed.Sources.ToList(); comparable.Feed.Selected = left.Feed.Selected; comparable.Feed.Display = left.Feed.Display; comparable.Feed.Period = left.Feed.Period;
+            return JsonSerializer.Serialize(left) == JsonSerializer.Serialize(comparable);
+        }
     }
 }
