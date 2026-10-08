@@ -29,6 +29,7 @@ namespace WallpaperControl
         internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.NowPlaying.Enabled = nowPlayingEnabled.Checked; preview.NowPlaying.Locked = nowPlayingLocked.Checked; preview.NowPlaying.HideEmpty = nowPlayingHideEmpty.Checked; preview.NowPlaying.WheelVolume = nowPlayingWheel.Checked; preview.NowPlaying.Style = (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex);
             preview.Feed.Enabled = feedEnabled.Checked; preview.Feed.Locked = feedLocked.Checked; preview.Feed.Style = (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex); preview.Feed.MaximumHeight = (int)feedHeight.Value;
             preview.PackageStatusNotifications = packageNotifications.Checked;
             ReadWebControls(preview.Web);

@@ -27,8 +27,9 @@ namespace WallpaperControl
         /// <param name="form">The window whose native state or test controls are accessed.</param>
         /// <param name="location">The widget position in screen coordinates.</param>
         /// <param name="allowActivation">Whether an interactive widget may activate on a user click to receive keyboard input.</param>
+        /// <param name="showWindow">Whether desktop placement should also reveal the window.</param>
         /// <returns>True when the widget was attached to the desktop band; otherwise, false.</returns>
-        public static bool AttachToDesktop(Form form, Point location, bool allowActivation = false)
+        public static bool AttachToDesktop(Form form, Point location, bool allowActivation = false, bool showWindow = true)
         {
             if (form.IsDisposed || !form.IsHandleCreated)
                 return false;
@@ -53,7 +54,7 @@ namespace WallpaperControl
             Point safe = WidgetSettings.EnsureVisible(location, form.Size);
             form.Location = safe;
 
-            return PutInDesktopBand(form, safe, frameChanged: true);
+            return PutInDesktopBand(form, safe, frameChanged: true, showWindow: showWindow);
         }
 
         /// <summary>
@@ -89,7 +90,7 @@ namespace WallpaperControl
         /// <param name="location">The widget position in screen coordinates.</param>
         /// <param name="frameChanged">Whether native frame changes must be applied during placement.</param>
         /// <returns>True when the native window positioning operation succeeded.</returns>
-        private static bool PutInDesktopBand(Form form, Point location, bool frameChanged)
+        private static bool PutInDesktopBand(Form form, Point location, bool frameChanged, bool showWindow = true)
         {
             IntPtr progman = FindWindow("Progman", null);
             if (progman == IntPtr.Zero)
@@ -104,7 +105,7 @@ namespace WallpaperControl
 
             uint flags = SWP_NOSIZE |
                          SWP_NOACTIVATE |
-                         SWP_SHOWWINDOW |
+                         (showWindow ? SWP_SHOWWINDOW : 0) |
                          SWP_NOOWNERZORDER;
 
             if (frameChanged)

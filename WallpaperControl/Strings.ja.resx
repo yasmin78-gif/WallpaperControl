@@ -1704,4 +1704,13 @@
   <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: 新しい記事 {1} 件</value></data>
   <data name="FeedNotificationBody" xml:space="preserve"><value>クリックしてフィードを表示します。</value></data>
   <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 新しい記事 1 件</value></data>
+  <data name="NowPlayingTitle" xml:space="preserve"><value>再生中</value></data>
+  <data name="NowPlayingEnabled" xml:space="preserve"><value>メディア操作ウィジェットを表示</value></data>
+  <data name="NowPlayingHideEmpty" xml:space="preserve"><value>メディアセッションがない場合は非表示</value></data>
+  <data name="NowPlayingWheelVolume" xml:space="preserve"><value>マウスホイールでWindowsの音量を変更</value></data>
+  <data name="NowPlayingEmpty" xml:space="preserve"><value>再生なし</value></data>
+  <data name="NowPlayingUnavailable" xml:space="preserve"><value>メディア操作を利用できません</value></data>
+  <data name="NowPlayingAutomatic" xml:space="preserve"><value>自動（Windows）</value></data>
+  <data name="NowPlayingHint" xml:space="preserve"><value>Windowsのメディアセッションを操作します。カバー/タイトル：可能なら再生元を表示。進行バー：対応時にシーク。ホイール：任意のシステム音量。全画面中も再生元は一時停止しません。</value></data>
+  <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>メディア プレーヤー</value></data>
 </root>

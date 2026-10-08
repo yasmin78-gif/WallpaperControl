@@ -30,6 +30,7 @@
             InitializeWebPage(AddPage("WebTitle", "⊕"));
             InitializePackagePage(AddPage("PackageTitle", "◇"));
             InitializeFeedPage(AddPage("FeedTitle", "≋"));
+            InitializeNowPlayingPage(AddPage("NowPlayingTitle", "♫"));
             InitializeTwitchPage(AddPage("TwitchTitle", "◈"));
             #region Clock widget page
 

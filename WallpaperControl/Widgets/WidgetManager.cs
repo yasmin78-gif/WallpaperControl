@@ -83,6 +83,7 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            var mediaLocation = settings.NowPlaying.Location; settings.NowPlaying = previewSettings.NowPlaying.Clone(); settings.NowPlaying.Location = mediaLocation;
             settings.Feed.Enabled = previewSettings.Feed.Enabled; settings.Feed.Locked = previewSettings.Feed.Locked; settings.Feed.Style = previewSettings.Feed.Style; settings.Feed.MaximumHeight = previewSettings.Feed.MaximumHeight;
             settings.NotificationSound = previewSettings.NotificationSound; settings.PackageStatusNotifications = previewSettings.PackageStatusNotifications;
             settings.TwitchEnabled = previewSettings.TwitchEnabled; settings.TwitchLocked = previewSettings.TwitchLocked;
@@ -163,7 +164,7 @@ namespace WallpaperControl
             Point weatherLocation = settings.WeatherLocation;
             Point calendarLocation = settings.CalendarLocation;
 
-            PreserveFeedContents(committedSettings);
+            PreserveFeedContents(committedSettings); committedSettings.NowPlaying.Location = settings.NowPlaying.Location;
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
             settings.TwitchLocation = twitchLocation;
@@ -211,6 +212,7 @@ namespace WallpaperControl
             ApplyPackageWidget(target, restoreLocations);
             ApplyTwitchWidget(target, restoreLocations);
             ApplyFeedWidget(target, restoreLocations);
+            ApplyNowPlayingWidget(target, restoreLocations);
             ApplyWebWidget(target, restoreLocations);
             bool effectiveClockLocked = target.ClockLocked;
             bool effectiveNextLocked = target.NextLocked;
@@ -698,7 +700,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); }
+        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -740,6 +742,7 @@ namespace WallpaperControl
             packageScheduler?.SetSuspended(suspended);
             packageNotifications?.SetSuspended(suspended || packagePowerSuspended);
             if (suspended) ClearPackageNotifications?.Invoke();
+            nowPlayingWidget?.SetActivitySuspended(suspended);
             feedWidget?.SetActivitySuspended(suspended); feeds?.SetSuspended(suspended || packagePowerSuspended);
             twitchWidget?.SetActivitySuspended(suspended); twitchScheduler?.SetSuspended(suspended);
             twitchNotifications?.SetSuspended(suspended || packagePowerSuspended);
@@ -759,6 +762,7 @@ namespace WallpaperControl
         {
             DisposeTwitch();
             DisposeFeeds();
+            DisposeNowPlaying();
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
             packageScheduler?.Dispose(); packageScheduler = null;

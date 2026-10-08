@@ -35,7 +35,7 @@ namespace WallpaperControl
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
                 LoadTwitchControls(value);
-                LoadFeedControls(value);
+                LoadFeedControls(value); LoadNowPlayingControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -91,6 +91,7 @@ namespace WallpaperControl
             {
                 Localize(Controls);
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
+                RefreshWidgetStyleChoices(nowPlayingStyle, (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(feedStyle, (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(twitchStyle, (SystemWidgetStyle)Math.Max(0, twitchStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(packageStyle, (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex));

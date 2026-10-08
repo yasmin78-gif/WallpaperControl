@@ -1732,4 +1732,13 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: {1} neue Beiträge</value></data>
   <data name="FeedNotificationBody" xml:space="preserve"><value>Zum Anzeigen des Feeds klicken.</value></data>
   <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 1 neuer Beitrag</value></data>
+  <data name="NowPlayingTitle" xml:space="preserve"><value>Aktuelle Wiedergabe</value></data>
+  <data name="NowPlayingEnabled" xml:space="preserve"><value>Media-Control-Widget anzeigen</value></data>
+  <data name="NowPlayingHideEmpty" xml:space="preserve"><value>Ohne Mediensitzung ausblenden</value></data>
+  <data name="NowPlayingWheelVolume" xml:space="preserve"><value>Mausrad ändert Windows-Systemlautstärke</value></data>
+  <data name="NowPlayingEmpty" xml:space="preserve"><value>Keine Wiedergabe</value></data>
+  <data name="NowPlayingUnavailable" xml:space="preserve"><value>Mediensteuerung nicht verfügbar</value></data>
+  <data name="NowPlayingAutomatic" xml:space="preserve"><value>Automatisch (Windows)</value></data>
+  <data name="NowPlayingHint" xml:space="preserve"><value>Steuert Windows-Mediensitzungen. Cover/Titel: Quell-App anzeigen, soweit möglich. Fortschrittsbalken: Position ändern, wenn unterstützt. Mausrad: optional Systemlautstärke. Fullscreen-Pause pausiert niemals die Quell-App.</value></data>
+  <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>Medienwiedergabe</value></data>
 </root>

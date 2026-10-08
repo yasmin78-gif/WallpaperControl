@@ -1732,4 +1732,13 @@ Would you like to open the release page?</value>
   <data name="FeedNotificationTitle" xml:space="preserve"><value>{0}: {1} new entries</value></data>
   <data name="FeedNotificationBody" xml:space="preserve"><value>Click to view the feed.</value></data>
   <data name="FeedNotificationTitleOne" xml:space="preserve"><value>{0}: 1 new entry</value></data>
+  <data name="NowPlayingTitle" xml:space="preserve"><value>Now Playing</value></data>
+  <data name="NowPlayingEnabled" xml:space="preserve"><value>Show media control widget</value></data>
+  <data name="NowPlayingHideEmpty" xml:space="preserve"><value>Hide without a media session</value></data>
+  <data name="NowPlayingWheelVolume" xml:space="preserve"><value>Mouse wheel changes Windows system volume</value></data>
+  <data name="NowPlayingEmpty" xml:space="preserve"><value>No playback</value></data>
+  <data name="NowPlayingUnavailable" xml:space="preserve"><value>Media controls unavailable</value></data>
+  <data name="NowPlayingAutomatic" xml:space="preserve"><value>Automatic (Windows)</value></data>
+  <data name="NowPlayingHint" xml:space="preserve"><value>Controls Windows media sessions. Cover/title: show source app where possible. Progress bar: seek when supported. Mouse wheel: optional system volume. Fullscreen suspension never pauses the source app.</value></data>
+  <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>Media Player</value></data>
 </root>

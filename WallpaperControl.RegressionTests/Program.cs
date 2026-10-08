@@ -111,6 +111,8 @@ try
     { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--wallpaper-widget-mode-checks")
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--now-playing-checks") { NowPlayingTests.Run(Check); Console.WriteLine($"All {passed} Now Playing checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--now-playing-native-checks") { NowPlayingTests.Native(Check); Console.WriteLine($"All {passed} native Now Playing checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--feed-notification-checks")
     { FeedNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused feed notification and tone checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--widget-navigation-checks")
