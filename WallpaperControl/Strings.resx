@@ -1745,4 +1745,23 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Laufwerke neu suchen</value></data>
   <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} GB frei / {1:0} GB</value></data>
   <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Laufwerke auswählen:</value></data>
+  <data name="ClipboardTitle" xml:space="preserve"><value>Zwischenablage</value></data>
+  <data name="ClipboardEnabled" xml:space="preserve"><value>Widget und Textaufzeichnung aktivieren</value></data>
+  <data name="ClipboardCapacity" xml:space="preserve"><value>Anzahl der Einträge</value></data>
+  <data name="ClipboardHint" xml:space="preserve"><value>Nur Text, nur im Arbeitsspeicher. Beim Deaktivieren oder Beenden wird der Verlauf gelöscht. Rechtsklick: Details/Löschen. Aufzeichnung kann pausiert werden. Passwörter werden nicht zuverlässig erkannt; Windows-Ausschlussmarkierungen werden berücksichtigt.</value></data>
+  <data name="ClipboardEmpty" xml:space="preserve"><value>Noch keine Texte kopiert</value></data>
+  <data name="ClipboardRamOnly" xml:space="preserve"><value>Nur im Arbeitsspeicher</value></data>
+  <data name="ClipboardPaused" xml:space="preserve"><value>Aufzeichnung pausiert</value></data>
+  <data name="ClipboardPause" xml:space="preserve"><value>Aufzeichnung pausieren</value></data>
+  <data name="ClipboardResume" xml:space="preserve"><value>Aufzeichnung fortsetzen</value></data>
+  <data name="ClipboardClear" xml:space="preserve"><value>Verlauf leeren</value></data>
+  <data name="ClipboardCopy" xml:space="preserve"><value>Text kopieren</value></data>
+  <data name="ClipboardCopied" xml:space="preserve"><value>Text kopiert</value></data>
+  <data name="ClipboardBusy" xml:space="preserve"><value>Zwischenablage momentan nicht verfügbar</value></data>
+  <data name="ClipboardDetails" xml:space="preserve"><value>Vollständigen Text anzeigen</value></data>
+  <data name="ClipboardDelete" xml:space="preserve"><value>Eintrag löschen</value></data>
+  <data name="ClipboardClose" xml:space="preserve"><value>Schließen</value></data>
+  <data name="ClipboardAgeSeconds" xml:space="preserve"><value>vor {0} Sek.</value></data>
+  <data name="ClipboardAgeMinutes" xml:space="preserve"><value>vor {0} Min.</value></data>
+  <data name="ClipboardAgeHours" xml:space="preserve"><value>vor {0} Std.</value></data>
 </root>

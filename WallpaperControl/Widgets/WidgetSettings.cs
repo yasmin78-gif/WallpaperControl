@@ -15,6 +15,7 @@ namespace WallpaperControl
         public NotificationSoundPreferences NotificationTones { get; set; } = new();
         public FeedWidgetSettings Feed { get; set; } = new();
         public NowPlayingSettings NowPlaying { get; set; } = new();
+        public ClipboardWidgetSettings Clipboard { get; set; } = new();
         public bool PackageStatusNotifications { get; set; }
 
         public bool TwitchEnabled { get; set; }
@@ -97,6 +98,7 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
                 result.NowPlaying = NowPlayingSettings.Parse(key.GetValue("NowPlayingConfiguration") as string ?? "{}");
                 result.Feed = FeedWidgetSettings.Parse(key.GetValue("FeedWidgetConfiguration") as string ?? "{}");
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
@@ -202,6 +204,7 @@ namespace WallpaperControl
                 Web.Normalize();
                 key.SetValue("NotificationSound", (int)NotificationSounds.Normalize((int)NotificationSound), RegistryValueKind.DWord);
                 key.SetValue("NotificationTones", System.Text.Json.JsonSerializer.Serialize(NotificationTones), RegistryValueKind.String);
+                key.SetValue("ClipboardWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Clipboard), RegistryValueKind.String);
                 key.SetValue("NowPlayingConfiguration", System.Text.Json.JsonSerializer.Serialize(NowPlaying), RegistryValueKind.String);
                 key.SetValue("FeedWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Feed), RegistryValueKind.String);
                 key.SetValue("PackageStatusNotifications", PackageStatusNotifications ? 1 : 0, RegistryValueKind.DWord);
@@ -297,7 +300,7 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
-            NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
+            Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
             NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,
             TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,
             TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes),

@@ -1745,4 +1745,23 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Actualiser les lecteurs</value></data>
   <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} Go libres / {1:0} Go</value></data>
   <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Choisir les lecteurs :</value></data>
+  <data name="ClipboardTitle" xml:space="preserve"><value>Presse-papiers</value></data>
+  <data name="ClipboardEnabled" xml:space="preserve"><value>Activer le widget et la capture de texte</value></data>
+  <data name="ClipboardCapacity" xml:space="preserve"><value>Nombre d’entrées</value></data>
+  <data name="ClipboardHint" xml:space="preserve"><value>Texte en mémoire uniquement. Désactiver ou quitter efface l’historique. Clic droit : détails/supprimer. Capture suspendable. Les mots de passe ne sont pas identifiés de façon fiable ; exclusions Windows respectées.</value></data>
+  <data name="ClipboardEmpty" xml:space="preserve"><value>Aucun texte copié</value></data>
+  <data name="ClipboardRamOnly" xml:space="preserve"><value>En mémoire uniquement</value></data>
+  <data name="ClipboardPaused" xml:space="preserve"><value>Capture suspendue</value></data>
+  <data name="ClipboardPause" xml:space="preserve"><value>Suspendre la capture</value></data>
+  <data name="ClipboardResume" xml:space="preserve"><value>Reprendre la capture</value></data>
+  <data name="ClipboardClear" xml:space="preserve"><value>Vider l’historique</value></data>
+  <data name="ClipboardCopy" xml:space="preserve"><value>Copier le texte</value></data>
+  <data name="ClipboardCopied" xml:space="preserve"><value>Texte copié</value></data>
+  <data name="ClipboardBusy" xml:space="preserve"><value>Presse-papiers indisponible</value></data>
+  <data name="ClipboardDetails" xml:space="preserve"><value>Afficher le texte complet</value></data>
+  <data name="ClipboardDelete" xml:space="preserve"><value>Supprimer l’entrée</value></data>
+  <data name="ClipboardClose" xml:space="preserve"><value>Fermer</value></data>
+  <data name="ClipboardAgeSeconds" xml:space="preserve"><value>il y a {0} s</value></data>
+  <data name="ClipboardAgeMinutes" xml:space="preserve"><value>il y a {0} min</value></data>
+  <data name="ClipboardAgeHours" xml:space="preserve"><value>il y a {0} h</value></data>
 </root>

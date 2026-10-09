@@ -1745,4 +1745,23 @@ Versión instalada: {0}
   <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Actualizar unidades</value></data>
   <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} GB libres / {1:0} GB</value></data>
   <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Seleccionar unidades:</value></data>
+  <data name="ClipboardTitle" xml:space="preserve"><value>Portapapeles</value></data>
+  <data name="ClipboardEnabled" xml:space="preserve"><value>Activar widget y captura de texto</value></data>
+  <data name="ClipboardCapacity" xml:space="preserve"><value>Número de entradas</value></data>
+  <data name="ClipboardHint" xml:space="preserve"><value>Solo texto en memoria. Desactivar o salir borra el historial. Clic derecho: detalles/eliminar. La captura puede pausarse. Las contraseñas no se identifican de forma fiable; se respetan las exclusiones de Windows.</value></data>
+  <data name="ClipboardEmpty" xml:space="preserve"><value>Aún no hay textos copiados</value></data>
+  <data name="ClipboardRamOnly" xml:space="preserve"><value>Solo en memoria</value></data>
+  <data name="ClipboardPaused" xml:space="preserve"><value>Captura pausada</value></data>
+  <data name="ClipboardPause" xml:space="preserve"><value>Pausar captura</value></data>
+  <data name="ClipboardResume" xml:space="preserve"><value>Reanudar captura</value></data>
+  <data name="ClipboardClear" xml:space="preserve"><value>Vaciar historial</value></data>
+  <data name="ClipboardCopy" xml:space="preserve"><value>Copiar texto</value></data>
+  <data name="ClipboardCopied" xml:space="preserve"><value>Texto copiado</value></data>
+  <data name="ClipboardBusy" xml:space="preserve"><value>Portapapeles no disponible</value></data>
+  <data name="ClipboardDetails" xml:space="preserve"><value>Mostrar texto completo</value></data>
+  <data name="ClipboardDelete" xml:space="preserve"><value>Eliminar entrada</value></data>
+  <data name="ClipboardClose" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="ClipboardAgeSeconds" xml:space="preserve"><value>hace {0} s</value></data>
+  <data name="ClipboardAgeMinutes" xml:space="preserve"><value>hace {0} min</value></data>
+  <data name="ClipboardAgeHours" xml:space="preserve"><value>hace {0} h</value></data>
 </root>

@@ -111,6 +111,7 @@ try
     { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--wallpaper-widget-mode-checks")
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--clipboard-widget-checks") { ClipboardWidgetTests.Run(Check); Console.WriteLine($"All {passed} clipboard widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--system-drive-checks") { SystemDriveTests.Run(Check); Console.WriteLine($"All {passed} system drive checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-checks") { NowPlayingTests.Run(Check); Console.WriteLine($"All {passed} Now Playing checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-native-checks") { NowPlayingTests.Native(Check); Console.WriteLine($"All {passed} native Now Playing checks passed."); return 0; }
