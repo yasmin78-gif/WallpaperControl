@@ -62,7 +62,7 @@ internal sealed class LauncherWidgetForm : Form
         using var text=new SolidBrush(dark?palette.text:AppTheme.TextPrimary(false)); using var accent=new SolidBrush(dark?palette.accent:Color.FromArgb(29,105,184));
         using var border=new Pen(accent.Color,settings.Style==SystemWidgetStyle.Glow?2:1); using var font=new Font("Segoe UI",12,FontStyle.Regular,GraphicsUnit.Pixel); using var bold=new Font("Segoe UI",13,FontStyle.Bold,GraphicsUnit.Pixel);
         using var format=new StringFormat { Alignment=StringAlignment.Center,Trimming=StringTrimming.EllipsisCharacter,FormatFlags=StringFormatFlags.NoWrap };
-        g.FillPath(panel,path); g.DrawPath(border,path); g.DrawString(Localization.Get("LauncherTitle",language),bold,accent,14,14); g.DrawString("⋮",bold,accent,width-30,14);
+        g.FillPath(panel,path); g.DrawPath(border,path); WidgetHeader.Draw(g,Localization.Get("LauncherTitle",language),language,settings.Style,width,48,text.Color,accent.Color); g.DrawString("⋮",bold,accent,width-30,14);
         var state=g.Save(); g.SetClip(viewport.ContentBounds); cells.Clear();
         for(int i=0;i<count;i++)
         {

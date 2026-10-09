@@ -57,7 +57,7 @@ internal sealed class ClipboardWidgetForm : Form
         using var icons=new Font("Segoe UI Symbol",16,FontStyle.Regular,GraphicsUnit.Pixel);
         using var format=new StringFormat { Trimming=StringTrimming.EllipsisCharacter,FormatFlags=StringFormatFlags.LineLimit };
         using var single=new StringFormat { Trimming=StringTrimming.EllipsisCharacter,FormatFlags=StringFormatFlags.NoWrap };
-        g.FillPath(fill,path); g.DrawPath(border,path); g.DrawString(Localization.Get("ClipboardTitle",language),bold,accent,new RectangleF(14,14,270,23),single);
+        g.FillPath(fill,path); g.DrawPath(border,path); WidgetHeader.Draw(g,Localization.Get("ClipboardTitle",language),language,settings.Style,390,96,text.Color,accent.Color);
         using(var trashPen=new Pen(accent.Color,1.5f))
         {
             g.DrawLine(trashPen,314,18,331,18); g.DrawRectangle(trashPen,318,20,10,13); g.DrawRectangle(trashPen,321,15,4,3);

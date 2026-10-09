@@ -94,7 +94,7 @@ internal sealed class FeedWidgetForm : Form
         using var single = new StringFormat { FormatFlags = StringFormatFlags.NoWrap, Trimming = StringTrimming.EllipsisCharacter };
         g.FillPath(fill, path); g.DrawPath(border, path);
         string heading = settings.Sources.FirstOrDefault(s => s.Id == settings.Selected)?.Title ?? Localization.Get("FeedTitle", language);
-        g.DrawString(heading, bold, accent, new RectangleF(14, 14, 285, 26), single); g.DrawString("↻", bold, accent, 312, 14); g.DrawString("...", bold, accent, 350, 14);
+        WidgetHeader.Draw(g,heading,language,settings.Style,390,88,text.Color,accent.Color); g.DrawString("↻", bold, accent, 312, 14); g.DrawString("...", bold, accent, 350, 14);
         var saved = g.Save(); g.SetClip(viewport.ContentBounds); rows.Clear(); float y = CalendarViewport.HeaderHeight - viewport.ScrollOffset;
         for (int i = 0; i < items.Length; i++)
         {
