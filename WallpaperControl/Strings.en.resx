@@ -1794,4 +1794,6 @@ Would you like to open the release page?</value>
   <data name="LauncherNew" xml:space="preserve"><value>New</value></data>
   <data name="LauncherHint" xml:space="preserve"><value>Programs, files, folders and HTTP/HTTPS addresses. Up to 100 entries. Entries are saved immediately and separately, like notes and feed sources. Drop files, folders and shortcuts onto the widget (even with its position locked); each target is confirmed in the add dialog. Shortcuts are copied to %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts; the original can then be deleted.</value></data>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>The shortcut could not be imported. Existing entries remain unchanged. Check the file and write permissions.</value></data>
+  <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Snap widgets while moving</value></data>
+  <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Align edges and center lines, with 10 px spacing. Hold Alt while dragging to temporarily disable snapping.</value></data>
 </root>

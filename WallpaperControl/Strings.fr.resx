@@ -1794,4 +1794,6 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="LauncherNew" xml:space="preserve"><value>Nouveau</value></data>
   <data name="LauncherHint" xml:space="preserve"><value>Programmes, fichiers, dossiers et adresses HTTP/HTTPS. Maximum 100 entrées, enregistrées immédiatement et séparément. Déposez des fichiers, dossiers ou raccourcis sur le widget, même si sa position est verrouillée ; chaque cible est confirmée dans le dialogue. Les raccourcis sont copiés dans %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts ; vous pouvez ensuite supprimer les originaux.</value></data>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>Impossible d'importer le raccourci. Les entrées existantes sont conservées. Vérifiez le fichier et les droits d'écriture.</value></data>
+  <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Aligner les widgets lors du déplacement</value></data>
+  <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Alignement des bords et des centres, avec un espacement de 10 px. Maintenez Alt pour désactiver temporairement cet alignement.</value></data>
 </root>

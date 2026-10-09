@@ -1794,4 +1794,6 @@ Versión instalada: {0}
   <data name="LauncherNew" xml:space="preserve"><value>Nuevo</value></data>
   <data name="LauncherHint" xml:space="preserve"><value>Programas, archivos, carpetas y direcciones HTTP/HTTPS. Hasta 100 entradas, guardadas inmediatamente y por separado. Arrastra archivos, carpetas o accesos directos al widget, incluso con la posición bloqueada; cada destino se confirma en el diálogo. Los accesos directos se copian a %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts; después puedes eliminar los originales.</value></data>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>No se pudo importar el acceso directo. Las entradas existentes se conservan. Comprueba el archivo y los permisos de escritura.</value></data>
+  <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Alinear widgets al moverlos</value></data>
+  <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Alinea bordes y centros, con separación de 10 px. Mantén Alt al arrastrar para desactivar la alineación temporalmente.</value></data>
 </root>

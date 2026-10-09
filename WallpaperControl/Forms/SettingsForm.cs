@@ -24,6 +24,7 @@ namespace WallpaperControl
             closeToTrayCheckBox.Checked = true;
             automaticUpdateCheckCheckBox.Checked = true;
             pauseOnFullscreenCheckBox.Checked = true;
+            widgetSnappingCheckBox.Checked = true;
 
             ResetAppearanceSettings();
 
@@ -157,6 +158,7 @@ namespace WallpaperControl
                 closeToTrayCheckBox.Checked;
 
             PauseOnFullscreen = pauseOnFullscreenCheckBox.Checked;
+            WidgetSnappingEnabled = widgetSnappingCheckBox.Checked;
             AutomaticUpdateCheckEnabled =
                 automaticUpdateCheckCheckBox.Checked;
 

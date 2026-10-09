@@ -49,7 +49,8 @@ namespace WallpaperControl
             bool pauseOnFullscreen,
             int windowOpacityPercent,
             NotificationSoundKind notificationSound = NotificationSoundKind.Chime,
-            NotificationSoundPreferences? notificationTones = null)
+            NotificationSoundPreferences? notificationTones = null,
+            bool widgetSnappingEnabled = true)
         {
             #region Window and preview state
 
@@ -516,6 +517,9 @@ namespace WallpaperControl
             };
             generalPage.Controls.Add(pauseOnFullscreenCheckBox);
             generalPage.Controls.Add(fullscreenHint);
+            widgetSnappingCheckBox=new CheckBox { Text=Localization.Get("SettingsWidgetSnapping",previewLanguageCode),Tag="SettingsWidgetSnapping",Location=new(18,454),Size=new(700,30),Checked=widgetSnappingEnabled };
+            generalPage.Controls.Add(widgetSnappingCheckBox);
+            generalPage.Controls.Add(new Label { Text=Localization.Get("SettingsWidgetSnappingHint",previewLanguageCode),Tag="SettingsWidgetSnappingHint",Location=new(38,490),Size=new(700,65),Font=CreateOwnedFont("Segoe UI",8.25f) });
 
             checkForUpdatesButton.Click +=
                 CheckForUpdatesButton_Click;

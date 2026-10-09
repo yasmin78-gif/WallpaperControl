@@ -1794,4 +1794,6 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="LauncherNew" xml:space="preserve"><value>Neu</value></data>
   <data name="LauncherHint" xml:space="preserve"><value>Programme, Dateien, Ordner und HTTP-/HTTPS-Adressen. Maximal 100 Einträge. Einträge werden separat sofort gespeichert, wie Notizen und Feed-Quellen. Dateien, Ordner und Verknüpfungen können auf das Widget (auch bei fixierter Position) gezogen werden. Der Hinzufügen-Dialog bestätigt jedes Ziel. Verknüpfungen werden nach %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts kopiert; das Original kann danach gelöscht werden.</value></data>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>Die Verknüpfung konnte nicht übernommen werden. Die bisherigen Einträge bleiben erhalten. Bitte Datei und Schreibrechte prüfen.</value></data>
+  <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Widgets beim Verschieben ausrichten</value></data>
+  <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Kanten und Mittellinien rasten ein; 10 px Abstand. Alt beim Ziehen deaktiviert das Ausrichten vorübergehend.</value></data>
 </root>

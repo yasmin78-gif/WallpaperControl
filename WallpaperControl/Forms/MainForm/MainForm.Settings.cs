@@ -150,7 +150,7 @@ namespace WallpaperControl
                     automaticUpdateCheckEnabled,
                     pauseOnFullscreen,
                     windowOpacityPercent,
-                    widgetManager.Settings.NotificationSound, widgetManager.Settings.NotificationTones);
+                    widgetManager.Settings.NotificationSound, widgetManager.Settings.NotificationTones,widgetManager.SnappingEnabled);
 
             string languageBefore =
                 Localization.CurrentLanguage;
@@ -232,6 +232,8 @@ namespace WallpaperControl
                     dialog.ThemeMode);
 
             pauseOnFullscreen = dialog.PauseOnFullscreen;
+            appSettings.SaveWidgetSnapping(dialog.WidgetSnappingEnabled);
+            widgetManager.SetSnappingEnabled(dialog.WidgetSnappingEnabled);
             appSettings.SavePauseOnFullscreen(pauseOnFullscreen);
             _ = UpdateFullscreenPauseAsync();
             SaveHotkeySettings();

@@ -37,6 +37,9 @@ namespace WallpaperControl
     // supplied for tests, leaving real user settings untouched.
     internal sealed class AppSettingsStore
     {
+        internal bool LoadWidgetSnapping()
+        { try { using var key=Registry.CurrentUser.OpenSubKey(registryPath); return key?.GetValue("WidgetSnapping") is not int value||value!=0; } catch { return true; } }
+        internal void SaveWidgetSnapping(bool enabled)=>WriteValue("WidgetSnapping",enabled?1:0,RegistryValueKind.DWord);
         internal VideoEngine LoadVideoEngine()
         {
             try

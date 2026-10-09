@@ -61,6 +61,7 @@ namespace WallpaperControl
 
             MouseDown += BeginDrag;
             MouseMove += ContinueDrag;
+            MouseCaptureChanged+=(_,_)=> { if(dragging&&!Capture) { dragging=false; WidgetSnapping.End(this); } };
             MouseUp += EndDrag;
 
             timer = new System.Windows.Forms.Timer
@@ -602,6 +603,7 @@ namespace WallpaperControl
             dragging = true;
             dragMouseStart = Cursor.Position;
             dragFormStart = Location;
+            Capture=true; WidgetSnapping.Begin(this);
         }
 
         /// <summary>
@@ -617,9 +619,9 @@ namespace WallpaperControl
             }
 
             Point now = Cursor.Position;
-            Location = new Point(
+            Location = WidgetSnapping.Move(this,new Point(
                 dragFormStart.X + now.X - dragMouseStart.X,
-                dragFormStart.Y + now.Y - dragMouseStart.Y);
+                dragFormStart.Y + now.Y - dragMouseStart.Y));
         }
 
         /// <summary>
@@ -635,6 +637,7 @@ namespace WallpaperControl
             }
 
             dragging = false;
+            WidgetSnapping.End(this); Capture=false;
             locationChanged(Location);
             DesktopWidgetNative.KeepOnDesktop(this);
         }

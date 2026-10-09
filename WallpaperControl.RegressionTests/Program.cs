@@ -88,6 +88,8 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    if(args.Length==1&&args[0]=="--shared-ui-checks") { SharedUiTests.Run(Check); Console.WriteLine($"All {passed} shared UI checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--widget-snapping-checks") { WidgetSnappingTests.Run(Check); Console.WriteLine($"All {passed} widget snapping checks passed."); return 0; }
     // Records an assertion result and reports the named regression check.
     void Check(bool ok, string name)
     {

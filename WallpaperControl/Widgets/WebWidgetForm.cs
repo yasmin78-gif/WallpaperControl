@@ -267,6 +267,16 @@ internal sealed class WebWidgetForm : Form
     }
     protected override void WndProc(ref Message m)
     {
+        if(m.Msg==0x231)WidgetSnapping.Begin(this,nativeMotion:true);
+        if(m.Msg==0x216&&!settings.Locked)
+        {
+            var bounds=Marshal.PtrToStructure<MoveBounds>(m.LParam);
+            var snapped=WidgetSnapping.Move(this,new Point(bounds.Left,bounds.Top));
+            int width=bounds.Right-bounds.Left,height=bounds.Bottom-bounds.Top;
+            bounds.Left=snapped.X; bounds.Top=snapped.Y; bounds.Right=snapped.X+width; bounds.Bottom=snapped.Y+height;
+            Marshal.StructureToPtr(bounds,m.LParam,false); m.Result=new IntPtr(1); return;
+        }
+        if(m.Msg==0x232)WidgetSnapping.End(this);
         if (m.Msg == 0x84)
         {
             Point point = PointToClient(new Point(unchecked((short)(long)m.LParam), unchecked((short)((long)m.LParam >> 16))));
@@ -285,6 +295,7 @@ internal sealed class WebWidgetForm : Form
             GeometrySettled?.Invoke(this, EventArgs.Empty); QueueDesktopRepair();
         }
     }
+    [StructLayout(LayoutKind.Sequential)] private struct MoveBounds { internal int Left,Top,Right,Bottom; }
     protected override void Dispose(bool disposing)
     {
         if (disposing && !closing)

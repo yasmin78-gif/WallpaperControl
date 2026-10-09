@@ -132,7 +132,8 @@ internal static class SharedUiTests
         check(Equals(Value(Read(false), "WeatherLocationName"), "") && Equals(Value(Read(true), "WeatherLocationName"), "Karlsruhe"),
             "Empty weather locations retain distinct preview and save behavior");
         using Form general = (Form)Activator.CreateInstance(Type("SettingsForm"),
-            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92)!;
+            false, "system", 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, "", true, false, true, true, true, 92,
+            Enum.Parse(Type("NotificationSoundKind"),"Chime"),null,true)!;
         check((string?)Control<TabControl>(general, "settingsTabControl").SelectedTab?.Tag == "SettingsNavGeneral",
             "Settings still open on General");
     }

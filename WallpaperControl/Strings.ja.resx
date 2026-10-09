@@ -1766,4 +1766,6 @@
   <data name="LauncherNew" xml:space="preserve"><value>新規</value></data>
   <data name="LauncherHint" xml:space="preserve"><value>プログラム、ファイル、フォルダー、HTTP/HTTPS アドレス。最大 100 件。項目は即時に個別保存されます。位置が固定されていてもウィジェットへドラッグし、追加ダイアログで対象を確認できます。 ショートカットは %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts にコピーされます。その後、元のファイルを削除できます。</value></data>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>ショートカットを取り込めませんでした。既存の項目は保持されます。ファイルと書き込み権限を確認してください。</value></data>
+  <data name="SettingsWidgetSnapping" xml:space="preserve"><value>移動中にウィジェットを揃える</value></data>
+  <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>端と中心線を揃え、間隔は 10 px です。ドラッグ中に Alt を押すと一時的に無効になります。</value></data>
 </root>

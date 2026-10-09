@@ -28,6 +28,9 @@ namespace WallpaperControl
         private readonly IcsCalendarProvider calendarProvider = new();
         private readonly DesktopShowMonitor desktopShowMonitor;
         private readonly HashSet<Form> desktopWidgets = new();
+        private readonly WidgetSnapCoordinator snapping;
+        internal bool SnappingEnabled=>snapping.Enabled;
+        internal void SetSnappingEnabled(bool enabled)=>snapping.SetEnabled(enabled);
         private WidgetSettings settings;
         private ClockWidgetForm? clock;
         private NextWidgetForm? nextWidget;
@@ -52,6 +55,7 @@ namespace WallpaperControl
             packages = packageTrackingService;
             packageCredentialStore = packageCredentials ?? new TrackingCredentialStore();
             settings = WidgetSettings.Load(registryPath);
+            snapping=new(()=>desktopWidgets,new AppSettingsStore(registryPath).LoadWidgetSnapping());
             NotificationSound = settings.NotificationSound;
             desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
         }
@@ -659,6 +663,7 @@ namespace WallpaperControl
                 return;
 
             widget.FormClosed += DesktopWidget_FormClosed;
+            WidgetSnapping.Register(widget,snapping);
         }
 
         /// <summary>
@@ -670,6 +675,7 @@ namespace WallpaperControl
                 return;
 
             widget.FormClosed -= DesktopWidget_FormClosed;
+            WidgetSnapping.Unregister(widget);
             desktopWidgets.Remove(widget);
         }
 
@@ -806,7 +812,8 @@ namespace WallpaperControl
             notesWidget?.Close();
             notesWidget?.Dispose();
             notesWidget = null;
-            desktopWidgets.Clear();
+            foreach(var widget in desktopWidgets)WidgetSnapping.Unregister(widget);
+            desktopWidgets.Clear(); snapping.Dispose();
             calendarProvider.Dispose();
         }
     }

@@ -34,6 +34,7 @@ namespace WallpaperControl
             widget.MouseDown += BeginDrag;
             widget.MouseMove += ContinueDrag;
             widget.MouseUp += EndDrag;
+            widget.MouseCaptureChanged += CaptureChanged;
         }
 
         /// <summary>
@@ -48,6 +49,7 @@ namespace WallpaperControl
             mouseStart = cursorPosition();
             formStart = widget.Location;
             widget.Capture = true;
+            WidgetSnapping.Begin(widget);
         }
 
         /// <summary>
@@ -59,9 +61,11 @@ namespace WallpaperControl
         {
             if (!dragging) return;
             Point now = cursorPosition();
-            widget.Location = new Point(formStart.X + now.X - mouseStart.X, formStart.Y + now.Y - mouseStart.Y);
+            widget.Location = WidgetSnapping.Move(widget,new Point(formStart.X + now.X - mouseStart.X, formStart.Y + now.Y - mouseStart.Y));
             render();
         }
+        private void CaptureChanged(object? sender,EventArgs e)
+        { if(dragging&&!widget.Capture) { dragging=false; WidgetSnapping.End(widget); } }
 
         /// <summary>
         /// Ends a left-button drag and publishes the final position exactly once.
@@ -72,6 +76,7 @@ namespace WallpaperControl
         {
             if (!dragging || e.Button != MouseButtons.Left) return;
             dragging = false;
+            WidgetSnapping.End(widget);
             widget.Capture = false;
             locationChanged(widget.Location);
         }
@@ -81,9 +86,11 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            WidgetSnapping.End(widget);
             widget.MouseDown -= BeginDrag;
             widget.MouseMove -= ContinueDrag;
             widget.MouseUp -= EndDrag;
+            widget.MouseCaptureChanged -= CaptureChanged;
             if (dragging)
             {
                 dragging = false;

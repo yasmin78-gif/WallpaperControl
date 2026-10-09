@@ -14,6 +14,7 @@ namespace WallpaperControl
         private SystemWidgetStyle style;
         private bool hover;
         private bool dragging;
+        private bool pointerDown;
         private bool moved;
         private Point dragMouseStart;
         private Point dragFormStart;
@@ -72,6 +73,7 @@ namespace WallpaperControl
 
             MouseDown += BeginPointer;
             MouseMove += ContinuePointer;
+            MouseCaptureChanged+=(_,_)=> { if(dragging&&!Capture) { dragging=false; pointerDown=false; WidgetSnapping.End(this); } };
             MouseUp += EndPointer;
         }
 
@@ -183,9 +185,11 @@ namespace WallpaperControl
             }
 
             dragging = !locked;
+            pointerDown=true;
             moved = false;
             dragMouseStart = Cursor.Position;
             dragFormStart = Location;
+            if(dragging) { Capture=true; WidgetSnapping.Begin(this); }
         }
 
         /// <summary>
@@ -214,9 +218,9 @@ namespace WallpaperControl
             if (moved)
             {
                 Location =
-                    new Point(
+                    WidgetSnapping.Move(this,new Point(
                         dragFormStart.X + dx,
-                        dragFormStart.Y + dy);
+                        dragFormStart.Y + dy));
             }
         }
 
@@ -229,7 +233,7 @@ namespace WallpaperControl
             object? sender,
             MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Left)
+            if (e.Button != MouseButtons.Left || !pointerDown)
             {
                 return;
             }
@@ -244,6 +248,8 @@ namespace WallpaperControl
             }
 
             dragging = false;
+            pointerDown=false;
+            WidgetSnapping.End(this); Capture=false;
             DesktopWidgetNative.KeepOnDesktop(this);
         }
     }

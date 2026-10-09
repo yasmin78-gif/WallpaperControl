@@ -35,6 +35,8 @@ namespace WallpaperControl
         private readonly CheckBox closeToTrayCheckBox;
         private readonly CheckBox automaticUpdateCheckCheckBox;
         private readonly CheckBox pauseOnFullscreenCheckBox;
+        private readonly CheckBox widgetSnappingCheckBox;
+        public bool WidgetSnappingEnabled { get; private set; } = true;
         private readonly Button checkForUpdatesButton;
         private readonly ComboBox languageComboBox;
         private readonly ComboBox themeComboBox;
