@@ -65,6 +65,8 @@ namespace WallpaperControl
         public bool SystemShowVram { get; set; } = true;
         public bool SystemShowNetwork { get; set; } = true;
         public bool SystemShowDrives { get; set; } = true;
+        public string[] SystemSelectedDrives { get; set; } = SystemDriveSelection.Default;
+        public int SystemDriveWarningPercent { get; set; } = 10;
         public Point SystemLocation { get; set; } = new(40, 400);
         public bool WeatherEnabled { get; set; }
         public bool WeatherLocked { get; set; }
@@ -150,6 +152,8 @@ namespace WallpaperControl
                 result.SystemShowVram = ReadBool(key, "SystemWidgetShowVram", true);
                 result.SystemShowNetwork = ReadBool(key, "SystemWidgetShowNetwork", true);
                 result.SystemShowDrives = ReadBool(key, "SystemWidgetShowDrives", true);
+                result.SystemSelectedDrives = SystemDriveSelection.Parse(key.GetValue("SystemWidgetSelectedDrives") as string);
+                result.SystemDriveWarningPercent = Math.Clamp(ReadInt(key, "SystemWidgetDriveWarningPercent", 10),1,50);
                 result.SystemLocation = new Point(ReadInt(key, "SystemWidgetX", 40), ReadInt(key, "SystemWidgetY", 400));
                 result.WeatherEnabled = ReadBool(key, "WeatherWidgetEnabled", false);
                 result.WeatherLocked = ReadBool(key, "WeatherWidgetLocked", false);
@@ -256,6 +260,8 @@ namespace WallpaperControl
                 key.SetValue("SystemWidgetShowVram", SystemShowVram ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetShowNetwork", SystemShowNetwork ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetShowDrives", SystemShowDrives ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SystemWidgetSelectedDrives", System.Text.Json.JsonSerializer.Serialize(SystemDriveSelection.Normalize(SystemSelectedDrives)), RegistryValueKind.String);
+                key.SetValue("SystemWidgetDriveWarningPercent",Math.Clamp(SystemDriveWarningPercent,1,50),RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetX", SystemLocation.X, RegistryValueKind.DWord);
                 key.SetValue("SystemWidgetY", SystemLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("WeatherWidgetEnabled", WeatherEnabled ? 1 : 0, RegistryValueKind.DWord);
@@ -332,6 +338,7 @@ namespace WallpaperControl
             SystemShowVram = SystemShowVram,
             SystemShowNetwork = SystemShowNetwork,
             SystemShowDrives = SystemShowDrives,
+            SystemSelectedDrives = SystemDriveSelection.Normalize(SystemSelectedDrives), SystemDriveWarningPercent = Math.Clamp(SystemDriveWarningPercent,1,50),
             SystemLocation = SystemLocation,
             WeatherEnabled = WeatherEnabled,
             WeatherLocked = WeatherLocked,

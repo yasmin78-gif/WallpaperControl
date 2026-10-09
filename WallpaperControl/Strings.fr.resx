@@ -851,7 +851,7 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Actualisation :</value>
   </data>
   <data name="SettingsSystemWidgetHint" xml:space="preserve">
-    <value>Affiche le CPU, la RAM, le GPU, la VRAM, les températures, le réseau et le disque.</value>
+    <value>Affiche CPU, RAM, GPU, VRAM, températures, réseau et lecteurs locaux sélectionnés.</value>
   </data>
   <data name="SettingsSystemStyle" xml:space="preserve">
     <value>Style :</value>
@@ -875,7 +875,7 @@ Tous les affichages, horodatages et classements précédents seront définitivem
     <value>Réseau ↓ / ↑</value>
   </data>
   <data name="SettingsSystemDrives" xml:space="preserve">
-    <value>Disque système</value>
+    <value>Lecteurs</value>
   </data>
   <data name="SettingsNavWeather" xml:space="preserve">
     <value>Météo</value>
@@ -1741,4 +1741,8 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="NowPlayingAutomatic" xml:space="preserve"><value>Automatique (Windows)</value></data>
   <data name="NowPlayingHint" xml:space="preserve"><value>Contrôle les sessions Windows. Pochette/titre : afficher la source si possible. Barre : recherche si disponible. Molette : volume système facultatif. Le plein écran ne met jamais la source en pause.</value></data>
   <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>Lecteur multimédia</value></data>
+  <data name="SettingsSystemDriveWarning" xml:space="preserve"><value>Rouge en dessous de (% libre) :</value></data>
+  <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Actualiser les lecteurs</value></data>
+  <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} Go libres / {1:0} Go</value></data>
+  <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Choisir les lecteurs :</value></data>
 </root>

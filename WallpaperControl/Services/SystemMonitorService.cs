@@ -1,4 +1,4 @@
-using LibreHardwareMonitor.Hardware;
+﻿using LibreHardwareMonitor.Hardware;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -262,14 +262,14 @@ namespace WallpaperControl
         /// Collects capacity and free-space information for available drives.
         /// </summary>
         /// <returns>The available drive capacity and free-space readings.</returns>
-        private static List<DriveSnapshot> ReadDrives()
+        internal static List<DriveSnapshot> ReadDrives()
         {
             List<DriveSnapshot> result = new();
             foreach (DriveInfo drive in DriveInfo.GetDrives())
             {
                 try
                 {
-                    if (drive.IsReady && drive.DriveType == DriveType.Fixed)
+                    if (SystemDriveSelection.IsLocal(drive.DriveType) && drive.IsReady)
                         result.Add(new DriveSnapshot(drive.Name.TrimEnd('\\'), drive.AvailableFreeSpace, drive.TotalSize));
                 }
                 catch { }

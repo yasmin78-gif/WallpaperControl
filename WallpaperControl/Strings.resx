@@ -851,7 +851,7 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
     <value>Aktualisierung:</value>
   </data>
   <data name="SettingsSystemWidgetHint" xml:space="preserve">
-    <value>Zeigt CPU, RAM, GPU, VRAM, Temperaturen, Netzwerk und Laufwerk an.</value>
+    <value>Zeigt CPU, RAM, GPU, VRAM, Temperaturen, Netzwerk und ausgewählte lokale Laufwerke an.</value>
   </data>
   <data name="SettingsSystemStyle" xml:space="preserve">
     <value>Stil:</value>
@@ -875,7 +875,7 @@ Alle bisherigen Anzeigen, Zeitpunkte und Ranglisten werden dauerhaft gelöscht. 
     <value>Netzwerk ↓ / ↑</value>
   </data>
   <data name="SettingsSystemDrives" xml:space="preserve">
-    <value>Systemlaufwerk</value>
+    <value>Laufwerke</value>
   </data>
   <data name="SettingsNavWeather" xml:space="preserve">
     <value>Wetter</value>
@@ -1741,4 +1741,8 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="NowPlayingAutomatic" xml:space="preserve"><value>Automatisch (Windows)</value></data>
   <data name="NowPlayingHint" xml:space="preserve"><value>Steuert Windows-Mediensitzungen. Cover/Titel: Quell-App anzeigen, soweit möglich. Fortschrittsbalken: Position ändern, wenn unterstützt. Mausrad: optional Systemlautstärke. Fullscreen-Pause pausiert niemals die Quell-App.</value></data>
   <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>Medienwiedergabe</value></data>
+  <data name="SettingsSystemDriveWarning" xml:space="preserve"><value>Rot bei weniger als (% frei):</value></data>
+  <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Laufwerke neu suchen</value></data>
+  <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} GB frei / {1:0} GB</value></data>
+  <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Laufwerke auswählen:</value></data>
 </root>

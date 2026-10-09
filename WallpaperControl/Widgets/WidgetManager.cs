@@ -126,6 +126,7 @@ namespace WallpaperControl
             settings.SystemShowVram = previewSettings.SystemShowVram;
             settings.SystemShowNetwork = previewSettings.SystemShowNetwork;
             settings.SystemShowDrives = previewSettings.SystemShowDrives;
+            settings.SystemSelectedDrives = SystemDriveSelection.Normalize(previewSettings.SystemSelectedDrives); settings.SystemDriveWarningPercent = previewSettings.SystemDriveWarningPercent;
             settings.WeatherEnabled = previewSettings.WeatherEnabled;
             settings.WeatherLocked = previewSettings.WeatherLocked;
             settings.WeatherRefreshMinutes = previewSettings.WeatherRefreshMinutes;
@@ -343,7 +344,7 @@ namespace WallpaperControl
                         target.SystemShowNetwork,
                         target.SystemShowDrives,
                         target.SystemLocation,
-                        SaveSystemLocation);
+                        SaveSystemLocation, target.SystemSelectedDrives, target.SystemDriveWarningPercent, target.ClockLanguageCode);
 
                     RegisterDesktopWidget(systemWidget);
                     systemWidget.Show();
@@ -370,7 +371,7 @@ namespace WallpaperControl
                         target.SystemShowGpu,
                         target.SystemShowVram,
                         target.SystemShowNetwork,
-                        target.SystemShowDrives);
+                        target.SystemShowDrives, target.SystemSelectedDrives, target.SystemDriveWarningPercent, target.ClockLanguageCode);
                     if (restoreLocations)
                     {
                         systemWidget.Location = WidgetSettings.EnsureVisible(target.SystemLocation, systemWidget.Size);

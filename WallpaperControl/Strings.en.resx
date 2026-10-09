@@ -851,7 +851,7 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
     <value>Refresh:</value>
   </data>
   <data name="SettingsSystemWidgetHint" xml:space="preserve">
-    <value>Shows CPU, RAM, GPU, VRAM, temperatures, network and drive information.</value>
+    <value>Shows CPU, RAM, GPU, VRAM, temperatures, network and selected local drives.</value>
   </data>
   <data name="SettingsSystemStyle" xml:space="preserve">
     <value>Style:</value>
@@ -875,7 +875,7 @@ All previous views, timestamps and rankings will be permanently deleted. The cur
     <value>Network ↓ / ↑</value>
   </data>
   <data name="SettingsSystemDrives" xml:space="preserve">
-    <value>System drive</value>
+    <value>Drives</value>
   </data>
   <data name="SettingsNavWeather" xml:space="preserve">
     <value>Weather</value>
@@ -1741,4 +1741,8 @@ Would you like to open the release page?</value>
   <data name="NowPlayingAutomatic" xml:space="preserve"><value>Automatic (Windows)</value></data>
   <data name="NowPlayingHint" xml:space="preserve"><value>Controls Windows media sessions. Cover/title: show source app where possible. Progress bar: seek when supported. Mouse wheel: optional system volume. Fullscreen suspension never pauses the source app.</value></data>
   <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>Media Player</value></data>
+  <data name="SettingsSystemDriveWarning" xml:space="preserve"><value>Red below (% free):</value></data>
+  <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>Refresh drive list</value></data>
+  <data name="SystemDriveCapacity" xml:space="preserve"><value>{0:0} GB free / {1:0} GB</value></data>
+  <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>Select drives:</value></data>
 </root>

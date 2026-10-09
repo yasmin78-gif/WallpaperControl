@@ -58,6 +58,7 @@ namespace WallpaperControl
                 systemShowVramCheckBox.Checked = value.SystemShowVram;
                 systemShowNetworkCheckBox.Checked = value.SystemShowNetwork;
                 systemShowDrivesCheckBox.Checked = value.SystemShowDrives;
+                LoadSystemDrives(value);
                 weatherWidgetEnabledCheckBox.Checked = value.WeatherEnabled;
                 weatherWidgetLockedCheckBox.Checked = value.WeatherLocked;
                 weatherShowForecastCheckBox.Checked = value.WeatherShowForecast;
@@ -115,6 +116,7 @@ namespace WallpaperControl
                 if (pages.SelectedTab == null) pages.SelectedTab = ordered[0].Page;
                 BackColor = AppTheme.WindowBackground(dark); ForeColor = AppTheme.TextPrimary(dark);
                 SettingsControlTheme.Apply(Controls, dark, BackColor, ForeColor, AppTheme.InputBackground(dark), AppTheme.ControlBackground(dark));
+                systemDriveList.BackColor = AppTheme.InputBackground(dark); systemDriveList.ForeColor = AppTheme.TextPrimary(dark);
                 LocalizeWebControls();
                 LocalizePackageInterval(PackageIntervalMinutes);
                 UpdatePackageConnection();

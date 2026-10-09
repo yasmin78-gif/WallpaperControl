@@ -823,7 +823,7 @@
     <value>更新間隔:</value>
   </data>
   <data name="SettingsSystemWidgetHint" xml:space="preserve">
-    <value>CPU、RAM、GPU、VRAM、温度、ネットワーク、ドライブ情報を表示します。</value>
+    <value>CPU、RAM、GPU、VRAM、温度、ネットワークと選択したローカルドライブを表示します。</value>
   </data>
   <data name="SettingsSystemStyle" xml:space="preserve">
     <value>スタイル:</value>
@@ -847,7 +847,7 @@
     <value>ネットワーク ↓ / ↑</value>
   </data>
   <data name="SettingsSystemDrives" xml:space="preserve">
-    <value>システムドライブ</value>
+    <value>ドライブ</value>
   </data>
   <data name="SettingsNavWeather" xml:space="preserve">
     <value>天気</value>
@@ -1713,4 +1713,8 @@
   <data name="NowPlayingAutomatic" xml:space="preserve"><value>自動（Windows）</value></data>
   <data name="NowPlayingHint" xml:space="preserve"><value>Windowsのメディアセッションを操作します。カバー/タイトル：可能なら再生元を表示。進行バー：対応時にシーク。ホイール：任意のシステム音量。全画面中も再生元は一時停止しません。</value></data>
   <data name="NowPlayingMediaPlayer" xml:space="preserve"><value>メディア プレーヤー</value></data>
+  <data name="SettingsSystemDriveWarning" xml:space="preserve"><value>空き容量が次の割合未満なら赤色（%）：</value></data>
+  <data name="SettingsSystemDriveRefresh" xml:space="preserve"><value>ドライブ一覧を更新</value></data>
+  <data name="SystemDriveCapacity" xml:space="preserve"><value>空き {0:0} GB / {1:0} GB</value></data>
+  <data name="SettingsSystemDriveSelection" xml:space="preserve"><value>表示するドライブ：</value></data>
 </root>

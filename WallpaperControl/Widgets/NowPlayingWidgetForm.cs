@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace WallpaperControl;
 internal sealed class NowPlayingWidgetForm : Form
 {
-    private const long EmptySessionDelayMilliseconds = 15_000;
+    private const long EmptySessionDelayMilliseconds = 5_000;
     private readonly INowPlayingService service;
     private readonly WidgetDragHandler drag;
     private readonly System.Windows.Forms.Timer timer = new() { Interval = 1000 };

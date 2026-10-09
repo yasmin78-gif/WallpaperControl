@@ -300,7 +300,7 @@
             {
                 Text = Localization.Get("SettingsSystemWidgetHint", previewLanguageCode),
                 Tag = "SettingsSystemWidgetHint",
-                Location = new Point(18, 345),
+                Location = new Point(18, 480),
                 Size = new Size(570, 55)
             };
 
@@ -318,6 +318,7 @@
             systemOptions.Controls.Add(systemShowNetworkCheckBox);
             systemOptions.Controls.Add(systemShowDrivesCheckBox);
             systemOptions.Controls.Add(systemHint);
+            InitializeSystemDrives(systemOptions);
             systemWidgetPage.Controls.Add(systemOptions);
 
             #endregion

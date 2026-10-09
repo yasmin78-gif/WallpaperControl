@@ -9,6 +9,45 @@ namespace WallpaperControl
     // Widget editor SystemPage members.
     internal sealed partial class WidgetSettingsEditor
     {
+        private readonly CheckedListBox systemDriveList = new() { CheckOnClick = true, IntegralHeight = false, Location = new(18,350), Size = new(260,110) };
+        private readonly NumericUpDown systemDriveWarning = new() { Minimum = 1, Maximum = 50, Value = 10, Location = new(310,389), Width = 90 };
+        private HashSet<string> selectedSystemDrives = [];
+        private void InitializeSystemDrives(GroupBox options)
+        {
+            options.Height = 560;
+            var warning = new Label { Tag = "SettingsSystemDriveWarning", Location = new(310,350), Size = new(270,35) };
+            var refresh = new Button { Tag = "SettingsSystemDriveRefresh", Location = new(310,430), AutoSize = true };
+            options.Controls.Add(new Label { Tag = "SettingsSystemDriveSelection", Location = new(18,326), AutoSize = true });
+            options.Controls.Add(systemDriveList); options.Controls.Add(systemDriveWarning); options.Controls.Add(warning); options.Controls.Add(refresh);
+            LoadSystemDrives(initialWidgetSettings);
+            systemDriveList.ItemCheck += (_,e) =>
+            {
+                if (loadingControls) return;
+                string name = (string)systemDriveList.Items[e.Index];
+                if (e.NewValue == CheckState.Checked) selectedSystemDrives.Add(name); else selectedSystemDrives.Remove(name);
+                NotifyWidgetPreviewChanged();
+            };
+            systemDriveWarning.ValueChanged += (_,_) => NotifyWidgetPreviewChanged();
+            systemShowDrivesCheckBox.CheckedChanged += (_,_) => UpdateDriveControls();
+            refresh.Click += (_,_) => RefreshSystemDriveList();
+        }
+        private void LoadSystemDrives(WidgetSettings value)
+        {
+            selectedSystemDrives = SystemDriveSelection.Normalize(value.SystemSelectedDrives).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            systemDriveWarning.Value = Math.Clamp(value.SystemDriveWarningPercent,1,50); RefreshSystemDriveList(); UpdateDriveControls();
+        }
+        private void UpdateDriveControls() { systemDriveList.Enabled = systemShowDrivesCheckBox.Checked; systemDriveWarning.Enabled = systemShowDrivesCheckBox.Checked; }
+        private void RefreshSystemDriveList()
+        {
+            bool previous = loadingControls; loadingControls = true;
+            try
+            {
+                systemDriveList.Items.Clear();
+                foreach (string name in SystemDriveSelection.Available().Concat(selectedSystemDrives).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase))
+                    systemDriveList.Items.Add(name,selectedSystemDrives.Contains(name));
+            }
+            finally { loadingControls = previous; }
+        }
         /// <summary>
         /// Rebuilds localized system-widget styles while retaining the selected style.
         /// </summary>

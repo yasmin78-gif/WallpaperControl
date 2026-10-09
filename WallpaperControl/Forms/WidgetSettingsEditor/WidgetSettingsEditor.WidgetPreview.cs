@@ -70,6 +70,7 @@ namespace WallpaperControl
             preview.SystemShowVram = systemShowVramCheckBox.Checked;
             preview.SystemShowNetwork = systemShowNetworkCheckBox.Checked;
             preview.SystemShowDrives = systemShowDrivesCheckBox.Checked;
+            preview.SystemSelectedDrives = SystemDriveSelection.Normalize(selectedSystemDrives); preview.SystemDriveWarningPercent = (int)systemDriveWarning.Value;
             preview.WeatherEnabled = weatherWidgetEnabledCheckBox.Checked;
             preview.WeatherLocked = weatherWidgetLockedCheckBox.Checked;
             preview.WeatherRefreshMinutes = GetWeatherRefreshMinutes();

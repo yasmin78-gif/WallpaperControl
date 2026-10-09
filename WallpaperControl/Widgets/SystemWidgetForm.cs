@@ -23,6 +23,9 @@ namespace WallpaperControl
         private bool showVram;
         private bool showNetwork;
         private bool showDrives;
+        private string[] selectedDrives = SystemDriveSelection.Default;
+        private int driveWarningPercent = 10;
+        private string language = "de";
         private bool refreshInProgress;
         private bool disposingWidget;
 
@@ -54,7 +57,7 @@ namespace WallpaperControl
             bool showNetwork,
             bool showDrives,
             Point location,
-            Action<Point> locationChanged)
+            Action<Point> locationChanged, IEnumerable<string>? selectedDrives = null, int driveWarningPercent = 10, string language = "de")
         {
 
             FormBorderStyle = FormBorderStyle.None;
@@ -67,7 +70,7 @@ namespace WallpaperControl
             timer = new System.Windows.Forms.Timer();
             timer.Tick += (_, _) => RefreshSnapshot();
 
-            Apply(locked, refreshSeconds, style, showCpu, showRam, showGpu, showVram, showNetwork, showDrives);
+            Apply(locked, refreshSeconds, style, showCpu, showRam, showGpu, showVram, showNetwork, showDrives, selectedDrives, driveWarningPercent, language);
             Location = WidgetSettings.EnsureVisible(location, Size);
         }
 
@@ -127,7 +130,7 @@ namespace WallpaperControl
             bool gpu,
             bool vram,
             bool network,
-            bool drives)
+            bool drives, IEnumerable<string>? selectedDrives = null, int driveWarningPercent = 10, string language = "de")
         {
             locked = isLocked;
             style = newStyle;
@@ -137,6 +140,8 @@ namespace WallpaperControl
             showVram = vram;
             showNetwork = network;
             showDrives = drives;
+            this.selectedDrives = SystemDriveSelection.Normalize(selectedDrives ?? SystemDriveSelection.Default);
+            this.driveWarningPercent = Math.Clamp(driveWarningPercent,1,50); this.language = language;
             timer.Interval = Math.Clamp(refreshSeconds, 1, 5) * 1000;
 
             Size newSize = new(WidgetWidth, CalculateHeight());
@@ -161,7 +166,7 @@ namespace WallpaperControl
             if (showGpu) height += 38;
             if (showVram) height += 38;
             if (showNetwork) height += 52;
-            if (showDrives) height += 35;
+            if (showDrives) height += 38 * SystemDriveSelection.Visible(snapshot.Drives,selectedDrives).Length;
             return Math.Max(108, height + 12);
         }
 
@@ -207,7 +212,14 @@ namespace WallpaperControl
         {
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
-            using Bitmap bitmap = new(ClientSize.Width, ClientSize.Height, PixelFormat.Format32bppPArgb);
+            ClientSize = new Size(WidgetWidth,CalculateHeight());
+            using var bitmap = RenderBitmap();
+            LayeredWidgetBitmap.Update(Handle, Location, bitmap);
+        }
+
+        internal Bitmap RenderBitmap()
+        {
+            Bitmap bitmap = new(WidgetWidth,CalculateHeight(),PixelFormat.Format32bppPArgb);
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 g.Clear(Color.Transparent);
@@ -222,13 +234,13 @@ namespace WallpaperControl
                 if (style == SystemWidgetStyle.Glow)
                 {
                     using Pen outerGlow = new(Color.FromArgb(48, accentColor), 5f);
-                    using GraphicsPath glowPath = WidgetDrawing.RoundedRectangle(new RectangleF(3f, 3f, Width - 6f, Height - 6f), 14f);
+                    using GraphicsPath glowPath = WidgetDrawing.RoundedRectangle(new RectangleF(3f, 3f, bitmap.Width - 6f, bitmap.Height - 6f), 14f);
                     g.DrawPath(outerGlow, glowPath);
                 }
 
                 using SolidBrush panel = new(panelColor);
                 using Pen border = new(borderColor, 1f);
-                using GraphicsPath path = WidgetDrawing.RoundedRectangle(new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f), 14f);
+                using GraphicsPath path = WidgetDrawing.RoundedRectangle(new RectangleF(0.5f, 0.5f, bitmap.Width - 1f, bitmap.Height - 1f), 14f);
                 g.FillPath(panel, path);
                 g.DrawPath(border, path);
 
@@ -290,18 +302,18 @@ namespace WallpaperControl
 
                 if (showDrives)
                 {
-                    DriveSnapshot? systemDrive = snapshot.Drives.FirstOrDefault(d => d.Name.StartsWith("C:", StringComparison.OrdinalIgnoreCase)) ?? snapshot.Drives.FirstOrDefault();
-                    if (systemDrive != null)
+                    foreach (var drive in SystemDriveSelection.Visible(snapshot.Drives,selectedDrives))
                     {
-                        double used = systemDrive.TotalBytes > 0 ? (systemDrive.TotalBytes - systemDrive.FreeBytes) * 100d / systemDrive.TotalBytes : 0;
-                        string driveText = $"{BytesToGb(systemDrive.FreeBytes):0} GB frei / {BytesToGb(systemDrive.TotalBytes):0} GB";
-                        DrawPerformanceRow(g, rowFont, smallFont, textBrush, mutedBrush, accentBrush, barBackBrush,
-                            systemDrive.Name.TrimEnd('\\'), (float)used, $"{used:0}%", driveText, ref y);
+                        double used = 100d * (drive.TotalBytes-Math.Clamp(drive.FreeBytes,0,drive.TotalBytes))/drive.TotalBytes;
+                        string driveText = string.Format(System.Globalization.CultureInfo.GetCultureInfo(language),Localization.Get("SystemDriveCapacity",language),BytesToGb(drive.FreeBytes),BytesToGb(drive.TotalBytes));
+                        using var warningBrush = new SolidBrush(Color.FromArgb(255,92,92));
+                        DrawPerformanceRow(g, rowFont, smallFont, textBrush, mutedBrush, SystemDriveSelection.Warning(drive,driveWarningPercent) ? warningBrush : accentBrush, barBackBrush,
+                            drive.Name.TrimEnd('\\'), (float)used, $"{used:0}%", driveText, ref y);
                     }
                 }
             }
 
-            LayeredWidgetBitmap.Update(Handle, Location, bitmap);
+            return bitmap;
         }
 
         /// <summary>
