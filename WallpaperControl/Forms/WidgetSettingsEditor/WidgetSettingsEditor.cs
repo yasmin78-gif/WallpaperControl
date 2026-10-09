@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace WallpaperControl
 {
@@ -35,7 +35,7 @@ namespace WallpaperControl
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
                 LoadTwitchControls(value);
-                LoadFeedControls(value); LoadNowPlayingControls(value); LoadClipboardControls(value);
+                LoadFeedControls(value); LoadNowPlayingControls(value); LoadClipboardControls(value); LoadLauncherControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
                 notesMaximumHeight.Value = Math.Clamp(value.NotesMaximumHeight, (int)notesMaximumHeight.Minimum, (int)notesMaximumHeight.Maximum);
@@ -92,6 +92,8 @@ namespace WallpaperControl
             {
                 Localize(Controls);
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
+                launcherList.ApplyPresentation(language,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex),dark);
+                RefreshWidgetStyleChoices(launcherStyle,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(clipboardStyle, (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(nowPlayingStyle, (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(feedStyle, (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex));

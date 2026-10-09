@@ -1,4 +1,4 @@
-﻿extern alias WallpaperApp;
+extern alias WallpaperApp;
 using App = WallpaperApp::WallpaperControl;
 using System.Drawing;
 using System.Globalization;
@@ -9,7 +9,7 @@ internal static class WidgetNavigationTests
 {
     private const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
     private static readonly string[] Languages = { "de", "en", "fr", "es", "ja" };
-    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather", "WebTitle", "PackageTitle", "TwitchTitle", "FeedTitle", "NowPlayingTitle", "ClipboardTitle" };
+    private static readonly string[] Keys = { "SettingsNavCalendar", "SettingsNavClock", "SettingsNavNextWallpaper", "NotesTitle", "SettingsNavSystem", "WallpaperInfoTitle", "SettingsNavWeather", "WebTitle", "PackageTitle", "TwitchTitle", "FeedTitle", "NowPlayingTitle", "ClipboardTitle", "LauncherTitle" };
     private static readonly float[] Scales = { 1, 1.5f, 2 };
     private static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, Members)!.GetValue(value)!;
     private static object? Invoke(object value, string name, params object[] args) => value.GetType().GetMethod(name, Members)!.Invoke(value, args);

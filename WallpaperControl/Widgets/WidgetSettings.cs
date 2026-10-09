@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace WallpaperControl
         public FeedWidgetSettings Feed { get; set; } = new();
         public NowPlayingSettings NowPlaying { get; set; } = new();
         public ClipboardWidgetSettings Clipboard { get; set; } = new();
+        public LauncherSettings Launcher { get; set; } = new();
         public bool PackageStatusNotifications { get; set; }
 
         public bool TwitchEnabled { get; set; }
@@ -98,6 +99,7 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.Launcher = LauncherSettings.Parse(key.GetValue("LauncherWidgetConfiguration") as string ?? "{}");
                 result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
                 result.NowPlaying = NowPlayingSettings.Parse(key.GetValue("NowPlayingConfiguration") as string ?? "{}");
                 result.Feed = FeedWidgetSettings.Parse(key.GetValue("FeedWidgetConfiguration") as string ?? "{}");
@@ -189,6 +191,20 @@ namespace WallpaperControl
         /// Saves widget preferences to the application key or an explicitly supplied test key.
         /// </summary>
         /// <param name="registryPath">The registry subkey containing these preferences; tests use an isolated subkey.</param>
+        internal bool SaveLauncherEntries(List<LauncherEntry> entries, string registryPath)
+        {
+            if(loadFailed) { SettingsPersistence.ReportFailure("Launcher entries were not saved after an incomplete load.",new InvalidOperationException()); return false; }
+            try
+            {
+                var value=Launcher.Clone(); value.Entries=entries.ToList();
+                using var key=Registry.CurrentUser.CreateSubKey(registryPath);
+                // One registry value: failed writes cannot leave partial entry lists referencing rolled-back copies.
+                key.SetValue("LauncherWidgetConfiguration",System.Text.Json.JsonSerializer.Serialize(value),RegistryValueKind.String);
+                return true;
+            }
+            catch(Exception ex) when(ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+            { SettingsPersistence.ReportFailure("Launcher entries could not be saved.",ex); return false; }
+        }
         public void Save(string registryPath = RegistryPath)
         {
             // A partial read must never replace preferences that were not read.
@@ -204,6 +220,7 @@ namespace WallpaperControl
                 Web.Normalize();
                 key.SetValue("NotificationSound", (int)NotificationSounds.Normalize((int)NotificationSound), RegistryValueKind.DWord);
                 key.SetValue("NotificationTones", System.Text.Json.JsonSerializer.Serialize(NotificationTones), RegistryValueKind.String);
+                key.SetValue("LauncherWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Launcher), RegistryValueKind.String);
                 key.SetValue("ClipboardWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Clipboard), RegistryValueKind.String);
                 key.SetValue("NowPlayingConfiguration", System.Text.Json.JsonSerializer.Serialize(NowPlaying), RegistryValueKind.String);
                 key.SetValue("FeedWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Feed), RegistryValueKind.String);
@@ -300,7 +317,7 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
-            Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
+            Launcher = Launcher.Clone(), Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
             NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,
             TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,
             TwitchRefreshMinutes = TwitchRefreshScheduler.NormalizeInterval(TwitchRefreshMinutes),

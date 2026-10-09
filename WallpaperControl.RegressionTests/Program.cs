@@ -6,6 +6,7 @@ using System.IO.Pipes;
 
 try
 {
+    if(args.Length==1&&args[0]=="--launcher-child")return 0;
     if (args.Contains("--fail-test")) throw new Exception("Intentional test failure.");
     if (args.Length == 5 && args[0] == "--mpv-application-loop")
     { MpvApplicationLoopProbe.Run(args[1], args[2], args[3], int.Parse(args[4])); return 0; }
@@ -111,6 +112,7 @@ try
     { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--wallpaper-widget-mode-checks")
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--launcher-widget-checks") { LauncherWidgetTests.Run(Check); Console.WriteLine($"All {passed} launcher widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--clipboard-widget-checks") { ClipboardWidgetTests.Run(Check); Console.WriteLine($"All {passed} clipboard widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--system-drive-checks") { SystemDriveTests.Run(Check); Console.WriteLine($"All {passed} system drive checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-checks") { NowPlayingTests.Run(Check); Console.WriteLine($"All {passed} Now Playing checks passed."); return 0; }

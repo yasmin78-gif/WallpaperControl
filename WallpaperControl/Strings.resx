@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1764,4 +1764,34 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="ClipboardAgeSeconds" xml:space="preserve"><value>vor {0} Sek.</value></data>
   <data name="ClipboardAgeMinutes" xml:space="preserve"><value>vor {0} Min.</value></data>
   <data name="ClipboardAgeHours" xml:space="preserve"><value>vor {0} Std.</value></data>
+
+  <data name="LauncherTitle" xml:space="preserve"><value>Schnellstarter</value></data>
+  <data name="LauncherEnabled" xml:space="preserve"><value>Schnellstarter-Widget anzeigen</value></data>
+  <data name="LauncherNames" xml:space="preserve"><value>Symbol + Name (aus: nur Symbole)</value></data>
+  <data name="LauncherColumns" xml:space="preserve"><value>Spalten</value></data>
+  <data name="LauncherEntries" xml:space="preserve"><value>Einträge</value></data>
+  <data name="LauncherAdd" xml:space="preserve"><value>Hinzufügen</value></data>
+  <data name="LauncherEdit" xml:space="preserve"><value>Bearbeiten</value></data>
+  <data name="LauncherDelete" xml:space="preserve"><value>Löschen</value></data>
+  <data name="LauncherUp" xml:space="preserve"><value>↑ Hoch</value></data>
+  <data name="LauncherDown" xml:space="preserve"><value>↓ Runter</value></data>
+  <data name="LauncherName" xml:space="preserve"><value>Name</value></data>
+  <data name="LauncherTarget" xml:space="preserve"><value>Ziel (Pfad oder https://…) </value></data>
+  <data name="LauncherArguments" xml:space="preserve"><value>Argumente (optional, nur für EXE)</value></data>
+  <data name="LauncherBrowse" xml:space="preserve"><value>Durchsuchen…</value></data>
+  <data name="LauncherFile" xml:space="preserve"><value>Datei / Programm / Verknüpfung</value></data>
+  <data name="LauncherFolder" xml:space="preserve"><value>Ordner</value></data>
+  <data name="LauncherAllFiles" xml:space="preserve"><value>Alle Dateien</value></data>
+  <data name="LauncherSave" xml:space="preserve"><value>Speichern</value></data>
+  <data name="LauncherCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="LauncherInvalidTarget" xml:space="preserve"><value>Bitte eine vorhandene Datei, einen Ordner, einen auflösbaren EXE-Namen oder eine gültige HTTP-/HTTPS-Adresse angeben.</value></data>
+  <data name="LauncherArgumentsOnly" xml:space="preserve"><value>Separate Argumente sind nur für EXE-Programme möglich. Verknüpfungen behalten ihre eigenen Startparameter.</value></data>
+  <data name="LauncherStartFailed" xml:space="preserve"><value>Das Ziel konnte nicht geöffnet werden. Bitte Pfad, Berechtigungen und die zugehörige Standardanwendung prüfen.</value></data>
+  <data name="LauncherOpen" xml:space="preserve"><value>Öffnen / Starten</value></data>
+  <data name="LauncherOpenFolder" xml:space="preserve"><value>Dateispeicherort öffnen</value></data>
+  <data name="LauncherCopyAddress" xml:space="preserve"><value>Adresse kopieren</value></data>
+  <data name="LauncherManage" xml:space="preserve"><value>Einträge verwalten</value></data>
+  <data name="LauncherNew" xml:space="preserve"><value>Neu</value></data>
+  <data name="LauncherHint" xml:space="preserve"><value>Programme, Dateien, Ordner und HTTP-/HTTPS-Adressen. Maximal 100 Einträge. Einträge werden separat sofort gespeichert, wie Notizen und Feed-Quellen. Dateien, Ordner und Verknüpfungen können auf das Widget (auch bei fixierter Position) gezogen werden. Der Hinzufügen-Dialog bestätigt jedes Ziel. Verknüpfungen werden nach %LOCALAPPDATA%\WallpaperControl\Launcher\Shortcuts kopiert; das Original kann danach gelöscht werden.</value></data>
+  <data name="LauncherShortcutFailed" xml:space="preserve"><value>Die Verknüpfung konnte nicht übernommen werden. Die bisherigen Einträge bleiben erhalten. Bitte Datei und Schreibrechte prüfen.</value></data>
 </root>

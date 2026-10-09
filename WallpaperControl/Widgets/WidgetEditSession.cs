@@ -69,6 +69,7 @@ namespace WallpaperControl
         private static bool Equal(WidgetSettings left, WidgetSettings right)
         {
             var comparable = right.Clone();
+            comparable.Launcher.Entries = left.Launcher.Entries.ToList();
             comparable.Feed.Sources = left.Feed.Sources.ToList(); comparable.Feed.Selected = left.Feed.Selected; comparable.Feed.Display = left.Feed.Display; comparable.Feed.Period = left.Feed.Period;
             return JsonSerializer.Serialize(left) == JsonSerializer.Serialize(comparable);
         }

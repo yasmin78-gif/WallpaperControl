@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -83,6 +83,7 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            var launcherLocation=settings.Launcher.Location; var launcherEntries=settings.Launcher.Entries; settings.Launcher=previewSettings.Launcher.Clone(); settings.Launcher.Location=launcherLocation; settings.Launcher.Entries=launcherEntries;
             var clipboardLocation = settings.Clipboard.Location; settings.Clipboard = previewSettings.Clipboard.Clone(); settings.Clipboard.Location = clipboardLocation;
             var mediaLocation = settings.NowPlaying.Location; settings.NowPlaying = previewSettings.NowPlaying.Clone(); settings.NowPlaying.Location = mediaLocation;
             settings.Feed.Enabled = previewSettings.Feed.Enabled; settings.Feed.Locked = previewSettings.Feed.Locked; settings.Feed.Style = previewSettings.Feed.Style; settings.Feed.MaximumHeight = previewSettings.Feed.MaximumHeight;
@@ -166,6 +167,7 @@ namespace WallpaperControl
             Point weatherLocation = settings.WeatherLocation;
             Point calendarLocation = settings.CalendarLocation;
 
+            committedSettings.Launcher.Location=settings.Launcher.Location; committedSettings.Launcher.Entries=settings.Launcher.Entries.ToList();
             PreserveFeedContents(committedSettings); committedSettings.NowPlaying.Location = settings.NowPlaying.Location; committedSettings.Clipboard.Location = settings.Clipboard.Location;
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
@@ -191,6 +193,7 @@ namespace WallpaperControl
         public void CancelPreview(WidgetSettings originalSettings)
         {
             previewMode = false;
+            originalSettings.Launcher.Entries=settings.Launcher.Entries.ToList();
             PreserveFeedContents(originalSettings, preserveLocation: false);
             settings = originalSettings.Clone();
 
@@ -215,7 +218,7 @@ namespace WallpaperControl
             ApplyTwitchWidget(target, restoreLocations);
             ApplyFeedWidget(target, restoreLocations);
             ApplyNowPlayingWidget(target, restoreLocations);
-            ApplyClipboardWidget(target, restoreLocations);
+            ApplyClipboardWidget(target, restoreLocations); ApplyLauncherWidget(target,restoreLocations);
             ApplyWebWidget(target, restoreLocations);
             bool effectiveClockLocked = target.ClockLocked;
             bool effectiveNextLocked = target.NextLocked;
@@ -703,7 +706,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); }
+        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); launcherWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -745,7 +748,7 @@ namespace WallpaperControl
             packageScheduler?.SetSuspended(suspended);
             packageNotifications?.SetSuspended(suspended || packagePowerSuspended);
             if (suspended) ClearPackageNotifications?.Invoke();
-            nowPlayingWidget?.SetActivitySuspended(suspended); clipboardWidget?.SetActivitySuspended(suspended);
+            nowPlayingWidget?.SetActivitySuspended(suspended); clipboardWidget?.SetActivitySuspended(suspended); launcherWidget?.SetActivitySuspended(suspended);
             feedWidget?.SetActivitySuspended(suspended); feeds?.SetSuspended(suspended || packagePowerSuspended);
             twitchWidget?.SetActivitySuspended(suspended); twitchScheduler?.SetSuspended(suspended);
             twitchNotifications?.SetSuspended(suspended || packagePowerSuspended);
@@ -765,7 +768,7 @@ namespace WallpaperControl
         {
             DisposeTwitch();
             DisposeFeeds();
-            DisposeNowPlaying(); DisposeClipboard();
+            DisposeNowPlaying(); DisposeClipboard(); DisposeLauncher(); LauncherEntriesChanged=null;
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
             packageScheduler?.Dispose(); packageScheduler = null;
