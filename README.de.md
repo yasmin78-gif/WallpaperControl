@@ -56,7 +56,6 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Widget „Aktuelle Wiedergabe“ zur Steuerung von Windows-Mediensitzungen
     -   Zwischenablage-Widget mit reinem RAM-Textverlauf
     -   Schnellstarter für Programme, Dateien, Ordner und URLs
-
     -   Uhr-Widget mit 5 wählbaren Designs
     -   Systemmonitor-Widget
     -   Wetter-Widget mit optionaler 3-Tage-Vorhersage
