@@ -15,7 +15,7 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.1.1**
+**Aktuelle Version: v2.2.0**
 
 ## ✨ Funktionen
 
@@ -52,6 +52,11 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Desktop-Symbole und Desktop-Tools bleiben über der
         Übergangsebene sichtbar
 -   🕐 **Native Desktop-Widgets**
+    -   Feeds-Widget für RSS-/Atom-Artikel, Vorschauen und Benachrichtigungen je Feed
+    -   Widget „Aktuelle Wiedergabe“ zur Steuerung von Windows-Mediensitzungen
+    -   Zwischenablage-Widget mit reinem RAM-Textverlauf
+    -   Schnellstarter für Programme, Dateien, Ordner und URLs
+
     -   Uhr-Widget mit 5 wählbaren Designs
     -   Systemmonitor-Widget
     -   Wetter-Widget mit optionaler 3-Tage-Vorhersage
@@ -276,6 +281,14 @@ Widgets-Bereich sofort als Vorschau angezeigt. Dauerhaft übernommen
 werden sie beim Speichern. Beim Abbrechen werden der vorherige
 Widget-Zustand und die vorherige Position wiederhergestellt.
 
+### 🧲 Widget-Snapping
+
+- Widgets an Kanten und Mittellinien ausrichten oder mit 10 Pixel Abstand anordnen
+- Horizontales und vertikales Einrasten funktionieren unabhängig
+- DPI-gerechter Radius, Hysterese und sichtbare Hilfslinien
+- **Alt** beim Ziehen deaktiviert das Einrasten vorübergehend
+- Globale Ein-/Aus-Option in den Einstellungen
+
 ### Uhr
 
 Die Desktop-Uhr bietet:
@@ -314,6 +327,9 @@ Stile **Minimal**, **Clean** und **Glow**.
 Die Hardwareüberwachung läuft asynchron, damit Sensoraktualisierungen
 weder Wallpaper-Übergänge noch die Reaktionsfähigkeit der Hauptanwendung
 beeinträchtigen.
+
+Mehrere ausgewählte lokale Laufwerke lassen sich einzeln anzeigen. Die Warnschwelle für freien Speicher ist einstellbar (standardmäßig 10 %); darunter wird die Anzeige rot.
+
 
 ### 🌦️ Wetter
 
@@ -498,6 +514,9 @@ Positionen bleiben erhalten.
 
 Im Modus **Video-Hintergrund** werden die Widgets **Wallpaper-Info** und **Nächstes Wallpaper** vorübergehend ausgeblendet, da sie sich auf Bild-Wallpaper beziehen. Beim Wechsel zurück zur Bild-Diashow erscheinen sie automatisch wieder, sofern sie aktiviert sind. Einstellungen und Positionen bleiben erhalten.
 
+Zugestellte Sendungen wechseln erst **ab Mitternacht des Folgetags** in die Gruppe „Zugestellt“. Die Refresh-Diagnose enthält zusätzliche Details zu Ship24-Antworten und gespeicherten Ergebnissen.
+
+
 ### 📺 Twitch
 
 Das Twitch-Widget zeigt, welche Kanäle, denen du folgst, aktuell live
@@ -556,6 +575,38 @@ als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter
 Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget
 unterstützt **Minimal**, **Clean** und **Glow**.
 
+### 📰 Feeds
+
+- RSS- und Atom-Feeds mit Bildern und Artikelvorschau
+- Mehrere Quellen verwalten; einzelne Feeds oder alle zusammen anzeigen
+- Listenansicht, erstes Element hervorheben oder nur Titel anzeigen
+- Zeitraumfilter: Tag, Woche, Monat oder alle Einträge
+- Einstellbare Aktualisierungsintervalle und optionale Benachrichtigungen je Feed; Glockensymbol in der Verwaltung
+
+### 🎵 Aktuelle Wiedergabe
+
+- Cover, Titel, Interpret, Album und Fortschritt kompatibler Windows-Mediensitzungen anzeigen
+- Zurück, Wiedergabe/Pause und Weiter; automatische oder manuelle Quellenauswahl
+- Optional Windows-Systemlautstärke mit dem Mausrad regeln
+- Verbesserte Cover-Erkennung und verständliche App-Namen statt technischer Paketkennungen
+- Stabile Anzeige bei Titelwechseln; Ausblenden erst fünf Sekunden nach Verschwinden der Sitzung
+
+### 📋 Zwischenablage
+
+- Reiner Textverlauf mit 5, 10, 20 oder 50 Einträgen, **ausschließlich im RAM**
+- Texte zurückkopieren, vollständig ansehen, einzeln löschen oder Verlauf leeren
+- Aufnahme pausieren und fortsetzen; Zurückkopieren ändert weder Reihenfolge noch Zeitstempel
+- Berücksichtigt unterstützte Windows-Datenschutzmarkierungen; Passwörter werden nicht zuverlässig erkannt
+- Beim Deaktivieren oder Beenden wird der Verlauf gelöscht; keine Speicherung auf Datenträgern
+
+### 🚀 Schnellstarter
+
+- Programme, Dateien, Ordner und URLs mit automatisch erkannten Symbolen starten
+- Optionale EXE-Argumente; Einträge bearbeiten, löschen und umsortieren
+- Nur Symbole oder Symbole mit Namen, in 2–6 Spalten
+- Drag & Drop vom Desktop und aus dem Startmenü, auch bei fixierter Widget-Position
+- Importierte Windows-Verknüpfungen werden als eigene Kopien verwaltet; Originale können entfernt werden
+
 ### Nächstes Wallpaper
 
 Das Nächstes-Wallpaper-Widget bietet einen kompakten Desktop-Button, mit
@@ -573,12 +624,13 @@ die Hauptanwendung.
 
 ## 🔔 Benachrichtigungen
 
-Wallpaper Control verwendet ein gemeinsames Benachrichtigungssystem für
-Notizen & Reminder, Paketverfolgung und Twitch.
+Benachrichtigungstöne sind **für Twitch, Paketverfolgung, Feeds und Notizen & Reminder getrennt** einstellbar. Zur Auswahl stehen zusätzliche Töne, Windows-Standard und Aus. Twitch-Meldungen nennen den Kanal direkt, etwa „Gronkh ist jetzt live“.
 
-Für Benachrichtigungstöne stehen **Aus**, **Windows-Standard** und
-**Zweiklang** zur Verfügung; der gewählte Ton kann in den Einstellungen
-vorgehört werden. Treffen mehrere Twitch- oder Paketmeldungen
+
+Wallpaper Control verwendet ein gemeinsames Benachrichtigungssystem für
+Notizen & Reminder, Paketverfolgung, Feeds und Twitch.
+
+Treffen mehrere Twitch- oder Paketmeldungen
 gleichzeitig ein, werden sie nacheinander mit der jeweils passenden
 Klickaktion angezeigt. Nicht mehr sinnvolle Meldungen in der
 Warteschlange verfallen nach zwei Minuten.
@@ -777,6 +829,9 @@ Der Installer ist derzeit **nicht digital signiert**. Windows kann daher
 beim Start der Setup-Datei eine Sicherheitswarnung anzeigen.
 
 ## 🔒 Datenschutz
+
+Das Zwischenablage-Widget speichert ausschließlich Text im RAM, löscht den Verlauf beim Deaktivieren oder Beenden und berücksichtigt unterstützte Windows-Datenschutzmarkierungen. Eine zuverlässige Passworterkennung ist nicht möglich. Der Schnellstarter speichert benutzerdefinierte Ziele und eigene Kopien importierter Verknüpfungen lokal.
+
 
 Wallpaper Control speichert Anwendungseinstellungen, Wallpaper-Statistiken, Notizen und Reminder lokal auf deinem Computer.
 

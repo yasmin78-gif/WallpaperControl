@@ -15,7 +15,7 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.1.1**
+**Current release: v2.2.0**
 
 ## ✨ Features
 
@@ -46,6 +46,11 @@ exits.
     -   Desktop icons and desktop tools remain visible above the
         transition layer
 -   🕐 **Native desktop widgets**
+    -   Feeds widget for RSS/Atom articles, previews and per-feed notifications
+    -   Now Playing widget for Windows media-session controls
+    -   Clipboard widget with RAM-only text history
+    -   Quick Launcher widget for applications, files, folders and URLs
+
     -   Clock widget with 5 selectable themes
     -   System monitoring widget
     -   Weather widget with optional 3-day forecast
@@ -256,6 +261,14 @@ dedicated Widgets area. They are permanently applied when the settings
 are saved. Cancelling the settings restores the previous widget state
 and position.
 
+### 🧲 Widget snapping
+
+- Align widget edges and centerlines, or keep a consistent 10-pixel gap
+- Horizontal and vertical snapping work independently
+- DPI-aware tolerance, hysteresis and visible alignment guides
+- Hold **Alt** while dragging to temporarily bypass snapping
+- A global Settings option enables or disables snapping
+
 ### Clock
 
 The desktop clock provides:
@@ -294,6 +307,9 @@ The widget includes compact graphical usage bars and offers **Minimal**,
 Hardware monitoring runs asynchronously so that sensor updates do not
 interfere with wallpaper transitions or the responsiveness of the main
 application.
+
+Selected local drives can be displayed individually, with a configurable free-space warning threshold (10% by default). Drives below the threshold are highlighted in red.
+
 
 ### 🌦️ Weather
 
@@ -463,6 +479,9 @@ preserved.
 
 When **Video Wallpaper** mode is active, the **Wallpaper Info** and **Next Wallpaper** widgets are temporarily hidden because they apply to image wallpapers. Switching back to Image Slideshow restores them automatically if they are enabled. Their settings and positions are preserved.
 
+Delivered shipments move to the **Delivered** group only after midnight at the start of the following day. Refresh diagnostics include additional details about Ship24 responses and stored results.
+
+
 ### 📺 Twitch
 
 The Twitch widget shows which channels you follow are currently live.
@@ -521,6 +540,38 @@ as JSON using atomic writes, backup and damaged-file protection.
 Existing notes remain compatible. The widget supports **Minimal**,
 **Clean** and **Glow** styles.
 
+### 📰 Feeds
+
+- RSS and Atom subscriptions with images and article previews
+- Manage multiple feeds; show one selected feed or combine all feeds
+- List view, highlight the first article, or show titles only
+- Filter by day, week, month or all entries
+- Configurable refresh intervals and optional notifications per feed; a bell identifies enabled notifications in feed management
+
+### 🎵 Now Playing
+
+- Display artwork, title, artist, album and playback progress from compatible Windows media sessions
+- Previous, play/pause and next controls; automatic or manual session selection
+- Optional mouse-wheel control of Windows system volume
+- Improved artwork recognition and readable app names instead of technical package IDs
+- Handles track changes without flickering; waits five seconds before hiding after a session disappears
+
+### 📋 Clipboard
+
+- Text-only history with 5, 10, 20 or 50 entries, kept **only in RAM**
+- Restore copied text, view full content, delete individual entries or clear the history
+- Pause and resume recording; restoring an entry preserves its order and timestamp
+- Respects supported Windows clipboard privacy flags; cannot reliably identify passwords
+- History is cleared on deactivation or application exit and is never written to disk
+
+### 🚀 Quick Launcher
+
+- Launch applications, files, folders and websites, with automatic icons
+- Optional executable arguments; edit, delete and reorder entries
+- Icons only or icons with names, arranged in 2–6 columns
+- Drag and drop from the desktop and Start menu, even when widget position is locked
+- Imported Windows shortcuts are stored as separately managed copies, so the originals can be removed
+
 ### Next Wallpaper
 
 The Next Wallpaper widget provides a compact desktop button for
@@ -537,11 +588,13 @@ application.
 
 ## 🔔 Notifications
 
-Wallpaper Control uses a shared notification system for Notes &
-Reminders, package tracking and Twitch.
+Notification sounds can be configured **separately for Twitch, Package Tracking, Feeds and Notes & Reminders**, including additional sounds, Windows Default and Off. Twitch live notifications name the channel directly (for example, “Gronkh is now live”).
 
-Notification sounds can be set to **Off**, **Windows Default** or
-**Two-Tone**, with a preview available in Settings. When multiple Twitch
+
+Wallpaper Control uses a shared notification system for Notes &
+Reminders, package tracking, Feeds and Twitch.
+
+When multiple Twitch
 or package notifications arrive together, they are shown one after
 another with the appropriate click action. Queued notifications that are
 no longer useful expire after two minutes.
@@ -733,6 +786,9 @@ The installer is currently **not digitally signed**. Windows may
 therefore display a security warning when the setup file is launched.
 
 ## 🔒 Privacy
+
+The Clipboard widget records text only in RAM, clears its history when disabled or on exit, and respects supported Windows clipboard privacy flags. It cannot reliably detect passwords. Quick Launcher stores user-defined targets and its own copies of imported shortcuts locally.
+
 
 Wallpaper Control stores application settings, wallpaper statistics, notes and reminders locally on your computer.
 

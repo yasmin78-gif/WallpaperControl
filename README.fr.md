@@ -15,7 +15,7 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.1.1**
+**Version actuelle : v2.2.0**
 
 ## ✨ Fonctionnalités
 
@@ -51,6 +51,11 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Les icônes et outils du bureau restent visibles au-dessus de la
         couche de transition
 -   🕐 **Widgets de bureau natifs**
+    -   Widget Flux RSS/Atom avec aperçus et notifications par source
+    -   Widget Lecture en cours pour contrôler les sessions multimédias Windows
+    -   Widget Presse-papiers avec historique de texte uniquement en RAM
+    -   Lanceur rapide pour programmes, fichiers, dossiers et URL
+
     -   Widget Horloge avec 5 thèmes sélectionnables
     -   Widget de surveillance du système
     -   Widget Météo avec prévisions optionnelles sur 3 jours
@@ -281,6 +286,14 @@ l'espace Widgets dédié pendant leur configuration. Elles sont appliquées
 définitivement lors de l'enregistrement des paramètres. L'annulation
 restaure l'état et la position précédents.
 
+### 🧲 Alignement magnétique des widgets
+
+- Alignement des bords et des axes centraux, ou espacement constant de 10 pixels
+- Alignement horizontal et vertical indépendants
+- Tolérance adaptée au DPI, hystérésis et guides visuels
+- Maintenir **Alt** pendant le déplacement pour désactiver temporairement l’aimantation
+- Activation ou désactivation globale dans les paramètres
+
 ### Horloge
 
 L'horloge de bureau propose :
@@ -319,6 +332,9 @@ Le widget comprend des barres graphiques compactes et propose les styles
 La surveillance matérielle fonctionne de manière asynchrone afin que les
 mises à jour des capteurs n'affectent ni les transitions ni la
 réactivité de l'application principale.
+
+Plusieurs lecteurs locaux sélectionnés peuvent être affichés séparément. Le seuil d’alerte d’espace libre est réglable (10 % par défaut) et l’indicateur devient rouge en dessous de ce seuil.
+
 
 ### 🌦️ Météo
 
@@ -500,6 +516,9 @@ s'ils sont activés. Leurs paramètres et positions sont conservés.
 
 Lorsque le mode **Fond d'écran vidéo** est actif, les widgets **Informations sur le fond d'écran** et **Fond d'écran suivant** sont temporairement masqués, car ils concernent les fonds d'écran fixes. Ils réapparaissent automatiquement lors du retour au diaporama d'images s'ils sont activés. Leurs paramètres et positions sont conservés.
 
+Les colis livrés ne passent dans la rubrique « Livrés » **qu’à partir de minuit le lendemain**. Les diagnostics d’actualisation détaillent davantage les réponses Ship24 et les résultats enregistrés.
+
+
 ### 📺 Twitch
 
 Le widget Twitch affiche les chaînes que vous suivez et qui sont
@@ -559,6 +578,38 @@ sauvegarde et protection des fichiers endommagés. Les notes existantes
 restent compatibles. Le widget prend en charge **Minimal**, **Clean** et
 **Glow**.
 
+### 📰 Flux RSS/Atom
+
+- Flux RSS et Atom avec images et aperçu des articles
+- Gestion de plusieurs sources ; affichage d’un flux ou de tous les flux
+- Vue en liste, premier article mis en avant ou titres uniquement
+- Filtres : jour, semaine, mois ou toutes les entrées
+- Intervalles d’actualisation réglables et notifications facultatives par flux, signalées par une cloche dans la gestion
+
+### 🎵 Lecture en cours
+
+- Pochette, titre, artiste, album et progression des sessions multimédias Windows compatibles
+- Précédent, lecture/pause et suivant ; sélection automatique ou manuelle de la source
+- Réglage facultatif du volume système avec la molette
+- Meilleure détection des pochettes et noms d’applications lisibles au lieu d’identifiants techniques
+- Affichage stable lors des changements de piste ; délai de cinq secondes avant masquage après disparition d’une session
+
+### 📋 Presse-papiers
+
+- Historique de texte de 5, 10, 20 ou 50 éléments, conservé **uniquement en RAM**
+- Recopier, afficher le texte complet, supprimer un élément ou vider l’historique
+- Suspendre et reprendre l’enregistrement ; recopier ne modifie ni l’ordre ni l’horodatage
+- Respect des indicateurs de confidentialité Windows pris en charge ; les mots de passe ne sont pas détectés de façon fiable
+- Historique effacé à la désactivation ou à la fermeture, jamais enregistré sur disque
+
+### 🚀 Lanceur rapide
+
+- Lancer programmes, fichiers, dossiers et URL avec détection automatique des icônes
+- Arguments EXE facultatifs ; modifier, supprimer et réorganiser les entrées
+- Icônes seules ou accompagnées des noms, sur 2 à 6 colonnes
+- Glisser-déposer depuis le bureau et le menu Démarrer, même si la position du widget est verrouillée
+- Les raccourcis Windows importés sont gérés comme des copies distinctes ; les originaux peuvent être supprimés
+
 ### Fond d'écran suivant
 
 Le widget Fond d'écran suivant fournit un bouton compact permettant de
@@ -575,12 +626,13 @@ l'application principale.
 
 ## 🔔 Notifications
 
-Wallpaper Control utilise un système de notifications commun pour Notes
-et rappels, le suivi des colis et Twitch.
+Les sons de notification sont réglables **séparément pour Twitch, le suivi des colis, les flux et les notes et rappels**. Des sons supplémentaires, le son Windows par défaut et l’option Désactivé sont proposés. Les notifications Twitch indiquent directement le nom de la chaîne, par exemple « Gronkh est en direct ».
 
-Les sons de notification peuvent être réglés sur **Désactivé**,
-**Windows par défaut** ou **Deux tons**, avec une fonction d'aperçu dans
-les paramètres. Lorsque plusieurs notifications Twitch ou de colis
+
+Wallpaper Control utilise un système de notifications commun pour Notes
+et rappels, le suivi des colis, les flux et Twitch.
+
+Lorsque plusieurs notifications Twitch ou de colis
 arrivent ensemble, elles sont affichées successivement avec l'action de
 clic appropriée. Les notifications en attente devenues obsolètes
 expirent après deux minutes.
@@ -789,6 +841,9 @@ L'installateur n'est actuellement **pas signé numériquement**. Windows
 peut donc afficher un avertissement de sécurité lors de son lancement.
 
 ## 🔒 Confidentialité
+
+Le widget Presse-papiers conserve uniquement du texte en RAM, efface son historique à la désactivation ou à la fermeture et respecte les indicateurs de confidentialité Windows pris en charge. Il ne peut pas détecter les mots de passe de façon fiable. Le Lanceur rapide conserve localement les cibles définies et ses copies des raccourcis importés.
+
 
 Wallpaper Control stocke localement sur votre ordinateur ses paramètres, les statistiques de fonds d'écran, les notes et les rappels.
 

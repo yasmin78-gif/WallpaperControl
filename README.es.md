@@ -15,7 +15,7 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.1.1**
+**Versión actual: v2.2.0**
 
 ## ✨ Funciones
 
@@ -50,6 +50,11 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
     -   Los iconos y herramientas del escritorio permanecen visibles
         sobre la capa de transición
 -   🕐 **Widgets de escritorio nativos**
+    -   Widget de fuentes RSS/Atom con vistas previas y notificaciones por fuente
+    -   Widget de reproducción actual para controlar sesiones multimedia de Windows
+    -   Widget de portapapeles con historial de texto solo en RAM
+    -   Lanzador rápido para programas, archivos, carpetas y URL
+
     -   Widget de reloj con 5 temas seleccionables
     -   Widget de monitorización del sistema
     -   Widget del tiempo con previsión opcional de 3 días
@@ -272,6 +277,14 @@ Los cambios se muestran inmediatamente en una vista previa mientras se
 configuran en el área dedicada de Widgets. Se aplican permanentemente al
 guardar. Cancelar restaura el estado y la posición anteriores.
 
+### 🧲 Ajuste magnético de widgets
+
+- Alinear bordes y líneas centrales o mantener separaciones de 10 píxeles
+- Ajuste horizontal y vertical independientes
+- Tolerancia adaptada al DPI, histéresis y guías visuales
+- Mantener **Alt** al arrastrar para desactivar temporalmente el ajuste
+- Opción global para activarlo o desactivarlo en Configuración
+
 ### Reloj
 
 El reloj de escritorio ofrece:
@@ -310,6 +323,9 @@ El widget incluye barras gráficas compactas y ofrece los estilos
 La monitorización del hardware funciona de forma asíncrona para que las
 actualizaciones de sensores no interfieran con las transiciones ni con
 la respuesta de la aplicación.
+
+Se pueden mostrar varias unidades locales seleccionadas por separado. El umbral de alerta de espacio libre es configurable (10 % por defecto) y el indicador se vuelve rojo por debajo del umbral.
+
 
 ### 🌦️ Tiempo
 
@@ -485,6 +501,9 @@ posiciones se conservan.
 
 Cuando está activo el modo **Fondo de vídeo**, los widgets **Información del fondo** y **Siguiente fondo** se ocultan temporalmente porque corresponden a fondos de imagen. Al volver al modo de presentación de imágenes reaparecen automáticamente si están activados. Sus ajustes y posiciones se conservan.
 
+Los envíos entregados pasan a la sección « Entregados » **a partir de la medianoche del día siguiente**. Los diagnósticos de actualización incluyen más detalles sobre las respuestas de Ship24 y los resultados guardados.
+
+
 ### 📺 Twitch
 
 El widget de Twitch muestra qué canales que sigues están emitiendo en
@@ -542,6 +561,38 @@ de seguridad y protección frente a archivos dañados. Las notas
 existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y
 **Glow**.
 
+### 📰 Fuentes RSS/Atom
+
+- Fuentes RSS y Atom con imágenes y vista previa de artículos
+- Gestión de varias fuentes; mostrar una fuente o todas juntas
+- Vista de lista, destacar el primer elemento o mostrar solo títulos
+- Filtros de día, semana, mes o todas las entradas
+- Intervalos de actualización configurables y notificaciones opcionales por fuente, indicadas con una campana en la administración
+
+### 🎵 Reproducción actual
+
+- Carátula, título, artista, álbum y progreso de sesiones multimedia compatibles de Windows
+- Anterior, reproducir/pausar y siguiente; selección automática o manual de fuente
+- Control opcional del volumen del sistema mediante la rueda del ratón
+- Mejor reconocimiento de carátulas y nombres legibles de aplicaciones en lugar de identificadores técnicos
+- Vista estable al cambiar de pista; espera de cinco segundos antes de ocultarse si desaparece una sesión
+
+### 📋 Portapapeles
+
+- Historial solo de texto con 5, 10, 20 o 50 entradas, almacenado **únicamente en RAM**
+- Volver a copiar, ver el texto completo, eliminar entradas o vaciar el historial
+- Pausar y reanudar la captura; restaurar una entrada no altera su orden ni fecha
+- Respeta los indicadores de privacidad compatibles de Windows; no detecta contraseñas de forma fiable
+- El historial se borra al desactivar el widget o cerrar la aplicación y nunca se guarda en disco
+
+### 🚀 Lanzador rápido
+
+- Abrir programas, archivos, carpetas y URL con iconos automáticos
+- Argumentos EXE opcionales; editar, eliminar y reordenar entradas
+- Solo iconos o iconos con nombres, en 2–6 columnas
+- Arrastrar y soltar desde el escritorio o menú Inicio, incluso con la posición bloqueada
+- Los accesos directos de Windows importados se gestionan como copias independientes; los originales pueden eliminarse
+
 ### Siguiente fondo
 
 El widget Siguiente fondo ofrece un botón compacto para pasar
@@ -558,12 +609,13 @@ principal.
 
 ## 🔔 Notificaciones
 
-Wallpaper Control utiliza un sistema de notificaciones compartido para
-Notas y recordatorios, seguimiento de paquetes y Twitch.
+Los sonidos de notificación se configuran **por separado para Twitch, seguimiento de paquetes, fuentes y notas y recordatorios**. Incluyen sonidos adicionales, el sonido predeterminado de Windows y Desactivado. Las notificaciones de Twitch mencionan directamente el canal, por ejemplo « Gronkh está en directo ».
 
-Los sonidos de notificación pueden configurarse como **Desactivado**,
-**Predeterminado de Windows** o **Dos tonos**, con una función de vista
-previa en los ajustes. Cuando llegan varias notificaciones de Twitch o
+
+Wallpaper Control utiliza un sistema de notificaciones compartido para
+Notas y recordatorios, seguimiento de paquetes, fuentes y Twitch.
+
+Cuando llegan varias notificaciones de Twitch o
 de paquetes al mismo tiempo, se muestran una tras otra con la acción de
 clic correspondiente. Las notificaciones en cola que dejan de ser útiles
 caducan después de dos minutos.
@@ -768,6 +820,9 @@ El instalador actualmente **no está firmado digitalmente**. Por ello,
 Windows puede mostrar una advertencia de seguridad al ejecutarlo.
 
 ## 🔒 Privacidad
+
+El widget Portapapeles conserva solo texto en RAM, borra el historial al desactivarlo o salir y respeta los indicadores de privacidad compatibles de Windows. No puede detectar contraseñas de forma fiable. El Lanzador rápido guarda localmente los destinos definidos y sus copias de accesos directos importados.
+
 
 Wallpaper Control almacena localmente en tu equipo la configuración, las estadísticas de fondos, las notas y los recordatorios.
 
