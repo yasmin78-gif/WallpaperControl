@@ -50,7 +50,6 @@ exits.
     -   Now Playing widget for Windows media-session controls
     -   Clipboard widget with RAM-only text history
     -   Quick Launcher widget for applications, files, folders and URLs
-
     -   Clock widget with 5 selectable themes
     -   System monitoring widget
     -   Weather widget with optional 3-day forecast
