@@ -54,7 +54,6 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
     -   Widget de reproducción actual para controlar sesiones multimedia de Windows
     -   Widget de portapapeles con historial de texto solo en RAM
     -   Lanzador rápido para programas, archivos, carpetas y URL
-
     -   Widget de reloj con 5 temas seleccionables
     -   Widget de monitorización del sistema
     -   Widget del tiempo con previsión opcional de 3 días
