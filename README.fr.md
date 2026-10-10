@@ -55,7 +55,6 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Widget Lecture en cours pour contrôler les sessions multimédias Windows
     -   Widget Presse-papiers avec historique de texte uniquement en RAM
     -   Lanceur rapide pour programmes, fichiers, dossiers et URL
-
     -   Widget Horloge avec 5 thèmes sélectionnables
     -   Widget de surveillance du système
     -   Widget Météo avec prévisions optionnelles sur 3 jours
