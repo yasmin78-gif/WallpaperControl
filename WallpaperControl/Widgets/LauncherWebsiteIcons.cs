@@ -86,7 +86,7 @@ internal sealed class LauncherWebsiteIcons : IDisposable
         using(var graphics=Graphics.FromImage(result)) { graphics.Clear(Color.Transparent); graphics.DrawImage(decoded,(128-decoded.Width)/2,(128-decoded.Height)/2,decoded.Width,decoded.Height); }
         return result;
     }
-    internal async Task<string?> FetchAsync(string website,CancellationToken cancellation=default)
+    internal async Task<string?> FetchAsync(string website,CancellationToken cancellation=default,Action<string>? pageName=null,bool downloadIcon=true)
     {
         CancellationTokenSource linked;
         lock(sync) { if(disposed)return null; active++; linked=CancellationTokenSource.CreateLinkedTokenSource(cancellation,lifetime.Token); }
@@ -96,13 +96,14 @@ internal sealed class LauncherWebsiteIcons : IDisposable
             await downloads.WaitAsync(linked.Token); entered=true; linked.CancelAfter(TimeSpan.FromSeconds(35));
             if(!LauncherTargets.IsWebsite(website))return null;
             var basis=new Uri(website); List<Uri> icons=[];
-            try { var page=await GetAsync(basis,1024*1024,linked.Token); if(page!=null) { basis=page.Value.Url; icons=Candidates(System.Text.Encoding.UTF8.GetString(page.Value.Bytes),basis); } }
+            try { var page=await GetAsync(basis,1024*1024,linked.Token,allowForbiddenFallback:pageName!=null,htmlPrefix:pageName!=null); if(page!=null) { basis=page.Value.Url; var html=System.Text.Encoding.UTF8.GetString(page.Value.Bytes); if(pageName!=null)pageName(LauncherWebsiteNames.FromHtml(html,new Uri(website))); icons=Candidates(html,basis); } }
             catch(Exception ex) when(!linked.IsCancellationRequested) { Diagnose(basis,"page",ex); }
+            if(!downloadIcon)return null;
             var fallback=new Uri(basis.GetLeftPart(UriPartial.Authority)+"/favicon.ico"); if(!icons.Contains(fallback))icons.Add(fallback);
             foreach(var icon in icons.Take(9))
             {
                 using var candidate=CancellationTokenSource.CreateLinkedTokenSource(linked.Token); candidate.CancelAfter(TimeSpan.FromSeconds(3));
-                try { var image=await GetAsync(icon,MaximumImageBytes,candidate.Token,iconDownload:true); if(image!=null) { var file=await SaveImageAsync(image.Value.Bytes,candidate.Token); AppLogger.Info($"Launcher favicon saved: host={icon.Host}; path={icon.AbsolutePath}"); return file; } }
+                try { var image=await GetAsync(icon,MaximumImageBytes,candidate.Token,allowForbiddenFallback:true); if(image!=null) { var file=await SaveImageAsync(image.Value.Bytes,candidate.Token); AppLogger.Info($"Launcher favicon saved: host={icon.Host}; path={icon.AbsolutePath}"); return file; } }
                 catch(Exception ex) when(!linked.IsCancellationRequested) { Diagnose(icon,"candidate",ex); }
             }
             AppLogger.Info($"Launcher favicon unavailable: host={basis.Host}; reason=no-valid-candidate; cached=false");
@@ -128,7 +129,7 @@ internal sealed class LauncherWebsiteIcons : IDisposable
         }
         return values.OrderByDescending(v=>v.Score).Select(v=>v.Url).Distinct().Take(8).ToList();
     }
-    private async Task<(byte[] Bytes,Uri Url)?> GetAsync(Uri url,int limit,CancellationToken token,bool iconDownload=false)
+    private async Task<(byte[] Bytes,Uri Url)?> GetAsync(Uri url,int limit,CancellationToken token,bool allowForbiddenFallback=false,bool htmlPrefix=false)
     {
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token); deadline.CancelAfter(TimeSpan.FromSeconds(3)); token=deadline.Token;
         var visited=new HashSet<Uri>();
@@ -138,20 +139,20 @@ internal sealed class LauncherWebsiteIcons : IDisposable
             using var response=await http.GetAsync(url,HttpCompletionOption.ResponseHeadersRead,token);
             bool challenge=response.Headers.TryGetValues("cf-mitigated",out var mitigation)&&mitigation.Contains("challenge",StringComparer.OrdinalIgnoreCase);
             AppLogger.Info($"Launcher favicon HTTP: host={url.Host}; path={url.AbsolutePath}; status={(int)response.StatusCode}; contentType={response.Content.Headers.ContentType?.MediaType}; bytes={response.Content.Headers.ContentLength}; challenge={challenge}");
-            using var fallback=response.StatusCode==HttpStatusCode.Forbidden&&response.Headers.WwwAuthenticate.Count==0&&iconDownload&&forbiddenIconFallback!=null&&string.IsNullOrEmpty(url.UserInfo)
+            using var fallback=response.StatusCode==HttpStatusCode.Forbidden&&response.Headers.WwwAuthenticate.Count==0&&allowForbiddenFallback&&forbiddenIconFallback!=null&&string.IsNullOrEmpty(url.UserInfo)
                 ?await forbiddenIconFallback(url,limit,token):null;
             var actual=fallback??response;
             if((int)actual.StatusCode is >=300 and <400) { if(actual.Headers.Location==null)return null; url=new Uri(url,actual.Headers.Location); continue; }
-            if(!actual.IsSuccessStatusCode||actual.Content.Headers.ContentLength>limit)return null;
-            using var stream=await actual.Content.ReadAsStreamAsync(token); return (await LimitedBytes(stream,limit,token),url);
+            if(!actual.IsSuccessStatusCode||(!htmlPrefix&&actual.Content.Headers.ContentLength>limit))return null;
+            using var stream=await actual.Content.ReadAsStreamAsync(token); return (await LimitedBytes(stream,limit,token,htmlPrefix),url);
         }
         return null;
     }
     private static void Diagnose(Uri url,string stage,Exception error)=>AppLogger.Info($"Launcher favicon failure: stage={stage}; host={url.Host}; path={url.AbsolutePath}; type={error.GetType().Name}; hresult=0x{error.HResult:X8}");
-    private static async Task<byte[]> LimitedBytes(Stream stream,int limit,CancellationToken token)
+    private static async Task<byte[]> LimitedBytes(Stream stream,int limit,CancellationToken token,bool prefix=false)
     {
         using var output=new MemoryStream(); var buffer=new byte[8192]; int count;
-        while((count=await stream.ReadAsync(buffer,token))>0) { if(output.Length+count>limit)throw new InvalidDataException(); await output.WriteAsync(buffer.AsMemory(0,count),token); } return output.ToArray();
+        while((count=await stream.ReadAsync(buffer,token))>0) { if(output.Length+count>limit) { if(!prefix)throw new InvalidDataException(); count=(int)(limit-output.Length); } await output.WriteAsync(buffer.AsMemory(0,count),token); if(prefix&&output.Length==limit)break; } return output.ToArray();
     }
     private void Retire() { if(disposed&&active==0&&!retired) { retired=true; lifetime.Dispose(); downloads.Dispose(); } }
     public void Dispose() { lock(sync) { if(disposed)return; disposed=true; lifetime.Cancel(); http.Dispose(); Retire(); } }

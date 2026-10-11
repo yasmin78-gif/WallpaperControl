@@ -5,6 +5,10 @@ internal sealed class LauncherEntryForm : Form
     private readonly CancellationTokenSource iconLifetime=new();
     private readonly LauncherWebsiteIcons iconStore;
     private readonly TextBox target;
+    private readonly TextBox name;
+    private bool manualName;
+    private bool settingAutomaticName;
+    private readonly Dictionary<string,string> automaticNames=new(StringComparer.Ordinal);
     private string? customIcon;
     private readonly Dictionary<string,string> automaticIcons=new(StringComparer.Ordinal);
     private CancellationTokenSource? previewRequest;
@@ -16,12 +20,14 @@ internal sealed class LauncherEntryForm : Form
     {
         iconStore=websiteIcons??new(LauncherWebsiteIcons.DefaultDirectory);
         customIcon=entry?.CustomIcon;
+        manualName=entry!=null;
         foreach(var cached in (cachedEntries??[]).Concat(entry==null?[]:[entry]))
             if(cached.FaviconFor!=null&&cached.Favicon!=null&&WidgetManager.HasValidLauncherFavicon(cached))automaticIcons[cached.FaviconFor]=cached.Favicon;
         string L(string key)=>Localization.Get(key,language);
         Text=L(entry==null?"LauncherAdd":"LauncherEdit"); ClientSize=new(590,285); FormBorderStyle=FormBorderStyle.FixedDialog;
         MaximizeBox=false; MinimizeBox=false; ShowInTaskbar=false; StartPosition=FormStartPosition.CenterScreen;
-        var name=new TextBox { Location=new(18,42),Width=550,Text=entry?.Name??"" };
+        name=new TextBox { Location=new(18,42),Width=550,Text=entry?.Name??"" };
+        name.TextChanged+=(_,_)=> { if(!settingAutomaticName)manualName=true; };
         target=new TextBox { Location=new(18,102),Width=430,Text=entry?.Target??dropped??"" };
         var arguments=new TextBox { Location=new(18,162),Width=550,Text=entry?.Arguments??"" };
         var argumentsLabel=new Label { Text=L("LauncherArguments"),Location=new(18,138),AutoSize=true };
@@ -87,16 +93,32 @@ internal sealed class LauncherEntryForm : Form
         previewRequest?.Cancel(); previewRequest=null;
         DrawIconPreview();
         string url=target.Text.Trim();
-        if(iconsDisposed||iconPreviewClosed||!IsHandleCreated||customIcon!=null||!LauncherTargets.IsWebsite(url)||websitePreview.Image!=null)return;
+        if(iconsDisposed||iconPreviewClosed)return;
+        if(!LauncherTargets.IsWebsite(url)) { SetAutomaticName(""); return; }
+        SetAutomaticName(automaticNames.GetValueOrDefault(url)??LauncherWebsiteNames.Host(new Uri(url)));
+        bool needName=!manualName&&!automaticNames.ContainsKey(url);
+        bool needIcon=customIcon==null&&websitePreview.Image==null;
+        if(!IsHandleCreated||(!needName&&!needIcon))return;
         var request=CancellationTokenSource.CreateLinkedTokenSource(iconLifetime.Token); previewRequest=request;
-        _=LoadIconPreviewAsync(url,request);
+        _=LoadIconPreviewAsync(url,request,needName,needIcon);
     }
-    private async Task LoadIconPreviewAsync(string url,CancellationTokenSource request)
+    private void SetAutomaticName(string value)
+    {
+        if(manualName||iconsDisposed||iconPreviewClosed)return;
+        settingAutomaticName=true;
+        try { name.Text=value; } finally { settingAutomaticName=false; }
+    }
+    private async Task LoadIconPreviewAsync(string url,CancellationTokenSource request,bool needName,bool needIcon)
     {
         try
         {
             await Task.Delay(400,request.Token);
-            var file=await iconStore.FetchAsync(url,request.Token);
+            Action<string>? discoveredName=needName?value=>
+            {
+                if(iconsDisposed||iconPreviewClosed||request.IsCancellationRequested||target.Text.Trim()!=url)return;
+                automaticNames[url]=value; SetAutomaticName(value);
+            }:null;
+            var file=await iconStore.FetchAsync(url,request.Token,discoveredName,downloadIcon:needIcon);
             if(file==null)return;
             if(iconsDisposed||iconPreviewClosed||request.IsCancellationRequested||target.Text.Trim()!=url)
             { iconStore.DeleteUnused([file],Result==null?[]:[Result]); return; }

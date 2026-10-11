@@ -19,7 +19,7 @@ internal static class LauncherWebsiteIconTests
             Console.WriteLine($"Primary HTTP: status={(int)response.StatusCode}; version={response.Version}; cf-mitigated={(response.Headers.TryGetValues("cf-mitigated",out var values)?string.Join(",",values):"none")}");
         }
         using var store=new App.LauncherWebsiteIcons(root);
-        try { var file=await store.FetchAsync(url); using var image=App.LauncherWebsiteIcons.Read(file); if(image==null)throw new Exception("Live favicon missing or invalid: "+url); Console.WriteLine($"Live fetch: host={new Uri(url).Host}; decoded={image.Size}; cached={System.IO.File.Exists(file)}"); }
+        try { string name=App.LauncherWebsiteNames.Host(new Uri(url)); var file=await store.FetchAsync(url,pageName:value=>name=value); using var image=App.LauncherWebsiteIcons.Read(file); if(image==null)throw new Exception("Live favicon missing or invalid: "+url); Console.WriteLine($"Live fetch: host={new Uri(url).Host}; name={name}; decoded={image.Size}; cached={System.IO.File.Exists(file)}"); }
         finally { if(Directory.Exists(root))Directory.Delete(root,true); }
     }).GetAwaiter().GetResult();
     internal static void Run(Action<bool,string> check)
@@ -32,6 +32,7 @@ internal static class LauncherWebsiteIconTests
     private static void DialogChecks(Action<bool,string> check)
     {
         PreviewChecks(check);
+        NameChecks(check);
         foreach(var style in Enum.GetValues<App.SystemWidgetStyle>())foreach(bool dark in new[]{true,false})
         {
             using var web=new App.LauncherEntryForm(new App.LauncherEntry(Guid.NewGuid(),"Example","https://example.test/"),"de",style,dark);
@@ -97,7 +98,7 @@ internal static class LauncherWebsiteIconTests
             var import=dialog.SelectCustomIconAsync(source); PumpUntil(()=>import.IsCompleted); import.GetAwaiter().GetResult();
             check(preview.Image!=null,"Manual selection updates preview immediately after import");
             target.Text="https://manual.test/"; Pump(500);
-            check(!requested.Contains("manual.test")&&preview.Image!=null,"Manual icon prevents automatic requests and survives URL change");
+            check(requested.Count(host=>host=="manual.test")==1&&preview.Image!=null,"Manual icon prevents automatic icon download while website name can load");
             target.Text="https://new.test/"; reset.PerformClick();
             check(preview.Image!=null,"Switching manual icon back to favicon immediately restores cached preview");
             target.Text="https://slow.test/"; PumpUntil(()=>requested.Contains("slow.test"));
@@ -133,6 +134,72 @@ internal static class LauncherWebsiteIconTests
                 closing.Show(); PumpUntil(()=>requested.Contains("slow-close.test")); closing.Close(); closeDelay.TrySetResult(Response(png)); Pump(200);
                 check(!Directory.Exists(Path.Combine(root,"close-race"))||Directory.GetFiles(Path.Combine(root,"close-race")).Length==0,"Closing during download prevents preview updates and orphaned icon files");
             }
+        }
+        finally { Directory.Delete(root,true); }
+    }
+    private static void NameChecks(Action<bool,string> check)
+    {
+        var basis=new Uri("https://www.example.test/");
+        foreach(var sample in new[]{
+            ("<title>Title</title><meta name='application-name' content='App'><meta content='Site &amp; Co' property='og:site_name'>","Site & Co"),
+            ("<meta name=application-name content=Application><title>Title</title>","Application"),
+            ("<title>Example - Official Website</title>","Example"),
+            ("<title>Home | Example</title>","Example"),
+            ("<title>Documentation - Example</title>","Documentation - Example"),
+            ("<title>  Café &amp; Co\n</title>","Café & Co"),
+            ("<!--<meta property='og:site_name' content='Fake'>--><script><meta property='og:site_name' content='Fake'></script><title>Real</title>","Real"),
+            ("<title>Just a moment...</title>","example.test"),
+            ("<title>Home</title>","example.test"),
+            ("<meta property='og:site_name' content=''><title>Useful</title>","Useful"),
+            ("<html></html>","example.test")})
+            check(App.LauncherWebsiteNames.FromHtml(sample.Item1,basis)==sample.Item2,"Website name parser: "+sample.Item2);
+        string root=Path.Combine(Path.GetTempPath(),"WallpaperControl.NameChecks-"+Guid.NewGuid().ToString("N")); Directory.CreateDirectory(root);
+        string cached=Path.Combine(root,"cached.png"); using(var image=new Bitmap(128,128))image.Save(cached,ImageFormat.Png);
+        var slow=new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously); var requested=new List<string>();
+        var manualSlow=new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        static void PumpUntil(Func<bool> condition)
+        { var watch=System.Diagnostics.Stopwatch.StartNew(); while(!condition()&&watch.ElapsedMilliseconds<5000) { Application.DoEvents(); Thread.Sleep(10); } if(!condition())throw new Exception("Name lookup did not complete."); }
+        static void Pump(int milliseconds)
+        { var watch=System.Diagnostics.Stopwatch.StartNew(); while(watch.ElapsedMilliseconds<milliseconds) { Application.DoEvents(); Thread.Sleep(10); } }
+        App.LauncherEntryForm Create(App.LauncherEntry? entry=null)
+        {
+            var client=new HttpClient(new Handler((request,token)=>
+            {
+                string host=request.RequestUri!.Host; requested.Add(host);
+                if(host=="slow.test")return slow.Task;
+                if(host=="manual-slow.test")return manualSlow.Task;
+                if(host=="timeout.test")return Task.Delay(Timeout.Infinite,token).ContinueWith<HttpResponseMessage>(_=>throw new OperationCanceledException(token),TaskScheduler.Default);
+                if(host=="failed.test")throw new HttpRequestException("Offline");
+                string html=host=="og.test"?"<meta property='og:site_name' content='Website Name'>":host=="title.test"?"<title>Title Site - Official Website</title>":"<html></html>";
+                return Task.FromResult(Response(Encoding.UTF8.GetBytes(html)));
+            }));
+            var entries=new[]{"og.test","title.test","bare.test","slow.test","manual-slow.test","timeout.test","failed.test"}.Select(host=>new App.LauncherEntry(Guid.NewGuid(),"Cached","https://"+host+"/",Favicon:cached,FaviconFor:"https://"+host+"/")).ToArray();
+            return new(entry,"de",App.SystemWidgetStyle.Glow,true,cachedEntries:entries,websiteIcons:new(Path.Combine(root,Guid.NewGuid().ToString("N")),client));
+        }
+        try
+        {
+            using(var dialog=Create())
+            {
+                dialog.Show(); var name=dialog.Controls.OfType<TextBox>().Single(t=>t.Top==42); var target=dialog.Controls.OfType<TextBox>().Single(t=>t.Top==102);
+                target.Text="https://og.test/"; check(name.Text=="og.test","New entry immediately receives hostname fallback"); PumpUntil(()=>name.Text=="Website Name");
+                check(requested.Count(host=>host=="og.test")==1,"Cached icon plus name uses only one HTML request, no icon download");
+                target.Text="https://title.test/"; PumpUntil(()=>name.Text=="Title Site"); check(name.Text=="Title Site","Untouched automatic name follows URL change");
+                target.Text="https://bare.test/"; PumpUntil(()=>requested.Contains("bare.test")); Pump(50); check(name.Text=="bare.test","Missing metadata falls back to hostname");
+                target.Text="https://slow.test/"; PumpUntil(()=>requested.Contains("slow.test")); target.Text="https://og.test/"; slow.TrySetResult(Response(Encoding.UTF8.GetBytes("<meta property='og:site_name' content='Old Name'>"))); Pump(100);
+                check(name.Text=="Website Name","Late prior URL response cannot replace automatic name");
+                name.Text="My choice"; target.Text="https://title.test/"; Pump(500); check(name.Text=="My choice","User-edited name stays unchanged across URL changes");
+                name.Text=""; target.Text="https://og.test/"; Pump(500); check(name.Text=="","Deliberately cleared name is never automatically filled again");
+                name.Text="Saved custom name"; dialog.Controls.OfType<Button>().Single(b=>b.Text=="Speichern").PerformClick(); check(dialog.Result?.Name=="Saved custom name","Save preserves manually entered name"); dialog.Close();
+            }
+            var existing=new App.LauncherEntry(Guid.NewGuid(),"Existing custom name","https://og.test/",Favicon:cached,FaviconFor:"https://og.test/");
+            using(var edit=Create(existing))
+            { edit.Show(); var name=edit.Controls.OfType<TextBox>().Single(t=>t.Top==42); edit.Controls.OfType<TextBox>().Single(t=>t.Top==102).Text="https://title.test/"; Pump(500); check(name.Text=="Existing custom name","Editing always preserves existing name"); edit.Close(); check(edit.Result==null,"Cancel does not create or save a renamed entry"); }
+            using(var failed=Create())
+            { failed.Show(); var name=failed.Controls.OfType<TextBox>().Single(t=>t.Top==42); failed.Controls.OfType<TextBox>().Single(t=>t.Top==102).Text="https://failed.test/"; PumpUntil(()=>requested.Contains("failed.test")); Pump(50); check(name.Text=="failed.test","Network error retains automatic hostname fallback"); failed.Close(); }
+            using(var manual=Create())
+            { manual.Show(); var name=manual.Controls.OfType<TextBox>().Single(t=>t.Top==42); manual.Controls.OfType<TextBox>().Single(t=>t.Top==102).Text="https://manual-slow.test/"; PumpUntil(()=>requested.Contains("manual-slow.test")); name.Text=""; manualSlow.TrySetResult(Response(Encoding.UTF8.GetBytes("<title>Late website name</title>"))); Pump(100); check(name.Text=="","Pending metadata cannot overwrite a deliberate empty user edit"); manual.Close(); }
+            using(var timeout=Create())
+            { timeout.Show(); var name=timeout.Controls.OfType<TextBox>().Single(t=>t.Top==42); timeout.Controls.OfType<TextBox>().Single(t=>t.Top==102).Text="https://timeout.test/"; PumpUntil(()=>requested.Contains("timeout.test")); Pump(3200); check(name.Text=="timeout.test","Slow server times out without blocking or replacing fallback name"); timeout.Close(); }
         }
         finally { Directory.Delete(root,true); }
     }
@@ -218,6 +285,13 @@ internal static class LauncherWebsiteIconTests
             byte[] wire=Encoding.ASCII.GetBytes("HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Type: image/png\r\n\r\n").Concat(png).ToArray();
             using(var parsed=App.LauncherCurlIcons.ParseResponse(wire,png.Length))check(parsed?.StatusCode==HttpStatusCode.OK&&(await parsed.Content.ReadAsByteArrayAsync()).SequenceEqual(png),"Curl HTTP framing preserves exact binary image and interim response handling");
             check(App.LauncherCurlIcons.ParseResponse(wire,png.Length-1)==null,"Curl actual body size checked independently of headers");
+            string? discovered=null; int htmlFallbacks=0;
+            using(var forbiddenClient=new HttpClient(new Handler((_,_)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.Forbidden)))))
+            using(var htmlStore=new App.LauncherWebsiteIcons(Path.Combine(root,"html-curl"),forbiddenClient,(_,limit,_)=> { htmlFallbacks++; check(limit==1024*1024,"HTML curl fallback uses 1MiB bound"); return Task.FromResult<HttpResponseMessage?>(Response(Encoding.UTF8.GetBytes("<meta property='og:site_name' content='Public site'>"))); }))
+            { await htmlStore.FetchAsync("https://example.test/",pageName:value=>discovered=value,downloadIcon:false); check(discovered=="Public site"&&htmlFallbacks==1,"Opt-in name lookup reuses safe HTTP403 curl fallback only once"); }
+            using(var largeHtmlClient=new HttpClient(new Handler((_,_)=>Task.FromResult(Response(Encoding.UTF8.GetBytes("<meta property='og:site_name' content='Large site'>"+new string(' ',2*1024*1024)))))))
+            using(var prefixStore=new App.LauncherWebsiteIcons(Path.Combine(root,"html-prefix"),largeHtmlClient))
+            { discovered=null; await prefixStore.FetchAsync("https://example.test/",pageName:value=>discovered=value,downloadIcon:false); check(discovered=="Large site","Large HTML pages use only bounded prefix for metadata"); }
             var listener=new System.Net.Sockets.TcpListener(IPAddress.Loopback,0); listener.Start();
             try
             {
