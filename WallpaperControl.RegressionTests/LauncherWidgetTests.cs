@@ -41,6 +41,7 @@ internal static class LauncherWidgetTests
             check(App.LauncherTargets.StartInfo(shortcut).FileName==shortcut.Target&&App.LauncherTargets.StartInfo(shortcut).Arguments=="","Native shortcut keeps .lnk and its embedded launch parameters");
             using(var child=Process.Start(App.LauncherTargets.StartInfo(shortcut)))check(child==null||child.WaitForExit(10000)&&child.ExitCode==0,"Native Windows shortcut opens isolated check child");
             foreach(var entry in new[]{exe,file,folder,shortcut,web}) { using var icon=App.LauncherIcons.Load(entry); check(icon.Width>0&&icon.Height>0,"Native icon retrieval: "+entry.Name); }
+            WebsiteBadges(web,exe,shortcut,check);
             using(var process=Process.GetCurrentProcess())
             {
                 uint before=GetGuiResources(process.Handle,0);
@@ -118,6 +119,31 @@ internal static class LauncherWidgetTests
             System.IO.File.Delete(document); bool missing=false; try { App.LauncherTargets.StartInfo(file); } catch(FileNotFoundException) { missing=true; } check(missing,"Deleted target fails safely without removing saved entry");
         }
         finally { Registry.CurrentUser.DeleteSubKeyTree(registry,false); Directory.Delete(root,true); }
+    }
+    private static void WebsiteBadges(App.LauncherEntry web,App.LauncherEntry exe,App.LauncherEntry shortcut,Action<bool,string> check)
+    {
+        var auto=web with { Name="Favicon",Favicon="auto.png",FaviconFor=web.Target };
+        var manual=web with { Id=Guid.NewGuid(),Name="Eigenes Icon",CustomIcon="manual.png" };
+        var fallback=web with { Id=Guid.NewGuid(),Name="Globus" };
+        using var widget=new App.LauncherWidgetForm(new() { Columns=5,Entries=[auto,manual,fallback,shortcut with { Name="Verknüpfung" },exe with { Name="Programm" }] },"de",_=>{},_=>{},()=>{});
+        var icons=(Dictionary<string,Bitmap>)typeof(App.LauncherWidgetForm).GetField("icons",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(widget)!;
+        static Bitmap Solid(Color color) { var bitmap=new Bitmap(32,32); using var graphics=Graphics.FromImage(bitmap); graphics.Clear(color); return bitmap; }
+        icons["auto.png"]=Solid(Color.White); icons["manual.png"]=Solid(Color.Black);
+        icons[shortcut.Target]=App.LauncherIcons.Load(shortcut); icons[exe.Target]=App.LauncherIcons.Load(exe);
+        foreach(bool dark in new[]{true,false})foreach(int dpi in new[]{96,192})
+        {
+            widget.ApplyTheme(dark); using var image=widget.RenderBitmap(2000,dpi); int scale=dpi/96;
+            for(int column=0;column<3;column++)
+            {
+                int x=(int)(12+column*99+(99-32)/2f+3),y=81;
+                Color pixel=image.GetPixel(x*scale,y*scale);
+                check(pixel.R>170&&pixel.G>170&&pixel.B>170,$"Website badge has contrast background: column={column}, dark={dark}, dpi={dpi}");
+            }
+            check(image.GetPixel(66*scale,63*scale).R>240&&image.GetPixel(165*scale,63*scale).R<10,"Badge leaves upper main favicon/custom image intact");
+        }
+        check(icons["auto.png"].GetPixel(3,24).ToArgb()==Color.White.ToArgb()&&icons["manual.png"].GetPixel(3,24).ToArgb()==Color.Black.ToArgb(),"Overlay never modifies cached icon pixels");
+        widget.ApplyTheme(true); using var preview=widget.RenderBitmap();
+        string? output=Environment.GetEnvironmentVariable("WALLPAPER_LAUNCHER_BADGE_PREVIEW"); if(!string.IsNullOrEmpty(output))preview.Save(output);
     }
     private static void ShortcutCopies(string root,App.LauncherEntry shortcut,App.LauncherEntry exe,App.LauncherEntry file,App.LauncherEntry folder,App.LauncherEntry web,Action<bool,string> check)
     {

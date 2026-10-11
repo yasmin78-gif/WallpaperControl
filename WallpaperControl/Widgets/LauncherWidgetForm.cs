@@ -77,6 +77,18 @@ internal sealed class LauncherWidgetForm : Form
             }
             else if(entry!=null&&icons.TryGetValue(entry.Target,out var icon))g.DrawImage(icon,new RectangleF(bounds.X+(CellWidth-32)/2f,bounds.Y+5,32,32));
             else { using var large=new Font("Segoe UI Symbol",28,FontStyle.Regular,GraphicsUnit.Pixel); g.DrawString(entry==null?"+":"▣",large,accent,bounds.X+(CellWidth-30)/2f,bounds.Y+2); }
+            if(entry!=null&&LauncherTargets.IsWebsite(entry.Target))
+            {
+                // Match the lower-left placement of the shell shortcut badge, without modifying the cached icon.
+                var badge=new RectangleF(bounds.X+(CellWidth-32)/2f,bounds.Y+24,14,14);
+                using var background=new SolidBrush(Color.FromArgb(250,245,248,250));
+                using var rim=new Pen(Color.FromArgb(190,35,62,76),0.8f);
+                using var globe=new Pen(Color.FromArgb(20,90,120),1f);
+                g.FillEllipse(background,badge); g.DrawEllipse(rim,badge);
+                var circle=new RectangleF(badge.X+2,badge.Y+2,10,10);
+                g.DrawEllipse(globe,circle); g.DrawEllipse(globe,circle.X+3,circle.Y,4,10);
+                g.DrawLine(globe,circle.Left,circle.Y+5,circle.Right,circle.Y+5);
+            }
             if(settings.ShowNames)g.DrawString(entry?.Name??Localization.Get("LauncherNew",language),font,text,new RectangleF(bounds.X+2,bounds.Y+42,CellWidth-4,24),format);
         }
         g.Restore(state); WidgetScrollbar.Draw(g,viewport,dark); return bitmap;
