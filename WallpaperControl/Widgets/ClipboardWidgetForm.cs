@@ -3,6 +3,7 @@ namespace WallpaperControl;
 internal sealed class ClipboardWidgetForm : Form
 {
     private readonly ClipboardService service;
+    private readonly ClipboardModalInteraction modalInteraction;
     private readonly WidgetDragHandler drag;
     private readonly CalendarViewport viewport = new(390);
     private readonly System.Windows.Forms.Timer timer = new() { Interval = 1000 };
@@ -17,6 +18,7 @@ internal sealed class ClipboardWidgetForm : Form
     internal ClipboardWidgetForm(ClipboardService service,ClipboardWidgetSettings settings,string language,Action<Point> moved)
     {
         this.service=service; this.settings=settings.Clone(); this.language=language;
+        modalInteraction=new(this,()=>!suspended&&!powerSuspended);
         FormBorderStyle=FormBorderStyle.None; ShowInTaskbar=false; StartPosition=FormStartPosition.Manual; AutoScaleMode=AutoScaleMode.None; ClientSize=new(390,120);
         drag=new(this,()=>this.settings.Locked,Render,moved); service.Changed+=Render;
         timer.Tick+=(_,_)=> { if(Visible && (service.History.Entries.Count>0 || feedbackKey!=null)) Render(); }; timer.Start();
@@ -27,11 +29,14 @@ internal sealed class ClipboardWidgetForm : Form
     internal void ApplyTheme(bool value) { dark=value; Render(); }
     internal void SetActivitySuspended(bool value) { suspended=value; UpdateSuspension(); }
     internal void SetPowerSuspended(bool value) { powerSuspended=value; UpdateSuspension(); }
-    private void UpdateSuspension() { timer.Enabled=!suspended&&!powerSuspended; service.SetSuspended(suspended||powerSuspended); StopDrag(); if(timer.Enabled)Render(); }
+    private void UpdateSuspension() { timer.Enabled=!suspended&&!powerSuspended; service.SetSuspended(suspended||powerSuspended); StopDrag(); if(timer.Enabled) { Render(); modalInteraction.Refresh(); } }
     protected override void OnShown(EventArgs e) { base.OnShown(e); Render(); }
     protected override void OnDpiChanged(DpiChangedEventArgs e) { base.OnDpiChanged(e); Render(); }
     protected override void WndProc(ref Message m)
     {
+        if(m.Msg==0x000A&&m.WParam==IntPtr.Zero)modalInteraction?.WindowDisabled();
+        if(m.Msg==0x0021&&modalInteraction?.IsModal==true&&Enabled&&!suspended&&!powerSuspended)
+        { m.Result=new IntPtr(1); return; } // Permit activation when the user needs focus during a dialog.
         if(DesktopWidgetNative.HandleMouseActivation(ref m))return;
         if(m.Msg==0x020A && !suspended&&!powerSuspended) { viewport.Wheel((short)(m.WParam.ToInt64()>>16),SystemInformation.MouseWheelScrollLines); Render(); m.Result=0; return; }
         base.WndProc(ref m);
@@ -144,7 +149,7 @@ internal sealed class ClipboardWidgetForm : Form
     }
     protected override void Dispose(bool disposing)
     {
-        if(disposing&&!disposed) { disposed=true; service.Changed-=Render; timer.Dispose(); drag.Dispose(); menu.Dispose(); rows.Clear(); }
+        if(disposing&&!disposed) { disposed=true; modalInteraction.Dispose(); service.Changed-=Render; timer.Dispose(); drag.Dispose(); menu.Dispose(); rows.Clear(); }
         base.Dispose(disposing);
     }
 }

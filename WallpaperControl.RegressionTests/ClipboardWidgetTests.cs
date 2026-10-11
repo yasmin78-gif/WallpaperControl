@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 internal static class ClipboardWidgetTests
 {
     private const BindingFlags Fields=BindingFlags.Instance|BindingFlags.NonPublic;
@@ -14,6 +15,7 @@ internal static class ClipboardWidgetTests
     }
     private static void Ui(Action<bool,string> check)
     {
+        ModalInteraction(check);
         var now=DateTimeOffset.UtcNow;
         var history=new App.ClipboardHistory();
         check(history.Entries.Count==0&&!new App.ClipboardWidgetSettings().Enabled,"Clipboard widget starts disabled and history empty");
@@ -71,6 +73,92 @@ internal static class ClipboardWidgetTests
         listener.Enabled=false; listener.Enabled=true; Application.DoEvents(); check(observed==0,"Resuming native listener does not import paused clipboard contents");
         listener.Dispose(); check(!listener.Registered&&listener.Handle==IntPtr.Zero,"Native listener unregisters and destroys HWND");
     }
+    private static void ModalInteraction(Action<bool,string> check)
+    {
+        using var owner=new Form { Text="Modal clipboard checks",ShowInTaskbar=false };
+        using var other=new Form { Text="Other widget",ShowInTaskbar=false };
+        owner.Show(); other.Show();
+        for(int restart=0;restart<2;restart++)
+        {
+            using var source=new FakeSource(); using var service=new App.ClipboardService(source);
+            for(int i=0;i<10;i++)source.Emit("Modal clipboard text "+i);
+            using var widget=new App.ClipboardWidgetForm(service,new() { MaximumHeight=300 },"de",_=>{});
+            widget.Show(); App.DesktopWidgetNative.AttachToDesktop(widget,new(10,10)); Application.DoEvents();
+            var viewport=(App.CalendarViewport)typeof(App.ClipboardWidgetForm).GetField("viewport",Fields)!.GetValue(widget)!;
+            var menu=(ContextMenuStrip)typeof(App.ClipboardWidgetForm).GetField("menu",Fields)!.GetValue(widget)!;
+            check(GetWindow(widget.Handle,4)==IntPtr.Zero,"Clipboard widget has no modal owner relationship");
+            check(SendMessage(widget.Handle,0x21,IntPtr.Zero,IntPtr.Zero).ToInt32()==3,"Normal clipboard clicks retain no-activation behavior");
+            foreach(bool launcher in new[]{true,false})
+            {
+                using Form dialog=launcher?new App.LauncherEntryForm(new(Guid.NewGuid(),"Program",Environment.ProcessPath!),"de",App.SystemWidgetStyle.Glow,true):new Form { Text="Widget settings",ShowInTaskbar=false };
+                if(!launcher)dialog.Controls.Add(new App.WidgetSettingsEditor(new App.WidgetSettings()) { Dock=DockStyle.Fill });
+                var text=new TextBox { Text="Unfinished edit",Dock=DockStyle.Bottom }; dialog.Controls.Add(text);
+                Exception? error=null;
+                dialog.Shown+=(_,_)=>dialog.BeginInvoke((Action)(()=>
+                {
+                    try
+                    {
+                        check(IsWindowEnabled(widget.Handle)&&!IsWindowEnabled(owner.Handle)&&!IsWindowEnabled(other.Handle),"Only clipboard remains enabled during "+(launcher?"launcher":"widget settings")+" modal dialog");
+                        string expected=service.History.Entries[0].Text;
+                        SendMessage(widget.Handle,0x201,new(1),new((70<<16)|55)); SendMessage(widget.Handle,0x202,IntPtr.Zero,new((70<<16)|55));
+                        check(source.Written==expected,"Click routes full clipboard text through existing copy service while dialog is modal");
+                        float before=viewport.ScrollOffset; SendMessage(widget.Handle,0x20A,new(unchecked((int)0xFF880000)),IntPtr.Zero);
+                        check(viewport.ScrollOffset>before,"Native mouse wheel scrolls clipboard during modal dialog");
+                        SendMessage(widget.Handle,0x201,new(1),new((20<<16)|352)); check(service.History.Paused&&!source.Enabled,"Pause remains clickable during modal dialog");
+                        SendMessage(widget.Handle,0x201,new(1),new((20<<16)|352)); check(!service.History.Paused&&source.Enabled,"Resume remains clickable during modal dialog");
+                        viewport.SetOffset(0); using(var rendered=widget.RenderBitmap()) { }
+                        int count=service.History.Entries.Count;
+                        SendMessage(widget.Handle,0x204,new(2),new((70<<16)|55));
+                        menu.Items.Cast<ToolStripItem>().Single(item=>item.Text==App.Localization.Get("ClipboardDelete","de")).PerformClick(); menu.Close();
+                        check(service.History.Entries.Count==count-1,"Context-menu delete works during modal dialog");
+                        check(SendMessage(widget.Handle,0x21,IntPtr.Zero,IntPtr.Zero).ToInt32()==1,"Clipboard permits mouse activation during a modal dialog");
+                        SetActiveWindow(widget.Handle); SetFocus(widget.Handle);
+                        check(GetFocus()==widget.Handle&&dialog.Visible&&dialog.WindowState==FormWindowState.Normal,"Clipboard can receive focus without closing or minimizing dialog");
+                        SetActiveWindow(dialog.Handle); text.Focus();
+                        check(text.Text=="Unfinished edit"&&GetFocus()==text.Handle,"Focus returns to original dialog without modifying unfinished edit");
+                        using var nested=new Form { Text="Nested modal",ShowInTaskbar=false };
+                        nested.Shown+=(_,_)=>nested.BeginInvoke((Action)(()=>
+                        {
+                            try { check(IsWindowEnabled(widget.Handle)&&!IsWindowEnabled(dialog.Handle)&&!IsWindowEnabled(owner.Handle),"Nested modal loop preserves only clipboard exception"); }
+                            catch(Exception ex) { error=ex; }
+                            finally { nested.DialogResult=DialogResult.Cancel; }
+                        }));
+                        nested.ShowDialog(dialog);
+                        check(IsWindowEnabled(widget.Handle)&&IsWindowEnabled(dialog.Handle)&&!IsWindowEnabled(owner.Handle),"Cancelling nested dialog restores outer modal state");
+                        SendMessage(widget.Handle,0x201,new(1),new((20<<16)|323)); check(service.History.Entries.Count==0,"Clear history remains clickable during modal dialog");
+                    }
+                    catch(Exception ex) { error=ex; }
+                    finally { dialog.DialogResult=DialogResult.Cancel; }
+                }));
+                dialog.ShowDialog(owner); if(error!=null)throw error;
+                check(IsWindowEnabled(widget.Handle)&&IsWindowEnabled(owner.Handle)&&IsWindowEnabled(other.Handle),"Cancelling dialog restores normal enabled windows");
+                check(SendMessage(widget.Handle,0x21,IntPtr.Zero,IntPtr.Zero).ToInt32()==3,"Leaving modal state restores normal clipboard mouse activation policy");
+                for(int i=0;i<10;i++)source.Emit("Next modal text "+i); viewport.SetOffset(0); using(var rendered=widget.RenderBitmap()) { }
+            }
+            check(Application.OpenForms.Cast<Form>().Count(form=>form is App.ClipboardWidgetForm)==1,"Only one clipboard widget exists across modal dialogs/restart check");
+            foreach(bool explicitDisable in new[]{true,false})
+            {
+                if(explicitDisable)widget.Enabled=false; else widget.SetActivitySuspended(true);
+                using var blocked=new Form { ShowInTaskbar=false }; Exception? error=null;
+                blocked.Shown+=(_,_)=>blocked.BeginInvoke((Action)(()=>
+                {
+                    try { check(!IsWindowEnabled(widget.Handle),explicitDisable?"Exception respects explicitly disabled clipboard":"Exception respects activity-suspended clipboard"); }
+                    catch(Exception ex) { error=ex; }
+                    finally { blocked.DialogResult=DialogResult.Cancel; }
+                }));
+                blocked.ShowDialog(owner); if(error!=null)throw error;
+                if(explicitDisable)widget.Enabled=true; else widget.SetActivitySuspended(false);
+            }
+            widget.Close();
+        }
+        owner.Close(); other.Close();
+    }
+    [DllImport("user32.dll")] [return:MarshalAs(UnmanagedType.Bool)] private static extern bool IsWindowEnabled(IntPtr window);
+    [DllImport("user32.dll")] private static extern IntPtr GetWindow(IntPtr window,uint command);
+    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr window,uint message,IntPtr wParam,IntPtr lParam);
+    [DllImport("user32.dll")] private static extern IntPtr SetActiveWindow(IntPtr window);
+    [DllImport("user32.dll")] private static extern IntPtr SetFocus(IntPtr window);
+    [DllImport("user32.dll")] private static extern IntPtr GetFocus();
     private sealed class FakeSource : App.IClipboardSource
     {
         public event Action<string>? TextChanged;
