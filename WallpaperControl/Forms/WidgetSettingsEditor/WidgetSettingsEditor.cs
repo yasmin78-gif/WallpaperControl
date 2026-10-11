@@ -94,6 +94,7 @@ namespace WallpaperControl
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
                 launcherList.ApplyPresentation(language,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex),dark);
                 RefreshWidgetStyleChoices(launcherStyle,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex));
+                RefreshClipboardLifetime();
                 RefreshWidgetStyleChoices(clipboardStyle, (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(nowPlayingStyle, (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(feedStyle, (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex));

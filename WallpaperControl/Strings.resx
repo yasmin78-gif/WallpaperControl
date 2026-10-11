@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1748,7 +1748,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="ClipboardTitle" xml:space="preserve"><value>Zwischenablage</value></data>
   <data name="ClipboardEnabled" xml:space="preserve"><value>Widget und Textaufzeichnung aktivieren</value></data>
   <data name="ClipboardCapacity" xml:space="preserve"><value>Anzahl der Einträge</value></data>
-  <data name="ClipboardHint" xml:space="preserve"><value>Nur Text, nur im Arbeitsspeicher. Beim Deaktivieren oder Beenden wird der Verlauf gelöscht. Rechtsklick: Details/Löschen. Aufzeichnung kann pausiert werden. Passwörter werden nicht zuverlässig erkannt; Windows-Ausschlussmarkierungen werden berücksichtigt.</value></data>
+  <data name="ClipboardHint" xml:space="preserve"><value>Klick kopiert zurück. Texte bleiben nur im RAM; Screenshots werden lokal gespeichert.</value></data>
   <data name="ClipboardEmpty" xml:space="preserve"><value>Noch keine Texte kopiert</value></data>
   <data name="ClipboardRamOnly" xml:space="preserve"><value>Nur im Arbeitsspeicher</value></data>
   <data name="ClipboardPaused" xml:space="preserve"><value>Aufzeichnung pausiert</value></data>
@@ -1757,6 +1757,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="ClipboardClear" xml:space="preserve"><value>Verlauf leeren</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>Text kopieren</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>Text kopiert</value></data>
+  <data name="ClipboardImageCopied" xml:space="preserve"><value>Bild kopiert</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>Zwischenablage momentan nicht verfügbar</value></data>
   <data name="ClipboardDetails" xml:space="preserve"><value>Vollständigen Text anzeigen</value></data>
   <data name="ClipboardDelete" xml:space="preserve"><value>Eintrag löschen</value></data>
@@ -1801,4 +1802,14 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Website-Symbol verwenden</value></data>
   <data name="LauncherImageFilter" xml:space="preserve"><value>Bilder|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
   <data name="LauncherInvalidIcon" xml:space="preserve"><value>Das Bild konnte nicht übernommen werden. Unterstützt: PNG, JPG, ICO und WEBP, maximal 4 MiB und 16 Millionen Pixel.</value></data>
+  <data name="ClipboardCaptureScreenshots" xml:space="preserve"><value>Screenshots erfassen</value></data>
+  <data name="ClipboardScreenshotLifetime" xml:space="preserve"><value>Lebensdauer der Screenshots</value></data>
+  <data name="ClipboardLifetimeHour" xml:space="preserve"><value>1 Stunde</value></data>
+  <data name="ClipboardLifetimeDay" xml:space="preserve"><value>24 Stunden</value></data>
+  <data name="ClipboardLifetimeWeek" xml:space="preserve"><value>7 Tage</value></data>
+  <data name="ClipboardLifetimeManual" xml:space="preserve"><value>Bis zum manuellen Löschen</value></data>
+  <data name="ClipboardScreenshotCapacity" xml:space="preserve"><value>Maximale Anzahl Screenshots</value></data>
+  <data name="ClipboardKeepScreenshots" xml:space="preserve"><value>Screenshots nach Neustart behalten</value></data>
+  <data name="ClipboardScreenshot" xml:space="preserve"><value>Screenshot</value></data>
+  <data name="ClipboardMixedStorage" xml:space="preserve"><value>Text im RAM · Screenshots lokal</value></data>
 </root>

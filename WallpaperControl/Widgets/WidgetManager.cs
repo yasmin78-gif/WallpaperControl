@@ -774,7 +774,7 @@ namespace WallpaperControl
         {
             DisposeTwitch();
             DisposeFeeds();
-            DisposeNowPlaying(); DisposeClipboard(); DisposeLauncher(); DisposeLauncherWebsiteIcons(); LauncherEntriesChanged=null;
+            DisposeNowPlaying(); DisposeClipboardMaintenance(); DisposeClipboard(); DisposeLauncher(); DisposeLauncherWebsiteIcons(); LauncherEntriesChanged=null;
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;
             packageScheduler?.Dispose(); packageScheduler = null;

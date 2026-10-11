@@ -31,6 +31,9 @@ namespace WallpaperControl
             WidgetSettings preview = initialWidgetSettings.Clone();
             preview.Launcher.Enabled=launcherEnabled.Checked; preview.Launcher.Locked=launcherLocked.Checked; preview.Launcher.Style=(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex); preview.Launcher.ShowNames=launcherNames.Checked; preview.Launcher.Columns=(int)launcherColumns.Value; preview.Launcher.MaximumHeight=(int)launcherHeight.Value; preview.Launcher.Entries=launcherRead?.Invoke()??launcherEntries.ToList();
             preview.Clipboard.Enabled = clipboardEnabled.Checked; preview.Clipboard.Locked = clipboardLocked.Checked; preview.Clipboard.Style = (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex); preview.Clipboard.Capacity = clipboardCapacity.SelectedItem is int count ? count : 10; preview.Clipboard.MaximumHeight = (int)clipboardHeight.Value;
+            preview.Clipboard.CaptureScreenshots=clipboardCaptureScreenshots.Checked; preview.Clipboard.KeepScreenshots=clipboardKeepScreenshots.Checked;
+            preview.Clipboard.ScreenshotCapacity=clipboardScreenshotCapacity.SelectedItem is int imageCount?imageCount:20;
+            preview.Clipboard.ScreenshotLifetimeHours=ClipboardWidgetSettings.ScreenshotLifetimes[Math.Max(0,clipboardScreenshotLifetime.SelectedIndex)];
             preview.NowPlaying.Enabled = nowPlayingEnabled.Checked; preview.NowPlaying.Locked = nowPlayingLocked.Checked; preview.NowPlaying.HideEmpty = nowPlayingHideEmpty.Checked; preview.NowPlaying.WheelVolume = nowPlayingWheel.Checked; preview.NowPlaying.Style = (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex);
             preview.Feed.Enabled = feedEnabled.Checked; preview.Feed.Locked = feedLocked.Checked; preview.Feed.Style = (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex); preview.Feed.MaximumHeight = (int)feedHeight.Value;
             preview.PackageStatusNotifications = packageNotifications.Checked;

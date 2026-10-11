@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 namespace WallpaperControl;
 internal sealed class ClipboardWidgetForm : Form
 {
@@ -29,7 +29,7 @@ internal sealed class ClipboardWidgetForm : Form
     internal void ApplyTheme(bool value) { dark=value; Render(); }
     internal void SetActivitySuspended(bool value) { suspended=value; UpdateSuspension(); }
     internal void SetPowerSuspended(bool value) { powerSuspended=value; UpdateSuspension(); }
-    private void UpdateSuspension() { timer.Enabled=!suspended&&!powerSuspended; service.SetSuspended(suspended||powerSuspended); StopDrag(); if(timer.Enabled) { Render(); modalInteraction.Refresh(); } }
+    private void UpdateSuspension() { timer.Enabled=!suspended&&!powerSuspended; service.SetSuspended(suspended,powerSuspended); StopDrag(); if(timer.Enabled) { Render(); modalInteraction.Refresh(); } }
     protected override void OnShown(EventArgs e) { base.OnShown(e); Render(); }
     protected override void OnDpiChanged(DpiChangedEventArgs e) { base.OnDpiChanged(e); Render(); }
     protected override void WndProc(ref Message m)
@@ -75,19 +75,30 @@ internal sealed class ClipboardWidgetForm : Form
             var bounds=new RectangleF(14,y,viewport.ContentBounds.Width-4,72); rows.Add((bounds,entry.Id));
             if(bounds.IntersectsWith(viewport.ContentBounds))
             {
-                g.DrawString("▤",icons,accent,14,y+5);
-                g.DrawString(Preview(entry.Text),font,text,new RectangleF(40,y+3,bounds.Width-29,34),format);
+                float labelX=40;
+                if(entry.Screenshot is { } screenshot)
+                {
+                    labelX=128;
+                    if(service.Thumbnail(entry.Id) is { } thumbnail) {
+                        float scale=Math.Min(100f/thumbnail.Width,60f/thumbnail.Height);
+                        float width=thumbnail.Width*scale,height=thumbnail.Height*scale;
+                        g.DrawImage(thumbnail,14+(100-width)/2,y+4+(60-height)/2,width,height);
+                    }
+                    g.DrawString(Localization.Get("ClipboardScreenshot",language),font,text,new RectangleF(labelX,y+3,bounds.Width-115,20),single);
+                    g.DrawString($"{screenshot.Width} × {screenshot.Height}",font,muted,labelX,y+23);
+                }
+                else { g.DrawString("▤",icons,accent,14,y+5); g.DrawString(Preview(entry.Text),font,text,new RectangleF(40,y+3,bounds.Width-29,34),format); }
                 var age=DateTimeOffset.UtcNow-entry.Copied;
                 string ageKey=age.TotalHours>=1?"ClipboardAgeHours":age.TotalMinutes>=1?"ClipboardAgeMinutes":"ClipboardAgeSeconds";
                 int ageValue=Math.Max(0,(int)(age.TotalHours>=1?age.TotalHours:age.TotalMinutes>=1?age.TotalMinutes:age.TotalSeconds));
-                g.DrawString(string.Format(Localization.Get(ageKey,language),ageValue),font,muted,40,y+43);
+                g.DrawString(string.Format(Localization.Get(ageKey,language),ageValue),font,muted,labelX,y+43);
                 using var line=new Pen(Color.FromArgb(65,accent.Color)); g.DrawLine(line,14,y+69,viewport.ContentBounds.Right,y+69);
             }
             y+=72;
         }
         if(entries.Count==0) g.DrawString(Localization.Get("ClipboardEmpty",language),font,muted,14,60);
         g.Restore(saved); WidgetScrollbar.Draw(g,viewport,dark);
-        string footer=feedbackKey??(service.History.Paused?"ClipboardPaused":"ClipboardRamOnly");
+        string footer=feedbackKey??(service.History.Paused?"ClipboardPaused":settings.CaptureScreenshots||entries.Any(e=>e.IsImage)?"ClipboardMixedStorage":"ClipboardRamOnly");
         g.DrawString(Localization.Get(footer,language),font,muted,new RectangleF(14,viewport.LogicalHeight-23,360,20),single);
         return bitmap;
     }
@@ -98,7 +109,16 @@ internal sealed class ClipboardWidgetForm : Form
         string preview=value[..length].Replace('\r',' ').Replace('\n',' ').Replace('\t',' ');
         return preview+(value.Length>length?"…":"");
     }
-    internal void Copy(Guid id) { bool success=service.Copy(id); feedbackKey=success?"ClipboardCopied":"ClipboardBusy"; feedbackUntil=DateTimeOffset.UtcNow.AddSeconds(3); Render(); }
+    internal async void Copy(Guid id)
+    {
+        try {
+            bool isImage=service.History.Entries.Any(entry=>entry.Id==id&&entry.IsImage);
+            bool success=await service.CopyAsync(id); if(disposed)return;
+            void Finish() { if(disposed)return; feedbackKey=success?(isImage?"ClipboardImageCopied":"ClipboardCopied"):"ClipboardBusy"; feedbackUntil=DateTimeOffset.UtcNow.AddSeconds(3); Render(); }
+            if(IsHandleCreated)await this.InvokeAsync(Finish); else Finish();
+        }
+        catch(Exception)when(disposed||IsDisposed) { }
+    }
     protected override void OnMouseDown(MouseEventArgs e)
     {
         if(suspended||powerSuspended)return;
@@ -129,7 +149,7 @@ internal sealed class ClipboardWidgetForm : Form
         if(id!=Guid.Empty)
         {
             menu.Items.Add(L("ClipboardCopy"),null,(_,_)=>Copy(id));
-            menu.Items.Add(L("ClipboardDetails"),null,(_,_)=>ShowDetails(id));
+            if(service.History.Entries.Any(e=>e.Id==id&&!e.IsImage))menu.Items.Add(L("ClipboardDetails"),null,(_,_)=>ShowDetails(id));
             menu.Items.Add(L("ClipboardDelete"),null,(_,_)=>service.Remove(id)); menu.Items.Add(new ToolStripSeparator());
         }
         menu.Items.Add(L(service.History.Paused?"ClipboardResume":"ClipboardPause"),null,(_,_)=>service.TogglePause());

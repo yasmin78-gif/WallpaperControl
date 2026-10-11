@@ -117,6 +117,8 @@ try
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--launcher-website-icon-checks") { LauncherWebsiteIconTests.Run(Check); Console.WriteLine($"All {passed} website icon checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--launcher-widget-checks") { LauncherWidgetTests.Run(Check); Console.WriteLine($"All {passed} launcher widget checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--clipboard-native-image-checks") { ClipboardNativeImageTests.Run(Check); Console.WriteLine($"All {passed} native clipboard image checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--clipboard-screenshot-checks") { ClipboardScreenshotTests.Run(Check); Console.WriteLine($"All {passed} clipboard screenshot checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--clipboard-widget-checks") { ClipboardWidgetTests.Run(Check); Console.WriteLine($"All {passed} clipboard widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--system-drive-checks") { SystemDriveTests.Run(Check); Console.WriteLine($"All {passed} system drive checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-checks") { NowPlayingTests.Run(Check); Console.WriteLine($"All {passed} Now Playing checks passed."); return 0; }

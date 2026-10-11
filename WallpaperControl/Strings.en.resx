@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1748,7 +1748,7 @@ Would you like to open the release page?</value>
   <data name="ClipboardTitle" xml:space="preserve"><value>Clipboard</value></data>
   <data name="ClipboardEnabled" xml:space="preserve"><value>Enable widget and text recording</value></data>
   <data name="ClipboardCapacity" xml:space="preserve"><value>Number of entries</value></data>
-  <data name="ClipboardHint" xml:space="preserve"><value>Text only, stored in memory. Disabling or exiting clears history. Right-click: details/delete. Recording can be paused. Passwords cannot be reliably identified; Windows exclusion markers are respected.</value></data>
+  <data name="ClipboardHint" xml:space="preserve"><value>Click to copy back. Text stays in RAM; screenshots are stored locally.</value></data>
   <data name="ClipboardEmpty" xml:space="preserve"><value>No texts copied yet</value></data>
   <data name="ClipboardRamOnly" xml:space="preserve"><value>Stored in memory only</value></data>
   <data name="ClipboardPaused" xml:space="preserve"><value>Recording paused</value></data>
@@ -1757,6 +1757,7 @@ Would you like to open the release page?</value>
   <data name="ClipboardClear" xml:space="preserve"><value>Clear history</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>Copy text</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>Text copied</value></data>
+  <data name="ClipboardImageCopied" xml:space="preserve"><value>Image copied</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>Clipboard currently unavailable</value></data>
   <data name="ClipboardDetails" xml:space="preserve"><value>Show full text</value></data>
   <data name="ClipboardDelete" xml:space="preserve"><value>Delete entry</value></data>
@@ -1801,4 +1802,14 @@ Would you like to open the release page?</value>
   <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Use website icon</value></data>
   <data name="LauncherImageFilter" xml:space="preserve"><value>Images|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
   <data name="LauncherInvalidIcon" xml:space="preserve"><value>The image could not be imported. Supported: PNG, JPG, ICO and WEBP, up to 4 MiB and 16 million pixels.</value></data>
+  <data name="ClipboardCaptureScreenshots" xml:space="preserve"><value>Capture screenshots</value></data>
+  <data name="ClipboardScreenshotLifetime" xml:space="preserve"><value>Screenshot lifetime</value></data>
+  <data name="ClipboardLifetimeHour" xml:space="preserve"><value>1 hour</value></data>
+  <data name="ClipboardLifetimeDay" xml:space="preserve"><value>24 hours</value></data>
+  <data name="ClipboardLifetimeWeek" xml:space="preserve"><value>7 days</value></data>
+  <data name="ClipboardLifetimeManual" xml:space="preserve"><value>Until manually deleted</value></data>
+  <data name="ClipboardScreenshotCapacity" xml:space="preserve"><value>Maximum screenshots</value></data>
+  <data name="ClipboardKeepScreenshots" xml:space="preserve"><value>Keep screenshots after restart</value></data>
+  <data name="ClipboardScreenshot" xml:space="preserve"><value>Screenshot</value></data>
+  <data name="ClipboardMixedStorage" xml:space="preserve"><value>Text in RAM · Screenshots stored locally</value></data>
 </root>
