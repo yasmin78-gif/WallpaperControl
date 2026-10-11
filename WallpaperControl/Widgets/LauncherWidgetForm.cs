@@ -145,9 +145,9 @@ internal sealed class LauncherWidgetForm : Form
         menu.Items.Add(L("LauncherAdd"),null,(_,_)=>Add(null)); menu.Items.Add(L("LauncherManage"),null,(_,_)=>manage()); ContextMenuTheme.Apply(menu,dark);
     }
     private void Edit(LauncherEntry entry)
-    { using var dialog=new LauncherEntryForm(entry,language,settings.Style,dark); if(dialog.ShowDialog()!=DialogResult.OK||dialog.Result==null)return; var entries=settings.Entries.Select(e=>e.Id==entry.Id?dialog.Result:e).ToList(); saveEntries(entries); }
+    { using var dialog=new LauncherEntryForm(entry,language,settings.Style,dark,cachedEntries:settings.Entries); if(dialog.ShowDialog()!=DialogResult.OK||dialog.Result==null)return; var entries=settings.Entries.Select(e=>e.Id==entry.Id?dialog.Result:e).ToList(); saveEntries(entries); }
     private void Add(string? target)
-    { if(settings.Entries.Count>=LauncherSettings.MaximumEntries)return; using var dialog=new LauncherEntryForm(null,language,settings.Style,dark,target); if(dialog.ShowDialog()!=DialogResult.OK||dialog.Result==null)return; var entries=settings.Entries.ToList(); entries.Add(dialog.Result); saveEntries(entries); }
+    { if(settings.Entries.Count>=LauncherSettings.MaximumEntries)return; using var dialog=new LauncherEntryForm(null,language,settings.Style,dark,target,cachedEntries:settings.Entries); if(dialog.ShowDialog()!=DialogResult.OK||dialog.Result==null)return; var entries=settings.Entries.ToList(); entries.Add(dialog.Result); saveEntries(entries); }
     internal bool CanDrop(IDataObject? data)=>!suspended&&!powerSuspended&&data!=null&&settings.Entries.Count<LauncherSettings.MaximumEntries&&(DropTargets(data).Any()||LauncherShellDrop.Offered(data));
     private void HandleDrop(DragEventArgs e)
     {

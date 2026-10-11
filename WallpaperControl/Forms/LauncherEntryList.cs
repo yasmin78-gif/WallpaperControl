@@ -30,7 +30,7 @@ internal sealed class LauncherEntryList : UserControl
         if(action==0||action==1)
         {
             if(action==1&&(index<0||index>=entries.Count)||action==0&&entries.Count>=LauncherSettings.MaximumEntries)return;
-            using var dialog=new LauncherEntryForm(action==0?null:entries[index],language,style,dark);
+            using var dialog=new LauncherEntryForm(action==0?null:entries[index],language,style,dark,cachedEntries:entries);
             if(dialog.ShowDialog(FindForm())!=DialogResult.OK||dialog.Result==null)return;
             if(action==0) { entries.Add(dialog.Result); index=entries.Count-1; } else entries[index]=dialog.Result;
         }

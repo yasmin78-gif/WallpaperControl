@@ -31,6 +31,7 @@ internal static class LauncherWebsiteIconTests
     }
     private static void DialogChecks(Action<bool,string> check)
     {
+        PreviewChecks(check);
         foreach(var style in Enum.GetValues<App.SystemWidgetStyle>())foreach(bool dark in new[]{true,false})
         {
             using var web=new App.LauncherEntryForm(new App.LauncherEntry(Guid.NewGuid(),"Example","https://example.test/"),"de",style,dark);
@@ -54,6 +55,86 @@ internal static class LauncherWebsiteIconTests
             check(App.WidgetSettings.Load(registry).Launcher.Entries.Single().Favicon=="cached.png","Background favicon survives persisted editor update and reload");
         }
         finally { Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(registry,false); }
+    }
+    private static void PreviewChecks(Action<bool,string> check)
+    {
+        string root=Path.Combine(Path.GetTempPath(),"WallpaperControl.PreviewChecks-"+Guid.NewGuid().ToString("N")); Directory.CreateDirectory(root);
+        var requested=new List<string>(); byte[] png=ImageBytes(ImageFormat.Png);
+        var delayed=new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var manualDelay=new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var closeDelay=new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var client=new HttpClient(new Handler((request,token)=>
+        {
+            string host=request.RequestUri!.Host; requested.Add(host);
+            if(host=="slow.test")return delayed.Task;
+            if(host=="slow-manual.test")return manualDelay.Task;
+            if(host=="slow-close.test")return closeDelay.Task;
+            return Task.FromResult(host=="failed.test"?new HttpResponseMessage(HttpStatusCode.NotFound):request.RequestUri.AbsolutePath=="/favicon.ico"?Response(png):Response(Encoding.UTF8.GetBytes("<html></html>")));
+        }));
+        static void PumpUntil(Func<bool> condition)
+        { var watch=System.Diagnostics.Stopwatch.StartNew(); while(!condition()&&watch.ElapsedMilliseconds<5000) { Application.DoEvents(); Thread.Sleep(10); } if(!condition())throw new Exception("Preview did not reach expected state."); }
+        static void Pump(int milliseconds)
+        { var watch=System.Diagnostics.Stopwatch.StartNew(); while(watch.ElapsedMilliseconds<milliseconds) { Application.DoEvents(); Thread.Sleep(10); } }
+        try
+        {
+            using var store=new App.LauncherWebsiteIcons(Path.Combine(root,"icons"),client);
+            using var dialog=new App.LauncherEntryForm(null,"de",App.SystemWidgetStyle.Glow,true,websiteIcons:store);
+            dialog.Show(); Application.DoEvents();
+            var target=dialog.Controls.OfType<TextBox>().Single(t=>t.Top==102);
+            var preview=dialog.Controls.OfType<PictureBox>().Single();
+            var reset=dialog.Controls.OfType<Button>().Single(b=>b.Text.Contains("Website-Symbol"));
+            target.Text="https://unused.test/"; target.Text="https://new.test/";
+            check(preview.Image==null,"New URL initially shows globe while preview loads");
+            PumpUntil(()=>preview.Image!=null);
+            check(!requested.Contains("unused.test")&&requested.Contains("new.test"),"Typing debounce downloads only final URL and updates new-entry preview");
+            int before=requested.Count; reset.PerformClick(); Application.DoEvents();
+            check(preview.Image!=null&&requested.Count==before,"Website reset immediately reuses loaded favicon without HTTP");
+            target.Text="https://failed.test/"; PumpUntil(()=>requested.Count>=before+2); Pump(100);
+            check(preview.Image==null,"Failed website download retains globe");
+            target.Text="https://new.test/";
+            check(preview.Image!=null,"Returning to already loaded URL immediately reuses dialog cache");
+            string source=Path.Combine(root,"manual.png"); System.IO.File.WriteAllBytes(source,png);
+            var import=dialog.SelectCustomIconAsync(source); PumpUntil(()=>import.IsCompleted); import.GetAwaiter().GetResult();
+            check(preview.Image!=null,"Manual selection updates preview immediately after import");
+            target.Text="https://manual.test/"; Pump(500);
+            check(!requested.Contains("manual.test")&&preview.Image!=null,"Manual icon prevents automatic requests and survives URL change");
+            target.Text="https://new.test/"; reset.PerformClick();
+            check(preview.Image!=null,"Switching manual icon back to favicon immediately restores cached preview");
+            target.Text="https://slow.test/"; PumpUntil(()=>requested.Contains("slow.test"));
+            target.Text="https://final.test/"; delayed.TrySetResult(Response(png));
+            PumpUntil(()=>preview.Image!=null&&requested.Contains("final.test"));
+            check(preview.Image!=null,"Late previous-URL result cannot replace current URL preview");
+            target.Text="not a URL"; check(preview.Image==null,"Invalid URL clears preview to fallback");
+            target.Text="https://final.test/";
+            dialog.Controls.OfType<Button>().Single(b=>b.Text=="Speichern").PerformClick();
+            check(dialog.Result?.FaviconFor=="https://final.test/"&&App.WidgetManager.HasValidLauncherFavicon(dialog.Result),"Save preserves exactly the automatic favicon shown in preview");
+            dialog.Dispose(); Pump(100);
+            check(Directory.GetFiles(Path.Combine(root,"icons")).Length==1,"Closing cleans unused preview/custom downloads and retains saved favicon");
+            requested.Clear();
+            using var cachedStore=new App.LauncherWebsiteIcons(Path.Combine(root,"cached"),new HttpClient(new Handler((_,_)=>throw new Exception("Cached preview must not download"))));
+            using var edit=new App.LauncherEntryForm(dialog.Result,"de",App.SystemWidgetStyle.Clean,false,websiteIcons:cachedStore);
+            edit.Show(); Application.DoEvents();
+            check(edit.Controls.OfType<PictureBox>().Single().Image!=null,"Editing existing entry displays stored favicon immediately");
+            edit.Close();
+            using(var manualStore=new App.LauncherWebsiteIcons(Path.Combine(root,"manual-race"),new HttpClient(new Handler((request,_)=> { requested.Add(request.RequestUri!.Host); return manualDelay.Task; }))))
+            using(var manualDialog=new App.LauncherEntryForm(null,"de",App.SystemWidgetStyle.Glow,true,"https://slow-manual.test/",websiteIcons:manualStore))
+            {
+                manualDialog.Show(); PumpUntil(()=>requested.Contains("slow-manual.test"));
+                string blueFile=Path.Combine(root,"blue.png"); using(var blue=new Bitmap(16,16)) { using(var g=Graphics.FromImage(blue))g.Clear(Color.Blue); blue.Save(blueFile,ImageFormat.Png); }
+                var selection=manualDialog.SelectCustomIconAsync(blueFile); PumpUntil(()=>selection.IsCompleted); selection.GetAwaiter().GetResult();
+                manualDelay.TrySetResult(Response(png)); Pump(200);
+                var image=(Bitmap)manualDialog.Controls.OfType<PictureBox>().Single().Image!;
+                check(image.GetPixel(32,32).B>240&&image.GetPixel(32,32).R<10,"Late automatic result never overwrites a newly selected manual image");
+                manualDialog.Close();
+            }
+            using(var closingStore=new App.LauncherWebsiteIcons(Path.Combine(root,"close-race"),new HttpClient(new Handler((request,_)=> { requested.Add(request.RequestUri!.Host); return closeDelay.Task; }))))
+            using(var closing=new App.LauncherEntryForm(null,"de",App.SystemWidgetStyle.Glow,true,"https://slow-close.test/",websiteIcons:closingStore))
+            {
+                closing.Show(); PumpUntil(()=>requested.Contains("slow-close.test")); closing.Close(); closeDelay.TrySetResult(Response(png)); Pump(200);
+                check(!Directory.Exists(Path.Combine(root,"close-race"))||Directory.GetFiles(Path.Combine(root,"close-race")).Length==0,"Closing during download prevents preview updates and orphaned icon files");
+            }
+        }
+        finally { Directory.Delete(root,true); }
     }
     private sealed class Handler(Func<HttpRequestMessage,CancellationToken,Task<HttpResponseMessage>> send):HttpMessageHandler
     { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)=>send(request,cancellationToken); }
