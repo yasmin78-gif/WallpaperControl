@@ -37,7 +37,7 @@ internal static class ClipboardWidgetTests
         check(service.Copy(original.Id)&&service.History.Entries.SequenceEqual(beforeCopy),"Repeated widget copies preserve history order and timestamps");
         source.CanWrite=false; var before=service.History.Entries.ToArray(); check(!service.Copy(before[^1].Id)&&service.History.Entries.SequenceEqual(before),"Busy clipboard preserves history ordering and text"); source.CanWrite=true;
         service.TogglePause(); source.Emit("not recorded"); check(!source.Enabled&&service.History.Entries.Count==2,"Manual pause disables native capture");
-        service.SetSuspended(true); service.TogglePause(); check(!source.Enabled,"Manual resume cannot override independent fullscreen/power suspension");
+        service.SetSuspended(true); service.TogglePause(); check(source.Enabled,"Activity pause does not interrupt clipboard recording after manual resume");
         service.SetSuspended(false); check(source.Enabled&&service.History.Entries.Count==2,"Resume creates no clipboard backlog");
         service.Clear(); check(service.History.Entries.Count==0&&source.Written==original.Text,"Clear history does not empty the actual Windows clipboard");
         string path=@"Software\WallpaperControl.ClipboardTests\"+Guid.NewGuid().ToString("N");

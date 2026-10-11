@@ -170,6 +170,36 @@ internal static class ClipboardScreenshotTests
                 viewport.SetOffset(1000); using var sample=widget.RenderBitmap(); sample.Save(Path.Combine(outputDirectory,"clipboard-screenshots.png"),ImageFormat.Png);
             }
         }
+        var showMenu=typeof(App.ClipboardWidgetForm).GetMethod("ShowMenu",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+        var contextMenu=(ContextMenuStrip)typeof(App.ClipboardWidgetForm).GetField("menu",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(widget)!;
+        foreach(var language in new[]{"de","en","es","fr","ja"}) {
+            widget.Apply(new(){MaximumHeight=300},language);
+            foreach(bool isImage in new[]{true,false,true,false}) {
+                var selected=isImage?image:service.History.Entries.First(e=>!e.IsImage);
+                showMenu.Invoke(widget,[selected.Id]);
+                check(contextMenu.Items[0].Text==App.Localization.Get(isImage?"ClipboardImageCopy":"ClipboardCopy",language),"Context copy label follows clicked entry on rapid switch: "+language+" image="+isImage);
+                check(contextMenu.Items[0].Text!="ClipboardImageCopy"&&contextMenu.Items.Count==(isImage?5:6),"Localized menu preserves other entries: "+language+" image="+isImage);
+                contextMenu.Close();
+            }
+        }
+        widget.Apply(new(){MaximumHeight=300},"de");
+        var pausedBefore=service.History.Entries.ToArray();
+        service.TogglePause(); source.Emit("paused text"); source.EmitImage(Png(111));
+        check(!source.Enabled&&!source.CaptureImages&&service.History.Entries.SequenceEqual(pausedBefore),"Manual pause rejects both new text and screenshots");
+        var pausedCopy=service.CopyAsync(image.Id); PumpUntil(()=>pausedCopy.IsCompleted);
+        check(pausedCopy.Result&&service.History.Entries.SequenceEqual(pausedBefore),"Existing screenshot copies successfully during manual pause");
+        service.TogglePause(); check(service.History.Entries.SequenceEqual(pausedBefore),"Manual resume does not import paused data");
+        int originalFiles=Directory.GetFiles(Path.Combine(root,"ui"),"screenshot-*.png").Length;
+        source.EmitImage(Png(112));
+        var processingWait=Stopwatch.StartNew();
+        while(Directory.GetFiles(Path.Combine(root,"ui"),"screenshot-*.png").Length==originalFiles&&processingWait.Elapsed<TimeSpan.FromSeconds(10))Thread.Sleep(5);
+        check(processingWait.Elapsed<TimeSpan.FromSeconds(10),"Image processing reaches disk before manual pause without pumping UI completion");
+        service.TogglePause(); service.TogglePause(); PumpUntil(()=>Pending(service)==0);
+        check(service.History.Entries.SequenceEqual(pausedBefore)&&Directory.GetFiles(Path.Combine(root,"ui"),"screenshot-*.png").Length==originalFiles,"Pause and immediate resume reject in-flight image and roll back its files");
+        using(var reopened=new App.ClipboardScreenshotStore(Path.Combine(root,"ui"))) {
+            var restart=reopened.InitializeAsync(options); PumpUntil(()=>restart.IsCompleted); using var snapshot=restart.Result;
+            check(snapshot.Entries.Select(e=>e.Id).SequenceEqual(pausedBefore.Where(e=>e.IsImage).Select(e=>e.Id)),"Rejected in-flight screenshot does not return after storage restart");
+        }
         service.Remove(image.Id); PumpUntil(()=>!File.Exists(Path.Combine(root,"ui","screenshot-"+image.Id.ToString("N")+".png")));
         check(!service.History.Entries.Any(e=>e.IsImage)&&service.History.Entries.Count==5,"Deleting image preserves text history");
         source.EmitImage(Png(2)); service.Clear(); Thread.Sleep(100); Application.DoEvents();

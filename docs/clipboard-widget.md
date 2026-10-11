@@ -1,4 +1,4 @@
-# Clipboard widget
+﻿# Clipboard widget
 
 Enable **Widgets → Zwischenablage** explicitly. The widget records new Unicode text and screenshot image changes; existing clipboard contents are not imported when enabled or resumed.
 
@@ -9,7 +9,7 @@ Enable **Widgets → Zwischenablage** explicitly. The widget records new Unicode
 - Text history stays in process memory and is cleared when disabled or disposed. Screenshot originals and previews are saved locally; clipboard contents are never logged.
 - Windows clipboard exclusion/history flags are respected. Copies made by the widget request exclusion from Windows history and cloud clipboard.
 - Whitespace-only text and text over 524,288 UTF-16 code units are ignored. Passwords cannot reliably be recognized if the source application does not mark them as excluded.
-- Text recording retains its activity/power suspension. Enabled screenshot collection continues during the fullscreen/activity display pause, including capture overlays. Manual recording pause and power suspension disable both. Resuming does not import a backlog.
+- Text and screenshot collection continue during the fullscreen/activity display pause, including capture overlays. Manual recording pause and power suspension disable both. Resuming does not import a backlog.
 
 Clearing this widget does not clear the Windows clipboard or Windows clipboard history. RAM-only storage does not promise secure erasure of immutable managed strings or protection against process dumps.
 
@@ -68,8 +68,10 @@ These native tests are automated Windows clipboard integration tests, not intera
 
 ## Capture overlays and delayed rendering
 
-The live logs showed fullscreen suspension disabling image monitoring during capture overlays and re-enabling it about two seconds later. Resume reset the consumed clipboard sequence to the newly captured screenshot, so it was never imported. Screenshot collection now continues through the generic fullscreen/activity display pause, while text suspension, explicit recording pause and power suspension keep their previous behavior. This does not identify particular screenshot applications or add another listener.
+The live logs showed fullscreen suspension disabling image monitoring during capture overlays and re-enabling it about two seconds later. Resume reset the consumed clipboard sequence to the newly captured screenshot, so it was never imported. Screenshot collection now continues through the generic fullscreen/activity display pause, while explicit recording pause and power suspension disable recording of both text and images. This does not identify particular screenshot applications or add another listener.
 
 Pending reads retain their clipboard sequence. A new sequence replaces an older pending read, duplicate notifications do not consume the retry budget, and successful rendering consumes the final sequence under the clipboard lock. Five attempts end the retry timer; there is no permanent polling. Temporarily absent image handles, locked data and the empty publication gap may retry asynchronously. Logs include the WM_CLIPBOARDUPDATE event, numeric format IDs, read attempts, Windows error codes, retry delays, superseding sequences and outcomes. Custom format names, texts and pixels are excluded from logs.
 
-Native regression checks additionally cover generic activity-suspended screenshot acquisition, unchanged text suspension, manual/power pause, real WM_RENDERFORMAT publication that only succeeds on a later read, permanently unavailable data, a temporarily locked clipboard, a newer text change replacing a delayed screenshot, text between screenshots, and native copy-back without duplication. The interactive Print Screen / Win+Shift+S workflows still require live verification in the updated build; the automated tests simulate the Windows clipboard protocols.
+Native regression checks additionally cover generic activity-suspended screenshot acquisition, text recording during display suspension, manual/power pause, real WM_RENDERFORMAT publication that only succeeds on a later read, permanently unavailable data, a temporarily locked clipboard, a newer text change replacing a delayed screenshot, text between screenshots, and native copy-back without duplication. The interactive Print Screen / Win+Shift+S workflows still require live verification in the updated build; the automated tests simulate the Windows clipboard protocols.
+
+Manual recording pause invalidates pending image captures as well as native read retries. Image completion is accepted on the STA UI thread only if its capture generation is still current and recording is not paused. Rejected in-flight captures roll back the pending store update, including duplicate ordering and newly written image files, so a quick pause/resume or restart cannot import them later. Existing entries remain copyable while paused.

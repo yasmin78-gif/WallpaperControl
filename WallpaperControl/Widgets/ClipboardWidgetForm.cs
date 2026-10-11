@@ -148,7 +148,7 @@ internal sealed class ClipboardWidgetForm : Form
         string L(string key)=>Localization.Get(key,language);
         if(id!=Guid.Empty)
         {
-            menu.Items.Add(L("ClipboardCopy"),null,(_,_)=>Copy(id));
+            menu.Items.Add(L(service.History.Entries.Any(entry=>entry.Id==id&&entry.IsImage)?"ClipboardImageCopy":"ClipboardCopy"),null,(_,_)=>Copy(id));
             if(service.History.Entries.Any(e=>e.Id==id&&!e.IsImage))menu.Items.Add(L("ClipboardDetails"),null,(_,_)=>ShowDetails(id));
             menu.Items.Add(L("ClipboardDelete"),null,(_,_)=>service.Remove(id)); menu.Items.Add(new ToolStripSeparator());
         }

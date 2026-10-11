@@ -1756,6 +1756,7 @@ Would you like to open the release page?</value>
   <data name="ClipboardResume" xml:space="preserve"><value>Resume recording</value></data>
   <data name="ClipboardClear" xml:space="preserve"><value>Clear history</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>Copy text</value></data>
+  <data name="ClipboardImageCopy" xml:space="preserve"><value>Copy image</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>Text copied</value></data>
   <data name="ClipboardImageCopied" xml:space="preserve"><value>Image copied</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>Clipboard currently unavailable</value></data>

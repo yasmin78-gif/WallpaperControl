@@ -1728,6 +1728,7 @@
   <data name="ClipboardResume" xml:space="preserve"><value>記録を再開</value></data>
   <data name="ClipboardClear" xml:space="preserve"><value>履歴を消去</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>テキストをコピー</value></data>
+  <data name="ClipboardImageCopy" xml:space="preserve"><value>画像をコピー</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>コピーしました</value></data>
   <data name="ClipboardImageCopied" xml:space="preserve"><value>画像をコピーしました</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>クリップボードを利用できません</value></data>

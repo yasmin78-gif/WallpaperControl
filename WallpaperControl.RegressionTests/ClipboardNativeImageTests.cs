@@ -1,4 +1,4 @@
-extern alias WallpaperApp;
+﻿extern alias WallpaperApp;
 using App=WallpaperApp::WallpaperControl;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -94,11 +94,24 @@ internal static class ClipboardNativeImageTests
             Publish([new(png,Png(70),IntPtr.Zero)]); count++; Pump(()=>service.History.Entries.Count(e=>e.IsImage)==count);
             Publish([new(13,System.Text.Encoding.Unicode.GetBytes("text during activity pause\0"),IntPtr.Zero)]);
             Pump(()=>typeof(App.ClipboardListener).GetField("sequence",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(native) is uint value&&value>=lastWrite);
-            check(!service.History.Entries.Any(e=>!e.IsImage),"Text suspension behavior remains unchanged during fullscreen capture");
+            check(service.History.Entries.Any(e=>e.Text=="text during activity pause"),"Fullscreen display pause also permits new text recording");
             widget.SetActivitySuspended(false);
             check(service.History.Entries.Count(e=>e.IsImage)==count,"Screenshot received during fullscreen remains available after resume");
             widget.SetPowerSuspended(true); check(!native.Enabled&&!native.CaptureImages,"Power suspension still disables clipboard capture"); widget.SetPowerSuspended(false);
             service.TogglePause(); check(!native.Enabled&&!native.CaptureImages,"Manual recording pause still disables clipboard capture"); service.TogglePause();
+            using(var pausedDelayed=new DelayedOwner(png,Png(87),sequence=>lastWrite=sequence)) {
+                pausedDelayed.Publish(); Pump(()=>pausedDelayed.Requests>0); service.TogglePause();
+                pausedDelayed.Ready=true; Quiet(); service.TogglePause(); Quiet();
+                check(service.History.Entries.Count(e=>e.IsImage)==count,"Manual pause cancels delayed image retry without importing it on resume");
+            }
+            service.TogglePause(); widget.SetActivitySuspended(true);
+            Publish([new(png,Png(88),IntPtr.Zero)]); Quiet();
+            Publish([new(13,System.Text.Encoding.Unicode.GetBytes("paused text\0"),IntPtr.Zero)]); Quiet();
+            check(service.History.Entries.Count(e=>e.IsImage)==count&&!service.History.Entries.Any(e=>e.Text=="paused text"),"Manual pause overrides fullscreen and rejects native image and text updates");
+            var pausedCopy=service.CopyAsync(service.History.Entries.First(e=>e.IsImage).Id); Pump(()=>pausedCopy.IsCompleted); lastWrite=GetClipboardSequenceNumber();
+            check(pausedCopy.Result&&!native.Enabled,"Existing screenshot remains copyable during manual and fullscreen pause");
+            service.TogglePause(); widget.SetActivitySuspended(false); Quiet();
+            check(service.History.Entries.Count(e=>e.IsImage)==count,"Resuming skips clipboard data written during manual pause");
             using(var delayed=new DelayedOwner(png,Png(80),sequence=>lastWrite=sequence)) {
                 delayed.Publish(); Pump(()=>delayed.Requests>0);
                 int firstAttempts=(int)typeof(App.ClipboardListener).GetField("attempts",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(native)!;
@@ -122,7 +135,7 @@ internal static class ClipboardNativeImageTests
                 check(File.ReadAllBytes(Path.Combine(directory,"screenshot-"+newest.Id.ToString("N")+".png")).SequenceEqual(Png(86)),"Newer screenshot supersedes an unavailable older image without wrong association");
             }
             Publish([new(png,Png(82),IntPtr.Zero)]); count++; Pump(()=>service.History.Entries.Count(e=>e.IsImage)==count);
-            check(service.History.Entries.Count(e=>!e.IsImage)==1,"Text between successive screenshots is retained exactly once");
+            check(service.History.Entries.Count(e=>e.Text=="text between screenshots")==1,"Text between successive screenshots is retained exactly once");
             Publish([new(png,Png(83),IntPtr.Zero)]);
             using(var locked=new ManualResetEventSlim())using(var release=new ManualResetEventSlim()) {
                 bool opened=false;

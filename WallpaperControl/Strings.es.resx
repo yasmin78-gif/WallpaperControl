@@ -1756,6 +1756,7 @@ Versión instalada: {0}
   <data name="ClipboardResume" xml:space="preserve"><value>Reanudar captura</value></data>
   <data name="ClipboardClear" xml:space="preserve"><value>Vaciar historial</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>Copiar texto</value></data>
+  <data name="ClipboardImageCopy" xml:space="preserve"><value>Copiar imagen</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>Texto copiado</value></data>
   <data name="ClipboardImageCopied" xml:space="preserve"><value>Imagen copiada</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>Portapapeles no disponible</value></data>

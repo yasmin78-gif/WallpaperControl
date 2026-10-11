@@ -1756,6 +1756,7 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="ClipboardResume" xml:space="preserve"><value>Reprendre la capture</value></data>
   <data name="ClipboardClear" xml:space="preserve"><value>Vider l’historique</value></data>
   <data name="ClipboardCopy" xml:space="preserve"><value>Copier le texte</value></data>
+  <data name="ClipboardImageCopy" xml:space="preserve"><value>Copier l’image</value></data>
   <data name="ClipboardCopied" xml:space="preserve"><value>Texte copié</value></data>
   <data name="ClipboardImageCopied" xml:space="preserve"><value>Image copiée</value></data>
   <data name="ClipboardBusy" xml:space="preserve"><value>Presse-papiers indisponible</value></data>

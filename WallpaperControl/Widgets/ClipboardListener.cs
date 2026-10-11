@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 namespace WallpaperControl;
 internal interface IClipboardSource : IDisposable
 {
@@ -216,6 +216,7 @@ internal sealed class ClipboardService : IDisposable
     private readonly HashSet<Guid> deletedImages=[];
     private DateTimeOffset clearedAt=DateTimeOffset.MinValue;
     private int captureGeneration;
+    private CancellationTokenSource captureCancellation=new();
     private int pendingImages;
     private bool copyBusy,cleanupBusy;
     private string? copiedImageHash;
@@ -246,24 +247,23 @@ internal sealed class ClipboardService : IDisposable
         catch(Exception ex) { ClipboardDiagnostics.Failure("startup failed",ex); }
         finally { await UpdateSourceAsync(); }
     }
-    private void Observe(string text) { if(!disposed&&!suspended&&!powerSuspended&&History.Observe(text,DateTimeOffset.UtcNow))Changed?.Invoke(); }
+    private void Observe(string text) { if(!disposed&&!powerSuspended&&History.Observe(text,DateTimeOffset.UtcNow))Changed?.Invoke(); }
     private async void ObserveImage(ClipboardScreenshotCapture capture)
     {
         if(disposed||powerSuspended||History.Paused||!options.CaptureScreenshots||images==null||pendingImages>=3) { capture.Dispose(); return; }
         int generation=captureGeneration; pendingImages++; UpdateSource();
         try
         {
-            await initialization; if(disposed||generation!=captureGeneration)return;
+            await initialization; if(disposed||generation!=captureGeneration||History.Paused)return;
             string? suppress=DateTimeOffset.UtcNow-copiedImageAt<TimeSpan.FromSeconds(2)?copiedImageHash:null;
-            var snapshot=await images.CaptureAsync(capture,suppress);
-            if(snapshot!=null) {
-                if(generation!=captureGeneration) {
-                    var stale=snapshot.Entries.Where(e=>e.Copied<=clearedAt).Select(e=>e.Id).ToArray(); snapshot.Dispose();
-                    foreach(var id in stale) { using var removed=await images.RemoveAsync(id,clearedAt); }
-                }
-                else await ApplyAsync(snapshot);
-            }
+            var token=captureCancellation.Token;
+            await images.CaptureAsync(capture,suppress,token,snapshot=>
+                dispatcher!.InvokeAsync(()=> {
+                    if(disposed||History.Paused||generation!=captureGeneration||token.IsCancellationRequested)return false;
+                    Apply(snapshot); return true;
+                }).GetAwaiter().GetResult());
         }
+        catch(OperationCanceledException) { }
         catch(Exception ex) { if(!disposed)ClipboardDiagnostics.Failure("capture failed",ex); }
         finally { capture.Dispose(); await OnUiAsync(()=> { pendingImages--; UpdateSource(); }); }
     }
@@ -271,7 +271,7 @@ internal sealed class ClipboardService : IDisposable
     {
         if(disposed)return;
         bool imagesEnabled=images!=null&&options.CaptureScreenshots&&!powerSuspended&&!History.Paused;
-        source.Enabled=!powerSuspended&&!History.Paused&&(!suspended||imagesEnabled);
+        source.Enabled=!powerSuspended&&!History.Paused;
         if(source is IClipboardImageSource imageSource)imageSource.CaptureImages=imagesEnabled&&pendingImages<3;
     }
     private Task UpdateSourceAsync()=>OnUiAsync(UpdateSource);
@@ -315,7 +315,8 @@ internal sealed class ClipboardService : IDisposable
     private async void ConfigureImages(ClipboardWidgetSettings value)
     { try { await initialization; if(!disposed&&images!=null)await ApplyAsync(await images.ConfigureAsync(value)); } catch(Exception ex) { if(!disposed)ClipboardDiagnostics.Failure("options failed",ex); } }
     internal void SetSuspended(bool value,bool power=false) { suspended=value; powerSuspended=power; AppLogger.Info($"Clipboard suspension: activity={value}; power={power}; imagesContinue={value&&!power&&images!=null&&options.CaptureScreenshots&&!History.Paused}"); UpdateSource(); }
-    internal void TogglePause() { History.Paused=!History.Paused; UpdateSource(); Changed?.Invoke(); }
+    private void InvalidateCaptures() { captureGeneration++; captureCancellation.Cancel(); captureCancellation.Dispose(); captureCancellation=new(); }
+    internal void TogglePause() { History.Paused=!History.Paused; if(History.Paused)InvalidateCaptures(); UpdateSource(); Changed?.Invoke(); }
     internal bool Copy(Guid id)
     {
         var entry=History.Entries.FirstOrDefault(e=>e.Id==id);
@@ -346,7 +347,7 @@ internal sealed class ClipboardService : IDisposable
         if(thumbnails.Remove(id,out var bitmap))bitmap.Dispose(); Changed?.Invoke(); if(image)RemoveImages(id);
     }
     internal void Clear()
-    { captureGeneration++; clearedAt=DateTimeOffset.UtcNow; source.Enabled=false; History.Clear(); foreach(var bitmap in thumbnails.Values)bitmap.Dispose(); thumbnails.Clear(); UpdateSource(); Changed?.Invoke(); if(images!=null)RemoveImages(null,clearedAt); }
+    { InvalidateCaptures(); clearedAt=DateTimeOffset.UtcNow; source.Enabled=false; History.Clear(); foreach(var bitmap in thumbnails.Values)bitmap.Dispose(); thumbnails.Clear(); UpdateSource(); Changed?.Invoke(); if(images!=null)RemoveImages(null,clearedAt); }
     private async void RemoveImages(Guid? id,DateTimeOffset? before=null)
     { try { await initialization; if(!disposed&&images!=null)await ApplyAsync(await images.RemoveAsync(id,before)); } catch(Exception ex) { if(!disposed)ClipboardDiagnostics.Failure("removal deferred",ex); } }
     private async void CleanupImages()
@@ -358,7 +359,7 @@ internal sealed class ClipboardService : IDisposable
     }
     public void Dispose()
     {
-        if(disposed)return; disposed=true; cleanup.Dispose(); source.TextChanged-=Observe;
+        if(disposed)return; disposed=true; captureCancellation.Cancel(); captureCancellation.Dispose(); cleanup.Dispose(); source.TextChanged-=Observe;
         if(source is IClipboardImageSource imageSource)imageSource.ImageChanged-=ObserveImage;
         source.Dispose(); dispatcher?.Dispose(); images?.Dispose(); foreach(var bitmap in thumbnails.Values)bitmap.Dispose(); thumbnails.Clear(); History.Clear(); Changed=null;
     }

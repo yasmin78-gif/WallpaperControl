@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 
@@ -73,15 +73,28 @@ internal sealed class ClipboardScreenshotStore : IDisposable
         }
         ApplyLimits(DateTimeOffset.UtcNow); var result=Snapshot(thumbnails); try { SaveIndex(); DeleteUnused(); return result; } catch { result.Dispose(); throw; }
     });
-    internal Task<ClipboardScreenshotSnapshot?> CaptureAsync(ClipboardScreenshotCapture capture,string? suppressHash=null)=>Run<ClipboardScreenshotSnapshot?>(()=>
+    internal Task<ClipboardScreenshotSnapshot?> CaptureAsync(ClipboardScreenshotCapture capture,string? suppressHash=null,CancellationToken cancellation=default,Func<ClipboardScreenshotSnapshot,bool>? accept=null)=>Run<ClipboardScreenshotSnapshot?>(()=>
     {
+        cancellation.ThrowIfCancellationRequested();
         var decoded=capture.Decode(); using var image=decoded.Image;
+        cancellation.ThrowIfCancellationRequested();
         if(decoded.Hash==suppressHash)return null;
+        var previous=entries.ToList();
         var existing=entries.FirstOrDefault(e=>e.Hash==decoded.Hash&&ValidFile(e.Id)); Guid id=existing?.Id??Guid.NewGuid();
         if(!settings.KeepScreenshots)AtomicBytes(TemporaryMarker(id),[]);
         if(existing==null) { AtomicBytes(Original(id),decoded.Png); AppLogger.Info($"Clipboard PNG stored: id={id:N}; width={image.Width}; height={image.Height}; bytes={decoded.Png.Length}"); using var thumbnail=CreateThumbnail(image); using var output=new MemoryStream(); thumbnail.Save(output,ImageFormat.Png); AtomicBytes(Thumbnail(id),output.ToArray()); }
         entries.RemoveAll(e=>e.Id==id); entries.Insert(0,new(id,capture.Copied,image.Width,image.Height,decoded.Hash,settings.KeepScreenshots));
-        ApplyLimits(DateTimeOffset.UtcNow); return CommitSnapshot();
+        ApplyLimits(DateTimeOffset.UtcNow);
+        var result=Snapshot();
+        try {
+            cancellation.ThrowIfCancellationRequested(); SaveIndex();
+            if(accept!=null) {
+                if(!accept(result)) { result.Dispose(); entries=previous; SaveIndex(); DeleteUnused(); return null; }
+                DeleteUnused(); return null; // Accepted snapshot belongs to the UI.
+            }
+            DeleteUnused(); return result;
+        }
+        catch { result.Dispose(); entries=previous; SaveIndex(); DeleteUnused(); throw; }
     });
     internal Task<ClipboardScreenshotSnapshot> ConfigureAsync(ClipboardWidgetSettings options)=>Run(()=>
     { settings=options.Clone(); if(!settings.KeepScreenshots)foreach(var entry in entries)AtomicBytes(TemporaryMarker(entry.Id),[]); entries=entries.Select(e=>e with { Persistent=settings.KeepScreenshots }).ToList(); ApplyLimits(DateTimeOffset.UtcNow); return CommitSnapshot(); });
