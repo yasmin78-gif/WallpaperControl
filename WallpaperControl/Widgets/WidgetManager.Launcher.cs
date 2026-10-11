@@ -4,6 +4,13 @@ internal sealed partial class WidgetManager
     private LauncherWidgetForm? launcherWidget;
     private LauncherShortcutStore? launcherShortcuts;
     private bool launcherShortcutsMigrated;
+    private LauncherWebsiteIcons? launcherWebsiteIcons;
+    private bool launcherIconsDisposed;
+    private readonly HashSet<(Guid Id,string Url)> launcherFaviconAttempts=[];
+    private readonly Dictionary<(Guid Id,string Url),DateTimeOffset> launcherFaviconRetryAfter=[];
+    private System.Windows.Forms.Timer? launcherFaviconRetryTimer;
+    private LauncherWebsiteIcons WebsiteIcons=>launcherWebsiteIcons??=new(registryPath==WidgetSettings.RegistryPath?LauncherWebsiteIcons.DefaultDirectory:
+        Path.Combine(Path.GetTempPath(),"WallpaperControl.LauncherIconTests",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(registryPath)))));
     private LauncherShortcutStore LauncherShortcuts => launcherShortcuts ??= new(registryPath==WidgetSettings.RegistryPath?LauncherShortcutStore.DefaultDirectory:
         Path.Combine(Path.GetTempPath(),"WallpaperControl.LauncherTests",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(registryPath)))));
     internal Action? LauncherEntriesChanged { get; set; }
@@ -12,13 +19,24 @@ internal sealed partial class WidgetManager
     {
         try
         {
+            var previous=settings.Launcher.Entries.ToList();
+            // A download may finish while the editor still holds an older entry snapshot.
+            entries=entries.Select(entry=>
+            {
+                var current=previous.FirstOrDefault(old=>old.Id==entry.Id&&old.Target==entry.Target&&old.FaviconFor==entry.Target);
+                return current!=null&&(entry.Favicon==null||entry.FaviconFor!=entry.Target)
+                    ?entry with { Favicon=current.Favicon,FaviconFor=current.FaviconFor }:entry;
+            }).ToList();
             var persisted=previewMode?WidgetSettings.Load(registryPath):settings;
             var next=LauncherShortcuts.Update(settings.Launcher.Entries,entries,value=>persisted.SaveLauncherEntries(value,registryPath));
-            if(next==null)return;
+            if(next==null) { WebsiteIcons.DeleteUnused(entries.SelectMany(e=>new[]{e.CustomIcon,e.Favicon}),previous); return; }
             settings.Launcher.Entries=next; launcherWidget?.Apply(settings.Launcher,settings.ClockLanguageCode); LauncherEntriesChanged?.Invoke();
+            WebsiteIcons.DeleteUnused(previous.SelectMany(e=>new[]{e.CustomIcon,e.Favicon}),next);
+            foreach(var item in next)if(item.CustomIcon==null)launcherFaviconRetryAfter.Remove((item.Id,item.Target));
+            QueueLauncherFavicons();
         }
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or System.Security.SecurityException)
-        { AppLogger.Info($"Launcher shortcut import failed: type={ex.GetType().Name}"); MessageBox.Show(Localization.Get("LauncherShortcutFailed",settings.ClockLanguageCode),Localization.Get("LauncherTitle",settings.ClockLanguageCode),MessageBoxButtons.OK,MessageBoxIcon.Warning); }
+        { WebsiteIcons.DeleteUnused(entries.SelectMany(e=>new[]{e.CustomIcon,e.Favicon}),settings.Launcher.Entries); AppLogger.Info($"Launcher shortcut import failed: type={ex.GetType().Name}"); MessageBox.Show(Localization.Get("LauncherShortcutFailed",settings.ClockLanguageCode),Localization.Get("LauncherTitle",settings.ClockLanguageCode),MessageBoxButtons.OK,MessageBoxIcon.Warning); }
     }
     private void ShowLauncherManager()
     {
@@ -29,6 +47,7 @@ internal sealed partial class WidgetManager
     }
     private void ApplyLauncherWidget(WidgetSettings target,bool restoreLocations)
     {
+        QueueLauncherFavicons();
         if(!launcherShortcutsMigrated)
         {
             launcherShortcutsMigrated=true;
@@ -56,4 +75,42 @@ internal sealed partial class WidgetManager
         if(previewMode)DesktopWidgetNative.EnableInteraction(launcherWidget);
     }
     private void DisposeLauncher() { launcherWidget?.Close(); launcherWidget?.Dispose(); launcherWidget=null; }
+    private void QueueLauncherFavicons()
+    {
+        // Isolated regression registries must not contact real websites.
+        if(launcherIconsDisposed||registryPath!=WidgetSettings.RegistryPath)return;
+        var missing=settings.Launcher.Entries.Where(e=>LauncherTargets.IsWebsite(e.Target)&&e.CustomIcon==null&&!HasValidLauncherFavicon(e)).ToArray();
+        if(missing.Length>0)
+        {
+            if(launcherFaviconRetryTimer==null) { launcherFaviconRetryTimer=new() { Interval=60_000 }; launcherFaviconRetryTimer.Tick+=(_,_)=>QueueLauncherFavicons(); }
+            launcherFaviconRetryTimer.Start();
+        }
+        else launcherFaviconRetryTimer?.Stop();
+        foreach(var entry in missing)
+            if((!launcherFaviconRetryAfter.TryGetValue((entry.Id,entry.Target),out var retry)||retry<=DateTimeOffset.UtcNow)&&launcherFaviconAttempts.Add((entry.Id,entry.Target)))_ = LoadLauncherFavicon(entry);
+    }
+    internal static bool HasValidLauncherFavicon(LauncherEntry entry)
+    { if(entry.FaviconFor!=entry.Target)return false; using var image=LauncherWebsiteIcons.Read(entry.Favicon); return image!=null; }
+    private async Task LoadLauncherFavicon(LauncherEntry requested)
+    {
+        string? file=null;
+        try
+        {
+            file=await WebsiteIcons.FetchAsync(requested.Target); if(file==null)return;
+            var current=settings.Launcher.Entries.FirstOrDefault(e=>e.Id==requested.Id&&e.Target==requested.Target);
+            if(launcherIconsDisposed||current==null) { WebsiteIcons.DeleteUnused([file],settings.Launcher.Entries); return; }
+            var next=settings.Launcher.Entries.Select(e=>e.Id==current.Id?e with { Favicon=file,FaviconFor=requested.Target }:e).ToList();
+            var persisted=previewMode?WidgetSettings.Load(registryPath):settings;
+            if(!persisted.SaveLauncherEntries(next,registryPath)) { WebsiteIcons.DeleteUnused([file],settings.Launcher.Entries); return; }
+            settings.Launcher.Entries=next; WebsiteIcons.DeleteUnused([current.Favicon],next);
+            launcherWidget?.Apply(settings.Launcher,settings.ClockLanguageCode); LauncherEntriesChanged?.Invoke();
+        }
+        catch(Exception ex) { WebsiteIcons.DeleteUnused([file],settings.Launcher.Entries); if(!launcherIconsDisposed)AppLogger.Info($"Launcher favicon update failed: type={ex.GetType().Name}"); }
+        finally
+        {
+            launcherFaviconAttempts.Remove((requested.Id,requested.Target));
+            if(!launcherIconsDisposed)launcherFaviconRetryAfter[(requested.Id,requested.Target)]=DateTimeOffset.UtcNow.AddMinutes(5);
+        }
+    }
+    private void DisposeLauncherWebsiteIcons() { launcherIconsDisposed=true; launcherFaviconRetryTimer?.Dispose(); launcherFaviconRetryTimer=null; launcherWebsiteIcons?.Dispose(); }
 }

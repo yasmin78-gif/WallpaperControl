@@ -1796,4 +1796,9 @@ Would you like to open the release page?</value>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>The shortcut could not be imported. Existing entries remain unchanged. Check the file and write permissions.</value></data>
   <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Snap widgets while moving</value></data>
   <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Align edges and center lines, with 10 px spacing. Hold Alt while dragging to temporarily disable snapping.</value></data>
+  <data name="LauncherCurrentIcon" xml:space="preserve"><value>Current icon</value></data>
+  <data name="LauncherChooseIcon" xml:space="preserve"><value>Choose custom icon…</value></data>
+  <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Use website icon</value></data>
+  <data name="LauncherImageFilter" xml:space="preserve"><value>Images|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
+  <data name="LauncherInvalidIcon" xml:space="preserve"><value>The image could not be imported. Supported: PNG, JPG, ICO and WEBP, up to 4 MiB and 16 million pixels.</value></data>
 </root>

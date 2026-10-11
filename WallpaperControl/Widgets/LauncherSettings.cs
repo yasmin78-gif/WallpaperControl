@@ -3,7 +3,11 @@ using System.Text.Json;
 namespace WallpaperControl;
 
 internal enum LauncherTargetKind { Program, Folder, File, Website }
-internal sealed record LauncherEntry(Guid Id, string Name, string Target, string Arguments = "", bool ManagedShortcut = false);
+internal sealed record LauncherEntry(Guid Id, string Name, string Target, string Arguments = "", bool ManagedShortcut = false,
+    string? CustomIcon = null, string? Favicon = null, string? FaviconFor = null)
+{
+    internal string? WebsiteIcon => LauncherTargets.IsWebsite(Target) ? CustomIcon ?? (FaviconFor==Target?Favicon:null) : null;
+}
 internal sealed class LauncherSettings
 {
     internal const int MaximumEntries = 100;

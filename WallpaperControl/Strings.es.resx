@@ -1796,4 +1796,9 @@ Versión instalada: {0}
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>No se pudo importar el acceso directo. Las entradas existentes se conservan. Comprueba el archivo y los permisos de escritura.</value></data>
   <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Alinear widgets al moverlos</value></data>
   <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Alinea bordes y centros, con separación de 10 px. Mantén Alt al arrastrar para desactivar la alineación temporalmente.</value></data>
+  <data name="LauncherCurrentIcon" xml:space="preserve"><value>Icono actual</value></data>
+  <data name="LauncherChooseIcon" xml:space="preserve"><value>Elegir icono propio…</value></data>
+  <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Usar icono del sitio</value></data>
+  <data name="LauncherImageFilter" xml:space="preserve"><value>Imágenes|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
+  <data name="LauncherInvalidIcon" xml:space="preserve"><value>No se pudo importar la imagen. PNG, JPG, ICO y WEBP: máximo 4 MiB y 16 millones de píxeles.</value></data>
 </root>

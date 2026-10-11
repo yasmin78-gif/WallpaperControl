@@ -88,6 +88,7 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    if(args.Length==3&&args[0]=="--favicon-probe") { LauncherWebsiteIconTests.Probe(args[1],args[2]); return 0; }
     if(args.Length==1&&args[0]=="--shared-ui-checks") { SharedUiTests.Run(Check); Console.WriteLine($"All {passed} shared UI checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--widget-snapping-checks") { WidgetSnappingTests.Run(Check); Console.WriteLine($"All {passed} widget snapping checks passed."); return 0; }
     // Records an assertion result and reports the named regression check.
@@ -114,6 +115,7 @@ try
     { TwitchNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused Twitch startup/notification checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--wallpaper-widget-mode-checks")
     { WallpaperWidgetModeTests.Run(Check); Console.WriteLine($"All {passed} focused wallpaper widget mode checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--launcher-website-icon-checks") { LauncherWebsiteIconTests.Run(Check); Console.WriteLine($"All {passed} website icon checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--launcher-widget-checks") { LauncherWidgetTests.Run(Check); Console.WriteLine($"All {passed} launcher widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--clipboard-widget-checks") { ClipboardWidgetTests.Run(Check); Console.WriteLine($"All {passed} clipboard widget checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--system-drive-checks") { SystemDriveTests.Run(Check); Console.WriteLine($"All {passed} system drive checks passed."); return 0; }

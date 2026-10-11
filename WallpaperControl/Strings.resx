@@ -1796,4 +1796,9 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>Die Verknüpfung konnte nicht übernommen werden. Die bisherigen Einträge bleiben erhalten. Bitte Datei und Schreibrechte prüfen.</value></data>
   <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Widgets beim Verschieben ausrichten</value></data>
   <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Kanten und Mittellinien rasten ein; 10 px Abstand. Alt beim Ziehen deaktiviert das Ausrichten vorübergehend.</value></data>
+  <data name="LauncherCurrentIcon" xml:space="preserve"><value>Aktuelles Symbol</value></data>
+  <data name="LauncherChooseIcon" xml:space="preserve"><value>Eigenes Symbol wählen…</value></data>
+  <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Website-Symbol verwenden</value></data>
+  <data name="LauncherImageFilter" xml:space="preserve"><value>Bilder|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
+  <data name="LauncherInvalidIcon" xml:space="preserve"><value>Das Bild konnte nicht übernommen werden. Unterstützt: PNG, JPG, ICO und WEBP, maximal 4 MiB und 16 Millionen Pixel.</value></data>
 </root>

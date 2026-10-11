@@ -16,7 +16,9 @@ internal sealed class LauncherWidgetForm : Form
     private readonly Dictionary<string,Bitmap> icons=new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> pending=new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Windows.Forms.Timer iconTimer=new() { Interval=100 };
-    private readonly System.Collections.Concurrent.ConcurrentQueue<(string Target,Bitmap Icon)> completed=new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<(string Target,Bitmap? Icon)> completed=new();
+    private readonly HashSet<string> failedIcons=new(StringComparer.OrdinalIgnoreCase);
+    private static string? IconKey(LauncherEntry entry)=>LauncherTargets.IsWebsite(entry.Target)?entry.WebsiteIcon:entry.Target;
     private string? hover;
     private float thumbGrab;
     internal LauncherWidgetForm(LauncherSettings settings,string language,Action<Point> moved,Action<List<LauncherEntry>> saveEntries,Action manage)
@@ -68,7 +70,8 @@ internal sealed class LauncherWidgetForm : Form
         {
             var entry=i<settings.Entries.Count?settings.Entries[i]:null;
             var bounds=new RectangleF(12+(i%columns)*CellWidth,54+(i/columns)*CellHeight-viewport.ScrollOffset,CellWidth,CellHeight); cells.Add((bounds,entry)); if(!bounds.IntersectsWith(viewport.ContentBounds))continue;
-            if(entry!=null&&LauncherTargets.IsWebsite(entry.Target))
+            if(entry!=null&&IconKey(entry) is string key&&icons.TryGetValue(key,out var websiteIcon))g.DrawImage(websiteIcon,new RectangleF(bounds.X+(CellWidth-32)/2f,bounds.Y+5,32,32));
+            else if(entry!=null&&LauncherTargets.IsWebsite(entry.Target))
             {
                 using var globe=new Pen(accent.Color,1.5f); var circle=new RectangleF(bounds.X+(CellWidth-30)/2f,bounds.Y+7,30,30); g.DrawEllipse(globe,circle); g.DrawEllipse(globe,circle.X+8,circle.Y,14,30); g.DrawLine(globe,circle.Left,circle.Y+15,circle.Right,circle.Y+15);
             }
@@ -80,24 +83,24 @@ internal sealed class LauncherWidgetForm : Form
     }
     private void RequestIcons()
     {
-        var entries=settings.Entries.Where(e=>!LauncherTargets.IsWebsite(e.Target)&&!icons.ContainsKey(e.Target)&&pending.Add(e.Target)).ToArray(); if(entries.Length==0)return;
+        var entries=settings.Entries.Where(e=>IconKey(e) is string key&&!icons.ContainsKey(key)&&!failedIcons.Contains(key)&&pending.Add(key)).ToArray(); if(entries.Length==0)return;
         iconTimer.Start(); _=Task.Run(()=>
         {
             foreach(var entry in entries)
             {
                 lock(completed) { if(disposed)break; }
-                Bitmap icon; try { icon=LauncherIcons.Load(entry); } catch(Exception ex) when(ex is ArgumentException or IOException or System.ComponentModel.Win32Exception or ExternalException or NotSupportedException or System.Security.SecurityException) { icon=SystemIcons.Application.ToBitmap(); }
-                lock(completed) { if(disposed)icon.Dispose(); else completed.Enqueue((entry.Target,icon)); }
+                Bitmap? icon; string key=IconKey(entry)!; try { icon=LauncherTargets.IsWebsite(entry.Target)?LauncherWebsiteIcons.Read(key):LauncherIcons.Load(entry); } catch(Exception ex) when(ex is ArgumentException or IOException or System.ComponentModel.Win32Exception or ExternalException or NotSupportedException or System.Security.SecurityException) { icon=LauncherTargets.IsWebsite(entry.Target)?null:SystemIcons.Application.ToBitmap(); }
+                lock(completed) { if(disposed)icon?.Dispose(); else completed.Enqueue((key,icon)); }
             }
         });
     }
     private void DrainIcons()
     {
         bool changed=false;
-        while(completed.TryDequeue(out var value)) { pending.Remove(value.Target); if(!disposed&&settings.Entries.Any(e=>string.Equals(e.Target,value.Target,StringComparison.OrdinalIgnoreCase))) { if(icons.Remove(value.Target,out var old))old.Dispose(); icons[value.Target]=value.Icon; changed=true; } else value.Icon.Dispose(); }
+        while(completed.TryDequeue(out var value)) { pending.Remove(value.Target); if(!disposed&&settings.Entries.Any(e=>string.Equals(IconKey(e),value.Target,StringComparison.OrdinalIgnoreCase))) { if(value.Icon==null)failedIcons.Add(value.Target); else { if(icons.Remove(value.Target,out var old))old.Dispose(); icons[value.Target]=value.Icon; } changed=true; } else value.Icon?.Dispose(); }
         if(pending.Count==0)iconTimer.Stop(); if(changed)Render();
     }
-    private void PruneIcons() { foreach(var key in icons.Keys.Where(key=>!settings.Entries.Any(e=>string.Equals(e.Target,key,StringComparison.OrdinalIgnoreCase))).ToArray()) { icons[key].Dispose(); icons.Remove(key); } }
+    private void PruneIcons() { failedIcons.Clear(); foreach(var key in icons.Keys.Where(key=>!settings.Entries.Any(e=>string.Equals(IconKey(e),key,StringComparison.OrdinalIgnoreCase))).ToArray()) { icons[key].Dispose(); icons.Remove(key); } }
     protected override void OnMouseDown(MouseEventArgs e)
     {
         if(suspended||powerSuspended)return; var p=new PointF(e.X/viewport.Scale,e.Y/viewport.Scale);
@@ -196,7 +199,7 @@ internal sealed class LauncherWidgetForm : Form
     { if(data?.GetData(DataFormats.FileDrop) is string[] paths)return paths.Take(LauncherSettings.MaximumEntries).ToArray(); if(data?.GetData(DataFormats.UnicodeText) is string text&&LauncherTargets.IsWebsite(text.Trim()))return [text.Trim()]; return []; }
     protected override void Dispose(bool disposing)
     {
-        if(disposing&&!disposed) { lock(completed)disposed=true; iconTimer.Dispose(); drag.Dispose(); tooltip.Dispose(); menu.Dispose(); foreach(var icon in icons.Values)icon.Dispose(); icons.Clear(); while(completed.TryDequeue(out var value))value.Icon.Dispose(); cells.Clear(); }
+        if(disposing&&!disposed) { lock(completed)disposed=true; iconTimer.Dispose(); drag.Dispose(); tooltip.Dispose(); menu.Dispose(); foreach(var icon in icons.Values)icon.Dispose(); icons.Clear(); while(completed.TryDequeue(out var value))value.Icon?.Dispose(); cells.Clear(); }
         base.Dispose(disposing);
     }
 }

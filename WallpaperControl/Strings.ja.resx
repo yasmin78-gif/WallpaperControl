@@ -1768,4 +1768,9 @@
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>ショートカットを取り込めませんでした。既存の項目は保持されます。ファイルと書き込み権限を確認してください。</value></data>
   <data name="SettingsWidgetSnapping" xml:space="preserve"><value>移動中にウィジェットを揃える</value></data>
   <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>端と中心線を揃え、間隔は 10 px です。ドラッグ中に Alt を押すと一時的に無効になります。</value></data>
+  <data name="LauncherCurrentIcon" xml:space="preserve"><value>現在のアイコン</value></data>
+  <data name="LauncherChooseIcon" xml:space="preserve"><value>カスタムアイコンを選択…</value></data>
+  <data name="LauncherWebsiteIcon" xml:space="preserve"><value>ウェブサイトのアイコンを使用</value></data>
+  <data name="LauncherImageFilter" xml:space="preserve"><value>画像|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
+  <data name="LauncherInvalidIcon" xml:space="preserve"><value>画像を取り込めません。PNG、JPG、ICO、WEBP、最大 4 MiB、1600 万画素まで対応しています。</value></data>
 </root>

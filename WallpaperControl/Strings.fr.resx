@@ -1796,4 +1796,9 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="LauncherShortcutFailed" xml:space="preserve"><value>Impossible d'importer le raccourci. Les entrées existantes sont conservées. Vérifiez le fichier et les droits d'écriture.</value></data>
   <data name="SettingsWidgetSnapping" xml:space="preserve"><value>Aligner les widgets lors du déplacement</value></data>
   <data name="SettingsWidgetSnappingHint" xml:space="preserve"><value>Alignement des bords et des centres, avec un espacement de 10 px. Maintenez Alt pour désactiver temporairement cet alignement.</value></data>
+  <data name="LauncherCurrentIcon" xml:space="preserve"><value>Icône actuelle</value></data>
+  <data name="LauncherChooseIcon" xml:space="preserve"><value>Choisir une icône…</value></data>
+  <data name="LauncherWebsiteIcon" xml:space="preserve"><value>Utiliser l’icône du site</value></data>
+  <data name="LauncherImageFilter" xml:space="preserve"><value>Images|*.png;*.jpg;*.jpeg;*.ico;*.webp</value></data>
+  <data name="LauncherInvalidIcon" xml:space="preserve"><value>Impossible d’importer l’image. Formats : PNG, JPG, ICO et WEBP, maximum 4 Mio et 16 millions de pixels.</value></data>
 </root>
