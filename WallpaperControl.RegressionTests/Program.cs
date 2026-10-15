@@ -88,6 +88,9 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    if(args.Length==2&&args[0]=="--email-package-checks") { EmailWatcherIntegrationTests.Package(args[1],Check); Console.WriteLine($"All {passed} published email package checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--email-watcher-integration-checks") { EmailWatcherIntegrationTests.Run(Check); Console.WriteLine($"All {passed} email watcher integration checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--email-watcher-foundation-checks") { EmailWatcherFoundationTests.Run(Check); Console.WriteLine($"All {passed} email watcher foundation checks passed."); return 0; }
     if(args.Length==3&&args[0]=="--favicon-probe") { LauncherWebsiteIconTests.Probe(args[1],args[2]); return 0; }
     if(args.Length==1&&args[0]=="--shared-ui-checks") { SharedUiTests.Run(Check); Console.WriteLine($"All {passed} shared UI checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--widget-snapping-checks") { WidgetSnappingTests.Run(Check); Console.WriteLine($"All {passed} widget snapping checks passed."); return 0; }

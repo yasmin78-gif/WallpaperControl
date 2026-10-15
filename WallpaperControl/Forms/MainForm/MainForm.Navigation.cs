@@ -1,4 +1,4 @@
-namespace WallpaperControl
+﻿namespace WallpaperControl
 {
     public partial class MainForm
     {
@@ -55,6 +55,7 @@ namespace WallpaperControl
             widgetsPage = new Panel { Dock = DockStyle.Fill, Visible = false };
             widgetEditor = new WidgetSettingsEditor(widgetManager.Settings, darkMode, Localization.CurrentLanguage,
                 value => widgetEditSession?.Preview(value)) { Dock = DockStyle.Fill };
+            widgetEditor.EmailStatusSource=()=>widgetManager.EmailStatus;
             widgetEditor.ConfigureLauncher(()=>widgetManager.LauncherEntries,widgetManager.SaveLauncherEntries);
             widgetManager.LauncherEntriesChanged=widgetEditor.RefreshLauncherEntries;
             widgetEditor.ConfigureFeeds(() => widgetManager.ShowFeeds(this, Localization.CurrentLanguage));

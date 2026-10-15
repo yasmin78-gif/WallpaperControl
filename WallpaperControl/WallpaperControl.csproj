@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -30,6 +30,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="MailKit" Version="4.18.1" />
+		<EmbeddedResource Include="Assets/EmailWatcher/Magical.wav" LogicalName="WallpaperControl.EmailWatcher.Sounds.Magical.wav" />
+		<EmbeddedResource Include="Assets/EmailWatcher/Premium.wav" LogicalName="WallpaperControl.EmailWatcher.Sounds.Premium.wav" />
+		<EmbeddedResource Include="Assets/EmailWatcher/Fanfare.wav" LogicalName="WallpaperControl.EmailWatcher.Sounds.Fanfare.wav" />
+		<Content Include="Assets/EmailWatcher/Licenses/*.txt" TargetPath="licenses/EmailWatcher/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
 		<EmbeddedResource Include="WallpaperControl.ico" />
 
         <EmbeddedResource Include="Assets/NotificationSoft.wav" LogicalName="WallpaperControl.NotificationSoft.wav" />

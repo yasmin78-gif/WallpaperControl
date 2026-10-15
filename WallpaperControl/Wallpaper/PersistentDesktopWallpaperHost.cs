@@ -38,6 +38,7 @@ namespace WallpaperControl
             DesktopWallpaperPosition.Fill;
 
         public string? CurrentWallpaperPath { get; private set; }
+        internal string DiagnosticState => $"frameLoaded={currentFrame != null}; nextFrameLoaded={nextFrame != null}; target={WallpaperDiagnostics.PathInfo(nextWallpaperPath)}; transitionPending={completionSource != null}; progress={progress:F3}; visible={Visible}; disposed={IsDisposed}; suspended={activitySuspended}";
 
         /// <summary>
         /// Configures the persistent desktop window and its animation timer.

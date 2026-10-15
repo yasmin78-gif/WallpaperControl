@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace WallpaperControl
 {
@@ -32,6 +32,7 @@ namespace WallpaperControl
             {
                 if (replaceBaseline) initialWidgetSettings = value.Clone();
                 calendarSources = new(value.CalendarSources);
+                LoadEmailControls(value);
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
                 LoadTwitchControls(value);
@@ -81,7 +82,9 @@ namespace WallpaperControl
         }
         internal void ResetDefaults()
         {
-            LoadControls(new WidgetSettings { ClockLanguageCode = previewLanguageCode }, false);
+            var defaults=new WidgetSettings { ClockLanguageCode = previewLanguageCode };
+            var email=ReadEmailControls(); defaults.EmailWatcher.Account=email.Account.Clone(); defaults.EmailWatcher.Rules=email.Rules.ToList();
+            LoadControls(defaults, false);
             NotifyWidgetPreviewChanged();
         }
         internal void ApplyPresentation(bool dark, string language)
@@ -94,6 +97,7 @@ namespace WallpaperControl
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
                 launcherList.ApplyPresentation(language,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex),dark);
                 RefreshWidgetStyleChoices(launcherStyle,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex));
+                RefreshEmailChoices();
                 RefreshClipboardLifetime();
                 RefreshWidgetStyleChoices(clipboardStyle, (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(nowPlayingStyle, (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex));
@@ -153,6 +157,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                DisposeEmailControls();
                 DisposeWebControls();
                 DisposeTwitchControls();
                 navigation.Dispose(); pages.Dispose();

@@ -150,6 +150,25 @@ namespace WallpaperControl
             Func<string, CancellationToken, Task>? directFallback,
             CancellationToken cancellationToken)
         {
+            AppLogger.Info($"Wallpaper transition begin: requestedCurrent={WallpaperDiagnostics.PathInfo(currentWallpaperPath)}; target={WallpaperDiagnostics.PathInfo(nextWallpaperPath)}; renderer={WallpaperDiagnostics.PathInfo(GetDisplayedWallpaperPath())}; generation={generation}");
+            try {
+                await ApplyObservedCoreAsync(currentWallpaperPath, nextWallpaperPath, transitionKind, durationMilliseconds, direction, zoomMode, directFallback, cancellationToken);
+                AppLogger.Info($"Wallpaper transition complete: target={WallpaperDiagnostics.PathInfo(nextWallpaperPath)}; renderer={WallpaperDiagnostics.PathInfo(GetDisplayedWallpaperPath())}; generation={generation}");
+            }
+            catch (OperationCanceledException) {
+                AppLogger.Info($"Wallpaper transition cancelled: target={WallpaperDiagnostics.PathInfo(nextWallpaperPath)}; renderer={WallpaperDiagnostics.PathInfo(GetDisplayedWallpaperPath())}; generation={generation}");
+                throw;
+            }
+            catch (Exception ex) {
+                AppLogger.Info($"Wallpaper transition failed: type={ex.GetType().Name}; target={WallpaperDiagnostics.PathInfo(nextWallpaperPath)}; renderer={WallpaperDiagnostics.PathInfo(GetDisplayedWallpaperPath())}");
+                throw;
+            }
+        }
+
+        private static async Task ApplyObservedCoreAsync(string? currentWallpaperPath, string nextWallpaperPath,
+            WallpaperTransitionKind transitionKind, int durationMilliseconds, WallpaperTransitionDirection direction,
+            WallpaperZoomMode zoomMode, Func<string, CancellationToken, Task>? directFallback, CancellationToken cancellationToken)
+        {
             int requestGeneration = generation;
             if (!File.Exists(nextWallpaperPath))
             {
@@ -221,6 +240,8 @@ namespace WallpaperControl
         /// Reads the path currently displayed by the persistent desktop host.
         /// </summary>
         /// <returns>The hosted wallpaper path, or null when no host exists.</returns>
+        internal static string RendererDiagnostic => persistentHost is PersistentDesktopWallpaperHost host ? host.DiagnosticState : "host=" + (persistentHost == null ? "none" : "custom");
+
         public static string? GetDisplayedWallpaperPath()
         {
             return persistentHost is { IsDisposed: false } ? persistentHost.CurrentWallpaperPath : null;

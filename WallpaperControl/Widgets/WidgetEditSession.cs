@@ -36,6 +36,7 @@ namespace WallpaperControl
             long revision = SettingsPersistence.FailureRevision;
             WidgetSettings value = read(true);
             if (value.Web.Enabled && !WebWidgetSettings.IsValidUrl(value.Web.Url)) return false;
+            if(value.EmailWatcher.Enabled && (!value.EmailWatcher.Account.IsConfigured || value.EmailWatcher.Rules.Any(rule=>!EmailRuleMatcher.IsValid(rule)))) { MessageBox.Show(Localization.Get("EmailInvalidConfiguration",value.ClockLanguageCode),Localization.Get("EmailTitle",value.ClockLanguageCode),MessageBoxButtons.OK,MessageBoxIcon.Warning); return false; }
             manager.CommitPreview(value);
             manager.SetEditing(true);
             if (revision != SettingsPersistence.FailureRevision) return false;

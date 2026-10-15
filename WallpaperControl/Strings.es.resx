@@ -1813,4 +1813,64 @@ Versión instalada: {0}
   <data name="ClipboardKeepScreenshots" xml:space="preserve"><value>Conservar capturas tras reiniciar</value></data>
   <data name="ClipboardScreenshot" xml:space="preserve"><value>Captura</value></data>
   <data name="ClipboardMixedStorage" xml:space="preserve"><value>Texto en RAM · Capturas locales</value></data>
+  <data name="EmailTitle" xml:space="preserve"><value>Vigilante de correo</value></data>
+  <data name="EmailEnabled" xml:space="preserve"><value>Activar la vigilancia del correo</value></data>
+  <data name="EmailDisabled" xml:space="preserve"><value>Vigilancia desactivada</value></data>
+  <data name="EmailAccountName" xml:space="preserve"><value>Nombre de la cuenta</value></data>
+  <data name="EmailServer" xml:space="preserve"><value>Servidor IMAP</value></data>
+  <data name="EmailPort" xml:space="preserve"><value>Puerto</value></data>
+  <data name="EmailSecurity" xml:space="preserve"><value>Cifrado</value></data>
+  <data name="EmailUsername" xml:space="preserve"><value>Nombre de usuario</value></data>
+  <data name="EmailPassword" xml:space="preserve"><value>Contraseña de aplicación</value></data>
+  <data name="EmailWebmail" xml:space="preserve"><value>Dirección HTTPS de correo web (opcional)</value></data>
+  <data name="EmailPolling" xml:space="preserve"><value>Intervalo de consulta (segundos)</value></data>
+  <data name="EmailTestConnection" xml:space="preserve"><value>Probar conexión</value></data>
+  <data name="EmailPasswordHint" xml:space="preserve"><value>Deje el campo vacío para conservar la contraseña guardada. Los cambios se aplican al guardar.</value></data>
+  <data name="EmailRules" xml:space="preserve"><value>Reglas de importancia (O)</value></data>
+  <data name="EmailRuleAdd" xml:space="preserve"><value>Añadir regla</value></data>
+  <data name="EmailRuleEdit" xml:space="preserve"><value>Editar regla</value></data>
+  <data name="EmailRuleDelete" xml:space="preserve"><value>Eliminar regla</value></data>
+  <data name="EmailMode" xml:space="preserve"><value>Modo de visualización</value></data>
+  <data name="EmailUntilClosed" xml:space="preserve"><value>Hasta cerrar</value></data>
+  <data name="EmailAutomatic" xml:space="preserve"><value>Automático</value></data>
+  <data name="EmailHideSeconds" xml:space="preserve"><value>Ocultar después de (segundos)</value></data>
+  <data name="EmailSound" xml:space="preserve"><value>Sonido de notificación</value></data>
+  <data name="EmailNoSound" xml:space="preserve"><value>Sin sonido</value></data>
+  <data name="EmailMagical" xml:space="preserve"><value>Magical</value></data>
+  <data name="EmailPremium" xml:space="preserve"><value>Premium</value></data>
+  <data name="EmailFanfare" xml:space="preserve"><value>Fanfare</value></data>
+  <data name="EmailTls" xml:space="preserve"><value>TLS (conexión directa)</value></data>
+  <data name="EmailStartTls" xml:space="preserve"><value>STARTTLS (obligatorio)</value></data>
+  <data name="EmailPreviewEnabled" xml:space="preserve"><value>Mostrar vista previa breve de texto</value></data>
+  <data name="EmailHoldFullscreen" xml:space="preserve"><value>Retener durante pantalla completa</value></data>
+  <data name="EmailPrivacyHint" xml:space="preserve"><value>Solo correos nuevos que coincidan. El texto permanece en RAM. La visualización no cambia el estado de lectura. La vista previa usa datos de ejemplo.</value></data>
+  <data name="EmailAddressCondition" xml:space="preserve"><value>Dirección exacta del remitente</value></data>
+  <data name="EmailDomainCondition" xml:space="preserve"><value>Dominio completo del remitente</value></data>
+  <data name="EmailSubjectCondition" xml:space="preserve"><value>El asunto contiene</value></data>
+  <data name="EmailSubjectOnly" xml:space="preserve"><value>Solo asunto</value></data>
+  <data name="EmailSender" xml:space="preserve"><value>Dirección o dominio del remitente</value></data>
+  <data name="EmailAnd" xml:space="preserve"><value>Y</value></data>
+  <data name="EmailRuleEnabled" xml:space="preserve"><value>Regla activada</value></data>
+  <data name="EmailInvalidRule" xml:space="preserve"><value>Introduzca una condición de remitente válida o texto de asunto.</value></data>
+  <data name="EmailInvalidConfiguration" xml:space="preserve"><value>Revise servidor, puerto, usuario, contraseña, reglas y los campos opcionales de correo web y programa.</value></data>
+  <data name="EmailConnecting" xml:space="preserve"><value>Conectando …</value></data>
+  <data name="EmailConnected" xml:space="preserve"><value>Conexión correcta. INBOX está accesible en modo de solo lectura.</value></data>
+  <data name="EmailCancelled" xml:space="preserve"><value>Prueba de conexión cancelada.</value></data>
+  <data name="EmailAuthenticationFailed" xml:space="preserve"><value>Error de autenticación. Revise la contraseña de aplicación y el usuario y vuelva a guardar.</value></data>
+  <data name="EmailCertificateFailed" xml:space="preserve"><value>No se pudo verificar la conexión segura. Revise el servidor y la configuración TLS.</value></data>
+  <data name="EmailConnectionFailed" xml:space="preserve"><value>Conexión no disponible. Revise servidor, red y acceso a INBOX.</value></data>
+  <data name="EmailStorageOrNetworkFailed" xml:space="preserve"><value>Error de sincronización. Revise red y almacenamiento local. Los avisos pendientes se conservan.</value></data>
+  <data name="EmailOpenInbox" xml:space="preserve"><value>Abrir buzón</value></data>
+  <data name="EmailNew" xml:space="preserve"><value>Nuevo</value></data>
+  <data name="EmailSampleSender" xml:space="preserve"><value>Remitente de ejemplo</value></data>
+  <data name="EmailSampleSubject" xml:space="preserve"><value>Un mensaje importante – vista previa</value></data>
+  <data name="EmailSamplePreview" xml:space="preserve"><value>Esta vista previa no se conecta a ninguna cuenta de correo.</value></data>
+  <data name="EmailQueueFull" xml:space="preserve"><value>Hay muchos avisos pendientes. Cierre los avisos mostrados para continuar comprobando mensajes nuevos.</value></data>
+  <data name="EmailMailProgram" xml:space="preserve"><value>Programa de correo (opcional)</value></data>
+  <data name="EmailBrowseProgram" xml:space="preserve"><value>Examinar …</value></data>
+  <data name="EmailOpenTargetHint" xml:space="preserve"><value>El programa tiene prioridad sobre el correo web. Deje ambos campos vacíos para ocultar el enlace.</value></data>
+  <data name="EmailSelectProgram" xml:space="preserve"><value>Seleccionar programa de correo</value></data>
+  <data name="EmailNoProgram" xml:space="preserve"><value>Sin programa / correo web</value></data>
+  <data name="EmailWindowsDefault" xml:space="preserve"><value>Predeterminado de Windows</value></data>
+  <data name="EmailCustomProgram" xml:space="preserve"><value>Otro programa …</value></data>
 </root>

@@ -1,4 +1,4 @@
-namespace WallpaperControl
+﻿namespace WallpaperControl
 {
     internal sealed partial class WidgetSettingsEditor : UserControl
     {
@@ -33,6 +33,7 @@ namespace WallpaperControl
             InitializeNowPlayingPage(AddPage("NowPlayingTitle", "♫"));
             InitializeClipboardPage(AddPage("ClipboardTitle", "⧉"));
             InitializeLauncherPage(AddPage("LauncherTitle", "↗"));
+            InitializeEmailWatcherPage(AddPage("EmailTitle", "✉"));
             InitializeTwitchPage(AddPage("TwitchTitle", "◈"));
             #region Clock widget page
 

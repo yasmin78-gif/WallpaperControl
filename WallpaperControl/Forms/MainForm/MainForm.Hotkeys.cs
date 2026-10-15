@@ -175,6 +175,7 @@ namespace WallpaperControl
             // Package power handling does not change wallpaper/fullscreen policy.
             if (m.Msg == 0x0218 && widgetManager != null)
             {
+                if (m.WParam.ToInt32() is 4 or 7 or 18) LogWallpaperSnapshot("power-message-" + m.WParam.ToInt32());
                 if (m.WParam.ToInt32() == 4) { widgetManager.SetPackagePowerSuspended(true); widgetManager.SetTwitchPowerSuspended(true); } // PBT_APMSUSPEND
                 else if (m.WParam.ToInt32() is 7 or 18) { widgetManager.SetPackagePowerSuspended(false); widgetManager.SetTwitchPowerSuspended(false); } // resume
             }

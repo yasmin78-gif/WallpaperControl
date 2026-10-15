@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ namespace WallpaperControl
         public NowPlayingSettings NowPlaying { get; set; } = new();
         public ClipboardWidgetSettings Clipboard { get; set; } = new();
         public LauncherSettings Launcher { get; set; } = new();
+        public EmailWatcherSettings EmailWatcher { get; set; } = new();
         public bool PackageStatusNotifications { get; set; }
 
         public bool TwitchEnabled { get; set; }
@@ -99,6 +100,7 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.EmailWatcher=EmailWatcherSettings.Parse(key.GetValue("EmailWatcherConfiguration") as string ?? "{}");
                 result.Launcher = LauncherSettings.Parse(key.GetValue("LauncherWidgetConfiguration") as string ?? "{}");
                 result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
                 result.NowPlaying = NowPlayingSettings.Parse(key.GetValue("NowPlayingConfiguration") as string ?? "{}");
@@ -199,6 +201,7 @@ namespace WallpaperControl
                 var value=Launcher.Clone(); value.Entries=entries.ToList();
                 using var key=Registry.CurrentUser.CreateSubKey(registryPath);
                 // One registry value: failed writes cannot leave partial entry lists referencing rolled-back copies.
+                key.SetValue("EmailWatcherConfiguration", System.Text.Json.JsonSerializer.Serialize(EmailWatcher), RegistryValueKind.String);
                 key.SetValue("LauncherWidgetConfiguration",System.Text.Json.JsonSerializer.Serialize(value),RegistryValueKind.String);
                 return true;
             }
@@ -220,6 +223,7 @@ namespace WallpaperControl
                 Web.Normalize();
                 key.SetValue("NotificationSound", (int)NotificationSounds.Normalize((int)NotificationSound), RegistryValueKind.DWord);
                 key.SetValue("NotificationTones", System.Text.Json.JsonSerializer.Serialize(NotificationTones), RegistryValueKind.String);
+                key.SetValue("EmailWatcherConfiguration", System.Text.Json.JsonSerializer.Serialize(EmailWatcher), RegistryValueKind.String);
                 key.SetValue("LauncherWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Launcher), RegistryValueKind.String);
                 key.SetValue("ClipboardWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Clipboard), RegistryValueKind.String);
                 key.SetValue("NowPlayingConfiguration", System.Text.Json.JsonSerializer.Serialize(NowPlaying), RegistryValueKind.String);
@@ -317,6 +321,7 @@ namespace WallpaperControl
         {
             loadFailed = loadFailed,
             Web = Web.Clone(),
+            EmailWatcher = EmailWatcher.Clone(),
             Launcher = Launcher.Clone(), Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
             NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,
             TwitchEnabled = TwitchEnabled, TwitchLocked = TwitchLocked, TwitchStyle = TwitchStyle, TwitchMaximumHeight = TwitchMaximumHeight, TwitchLocation = TwitchLocation,

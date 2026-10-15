@@ -10,7 +10,7 @@ internal sealed class NotificationSounds : IDisposable
     private Stream? stream;
     private SoundPlayer? player;
     private bool disposed;
-    private NotificationSoundKind loadedSound;
+    private string? loadedResource;
     internal static NotificationSoundKind Normalize(int value) => Enum.IsDefined(typeof(NotificationSoundKind), value)
         ? (NotificationSoundKind)value : NotificationSoundKind.Chime;
     internal void Play(NotificationSoundKind sound)
@@ -19,17 +19,26 @@ internal sealed class NotificationSounds : IDisposable
         try
         {
             if (sound == NotificationSoundKind.WindowsStandard) { SystemSounds.Asterisk.Play(); return; }
-            if (player == null || loadedSound != sound)
-            {
-                player?.Stop(); player?.Dispose(); stream?.Dispose(); player = null; stream = null;
-                string asset = sound switch { NotificationSoundKind.Soft => "Soft", NotificationSoundKind.Bell => "Bell", NotificationSoundKind.Triad => "Triad", _ => "Chime" };
-                stream = typeof(NotificationSounds).Assembly.GetManifestResourceStream($"WallpaperControl.Notification{asset}.wav")
-                    ?? throw new InvalidOperationException("Notification sound resource missing.");
-                player = new SoundPlayer(stream); player.Load(); loadedSound = sound;
-            }
-            player.Play();
+            string asset = sound switch { NotificationSoundKind.Soft => "Soft", NotificationSoundKind.Bell => "Bell", NotificationSoundKind.Triad => "Triad", _ => "Chime" };
+            PlayResource("WallpaperControl.Notification" + asset + ".wav");
         }
         catch (Exception ex) { AppLogger.Info($"Notification sound unavailable: {ex.GetType().Name}."); }
+    }
+    internal void PlayEmail(EmailWatcherSound sound)
+    {
+        if (disposed || EmailWatcherSoundResources.ResourceName(sound) is not string resource) return;
+        try { PlayResource(resource); } catch (Exception ex) { AppLogger.Info($"Notification sound unavailable: {ex.GetType().Name}."); }
+    }
+    private void PlayResource(string resource)
+    {
+            if (player == null || loadedResource != resource)
+            {
+                player?.Stop(); player?.Dispose(); stream?.Dispose(); player = null; stream = null; loadedResource=null;
+                stream = typeof(NotificationSounds).Assembly.GetManifestResourceStream(resource)
+                    ?? throw new InvalidOperationException("Notification sound resource missing.");
+                player = new SoundPlayer(stream); player.Load(); loadedResource = resource;
+            }
+            player.Play();
     }
     public void Dispose() { if (disposed) return; disposed = true; player?.Stop(); player?.Dispose(); stream?.Dispose(); }
 }

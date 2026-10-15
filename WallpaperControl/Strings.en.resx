@@ -1813,4 +1813,64 @@ Would you like to open the release page?</value>
   <data name="ClipboardKeepScreenshots" xml:space="preserve"><value>Keep screenshots after restart</value></data>
   <data name="ClipboardScreenshot" xml:space="preserve"><value>Screenshot</value></data>
   <data name="ClipboardMixedStorage" xml:space="preserve"><value>Text in RAM · Screenshots stored locally</value></data>
+  <data name="EmailTitle" xml:space="preserve"><value>Email watcher</value></data>
+  <data name="EmailEnabled" xml:space="preserve"><value>Enable email monitoring</value></data>
+  <data name="EmailDisabled" xml:space="preserve"><value>Monitoring disabled</value></data>
+  <data name="EmailAccountName" xml:space="preserve"><value>Account name</value></data>
+  <data name="EmailServer" xml:space="preserve"><value>IMAP server</value></data>
+  <data name="EmailPort" xml:space="preserve"><value>Port</value></data>
+  <data name="EmailSecurity" xml:space="preserve"><value>Encryption</value></data>
+  <data name="EmailUsername" xml:space="preserve"><value>Username</value></data>
+  <data name="EmailPassword" xml:space="preserve"><value>App password</value></data>
+  <data name="EmailWebmail" xml:space="preserve"><value>HTTPS webmail address (optional)</value></data>
+  <data name="EmailPolling" xml:space="preserve"><value>Polling interval (seconds)</value></data>
+  <data name="EmailTestConnection" xml:space="preserve"><value>Test connection</value></data>
+  <data name="EmailPasswordHint" xml:space="preserve"><value>Leave blank to keep the saved password. Changes take effect only after saving.</value></data>
+  <data name="EmailRules" xml:space="preserve"><value>Importance rules (OR)</value></data>
+  <data name="EmailRuleAdd" xml:space="preserve"><value>Add rule</value></data>
+  <data name="EmailRuleEdit" xml:space="preserve"><value>Edit rule</value></data>
+  <data name="EmailRuleDelete" xml:space="preserve"><value>Delete rule</value></data>
+  <data name="EmailMode" xml:space="preserve"><value>Display mode</value></data>
+  <data name="EmailUntilClosed" xml:space="preserve"><value>Until closed</value></data>
+  <data name="EmailAutomatic" xml:space="preserve"><value>Automatic</value></data>
+  <data name="EmailHideSeconds" xml:space="preserve"><value>Hide after (seconds)</value></data>
+  <data name="EmailSound" xml:space="preserve"><value>Notification sound</value></data>
+  <data name="EmailNoSound" xml:space="preserve"><value>No sound</value></data>
+  <data name="EmailMagical" xml:space="preserve"><value>Magical</value></data>
+  <data name="EmailPremium" xml:space="preserve"><value>Premium</value></data>
+  <data name="EmailFanfare" xml:space="preserve"><value>Fanfare</value></data>
+  <data name="EmailTls" xml:space="preserve"><value>TLS (direct connection)</value></data>
+  <data name="EmailStartTls" xml:space="preserve"><value>STARTTLS (required)</value></data>
+  <data name="EmailPreviewEnabled" xml:space="preserve"><value>Show short plain text preview</value></data>
+  <data name="EmailHoldFullscreen" xml:space="preserve"><value>Hold during fullscreen</value></data>
+  <data name="EmailPrivacyHint" xml:space="preserve"><value>Only new matching emails. Text stays in RAM. Display does not change read flags. The preview uses sample data only.</value></data>
+  <data name="EmailAddressCondition" xml:space="preserve"><value>Exact sender address</value></data>
+  <data name="EmailDomainCondition" xml:space="preserve"><value>Complete sender domain</value></data>
+  <data name="EmailSubjectCondition" xml:space="preserve"><value>Subject contains</value></data>
+  <data name="EmailSubjectOnly" xml:space="preserve"><value>Subject only</value></data>
+  <data name="EmailSender" xml:space="preserve"><value>Sender address or domain</value></data>
+  <data name="EmailAnd" xml:space="preserve"><value>AND</value></data>
+  <data name="EmailRuleEnabled" xml:space="preserve"><value>Rule enabled</value></data>
+  <data name="EmailInvalidRule" xml:space="preserve"><value>Enter a valid sender condition or subject text.</value></data>
+  <data name="EmailInvalidConfiguration" xml:space="preserve"><value>Check server, port, username, password and rules, and the optional webmail address and application path.</value></data>
+  <data name="EmailConnecting" xml:space="preserve"><value>Connecting …</value></data>
+  <data name="EmailConnected" xml:space="preserve"><value>Connected. INBOX is accessible read-only.</value></data>
+  <data name="EmailCancelled" xml:space="preserve"><value>Connection test cancelled.</value></data>
+  <data name="EmailAuthenticationFailed" xml:space="preserve"><value>Authentication failed. Check the app password and username, then save again.</value></data>
+  <data name="EmailCertificateFailed" xml:space="preserve"><value>The secure connection could not be verified. Check server and TLS settings.</value></data>
+  <data name="EmailConnectionFailed" xml:space="preserve"><value>Connection unavailable. Check server, network and INBOX access.</value></data>
+  <data name="EmailStorageOrNetworkFailed" xml:space="preserve"><value>Synchronization failed. Check network and local storage. Pending notices are retained.</value></data>
+  <data name="EmailOpenInbox" xml:space="preserve"><value>Open inbox</value></data>
+  <data name="EmailNew" xml:space="preserve"><value>New</value></data>
+  <data name="EmailSampleSender" xml:space="preserve"><value>Sample sender</value></data>
+  <data name="EmailSampleSubject" xml:space="preserve"><value>An important message – preview</value></data>
+  <data name="EmailSamplePreview" xml:space="preserve"><value>This design preview does not connect to an email account.</value></data>
+  <data name="EmailQueueFull" xml:space="preserve"><value>Many notices are pending. Please close displayed notices. New messages will then continue to be checked.</value></data>
+  <data name="EmailMailProgram" xml:space="preserve"><value>Mail application (optional)</value></data>
+  <data name="EmailBrowseProgram" xml:space="preserve"><value>Browse …</value></data>
+  <data name="EmailOpenTargetHint" xml:space="preserve"><value>The mail application takes precedence over webmail. Leave both fields empty to hide the open link.</value></data>
+  <data name="EmailSelectProgram" xml:space="preserve"><value>Select mail application</value></data>
+  <data name="EmailNoProgram" xml:space="preserve"><value>No mail application / webmail</value></data>
+  <data name="EmailWindowsDefault" xml:space="preserve"><value>Windows default</value></data>
+  <data name="EmailCustomProgram" xml:space="preserve"><value>Other application …</value></data>
 </root>

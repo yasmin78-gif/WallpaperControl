@@ -1,4 +1,4 @@
-namespace WallpaperControl;
+﻿namespace WallpaperControl;
 
 public partial class MainForm
 {
@@ -14,7 +14,12 @@ public partial class MainForm
         $"fullscreenPause={fullscreenPolicy.IsPaused}; changing={customSlideshowChangeRunning}; " +
         $"intervalMs={customSlideshowLastInterval}; deadline={customSlideshowNextChange:O}";
 
-    private void LogScheduler(string decision) => AppLogger.Info($"Slideshow: {decision}; {SchedulerState}");
+    private void LogScheduler(string decision)
+    {
+        AppLogger.Info($"Slideshow: {decision}; {SchedulerState}");
+        if (decision.StartsWith("manual pause ", StringComparison.Ordinal) || decision == "deadline planned / resume" || decision == "fullscreen propagation completed")
+            LogWallpaperSnapshot(decision);
+    }
 
     // Observe using the existing UI poll. Never re-arm or change scheduling here.
     private void ObserveScheduler()

@@ -320,6 +320,7 @@ namespace WallpaperControl
                     ? Localization.Get("CurrentWallpaperEmpty")
                     : Path.GetFileName(path);
                 toolTip.SetToolTip(currentWallpaperLabel, path ?? string.Empty);
+                LogWallpaperSnapshot("display-path-changed");
 
                 if (!string.IsNullOrWhiteSpace(path) &&
                     File.Exists(path))

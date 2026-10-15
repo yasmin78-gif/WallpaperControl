@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -29,6 +29,7 @@ namespace WallpaperControl
         internal WidgetSettings ReadWidgetSettings(bool applySaveDefaults)
         {
             WidgetSettings preview = initialWidgetSettings.Clone();
+            preview.EmailWatcher=ReadEmailControls();
             preview.Launcher.Enabled=launcherEnabled.Checked; preview.Launcher.Locked=launcherLocked.Checked; preview.Launcher.Style=(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex); preview.Launcher.ShowNames=launcherNames.Checked; preview.Launcher.Columns=(int)launcherColumns.Value; preview.Launcher.MaximumHeight=(int)launcherHeight.Value; preview.Launcher.Entries=launcherRead?.Invoke()??launcherEntries.ToList();
             preview.Clipboard.Enabled = clipboardEnabled.Checked; preview.Clipboard.Locked = clipboardLocked.Checked; preview.Clipboard.Style = (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex); preview.Clipboard.Capacity = clipboardCapacity.SelectedItem is int count ? count : 10; preview.Clipboard.MaximumHeight = (int)clipboardHeight.Value;
             preview.Clipboard.CaptureScreenshots=clipboardCaptureScreenshots.Checked; preview.Clipboard.KeepScreenshots=clipboardKeepScreenshots.Checked;

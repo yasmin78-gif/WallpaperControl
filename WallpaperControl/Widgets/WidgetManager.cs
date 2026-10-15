@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -46,8 +46,9 @@ namespace WallpaperControl
         /// <param name="next">The callback that requests the next wallpaper.</param>
         public WidgetManager(Action next, Func<bool, WallpaperInfoSnapshot>? wallpaperInfoSource = null,
             string registryPath = WidgetSettings.RegistryPath, NotesStore? notesStore = null,
-            PackageTrackingService? packageTrackingService = null, TrackingCredentialStore? packageCredentials = null)
+            PackageTrackingService? packageTrackingService = null, TrackingCredentialStore? packageCredentials = null, Func<IEmailMailbox>? emailMailboxFactory = null)
         {
+            this.emailMailboxFactory=emailMailboxFactory;
             this.next = next;
             this.wallpaperInfoSource = wallpaperInfoSource;
             this.registryPath = registryPath;
@@ -87,6 +88,7 @@ namespace WallpaperControl
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
+            var emailLocation=settings.EmailWatcher.Location; settings.EmailWatcher=previewSettings.EmailWatcher.Clone(); settings.EmailWatcher.Location=emailLocation;
             var launcherLocation=settings.Launcher.Location; var launcherEntries=settings.Launcher.Entries; settings.Launcher=previewSettings.Launcher.Clone(); settings.Launcher.Location=launcherLocation; settings.Launcher.Entries=launcherEntries;
             var clipboardLocation = settings.Clipboard.Location; settings.Clipboard = previewSettings.Clipboard.Clone(); settings.Clipboard.Location = clipboardLocation;
             var mediaLocation = settings.NowPlaying.Location; settings.NowPlaying = previewSettings.NowPlaying.Clone(); settings.NowPlaying.Location = mediaLocation;
@@ -171,6 +173,7 @@ namespace WallpaperControl
             Point weatherLocation = settings.WeatherLocation;
             Point calendarLocation = settings.CalendarLocation;
 
+            committedSettings.EmailWatcher.Location=settings.EmailWatcher.Location;
             committedSettings.Launcher.Location=settings.Launcher.Location; committedSettings.Launcher.Entries=settings.Launcher.Entries.ToList();
             PreserveFeedContents(committedSettings); committedSettings.NowPlaying.Location = settings.NowPlaying.Location; committedSettings.Clipboard.Location = settings.Clipboard.Location;
             settings = committedSettings.Clone();
@@ -185,7 +188,10 @@ namespace WallpaperControl
             settings.WeatherLocation = weatherLocation;
             settings.CalendarLocation = calendarLocation;
             previewMode = false;
+            long emailSaveRevision=SettingsPersistence.FailureRevision;
             settings.Save(registryPath);
+            if(emailSaveRevision!=SettingsPersistence.FailureRevision)settings.EmailWatcher=emailCommitted.Clone();
+            emailReconnectOnCommit=true;
 
             ApplyVisualState(settings, restoreLocations: true);
         }
@@ -215,6 +221,7 @@ namespace WallpaperControl
         private void ApplyVisualState(WidgetSettings target, bool restoreLocations)
         {
             NotificationSound = NotificationSounds.Normalize((int)target.NotificationSound);
+            ApplyEmailWatcher(target,restoreLocations);
             // Preview mode keeps the widget windows interactive even though the
             // settings dialog is modal. The Lock checkboxes themselves still
             // apply immediately, so the preview always matches the current UI.
@@ -712,7 +719,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) { webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); launcherWidget?.ApplyTheme(dark); }
+        internal void RefreshWebTheme(bool dark) { emailWidget?.ApplyTheme(dark); webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); launcherWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -772,6 +779,7 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            DisposeEmailWatcher();
             DisposeTwitch();
             DisposeFeeds();
             DisposeNowPlaying(); DisposeClipboardMaintenance(); DisposeClipboard(); DisposeLauncher(); DisposeLauncherWebsiteIcons(); LauncherEntriesChanged=null;
