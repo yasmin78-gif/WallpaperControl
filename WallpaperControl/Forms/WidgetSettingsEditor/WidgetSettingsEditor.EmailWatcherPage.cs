@@ -7,7 +7,7 @@ internal sealed partial class WidgetSettingsEditor
     private readonly NumericUpDown emailPort = new() { Minimum = 1, Maximum = 65535 }, emailPoll = new() { Minimum = 15, Maximum = 3600 }, emailSeconds = new() { Minimum = 1, Maximum = 3600 }, emailHeight = new() { Minimum = 300, Maximum = 1400 };
     private readonly ComboBox emailPrograms = EmailCombo();
     private IReadOnlyList<EmailClientChoice> emailDetectedClients = [];
-    private bool refreshingEmailPrograms;
+    private bool refreshingEmailPrograms, refreshingEmailSecurity;
     private readonly ComboBox emailSecurity = EmailCombo(), emailMode = EmailCombo(), emailSound = EmailCombo(), emailStyle = EmailCombo();
     private readonly CheckedListBox emailRulesList = new() { Width = 620, Height = 150, CheckOnClick = true };
     private readonly PictureBox emailPreview = new() { Size = new(390, 210), SizeMode = PictureBoxSizeMode.Zoom };
@@ -84,7 +84,14 @@ internal sealed partial class WidgetSettingsEditor
             EmailControlsChanged();
         };
         foreach (var box in new[] { emailEnabled, emailLocked, emailPreviewEnabled, emailFullscreen }) box.CheckedChanged += (_, _) => EmailControlsChanged();
-        foreach (var box in new[] { emailMode, emailStyle, emailSound, emailSecurity }) box.SelectedIndexChanged += (_, _) => EmailControlsChanged();
+        foreach (var box in new[] { emailMode, emailStyle, emailSound }) box.SelectedIndexChanged += (_, _) => EmailControlsChanged();
+        emailSecurity.SelectedIndexChanged += (_, _) => {
+            if (loadingControls || refreshingEmailSecurity || emailSecurity.SelectedIndex < 0) return;
+            decimal previousPort = emailPort.Value;
+            if (emailSecurity.SelectedIndex == (int)EmailTransportSecurity.StartTls && previousPort == 993) emailPort.Value = 143;
+            else if (emailSecurity.SelectedIndex == (int)EmailTransportSecurity.Tls && previousPort == 143) emailPort.Value = 993;
+            if (emailPort.Value == previousPort) EmailControlsChanged();
+        };
         foreach (var input in new[] { emailPort, emailPoll, emailSeconds, emailHeight }) input.ValueChanged += (_, _) => EmailControlsChanged();
         emailRulesList.ItemCheck += (_, e) => { if (loadingControls) return; emailRules[e.Index] = emailRules[e.Index] with { Enabled = e.NewValue == CheckState.Checked }; EmailControlsChanged(); };
         emailTest.Click += async (_, _) => await TestEmailConnectionAsync();
@@ -100,7 +107,9 @@ internal sealed partial class WidgetSettingsEditor
     {
         void Choices(ComboBox box, string[] keys) { int selected = box.SelectedIndex; box.Items.Clear(); foreach (string key in keys) box.Items.Add(Localization.Get(key, previewLanguageCode)); box.SelectedIndex = Math.Max(0, selected); }
         Choices(emailMode, ["EmailUntilClosed", "EmailAutomatic"]); Choices(emailSound, ["EmailNoSound", "EmailMagical", "EmailPremium", "EmailFanfare"]);
-        Choices(emailSecurity, ["EmailTls", "EmailStartTls"]); RefreshWidgetStyleChoices(emailStyle, (SystemWidgetStyle)Math.Max(0, emailStyle.SelectedIndex));
+        refreshingEmailSecurity = true;
+        try { Choices(emailSecurity, ["EmailTls", "EmailStartTls"]); }
+        finally { refreshingEmailSecurity = false; } RefreshWidgetStyleChoices(emailStyle, (SystemWidgetStyle)Math.Max(0, emailStyle.SelectedIndex));
         RefreshEmailProgramChoices(); RefreshEmailRules(); emailTestStatus.Text = Localization.Get(emailTestKey, previewLanguageCode); UpdateEmailPreview();
     }
     private void RefreshEmailProgramChoices()

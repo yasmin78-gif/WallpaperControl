@@ -232,6 +232,23 @@ internal static class EmailWatcherIntegrationTests
             var close = (Task)typeof(App.WidgetManager).GetMethod("DismissEmailsAsync",Members)!.Invoke(manager,[])!; Pump(() => close.IsCompleted);
             check(!widget.Visible, "Closing widget locally acknowledges without affecting mailbox"); inbox.Add(11); Pump(() => widget.Visible);
             check(sounds == 2, "Later matching mail reopens widget with one new sound");
+            var transport = Field<ComboBox>(editor, "emailSecurity");
+            var port = Field<NumericUpDown>(editor, "emailPort");
+            int oldTransport = transport.SelectedIndex; decimal oldPort = port.Value;
+            transport.SelectedIndex = 0; port.Value = 993; transport.SelectedIndex = 1;
+            check(port.Value == 143, "Switching TLS to STARTTLS replaces standard IMAP port 993 with 143");
+            transport.SelectedIndex = 0;
+            check(port.Value == 993, "Switching STARTTLS to TLS replaces standard IMAP port 143 with 993");
+            port.Value = 1993; transport.SelectedIndex = 1;
+            check(port.Value == 1993, "Switching to STARTTLS preserves custom port");
+            transport.SelectedIndex = 0;
+            check(port.Value == 1993, "Switching to TLS preserves custom port");
+            transport.SelectedIndex = 1; port.Value = 993;
+            typeof(App.WidgetSettingsEditor).GetField("loadingControls", Members)!.SetValue(editor, true);
+            try { typeof(App.WidgetSettingsEditor).GetMethod("RefreshEmailChoices", Members)!.Invoke(editor, []); }
+            finally { typeof(App.WidgetSettingsEditor).GetField("loadingControls", Members)!.SetValue(editor, false); }
+            check(transport.SelectedIndex == 1 && port.Value == 993, "Relocalizing transport choices never changes configured port");
+            transport.SelectedIndex = oldTransport; port.Value = oldPort;
             var programChoices = Field<ComboBox>(editor, "emailPrograms");
             var detectedClients = Field<IReadOnlyList<App.EmailClientChoice>>(editor, "emailDetectedClients");
             var programPathBox = Field<TextBox>(editor, "emailMailProgram");
