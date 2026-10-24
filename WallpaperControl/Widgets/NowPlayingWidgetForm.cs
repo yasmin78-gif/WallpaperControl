@@ -32,7 +32,7 @@ internal sealed class NowPlayingWidgetForm : Form
         Changed();
     }
     protected override bool ShowWithoutActivation => true;
-    internal bool ShouldShow => service.State.Unavailable || sessionRecognized && (!settings.HideEmpty || service.State.SessionId != null
+    internal bool ShouldShow => (service.State.Unavailable || sessionRecognized) && (!settings.HideEmpty || service.State.SessionId != null
         || emptySince == null || monotonicMilliseconds() - emptySince.Value < EmptySessionDelayMilliseconds);
     internal void Tick()
     {
@@ -65,7 +65,7 @@ internal sealed class NowPlayingWidgetForm : Form
     {
         if (disposed || suspended || powerSuspended) return;
         if (service.State.SessionId != null) sessionRecognized = true;
-        if (service.State.SessionId != null || service.State.Unavailable) emptySince = null;
+        if (service.State.SessionId != null) emptySince = null;
         else emptySince ??= monotonicMilliseconds();
         if (service.State.SessionId != null || service.State.Unavailable || DisplayState.SessionId == null
             || emptySince != null && monotonicMilliseconds() - emptySince.Value >= EmptySessionDelayMilliseconds) DisplayState = service.State;

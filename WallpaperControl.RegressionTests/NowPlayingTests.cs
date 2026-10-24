@@ -107,13 +107,13 @@ internal static class NowPlayingTests
             fake.State = new(); fake.Raise(); widget.Apply(new() { HideEmpty = true },"de");
             check(widget.ShouldShow,"Missing session keeps widget visible during grace period");
             using (var transition = widget.RenderBitmap()) check(transition.Height == 140,"Transient missing session retains widget height");
-            clock = 14_999; widget.Tick(); check(widget.ShouldShow,"Widget stays visible just before fifteen-second deadline");
-            fake.Raise(); clock = 15_000; widget.Tick(); check(!widget.ShouldShow,"Repeated empty events do not extend fifteen-second deadline");
+            clock = 4_999; widget.Tick(); check(widget.ShouldShow,"Widget stays visible just before five-second deadline");
+            fake.Raise(); clock = 5_000; widget.Tick(); check(!widget.ShouldShow,"Repeated empty events do not extend five-second deadline");
             fake.State = state with { Playing = false }; fake.Raise(); check(widget.ShouldShow,"Paused source remains visible");
             clock += 60_000; widget.Tick(); check(widget.ShouldShow,"Paused session never expires");
-            fake.State = new(); fake.Raise(); clock += 10_000;
+            fake.State = new(); fake.Raise(); clock += 3_000;
             fake.State = state; fake.Raise(); fake.State = new(); fake.Raise();
-            clock += 10_000; widget.Tick(); check(widget.ShouldShow,"Returning session cancels old deadline and starts a fresh interval");
+            clock += 3_000; widget.Tick(); check(widget.ShouldShow,"Returning session cancels old deadline and starts a fresh interval");
             widget.SetActivitySuspended(true); clock += 60_000; widget.Tick(); widget.SetActivitySuspended(false);
             check(widget.ShouldShow,"Suspension does not consume unobserved empty-session grace period");
             foreach (bool hide in new[] { false,true })
@@ -125,13 +125,19 @@ internal static class NowPlayingTests
                 check(!retained.Previous && !retained.Next && !retained.Toggle && !retained.Seek && retained.PositionAt(instant.AddHours(1)) == retained.Position,$"Retained state freezes progress and disables stale controls; hide={hide}");
                 int before = fake.Commands.Count; Mouse("OnMouseDown",190,100); Mouse("OnMouseDown",190,119); Mouse("OnMouseUp",190,119);
                 check(fake.Commands.Count == before,$"Retained display cannot command a vanished source; hide={hide}");
-                clock += 14_999; widget.Tick(); check(widget.DisplayState.Title == state.Title,$"Full display remains until grace deadline; hide={hide}");
+                clock += 4_999; widget.Tick(); check(widget.DisplayState.Title == state.Title,$"Full display remains until grace deadline; hide={hide}");
                 clock++; widget.Tick(); check(widget.DisplayState.SessionId == null && widget.DisplayState.Cover == null && widget.ShouldShow == !hide,$"Deadline clears retained content and applies visibility option; hide={hide}");
                 fake.State = state with { Title = "Next track" }; fake.Raise();
                 check(widget.DisplayState.Title == "Next track" && widget.DisplayState.Rate == 1 && widget.ShouldShow,$"Returning track replaces retained content immediately; hide={hide}");
             }
-            fake.State = new() { Unavailable = true }; fake.Raise(); check(widget.ShouldShow,"API failure is reported even with hide-empty enabled");
-            fake.State = new(); widget.Apply(new(),"de"); using(var empty = widget.RenderBitmap()) check(empty.Height == 62 && empty.Width == 380,"Empty widget uses compact layout");
+            fake.State = new() { Unavailable = true }; fake.Raise(); check(widget.ShouldShow,"API failure is reported during grace period");
+            clock += 4_999; widget.Tick(); check(widget.ShouldShow, "Media failure remains visible until five seconds elapse");
+            clock++; widget.Tick(); check(!widget.ShouldShow, "Media failure respects hide-empty after five seconds");
+            fake.Raise(); widget.Tick(); check(!widget.ShouldShow, "Repeated media failures do not restart hide delay");
+            widget.Apply(new() { HideEmpty = false }, "de"); check(widget.ShouldShow, "Media failure stays visible when hide-empty is disabled");
+            widget.Apply(new() { HideEmpty = true }, "de");
+            fake.State = state; fake.Raise(); check(widget.ShouldShow && widget.DisplayState.SessionId == state.SessionId, "Recovered media session immediately restores widget");
+            fake.State = new(); widget.Apply(new(),"de"); clock += 5_000; widget.Tick(); using(var empty = widget.RenderBitmap()) check(empty.Height == 62 && empty.Width == 380,"Empty widget uses compact layout");
             fake.State = state; fake.Raise();
             var preview = Environment.GetEnvironmentVariable("WALLPAPER_NOWPLAYING_PREVIEW");
             if (!string.IsNullOrEmpty(preview)) { widget.Apply(new() { Style = App.SystemWidgetStyle.Glow },"de"); using var image = widget.RenderBitmap(192); image.Save(preview); }
