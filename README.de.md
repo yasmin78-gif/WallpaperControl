@@ -15,7 +15,16 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.2.0**
+**Aktuelle Version: v2.3.0**
+
+## ✨ Neu in 2.3.0
+
+- E-Mail-Wächter mit Absender-/Betreffregeln, Soundvorschau und Auswahl lokaler Mailprogramme.
+- Screenshot-Verlauf neben kopierten Texten, mit einstellbarer lokaler Speicherung und automatischer Bereinigung.
+- Website-Verknüpfungen mit Favicons, eigenen Bildern, Symbolvorschau und vorgeschlagenen Website-Namen.
+- Bedienbare Zwischenablage bei geöffneten Dialogen und zuverlässigeres Ausblenden der aktuellen Wiedergabe.
+
+[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
 
 ## ✨ Funktionen
 
@@ -54,7 +63,8 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 -   🕐 **Native Desktop-Widgets**
     -   Feeds-Widget für RSS-/Atom-Artikel, Vorschauen und Benachrichtigungen je Feed
     -   Widget „Aktuelle Wiedergabe“ zur Steuerung von Windows-Mediensitzungen
-    -   Zwischenablage-Widget mit reinem RAM-Textverlauf
+    -   Zwischenablage-Widget mit Textverlauf im RAM und einstellbarem lokalem Screenshot-Verlauf
+    -   ✉️ E-Mail-Wächter für regelbasierte IMAP-Hinweise und optionales Öffnen im lokalen Mailprogramm
     -   Schnellstarter für Programme, Dateien, Ordner und URLs
     -   Uhr-Widget mit 5 wählbaren Designs
     -   Systemmonitor-Widget
@@ -244,6 +254,8 @@ solange eine Vollbildanwendung aktiv ist.
     Vollbildmodus pausiert
 -   Die Vollbilderkennung ist standardmäßig aktiviert und kann in den
     Einstellungen deaktiviert werden
+
+Zwischenablage-Erfassung und E-Mail-Überwachung laufen bei automatischer Vollbild-Pause weiter. Die Zwischenablage lässt sich separat pausieren; Mailhinweise können bis zum Ende der Vollbildaktivität zurückgehalten werden.
 
 ## 🔄 Update-Prüfung
 
@@ -589,14 +601,21 @@ unterstützt **Minimal**, **Clean** und **Glow**.
 - Optional Windows-Systemlautstärke mit dem Mausrad regeln
 - Verbesserte Cover-Erkennung und verständliche App-Namen statt technischer Paketkennungen
 - Stabile Anzeige bei Titelwechseln; Ausblenden erst fünf Sekunden nach Verschwinden der Sitzung
+- Bei aktiviertem Ausblenden ohne Sitzung verschwinden auch Medienfehler nach fünf Sekunden; eine neue Sitzung zeigt das Widget wieder an
 
 ### 📋 Zwischenablage
 
-- Reiner Textverlauf mit 5, 10, 20 oder 50 Einträgen, **ausschließlich im RAM**
-- Texte zurückkopieren, vollständig ansehen, einzeln löschen oder Verlauf leeren
-- Aufnahme pausieren und fortsetzen; Zurückkopieren ändert weder Reihenfolge noch Zeitstempel
-- Berücksichtigt unterstützte Windows-Datenschutzmarkierungen; Passwörter werden nicht zuverlässig erkannt
-- Beim Deaktivieren oder Beenden wird der Verlauf gelöscht; keine Speicherung auf Datenträgern
+- 5, 10, 20 oder 50 Texte **ausschließlich im RAM**; der Textverlauf wird beim Deaktivieren oder Beenden gelöscht
+- Screenshots und andere unterstützte Zwischenablage-Bilder erfassen, auch mit Druck oder Win + Umschalt + S
+- Proportionale Miniaturen gemeinsam mit Texten anzeigen; ein Klick kopiert Originaltext oder -bild zurück, ohne automatisch einzufügen
+- Zurückkopieren erhält die Position im Verlauf; vollständigen Text ansehen, Einträge einzeln löschen oder den Verlauf leeren
+- Screenshots werden unabhängig von ihrer Quelle verlustfrei als PNG lokal gespeichert
+- 10, 20 oder 50 Screenshots und eine Lebensdauer von 1 Stunde, 24 Stunden, 7 Tagen oder bis zum manuellen Löschen wählen
+- Screenshot-Erfassung und Behalten über Neustarts sind standardmäßig aktiviert: **20 Bilder und 24 Stunden Lebensdauer**; beides ist abschaltbar
+- Abgelaufene und überzählige Screenshots werden automatisch entfernt; einzelnes Löschen entfernt auch die gespeicherte Bilddatei
+- Manuelles Pausieren stoppt Texte und Bilder; beim Fortsetzen wird nichts aus der Pause nachträglich aufgenommen
+- Die Erfassung läuft bei automatischer Vollbild-Pause weiter; das Widget bleibt auch bei geöffneten anderen Dialogen bedienbar
+- Unterstützte Windows-Datenschutzmarkierungen werden berücksichtigt; Passwörter lassen sich nicht zuverlässig erkennen
 
 ### 🚀 Schnellstarter
 
@@ -605,6 +624,28 @@ unterstützt **Minimal**, **Clean** und **Glow**.
 - Nur Symbole oder Symbole mit Namen, in 2–6 Spalten
 - Drag & Drop vom Desktop und aus dem Startmenü, auch bei fixierter Widget-Position
 - Importierte Windows-Verknüpfungen werden als eigene Kopien verwaltet; Originale können entfernt werden
+
+- Website-Symbole automatisch erkennen und für die Offline-Nutzung lokal behalten; ohne verfügbares Symbol erscheint ein Globus
+- Eigene PNG-, JPG-, ICO- oder WEBP-Bilder wählen oder zum Website-Symbol zurückwechseln; eigene Bilder werden lokal kopiert und bleiben nach Verschieben des Originals erhalten
+- Website-Symbole schon beim Bearbeiten sehen und vorgeschlagene Namen nutzen, ohne eigene Namen überschreiben zu lassen
+- Ein kleines Globus-Overlay unterscheidet Websites von Programmen
+
+### ✉️ E-Mail-Wächter
+
+Widget aktivieren, ein IMAP-Konto einrichten, Regeln hinzufügen und speichern. Mit dem Verbindungstest kannst du die Einstellungen vorher prüfen.
+
+- Sichere Verbindung per TLS (üblicherweise Port 993) oder STARTTLS (üblicherweise Port 143); Standardports wechseln mit der Auswahl, eigene Ports bleiben erhalten
+- Vollständige Absenderadresse, exakte Absenderdomain (mit oder ohne `@`) und/oder Text im Betreff prüfen; Domainregeln schließen Subdomains nicht ein
+- Absender und Betreff innerhalb einer Regel müssen beide passen; jede passende aktivierte Regel kann eine Benachrichtigung auslösen
+- Absender, Betreff, Empfangszeit und optionale reine Textvorschau in einem scrollbaren Widget anzeigen
+- Hinweise bis zum Schließen behalten oder automatisch ausblenden; bei Vollbild optional zurückhalten, während die Überwachung weiterläuft
+- Magical, Premium, Fanfare oder keinen Sound wählen und über **Vorschau** probehören
+- Erkannte Desktop-Mailprogramme auswählen, mit Kennzeichnung des aktuellen Windows-Standards; andere Programme über die Dateiauswahl ergänzen
+- **Postfach öffnen** holt ein vorhandenes Mailfenster nach Möglichkeit nach vorne oder startet das Programm; ohne Programmauswahl kann eine optionale HTTPS-Webmail-Adresse geöffnet werden
+- Eine Website-Adresse ist nicht erforderlich. Bleiben beide Öffnen-Ziele leer, entfällt der Link
+- Anmeldung mit Passwort/App-Passwort; OAuth-Anmeldung und mehrere überwachte Konten sind nicht enthalten
+
+Der Zugriff ist schreibgeschützt: Nachrichten werden weder als gelesen markiert noch verschoben oder gelöscht. Verwende den offiziellen Servernamen des Anbieters und ein gültiges Zertifikat. Zugangsdaten sind für deinen Windows-Benutzer geschützt; es wird kein lokales Mailarchiv angelegt.
 
 ### Nächstes Wallpaper
 
@@ -829,7 +870,9 @@ beim Start der Setup-Datei eine Sicherheitswarnung anzeigen.
 
 ## 🔒 Datenschutz
 
-Das Zwischenablage-Widget speichert ausschließlich Text im RAM, löscht den Verlauf beim Deaktivieren oder Beenden und berücksichtigt unterstützte Windows-Datenschutzmarkierungen. Eine zuverlässige Passworterkennung ist nicht möglich. Der Schnellstarter speichert benutzerdefinierte Ziele und eigene Kopien importierter Verknüpfungen lokal.
+**Texte** der Zwischenablage bleiben im RAM und werden beim Deaktivieren oder Beenden gelöscht. **Screenshots werden lokal gespeichert**, auf Wunsch auch über Neustarts hinweg (standardmäßig aktiviert). Erfassung, Lebensdauer und Anzahl sind in den Widget-Einstellungen wählbar. Unterstützte Windows-Datenschutzmarkierungen werden berücksichtigt; eine zuverlässige Passworterkennung ist nicht möglich.
+
+Der Schnellstarter speichert Ziele, importierte Verknüpfungen und Website-Symbole lokal. Automatische Website-Symbole und Namen erfordern Anfragen an die eingegebenen Websites; eigene Bilder werden lokal kopiert. Der E-Mail-Wächter verbindet sich mit deinem IMAP-Server, schützt Passwörter für den aktuellen Windows-Benutzer und verändert keine Nachrichten auf dem Server. Ein lokales Mailarchiv wird nicht angelegt.
 
 
 Wallpaper Control speichert Anwendungseinstellungen, Wallpaper-Statistiken, Notizen und Reminder lokal auf deinem Computer.

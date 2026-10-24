@@ -15,7 +15,16 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.2.0**
+**Version actuelle : v2.3.0**
+
+## ✨ Nouveautés de la version 2.3.0
+
+- Surveillance des e-mails avec règles d’expéditeur/objet, aperçu sonore et sélection d’un logiciel de messagerie.
+- Historique des captures d’écran avec stockage local configurable et nettoyage automatique.
+- Raccourcis web avec favicons, images personnalisées, aperçu des icônes et noms suggérés.
+- Presse-papiers utilisable pendant les dialogues et masquage plus fiable de la lecture en cours.
+
+[Télécharger l’installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Notes de version et somme SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
 
 ## ✨ Fonctionnalités
 
@@ -53,7 +62,8 @@ gestion native des fonds d'écran lorsque l'application se ferme.
 -   🕐 **Widgets de bureau natifs**
     -   Widget Flux RSS/Atom avec aperçus et notifications par source
     -   Widget Lecture en cours pour contrôler les sessions multimédias Windows
-    -   Widget Presse-papiers avec historique de texte uniquement en RAM
+    -   Widget Presse-papiers avec textes en RAM et historique local configurable des captures
+    -   ✉️ Surveillance des e-mails IMAP avec règles et ouverture facultative dans une messagerie locale
     -   Lanceur rapide pour programmes, fichiers, dossiers et URL
     -   Widget Horloge avec 5 thèmes sélectionnables
     -   Widget de surveillance du système
@@ -248,6 +258,8 @@ arrière-plan lorsqu'une application est en plein écran.
     mode plein écran
 -   La détection du plein écran est activée par défaut et peut être
     désactivée dans les paramètres
+
+La collecte du presse-papiers et la surveillance des e-mails continuent pendant la pause automatique en plein écran. Le presse-papiers peut être suspendu séparément et les notifications e-mail différées jusqu’à la sortie du plein écran.
 
 ## 🔄 Vérification des mises à jour
 
@@ -592,14 +604,21 @@ restent compatibles. Le widget prend en charge **Minimal**, **Clean** et
 - Réglage facultatif du volume système avec la molette
 - Meilleure détection des pochettes et noms d’applications lisibles au lieu d’identifiants techniques
 - Affichage stable lors des changements de piste ; délai de cinq secondes avant masquage après disparition d’une session
+- Si le masquage sans session est activé, les erreurs multimédias disparaissent aussi après cinq secondes ; une nouvelle session réaffiche le widget
 
 ### 📋 Presse-papiers
 
-- Historique de texte de 5, 10, 20 ou 50 éléments, conservé **uniquement en RAM**
-- Recopier, afficher le texte complet, supprimer un élément ou vider l’historique
-- Suspendre et reprendre l’enregistrement ; recopier ne modifie ni l’ordre ni l’horodatage
-- Respect des indicateurs de confidentialité Windows pris en charge ; les mots de passe ne sont pas détectés de façon fiable
-- Historique effacé à la désactivation ou à la fermeture, jamais enregistré sur disque
+- Conserver 5, 10, 20 ou 50 textes **uniquement en RAM** ; l’historique de texte est effacé à la désactivation ou à la fermeture
+- Capturer les images compatibles du presse-papiers, notamment les captures avec Impr. écran ou Win + Maj + S
+- Afficher des miniatures proportionnelles avec les textes ; cliquer pour recopier l’original sans collage automatique
+- Recopier sans changer la position dans l’historique ; afficher le texte complet, supprimer un élément ou tout effacer
+- Enregistrer les captures localement en PNG sans perte, indépendamment de leur source
+- Choisir 10, 20 ou 50 captures et une durée de 1 heure, 24 heures, 7 jours ou jusqu’à suppression manuelle
+- Capture et conservation après redémarrage activées par défaut : **20 images pendant 24 heures** ; les deux options peuvent être désactivées
+- Nettoyage automatique des captures expirées ou excédentaires ; la suppression d’une capture efface aussi son fichier
+- La pause manuelle arrête textes et images, sans récupération rétroactive à la reprise
+- La collecte continue pendant la pause automatique en plein écran ; le widget reste utilisable lorsque d’autres dialogues sont ouverts
+- Respect des indicateurs de confidentialité Windows pris en charge, sans détection fiable des mots de passe
 
 ### 🚀 Lanceur rapide
 
@@ -608,6 +627,28 @@ restent compatibles. Le widget prend en charge **Minimal**, **Clean** et
 - Icônes seules ou accompagnées des noms, sur 2 à 6 colonnes
 - Glisser-déposer depuis le bureau et le menu Démarrer, même si la position du widget est verrouillée
 - Les raccourcis Windows importés sont gérés comme des copies distinctes ; les originaux peuvent être supprimés
+
+- Découvrir les icônes des sites et les conserver localement pour une utilisation hors ligne ; afficher un globe si aucune icône n’est disponible
+- Choisir une image PNG, JPG, ICO ou WEBP, ou rétablir l’icône du site ; l’image est copiée localement et reste disponible si l’original est déplacé
+- Prévisualiser les icônes pendant la modification et utiliser les noms suggérés sans écraser les noms personnalisés
+- Un petit globe distingue les sites web des applications
+
+### ✉️ Surveillance des e-mails
+
+Activez le widget, configurez un compte IMAP, ajoutez des règles et enregistrez. Le test de connexion permet de vérifier les paramètres avant la surveillance.
+
+- Connexion sécurisée TLS (habituellement port 993) ou STARTTLS (port 143) ; les ports standard suivent le choix de sécurité, les ports personnalisés sont conservés
+- Filtrer par adresse complète, domaine exact d’expéditeur (avec ou sans `@`) et/ou texte dans l’objet ; les sous-domaines sont exclus des règles de domaine
+- Les conditions d’expéditeur et d’objet d’une règle doivent toutes deux correspondre ; toute règle active correspondante peut déclencher une notification
+- Afficher expéditeur, objet, heure de réception et aperçu facultatif en texte brut, avec défilement
+- Garder les notifications jusqu’à leur fermeture ou les masquer automatiquement ; les différer en plein écran sans interrompre la surveillance
+- Choisir Magical, Premium, Fanfare ou aucun son et écouter un **aperçu**
+- Sélectionner une messagerie de bureau détectée, avec indication du logiciel par défaut de Windows, ou choisir un autre exécutable
+- **Ouvrir la boîte de réception** active si possible une fenêtre existante ou lance le logiciel ; sans logiciel sélectionné, une adresse HTTPS de webmail facultative peut être utilisée
+- Aucune adresse web n’est obligatoire ; laisser les deux cibles vides masque le lien
+- Connexion par mot de passe/mot de passe d’application ; OAuth et la surveillance de plusieurs comptes ne sont pas inclus
+
+L’accès est en lecture seule : aucun message n’est marqué comme lu, déplacé ou supprimé. Utilisez le nom de serveur officiel du fournisseur et un certificat valide. Les identifiants sont protégés pour votre utilisateur Windows ; aucune archive locale des e-mails n’est créée.
 
 ### Fond d'écran suivant
 
@@ -841,7 +882,9 @@ peut donc afficher un avertissement de sécurité lors de son lancement.
 
 ## 🔒 Confidentialité
 
-Le widget Presse-papiers conserve uniquement du texte en RAM, efface son historique à la désactivation ou à la fermeture et respecte les indicateurs de confidentialité Windows pris en charge. Il ne peut pas détecter les mots de passe de façon fiable. Le Lanceur rapide conserve localement les cibles définies et ses copies des raccourcis importés.
+Les **textes** du presse-papiers restent en RAM et sont effacés à la désactivation ou à la fermeture. Les **captures sont enregistrées localement**, avec conservation facultative après redémarrage (activée par défaut). Capture, durée et nombre sont configurables. Les indicateurs de confidentialité Windows pris en charge sont respectés, mais les mots de passe ne peuvent pas être identifiés de façon fiable.
+
+Le Lanceur rapide conserve localement les cibles, raccourcis importés et icônes web. La découverte des icônes et noms nécessite des requêtes aux sites saisis ; les images personnalisées sont copiées localement. La surveillance des e-mails se connecte à votre serveur IMAP, protège les mots de passe pour l’utilisateur Windows et ne modifie pas les messages du serveur. Elle ne crée pas d’archive locale des e-mails.
 
 
 Wallpaper Control stocke localement sur votre ordinateur ses paramètres, les statistiques de fonds d'écran, les notes et les rappels.

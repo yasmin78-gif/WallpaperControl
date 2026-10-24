@@ -15,7 +15,16 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.2.0**
+**Current release: v2.3.0**
+
+## ✨ New in 2.3.0
+
+- E-Mail Watcher with sender/subject rules, sound previews, and local mail application selection.
+- Screenshot history alongside clipboard text, with configurable local storage and automatic cleanup.
+- Website shortcuts with favicons, custom images, live icon previews, and suggested website names.
+- Clipboard access while dialogs are open and more reliable Now Playing auto-hide.
+
+[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
 
 ## ✨ Features
 
@@ -48,7 +57,8 @@ exits.
 -   🕐 **Native desktop widgets**
     -   Feeds widget for RSS/Atom articles, previews and per-feed notifications
     -   Now Playing widget for Windows media-session controls
-    -   Clipboard widget with RAM-only text history
+    -   Clipboard widget with RAM-only text history and configurable local screenshot history
+    -   ✉️ E-Mail Watcher for rule-based IMAP notifications, with optional local mail application opening
     -   Quick Launcher widget for applications, files, folders and URLs
     -   Clock widget with 5 selectable themes
     -   System monitoring widget
@@ -226,6 +236,8 @@ fullscreen application is active.
 -   A slideshow paused manually remains paused when fullscreen mode ends
 -   Fullscreen detection is enabled by default and can be disabled in
     Settings
+
+Clipboard capture and E-Mail Watcher monitoring continue during automatic fullscreen pauses. Clipboard recording can be paused separately, and mail notifications can be held until fullscreen activity ends.
 
 ## 🔄 Update Checks
 
@@ -554,14 +566,21 @@ Existing notes remain compatible. The widget supports **Minimal**,
 - Optional mouse-wheel control of Windows system volume
 - Improved artwork recognition and readable app names instead of technical package IDs
 - Handles track changes without flickering; waits five seconds before hiding after a session disappears
+- When hide-empty is enabled, media-session errors also disappear after five seconds; a returning session restores the widget
 
 ### 📋 Clipboard
 
-- Text-only history with 5, 10, 20 or 50 entries, kept **only in RAM**
-- Restore copied text, view full content, delete individual entries or clear the history
-- Pause and resume recording; restoring an entry preserves its order and timestamp
-- Respects supported Windows clipboard privacy flags; cannot reliably identify passwords
-- History is cleared on deactivation or application exit and is never written to disk
+- Keep 5, 10, 20 or 50 text entries **only in RAM**; text history is cleared when disabled or on exit
+- Capture screenshots and other compatible clipboard images, including screenshots taken with Print Screen or Win + Shift + S
+- View proportional thumbnails alongside text; click to copy the original text or image back without automatically pasting
+- Restore entries without changing their history position; view full text, delete individual entries, or clear the history
+- Screenshots are saved locally as lossless PNG files, independently of their original source
+- Choose 10, 20 or 50 screenshots and a lifetime of 1 hour, 24 hours, 7 days, or until manually deleted
+- Screenshot capture and retention across restarts default to enabled, with **20 images and a 24-hour lifetime**; both can be disabled
+- Expired and excess screenshots are cleaned up automatically; deleting a screenshot also removes its stored image
+- Manual pause stops both text and image recording; resuming does not import changes made while paused
+- Clipboard recording continues during automatic fullscreen pauses, and the widget stays usable while other dialogs are open
+- Respects supported Windows clipboard privacy flags; passwords cannot reliably be identified
 
 ### 🚀 Quick Launcher
 
@@ -570,6 +589,28 @@ Existing notes remain compatible. The widget supports **Minimal**,
 - Icons only or icons with names, arranged in 2–6 columns
 - Drag and drop from the desktop and Start menu, even when widget position is locked
 - Imported Windows shortcuts are stored as separately managed copies, so the originals can be removed
+
+- Website icons are discovered automatically and cached locally for offline use; a globe is used if no icon is available
+- Choose a custom PNG, JPG, ICO or WEBP image, or switch back to the website icon; custom images are copied locally so moving the original does not break them
+- Preview website icons while editing, and use suggested website names without overwriting your own names
+- A small globe overlay distinguishes websites from applications
+
+### ✉️ E-Mail Watcher
+
+Enable the widget, configure one IMAP account, add rules, and save. The connection test checks your settings before you start monitoring.
+
+- Connect securely using TLS (normally port 993) or STARTTLS (normally port 143); standard ports switch with the security choice, while custom ports remain unchanged
+- Match a full sender address, an exact sender domain (with or without `@`), and/or text in the subject; domain rules do not include subdomains
+- Sender and subject conditions within a rule must both match; any enabled matching rule can trigger a notification
+- Show sender, subject, arrival time and an optional plain-text preview in a scrollable widget
+- Keep notices until dismissed or hide them automatically; optionally hold them during fullscreen activity while monitoring continues
+- Choose Magical, Premium, Fanfare or no sound, and listen using **Preview**
+- Choose a detected desktop mail application, with the current Windows default marked, or browse for another program
+- **Open inbox** activates an existing mail window where supported or starts the program; an optional HTTPS webmail address is used if no program is selected
+- No website address is required. Leave both opening targets empty to hide the link
+- Password/app-password sign-in is supported; OAuth sign-in and multiple monitored accounts are not included
+
+Access is read-only: the watcher does not mark mail as read, move it or delete it. Use the provider's official server name and a valid certificate. Credentials are protected for your Windows user; message content is not saved as a local mail archive.
 
 ### Next Wallpaper
 
@@ -786,7 +827,9 @@ therefore display a security warning when the setup file is launched.
 
 ## 🔒 Privacy
 
-The Clipboard widget records text only in RAM, clears its history when disabled or on exit, and respects supported Windows clipboard privacy flags. It cannot reliably detect passwords. Quick Launcher stores user-defined targets and its own copies of imported shortcuts locally.
+Clipboard **text** stays in RAM and is cleared when the widget is disabled or the application exits. **Screenshots are stored locally**, with optional retention across restarts (enabled by default); configure capture, lifetime and limits in the widget settings. Supported Windows clipboard privacy flags are respected, but passwords cannot reliably be detected.
+
+Quick Launcher stores targets, imported shortcuts and website icons locally. Automatic website icons and names require requests to the entered websites; manually chosen images are copied locally. The E-Mail Watcher connects to your configured IMAP server, protects passwords for the current Windows user, and does not modify server messages or save a local mail archive.
 
 
 Wallpaper Control stores application settings, wallpaper statistics, notes and reminders locally on your computer.

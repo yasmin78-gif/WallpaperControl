@@ -15,7 +15,16 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.2.0**
+**Versión actual: v2.3.0**
+
+## ✨ Novedades de la versión 2.3.0
+
+- Vigilancia del correo con reglas de remitente/asunto, vista previa de sonidos y selección de programa de correo.
+- Historial de capturas de pantalla con almacenamiento local configurable y limpieza automática.
+- Accesos web con favicons, imágenes propias, vista previa de iconos y nombres sugeridos.
+- Portapapeles disponible mientras hay diálogos abiertos y ocultación más fiable de la reproducción actual.
+
+[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
 
 ## ✨ Funciones
 
@@ -52,7 +61,8 @@ restaura la gestión nativa de fondos al cerrar la aplicación.
 -   🕐 **Widgets de escritorio nativos**
     -   Widget de fuentes RSS/Atom con vistas previas y notificaciones por fuente
     -   Widget de reproducción actual para controlar sesiones multimedia de Windows
-    -   Widget de portapapeles con historial de texto solo en RAM
+    -   Widget Portapapeles con textos en RAM e historial local configurable de capturas
+    -   ✉️ Vigilancia de correo IMAP mediante reglas y apertura opcional en un programa local
     -   Lanzador rápido para programas, archivos, carpetas y URL
     -   Widget de reloj con 5 temas seleccionables
     -   Widget de monitorización del sistema
@@ -241,6 +251,8 @@ plano mientras haya una aplicación a pantalla completa.
     el modo de pantalla completa
 -   La detección de pantalla completa está activada de forma
     predeterminada y puede desactivarse en Configuración
+
+La captura del portapapeles y la vigilancia del correo continúan durante la pausa automática a pantalla completa. El portapapeles se puede pausar por separado y los avisos de correo aplazar hasta salir de pantalla completa.
 
 ## 🔄 Comprobación de actualizaciones
 
@@ -575,14 +587,21 @@ existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y
 - Control opcional del volumen del sistema mediante la rueda del ratón
 - Mejor reconocimiento de carátulas y nombres legibles de aplicaciones en lugar de identificadores técnicos
 - Vista estable al cambiar de pista; espera de cinco segundos antes de ocultarse si desaparece una sesión
+- Con la ocultación sin sesión activada, los errores multimedia también desaparecen a los cinco segundos; una nueva sesión vuelve a mostrar el widget
 
 ### 📋 Portapapeles
 
-- Historial solo de texto con 5, 10, 20 o 50 entradas, almacenado **únicamente en RAM**
-- Volver a copiar, ver el texto completo, eliminar entradas o vaciar el historial
-- Pausar y reanudar la captura; restaurar una entrada no altera su orden ni fecha
-- Respeta los indicadores de privacidad compatibles de Windows; no detecta contraseñas de forma fiable
-- El historial se borra al desactivar el widget o cerrar la aplicación y nunca se guarda en disco
+- Conservar 5, 10, 20 o 50 textos **solo en RAM**; el historial de texto se borra al desactivar el widget o salir
+- Capturar imágenes compatibles del portapapeles, incluidas capturas con Impr. Pant. o Win + Mayús + S
+- Mostrar miniaturas proporcionales junto al texto; pulsar para volver a copiar el original sin pegarlo automáticamente
+- Copiar sin cambiar la posición en el historial; ver el texto completo, borrar entradas o vaciar el historial
+- Guardar capturas localmente como PNG sin pérdida, independientes de su origen
+- Elegir 10, 20 o 50 capturas y una duración de 1 hora, 24 horas, 7 días o hasta el borrado manual
+- Captura y conservación tras reiniciar activadas por defecto: **20 imágenes durante 24 horas**; ambas opciones se pueden desactivar
+- Limpieza automática de capturas caducadas o sobrantes; borrar una captura elimina también su archivo
+- La pausa manual detiene textos e imágenes; al reanudar no se importan cambios hechos durante la pausa
+- La captura continúa durante la pausa automática a pantalla completa; el widget sigue disponible con otros diálogos abiertos
+- Respeta los indicadores de privacidad compatibles de Windows; no reconoce contraseñas de forma fiable
 
 ### 🚀 Lanzador rápido
 
@@ -591,6 +610,28 @@ existentes siguen siendo compatibles. Admite **Minimal**, **Clean** y
 - Solo iconos o iconos con nombres, en 2–6 columnas
 - Arrastrar y soltar desde el escritorio o menú Inicio, incluso con la posición bloqueada
 - Los accesos directos de Windows importados se gestionan como copias independientes; los originales pueden eliminarse
+
+- Detectar iconos web y guardarlos localmente para usarlos sin conexión; mostrar un globo si no hay icono disponible
+- Elegir imágenes PNG, JPG, ICO o WEBP o restaurar el icono web; las imágenes propias se copian localmente y siguen disponibles si se mueve el original
+- Ver los iconos al editar y usar nombres sugeridos sin sobrescribir nombres personalizados
+- Un pequeño globo distingue los sitios web de las aplicaciones
+
+### ✉️ Vigilancia del correo
+
+Activa el widget, configura una cuenta IMAP, añade reglas y guarda. La prueba de conexión permite comprobar los ajustes antes de iniciar la vigilancia.
+
+- Conexión segura mediante TLS (normalmente puerto 993) o STARTTLS (puerto 143); los puertos estándar cambian con la selección, los personalizados se conservan
+- Filtrar por dirección completa, dominio exacto del remitente (con o sin `@`) y/o texto del asunto; las reglas de dominio no incluyen subdominios
+- Remitente y asunto de una misma regla deben coincidir; cualquier regla activa coincidente puede generar un aviso
+- Mostrar remitente, asunto, hora de recepción y vista previa opcional de texto sin formato, con desplazamiento
+- Mantener los avisos hasta cerrarlos u ocultarlos automáticamente; aplazarlos a pantalla completa sin detener la vigilancia
+- Elegir Magical, Premium, Fanfare o ningún sonido y escucharlo con **Vista previa**
+- Seleccionar programas de correo detectados, con el predeterminado de Windows marcado, o buscar otro ejecutable
+- **Abrir buzón** activa una ventana existente cuando es posible o inicia el programa; sin programa seleccionado puede usarse una dirección HTTPS de correo web opcional
+- No se exige una dirección web; dejar ambos destinos vacíos oculta el enlace
+- Acceso mediante contraseña/contraseña de aplicación; no incluye OAuth ni vigilancia de varias cuentas
+
+El acceso es de solo lectura: no marca mensajes como leídos, ni los mueve o elimina. Usa el nombre oficial del servidor del proveedor y un certificado válido. Las credenciales están protegidas para tu usuario de Windows; no se crea un archivo local de correos.
 
 ### Siguiente fondo
 
@@ -820,7 +861,9 @@ Windows puede mostrar una advertencia de seguridad al ejecutarlo.
 
 ## 🔒 Privacidad
 
-El widget Portapapeles conserva solo texto en RAM, borra el historial al desactivarlo o salir y respeta los indicadores de privacidad compatibles de Windows. No puede detectar contraseñas de forma fiable. El Lanzador rápido guarda localmente los destinos definidos y sus copias de accesos directos importados.
+Los **textos** del portapapeles permanecen en RAM y se borran al desactivar el widget o salir. Las **capturas se guardan localmente**, con conservación opcional tras reiniciar (activada por defecto). Captura, duración y límite son configurables. Se respetan los indicadores de privacidad compatibles de Windows, pero no es posible identificar contraseñas de forma fiable.
+
+El Lanzador rápido guarda destinos, accesos importados e iconos web localmente. Obtener iconos y nombres automáticos requiere solicitudes a los sitios introducidos; las imágenes propias se copian localmente. La vigilancia del correo se conecta a tu servidor IMAP, protege las contraseñas para el usuario de Windows y no modifica los mensajes del servidor. No crea un archivo local de correos.
 
 
 Wallpaper Control almacena localmente en tu equipo la configuración, las estadísticas de fondos, las notas y los recordatorios.
