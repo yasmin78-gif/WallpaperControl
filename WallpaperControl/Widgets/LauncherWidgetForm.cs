@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 namespace WallpaperControl;
 internal sealed class LauncherWidgetForm : Form
@@ -165,25 +165,42 @@ internal sealed class LauncherWidgetForm : Form
     {
         LogDrop("Drop",e); e.Effect=DropEffect(e.AllowedEffect,CanDrop(e.Data)); if(e.Effect==DragDropEffects.None||e.Data==null)return;
         var staging=Path.Combine(Path.GetTempPath(),"WallpaperControl.LauncherDrop-"+Guid.NewGuid().ToString("N"));
+        bool deferred=false;
         try
         {
             var paths=DropTargets(e.Data);
             if(paths.Length==0||paths.Any(path=>!LauncherTargets.IsWebsite(path)&&!System.IO.File.Exists(path)&&!Directory.Exists(path)))
                 paths=LauncherShellDrop.Materialize(e.Data,staging).ToArray();
             AppLogger.Info($"Launcher drop resolved: targets={paths.Length}");
-            foreach(var target in paths) { if(settings.Entries.Count>=LauncherSettings.MaximumEntries)break; Add(target); }
+            // Copy/materialize OLE data now; never retain IDataObject past this callback.
+            var resolved=paths.ToArray();
+            deferred=LauncherDropDispatch.TryPost(this,()=>AddDroppedTargets(resolved),()=>CleanupDropStaging(staging));
+            AppLogger.Info($"Launcher drop dialogs queued: accepted={deferred}; targets={resolved.Length}");
         }
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or ArgumentException or COMException or NotSupportedException)
         { AppLogger.Info($"Launcher shell drop failed: type={ex.GetType().Name}"); MessageBox.Show(Localization.Get("LauncherShortcutFailed",language)); }
-        finally
-        {
-            // Only delete shortcuts created in this unique staging directory, never source paths.
-            if(Directory.Exists(staging))
-            {
-                try { foreach(var file in Directory.GetFiles(staging,"*.lnk",SearchOption.TopDirectoryOnly))System.IO.File.Delete(file); Directory.Delete(staging,false); }
-                catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { AppLogger.Info($"Launcher drop staging cleanup failed: type={ex.GetType().Name}"); }
+        finally { if(!deferred)CleanupDropStaging(staging); }
+    }
+    private void AddDroppedTargets(string[] paths)
+    {
+        if(disposed)return;
+        AppLogger.Info($"Launcher deferred drop dialogs begin: targets={paths.Length}");
+        try {
+            foreach(var target in paths) {
+                if(disposed||settings.Entries.Count>=LauncherSettings.MaximumEntries)break;
+                Add(target);
             }
         }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or ArgumentException or COMException or NotSupportedException)
+        { AppLogger.Info($"Launcher deferred drop failed: type={ex.GetType().Name}"); MessageBox.Show(Localization.Get("LauncherShortcutFailed",language)); }
+        finally { AppLogger.Info("Launcher deferred drop dialogs complete"); }
+    }
+    private static void CleanupDropStaging(string staging)
+    {
+        // Only delete shortcuts created in this unique staging directory, never source paths.
+        if(!Directory.Exists(staging))return;
+        try { foreach(var file in Directory.GetFiles(staging,"*.lnk",SearchOption.TopDirectoryOnly))System.IO.File.Delete(file); Directory.Delete(staging,false); }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { AppLogger.Info($"Launcher drop staging cleanup failed: type={ex.GetType().Name}"); }
     }
     internal static DragDropEffects DropEffect(DragDropEffects allowed,bool supported)
     {

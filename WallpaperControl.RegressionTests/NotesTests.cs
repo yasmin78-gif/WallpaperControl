@@ -312,7 +312,7 @@ internal static class NotesTests
                 form.ConfigureNotesManager((owner, selectedLanguage) => { if (owner == form && selectedLanguage == language) managed++; });
                 Invoke(Field<Button>(form, "notesManageButton"), "OnClick", EventArgs.Empty);
                 check(managed == 1, $"Notes {language} settings manager button forwards owner and preview language");
-                check(form.WidgetKeys.Count == 9 && form.WidgetKeys.Contains("PackageTitle"), $"Notes {language} widget editor exposes all nine sections including packages");
+                check(form.WidgetKeys.Count == 15 && new[] { "PackageTitle", "EmailTitle", "TwitchTitle", "LauncherTitle", "ClipboardTitle", "NowPlayingTitle", "FeedTitle" }.All(form.WidgetKeys.Contains), $"Notes {language} widget editor exposes all fifteen sections including mail and packages");
                 Button[] buttons = Field<FlowLayoutPanel>(form, "navigation").Controls.OfType<Button>().OrderBy(b => b.TabIndex).ToArray();
                 var comparer = StringComparer.Create(CultureInfo.GetCultureInfo(language), true);
                 string[] labels = form.WidgetKeys.Select(key => App.Localization.Get(key, language)).ToArray();

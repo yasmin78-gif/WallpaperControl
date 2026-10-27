@@ -15,29 +15,40 @@ internal sealed class EmailWatcherService : IDisposable
     private string identity = "";
     private volatile int generation;
     private volatile bool disposed;
+    private volatile bool powerSuspended;
     internal event Action<int, IReadOnlyList<EmailNotice>>? Ready;
     internal event Action<int, string>? Status;
     internal int Generation => generation;
     internal Task Completion => worker;
     internal EmailWatcherService(EmailWatcherStateStore store, Func<IEmailMailbox>? factory = null)
     { this.store = store; createMailbox = factory ?? (() => new EmailMailbox()); }
-    internal void Configure(EmailWatcherSettings value,bool retryCompleted=false)
+    internal void Configure(EmailWatcherSettings value,bool retryCompleted=false, bool forceRestart=false)
     {
         if (disposed) return;
         string next = JsonSerializer.Serialize(new { value.Enabled, Account=new { value.Account.Id,value.Account.Server,value.Account.Port,value.Account.Security,value.Account.Authentication,value.Account.Username,value.Account.ProtectedPassword,value.Account.PollingSeconds }, value.Rules, value.ShowPreview, value.PreviewCharacters });
-        if (identity == next && (!retryCompleted||!worker.IsCompleted)) return;
+        if (!forceRestart && identity == next && (!retryCompleted||!worker.IsCompleted)) return;
         identity = next; int session = ++generation; var previous = worker; var old = cancellation;
         old?.Cancel(); cancellation = new(); var token = cancellation.Token; var options = value.Clone(); configuration = options;
         worker = Task.Run(async () => {
             try { await previous.ConfigureAwait(false); } catch (Exception) { }
             old?.Dispose();
-            if (token.IsCancellationRequested || disposed) return;
+            if (token.IsCancellationRequested || disposed || powerSuspended) return;
             await stateGate.WaitAsync().ConfigureAwait(false);
             try { state = null; } finally { stateGate.Release(); }
             if (!options.Enabled) { Status?.Invoke(session, "EmailDisabled"); return; }
             if (!options.Account.IsConfigured) { Status?.Invoke(session, "EmailInvalidConfiguration"); return; }
             await MonitorAsync(options, session, token).ConfigureAwait(false);
         });
+    }
+    internal void SetPowerSuspended(bool value)
+    {
+        if (disposed || powerSuspended == value) return;
+        powerSuspended = value;
+        if (value) cancellation?.Cancel();
+        else if (configuration != null) {
+            AppLogger.Info("Email watcher: resuming; reconnecting from saved checkpoint.");
+            Configure(configuration, forceRestart: true);
+        }
     }
     private async Task MonitorAsync(EmailWatcherSettings options, int session, CancellationToken token)
     {
@@ -59,6 +70,7 @@ internal sealed class EmailWatcherService : IDisposable
                     bool freshSession=state==null;
                     state = store.Load(options.Account);
                     bool baseline=state.Baseline(mailbox.Validity, baselineHighest);
+                    AppLogger.Info($"Email watcher: synchronization initialized; freshBaseline={baseline}; checkpoint={state.Through}; highest={baselineHighest}; pending={state.Pending.Count}.");
                     bool retired=freshSession&&state.Pending.RemoveAll(item=>item.Presented)>0;
                     if(baseline||retired)store.Save(options.Account.Id,state);
                 } finally { stateGate.Release(); }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
@@ -9,8 +10,9 @@ namespace WallpaperControl;
 internal sealed partial class TwitchApi : ITwitchApi
 {
     private readonly HttpClient client;
-    internal TwitchApi(HttpMessageHandler? handler = null)
-    { client = handler == null ? new() : new(handler); client.Timeout = TimeSpan.FromSeconds(30); }
+    private readonly Action<string> log;
+    internal TwitchApi(HttpMessageHandler? handler = null, Action<string>? log = null)
+    { client = handler == null ? new() : new(handler); client.Timeout = TimeSpan.FromSeconds(30); this.log = log ?? AppLogger.Info; }
     private static string Text(JsonElement obj, string key) => obj.GetProperty(key).GetString() ?? throw new TwitchException(TwitchError.InvalidResponse);
     private static TwitchTokens Tokens(JsonElement obj)
     {
@@ -21,9 +23,17 @@ internal sealed partial class TwitchApi : ITwitchApi
     {
         using (request)
         {
+            var elapsed = Stopwatch.StartNew();
+            // Only fixed endpoint paths: no query, credentials, headers or server-provided text.
+            string endpoint = request.RequestUri!.AbsolutePath;
+            int? status = null;
+            void Diagnose(string reason) => log($"Twitch request failed: endpoint={endpoint}; reason={reason}; http={(status?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "none")}; elapsedMs={elapsed.ElapsedMilliseconds}.");
             try
             {
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+                status = (int)response.StatusCode;
+                if (!response.IsSuccessStatusCode && !(polling && response.StatusCode == HttpStatusCode.BadRequest))
+                    Diagnose("HttpError");
                 if (response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
                     DateTimeOffset? until = response.Headers.RetryAfter?.Date;
@@ -48,16 +58,23 @@ internal sealed partial class TwitchApi : ITwitchApi
                     json.Dispose();
                     if (polling && message == "authorization_pending") return JsonDocument.Parse("{\"pending\":true}");
                     if (polling && message == "slow_down") return JsonDocument.Parse("{\"slow_down\":true}");
+                    if (polling && response.StatusCode == HttpStatusCode.BadRequest) Diagnose("HttpError");
                     if (polling && message is "expired_token" or "invalid device code") throw new TwitchException(TwitchError.Expired);
                     if (polling && message == "access_denied") throw new TwitchException(TwitchError.Cancelled);
                     throw new TwitchException(refreshing ? TwitchError.Reconnect : TwitchError.Unauthorized);
                 }
                 return json;
             }
-            catch (HttpRequestException) { throw new TwitchException(NetworkInterface.GetIsNetworkAvailable() ? TwitchError.Unavailable : TwitchError.Offline); }
-            catch (OperationCanceledException) when (!token.IsCancellationRequested) { throw new TwitchException(TwitchError.Unavailable); }
+            catch (HttpRequestException ex)
+            {
+                bool online = NetworkInterface.GetIsNetworkAvailable();
+                Diagnose($"NetworkError/{ex.HttpRequestError}/networkAvailable={online}");
+                throw new TwitchException(online ? TwitchError.Unavailable : TwitchError.Offline);
+            }
+            catch (OperationCanceledException) when (!token.IsCancellationRequested)
+            { Diagnose("Timeout"); throw new TwitchException(TwitchError.Unavailable); }
             catch (Exception ex) when (ex is JsonException or InvalidOperationException or KeyNotFoundException or FormatException or ArgumentOutOfRangeException)
-            { throw new TwitchException(TwitchError.InvalidResponse); }
+            { Diagnose($"InvalidResponse/{ex.GetType().Name}"); throw new TwitchException(TwitchError.InvalidResponse); }
         }
     }
     private static HttpRequestMessage Post(string path, params (string Key, string Value)[] values) => new(HttpMethod.Post, "https://id.twitch.tv/oauth2/" + path)

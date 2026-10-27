@@ -40,7 +40,7 @@ internal sealed partial class TwitchService : IDisposable
             try { store.Clear(); } catch (TwitchException) { Error = TwitchError.Storage; }
         }
         retryAt = ex.Error == TwitchError.RateLimit ? ex.RetryAfter ?? now().AddMinutes(5) : now().AddMinutes(5);
-        AppLogger.Info($"Twitch operation failed: {ex.Error}.");
+        AppLogger.Info($"Twitch operation failed: {ex.Error}; retryAtUtc={retryAt:O}; lastUpdatedUtc={LastUpdated:O}; retainedStreams={Streams.Count}.");
     }
     private async Task<bool> RunAsync(Func<CancellationToken, Task> work, CancellationToken token)
     {

@@ -37,6 +37,7 @@ internal sealed partial class WidgetManager
             emailService.Status += (session, status) => DispatchEmail(() => { if (emailService?.Generation == session) EmailStatus = status; });
             emailTimer.Tick += async (_, _) => await PresentEmailsAsync(); emailTimer.Start();
         }
+        emailService.SetPowerSuspended(packagePowerSuspended);
         emailService.Configure(emailCommitted,emailReconnectOnCommit); emailReconnectOnCommit=false;
         emailTimer.Enabled=emailCommitted.Enabled;
         if (emailGeneration != emailService.Generation) { emailGeneration = emailService.Generation; if(accountChanged||!emailCommitted.Enabled) { emailPresentation.Reset(); emailWidget?.Hide(); emailWidget?.SetNotices([]); } else emailPresentation.DiscardWaiting(); }
@@ -63,7 +64,7 @@ internal sealed partial class WidgetManager
                 if (!await emailService.ChangeAsync(session, keys, true)) { emailPresentation.Forget(keys); return; }
                 if (emailDisposed) return;
                 if(emailService.Generation!=session) { await emailService.RestorePendingAsync(account,keys); return; }
-                if (emailCommitted.HoldDuringFullscreen && EmailFullscreenState() != false) { await emailService.ChangeAsync(session, keys, false); return; }
+                if (packagePowerSuspended || emailCommitted.HoldDuringFullscreen && EmailFullscreenState() != false) { await emailService.ChangeAsync(session, keys, false); return; }
                 EnsureEmailWidget();
                 emailWidget!.SetNotices(emailPresentation.Active.Concat(next).ToArray());
                 emailWidget.Show();

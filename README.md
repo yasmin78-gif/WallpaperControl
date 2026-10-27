@@ -15,16 +15,15 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.3.0**
+**Current release: v2.3.1**
 
-## ✨ New in 2.3.0
+## ✨ New in 2.3.1
 
-- E-Mail Watcher with sender/subject rules, sound previews, and local mail application selection.
-- Screenshot history alongside clipboard text, with configurable local storage and automatic cleanup.
-- Website shortcuts with favicons, custom images, live icon previews, and suggested website names.
-- Clipboard access while dialogs are open and more reliable Now Playing auto-hide.
+- Catch up on matching emails after sleep or time offline, without duplicate notifications.
+- Improve Quick Launcher drag-and-drop by opening shortcut dialogs after the drop completes.
+- Add detailed Twitch connection diagnostics without logging credentials or response contents.
 
-[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
+[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
 
 ## ✨ Features
 

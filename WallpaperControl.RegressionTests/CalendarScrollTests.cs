@@ -42,7 +42,7 @@ internal static class CalendarScrollTests
             view.Update(622, 700, 2500, dpi);
             check(view.PhysicalHeight == 700 * scale && view.CanScroll && Math.Abs(view.MaxScrollOffset - 1) < .01f,
                 $"Calendar {dpi} DPI overflow starts only beyond the viewport");
-            check(view.Track.Width * scale == 6 * scale && view.ContentBounds.Right < view.Track.Left
+            check(view.Track.Width * scale == 10 * scale && view.ContentBounds.Right < view.Track.Left
                 && view.Track.Bottom == view.LogicalHeight - 25 && view.Track.Top == 54,
                 $"Calendar {dpi} DPI scrollbar, reserved text width and fixed chrome use consistent units");
             view.Update(1600, 1400, 500, dpi);
@@ -187,9 +187,9 @@ internal static class CalendarScrollTests
             check(Pixels(scrolled, Color.Lime, reserved) == 0 && Pixels(scrolled, Color.Magenta, reserved) == 0,
                 $"Calendar {style}/{dpi} long event text cannot paint over scrollbar space");
             view.SetOffset(0);
-            var changedHoliday = provider.Events.Select(e => e with { SourceColorArgb = Color.Blue.ToArgb() }).ToArray();
+            var changedHoliday = provider.Events.Select(e => e.UsesHolidayStyle ? e with { SourceColorArgb = Color.Blue.ToArgb() } : e).ToArray();
             using Bitmap differentColors = form.RenderBitmap(changedHoliday, 2000, dpi);
-            check(Same(top, differentColors, new Rectangle((int)(12 * scale), (int)(74 * scale), (int)(290 * scale), (int)(18 * scale))),
+            check(Same(top, differentColors, new Rectangle(Point.Empty, top.Size)),
                 $"Calendar {style}/{dpi} holiday row retains its independent styling");
         }
         App.CalendarEvent original = provider.Events[1] with { Title = "FIXTURE", Location = "", IsHoliday = false };

@@ -15,16 +15,15 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.3.0**
+**Aktuelle Version: v2.3.1**
 
-## ✨ Neu in 2.3.0
+## ✨ Neu in 2.3.1
 
-- E-Mail-Wächter mit Absender-/Betreffregeln, Soundvorschau und Auswahl lokaler Mailprogramme.
-- Screenshot-Verlauf neben kopierten Texten, mit einstellbarer lokaler Speicherung und automatischer Bereinigung.
-- Website-Verknüpfungen mit Favicons, eigenen Bildern, Symbolvorschau und vorgeschlagenen Website-Namen.
-- Bedienbare Zwischenablage bei geöffneten Dialogen und zuverlässigeres Ausblenden der aktuellen Wiedergabe.
+- Passende E-Mails nach dem Aufwachen oder einer Offlinezeit ohne doppelte Meldungen nachholen.
+- Verbessertes Drag-and-drop im Quick Launcher: Dialoge öffnen sich nach dem Ablegen.
+- Detaillierte Twitch-Verbindungsdiagnose ohne Zugangsdaten oder Antwortinhalte im Protokoll.
 
-[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
+[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
 
 ## ✨ Funktionen
 

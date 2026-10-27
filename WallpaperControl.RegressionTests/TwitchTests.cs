@@ -119,6 +119,29 @@ internal static class TwitchTests
         check(App.TwitchLinks.Channel("channel_1")?.AbsoluteUri == "https://www.twitch.tv/channel_1", "Channel URL uses canonical Twitch HTTPS address");
         check(new[] { "bad/name", "x?query", "x#fragment", "../x", "", "ümlaut", new string('a', 26) }.All(x => App.TwitchLinks.Channel(x) == null), "Invalid channel logins cannot construct URLs");
 
+        var diagnostics = new List<string>();
+        using (var diagnosticHandler = new Handler())
+        using (var diagnosticApi = new App.TwitchApi(diagnosticHandler, diagnostics.Add))
+        {
+            async Task Failure(Action respond, string expected, App.TwitchError error)
+            {
+                diagnostics.Clear(); respond();
+                try { await diagnosticApi.GetStreamsAsync("secret-access-marker", "private-user-marker", default); check(false, "Expected diagnostic failure"); }
+                catch (App.TwitchException ex) { check(ex.Error == error, "Diagnostics preserves error mapping: " + expected); }
+                check(diagnostics.Count == 1 && diagnostics[0].Contains(expected, StringComparison.Ordinal)
+                    && diagnostics[0].Contains("endpoint=/helix/streams/followed;", StringComparison.Ordinal)
+                    && diagnostics[0].Contains("elapsedMs=", StringComparison.Ordinal), "Transport diagnostic: " + expected);
+                check(!diagnostics.Any(line => new[] { "secret-access-marker", "private-user-marker", "secret-body-marker", "secret-exception-marker", "user_id=" }.Any(line.Contains)), "Diagnostics excludes credentials, query, response and exception text");
+            }
+            await Failure(() => diagnosticHandler.Respond = (_, _) => Json("secret-body-marker", HttpStatusCode.ServiceUnavailable), "reason=HttpError; http=503", App.TwitchError.Unavailable);
+            await Failure(() => diagnosticHandler.Respond = (_, _) => throw new HttpRequestException(HttpRequestError.NameResolutionError, "secret-exception-marker"), "NetworkError/NameResolutionError", System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable() ? App.TwitchError.Unavailable : App.TwitchError.Offline);
+            await Failure(() => diagnosticHandler.Respond = (_, _) => throw new TaskCanceledException("secret-exception-marker"), "reason=Timeout;", App.TwitchError.Unavailable);
+            await Failure(() => diagnosticHandler.Respond = (_, _) => Json("secret-body-marker"), "InvalidResponse/JsonReaderException", App.TwitchError.InvalidResponse);
+            diagnostics.Clear();
+            diagnosticHandler.Respond = (_, _) => Json("{\"message\":\"authorization_pending\"}", HttpStatusCode.BadRequest);
+            check(await diagnosticApi.PollDeviceAsync("secret-device-marker", default) == null && diagnostics.Count == 0, "Expected device polling does not produce failure logs");
+        }
+
         using var handler = new Handler(); using var realApi = new App.TwitchApi(handler);
         handler.Respond = (request, body) =>
         {

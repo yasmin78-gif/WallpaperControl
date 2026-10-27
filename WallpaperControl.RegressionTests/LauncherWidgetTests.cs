@@ -1,4 +1,4 @@
-extern alias WallpaperApp;
+﻿extern alias WallpaperApp;
 using App=WallpaperApp::WallpaperControl;
 using System.Diagnostics;
 using System.Reflection;
@@ -17,6 +17,27 @@ internal static class LauncherWidgetTests
         string registry=@"Software\WallpaperControl.LauncherChecks-"+Guid.NewGuid().ToString("N");
         try
         {
+            using(var owner=new System.Windows.Forms.Control()) {
+                _=owner.Handle;
+                bool returned=false,opened=false,temporaryAvailable=false; int cleaned=0;
+                var temporary=Path.Combine(root,"deferred-test.lnk"); File.WriteAllText(temporary,"synthetic staging content");
+                bool posted=App.LauncherDropDispatch.TryPost(owner,()=> { opened=returned; temporaryAvailable=File.Exists(temporary); },()=> { cleaned++; File.Delete(temporary); });
+                check(posted&&!opened&&cleaned==0&&File.Exists(temporary),"Drop returns before deferred dialog and retains staging resources");
+                returned=true; System.Windows.Forms.Application.DoEvents();
+                check(opened&&temporaryAvailable,"Deferred dialog runs after drop callback with staging intact");
+                check(cleaned==1&&!File.Exists(temporary),"Deferred drop cleans staging exactly once after dialog");
+                owner.Dispose(); check(cleaned==1,"Disposal does not repeat completed drop cleanup");
+            }
+            using(var owner=new System.Windows.Forms.Control()) {
+                _=owner.Handle; bool opened=false; int cleaned=0;
+                App.LauncherDropDispatch.TryPost(owner,()=>opened=true,()=>cleaned++);
+                owner.Dispose(); System.Windows.Forms.Application.DoEvents();
+                check(!opened&&cleaned==1,"Closing launcher cancels pending dialog and cleans staging");
+            }
+            using(var owner=new System.Windows.Forms.Control()) {
+                int cleaned=0;
+                check(!App.LauncherDropDispatch.TryPost(owner,()=>throw new Exception("must not run"),()=>cleaned++)&&cleaned==1,"Unavailable drop window rejects deferred work and cleans staging");
+            }
             var document=Path.Combine(root,"file with spaces.txt"); System.IO.File.WriteAllText(document,"test");
             var program=Environment.ProcessPath!;
             var folder=App.LauncherTargets.Create("Folder",root,""); var file=App.LauncherTargets.Create("File",document,""); var web=App.LauncherTargets.Create("GitHub","https://github.com/","");

@@ -10,7 +10,15 @@ internal sealed partial class WidgetManager
     internal Action<TrackedShipment, string>? ShowPackageNotification { get; set; }
     internal Action? ClearPackageNotifications { get; set; }
     internal void SetPackagePowerSuspended(bool value)
-    { packagePowerSuspended = value; packageNotifications?.SetSuspended(value || activitySuspended); if (value) ClearPackageNotifications?.Invoke(); packageScheduler?.SetPowerSuspended(value); }
+    {
+        packagePowerSuspended = value;
+        emailPresentation.SetBlocked(value || emailCommitted.HoldDuringFullscreen && EmailFullscreenState() != false);
+        if (value) emailWidget?.Hide();
+        emailService?.SetPowerSuspended(value);
+        packageNotifications?.SetSuspended(value || activitySuspended);
+        if (value) ClearPackageNotifications?.Invoke();
+        packageScheduler?.SetPowerSuspended(value);
+    }
     private PackageTrackingWidgetForm? packageWidget;
     private bool packageDialogOpen;
     private readonly TrackingCredentialStore packageCredentialStore;

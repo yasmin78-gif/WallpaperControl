@@ -15,16 +15,15 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.3.0**
+**Versión actual: v2.3.1**
 
-## ✨ Novedades de la versión 2.3.0
+## ✨ Novedades de la versión 2.3.1
 
-- Vigilancia del correo con reglas de remitente/asunto, vista previa de sonidos y selección de programa de correo.
-- Historial de capturas de pantalla con almacenamiento local configurable y limpieza automática.
-- Accesos web con favicons, imágenes propias, vista previa de iconos y nombres sugeridos.
-- Portapapeles disponible mientras hay diálogos abiertos y ocultación más fiable de la reproducción actual.
+- Recuperación de avisos de correos coincidentes tras la suspensión o un período sin conexión, sin duplicados.
+- Arrastrar y soltar mejorado en el lanzador: los diálogos se abren después de soltar.
+- Diagnóstico detallado de conexiones de Twitch sin registrar credenciales ni contenido de respuestas.
 
-[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
+[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
 
 ## ✨ Funciones
 

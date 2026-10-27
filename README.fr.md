@@ -15,16 +15,15 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.3.0**
+**Version actuelle : v2.3.1**
 
-## ✨ Nouveautés de la version 2.3.0
+## ✨ Nouveautés de la version 2.3.1
 
-- Surveillance des e-mails avec règles d’expéditeur/objet, aperçu sonore et sélection d’un logiciel de messagerie.
-- Historique des captures d’écran avec stockage local configurable et nettoyage automatique.
-- Raccourcis web avec favicons, images personnalisées, aperçu des icônes et noms suggérés.
-- Presse-papiers utilisable pendant les dialogues et masquage plus fiable de la lecture en cours.
+- Rattrapage des e-mails correspondants après la veille ou une période hors ligne, sans notifications en double.
+- Glisser-déposer amélioré dans le lanceur : les dialogues s’ouvrent après le dépôt.
+- Diagnostics de connexion Twitch détaillés sans identifiants ni contenu des réponses dans les journaux.
 
-[Télécharger l’installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [Notes de version et somme SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
+[Télécharger l’installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Notes de version et somme SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
 
 ## ✨ Fonctionnalités
 

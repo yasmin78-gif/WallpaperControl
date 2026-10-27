@@ -17,7 +17,7 @@ internal static class EmailWatcherIntegrationTests
     {
         root = Path.Combine(AppContext.BaseDirectory, "email-tests", Guid.NewGuid().ToString("N")); Directory.CreateDirectory(root);
         try {
-            Foundations(check); Service(check).GetAwaiter().GetResult(); EmailImapProtocolTests.Run(check).GetAwaiter().GetResult();
+            Foundations(check); OfflineCatchUp(check).GetAwaiter().GetResult(); Service(check).GetAwaiter().GetResult(); EmailImapProtocolTests.Run(check).GetAwaiter().GetResult();
             Exception? failure = null; var thread = new Thread(() => { try { Ui(check); } catch (Exception ex) { failure = ex; } });
             thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join(); if (failure != null) throw failure;
         } finally {
@@ -181,6 +181,34 @@ internal static class EmailWatcherIntegrationTests
         check(reconfigured.PreviewCalls==previewsBefore,"Disabled preview never downloads matching message body on restart");
         changing.Dispose(); await changing.Completion;
     }
+    private static async Task OfflineCatchUp(Action<bool,string> check)
+    {
+        var options = Settings(); var inbox = new FakeInbox();
+        var store = new App.EmailWatcherStateStore(Path.Combine(root, "offline"));
+        using (var first = new App.EmailWatcherService(store, () => new FakeMailbox(inbox))) {
+            first.Configure(options); await Until(() => inbox.WaitCalls > 0);
+            first.Dispose(); await first.Completion;
+        }
+        // Messages arrive with no running process. The adapter does not filter read/unread flags.
+        inbox.Add(10); inbox.Add(11, "other@else.invalid"); inbox.Add(12);
+        var notices = new ConcurrentDictionary<App.EmailMessageKey,App.EmailNotice>();
+        using var resumed = new App.EmailWatcherService(store, () => new FakeMailbox(inbox));
+        resumed.Ready += (_, items) => { foreach (var item in items) notices[item.Key] = item; };
+        resumed.Configure(options); await Until(() => notices.Count == 2);
+        check(notices.Keys.Select(key=>key.Uid).Order().SequenceEqual(new uint[]{10,12}), "Cold start catches matching offline arrivals and skips nonmatching mail");
+        check(await resumed.ChangeAsync(resumed.Generation, notices.Keys.ToArray(), true), "Offline bundle is reserved once");
+        resumed.SetPowerSuspended(true); await resumed.Completion;
+        check(inbox.Active == 0, "Suspend cancels IDLE and releases mailbox");
+        notices.Clear(); inbox.Add(13); inbox.Add(14);
+        int connections = inbox.Connects;
+        resumed.SetPowerSuspended(false); resumed.SetPowerSuspended(false);
+        await Until(() => notices.Count == 2);
+        check(notices.Keys.Select(key=>key.Uid).Order().SequenceEqual(new uint[]{13,14}), "Resume catches sleeping arrivals without reannouncing presented mail");
+        check(inbox.Connects == connections + 1 && inbox.MaximumActive == 1, "Duplicate resume signals create one serialized reconnection");
+        check(store.Load(options.Account).Through == 14, "Offline catch-up persists new checkpoint");
+        resumed.Dispose(); await resumed.Completion;
+    }
+
     private static void Pump(Func<bool> done)
     {
         var timer = Stopwatch.StartNew(); while (!done() && timer.Elapsed < TimeSpan.FromSeconds(15)) { Application.DoEvents(); Thread.Sleep(5); }
@@ -279,6 +307,14 @@ internal static class EmailWatcherIntegrationTests
             App.EmailWatcherSound played=App.EmailWatcherSound.None; manager.EmailSoundPlayer=tone=> { played=tone; sounds++; };
             Field<ComboBox>(editor,"emailSound").SelectedIndex=2; check(session.Save(),"Premium sound selection saved"); inbox.Add(13); Pump(()=>Field<App.EmailPresentationModel>(manager,"emailPresentation").Active.Any(notice=>notice.Key.Uid==13));
             check(played==App.EmailWatcherSound.Premium&&sounds==3,"Configured email-only sound used for next bundle");
+            manager.SetPackagePowerSuspended(true);
+            Pump(() => inbox.Active == 0);
+            check(!widget.Visible, "Power suspend immediately hides email notification");
+            inbox.Add(14); inbox.Add(15);
+            int beforeResume = inbox.Connects;
+            manager.SetPackagePowerSuspended(false); manager.SetPackagePowerSuspended(false);
+            Pump(() => Field<App.EmailPresentationModel>(manager,"emailPresentation").Active.Any(notice=>notice.Key.Uid==15));
+            check(inbox.Connects == beforeResume + 1 && sounds == 4, "Manager resume displays offline bundle with one notification sound");
             foreach (var language in new[] { "de", "en", "fr", "es", "ja" }) foreach (var style in Enum.GetValues<App.SystemWidgetStyle>()) foreach (bool dark in new[] { false,true }) {
                 using var rendered = new App.EmailWatcherWidgetForm(new(){Style=style,MaximumHeight=300}, language, _=>{}, ()=>{}, ()=>{}); rendered.ApplyTheme(dark);
                 rendered.SetNotices(Enumerable.Range(1,20).Select(i=>Notice(saved.Account.Id,(uint)i,"Unicode 日本語 😀 " + new string('x',400))).ToArray());

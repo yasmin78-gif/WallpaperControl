@@ -13,16 +13,15 @@ Windows
 デスクトップに自然に統合され、アプリケーション終了時には Windows
 標準の壁紙処理を復元します。
 
-**現在のリリース: v2.3.0**
+**現在のリリース: v2.3.1**
 
-## ✨ 2.3.0 の新機能
+## ✨ 2.3.1 の新機能
 
-- 送信者・件名ルール、サウンド試聴、ローカルメールアプリの選択に対応したメール監視ウィジェット。
-- 保存期間・件数の設定と自動削除に対応した、スクリーンショットのローカル履歴。
-- ファビコン、独自画像、アイコンのプレビュー、サイト名の候補に対応した Web ショートカット。
-- ダイアログ表示中も使えるクリップボードと、再生ウィジェットの自動非表示の改善。
+- スリープやオフライン中に届いた条件に一致するメールを、重複せずに通知。
+- クイックランチャーのドラッグ＆ドロップを改善し、ドロップ完了後にダイアログを表示。
+- 認証情報や応答内容を記録せずに、Twitch 接続の診断情報を詳しく記録。
 
-[Windows x64 インストーラーをダウンロード](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.0/WallpaperControl-2.3.0-Setup-x64.exe) · [リリースノートと SHA-256 チェックサム](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.0)
+[Windows x64 インストーラーをダウンロード](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [リリースノートと SHA-256 チェックサム](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
 
 ## ✨ 機能
 

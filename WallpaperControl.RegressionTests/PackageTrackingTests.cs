@@ -86,8 +86,8 @@ internal static class PackageTrackingTests
         check((await service.AddAsync("SECOND", null)).Outcome == App.PackageOperation.ProviderError && service.Shipments.Count == 1, "Packages failed create leaves no zombie");
         provider.FailCreate = false; await service.AddAsync("SECOND", null);
         var second = service.Shipments.Single(s => s.TrackingNumber == "SECOND");
-        store.Save(initial with { DisplayName = "Renamed", NotificationState = new() { NotifiedEventIds = new() { "keep" } } });
-        store.Save(second); // TrackingStore replaces an entry at the end; make request ordering explicit.
+        check(store.Save(initial with { DisplayName = "Renamed", NotificationState = new() { NotifiedEventIds = new() { "keep" } } }), "Packages metadata fixture is persisted before refresh");
+        check(store.Save(second), "Packages second fixture is persisted before refresh"); // Keep request ordering explicit.
         var pending = new TaskCompletionSource<App.TrackedShipment>(); provider.Get = _ => pending.Task;
         var running = service.RefreshAsync();
         check(service.Busy && (await service.RefreshAsync()).Outcome == App.PackageOperation.Busy && provider.Fetched == 1, "Packages refresh storm is suppressed");
