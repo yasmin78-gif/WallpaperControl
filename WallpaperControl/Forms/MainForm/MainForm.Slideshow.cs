@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -293,6 +293,7 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ToggleSlideshowPauseAsync(bool refreshDisplay)
         {
+            if (visitorMode?.Active == true) return;
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
                 if (videoWallpaper != null) videoWallpaper.SetPause(VideoPauseReason.Manual,

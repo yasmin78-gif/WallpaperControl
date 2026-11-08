@@ -40,6 +40,7 @@ namespace WallpaperControl
         public SystemWidgetStyle NotesStyle { get; set; } = SystemWidgetStyle.Minimal;
         public Point NotesLocation { get; set; } = new(740, 40);
         public int WallpaperInfoFontSize { get; set; } = 13;
+        public VisitorWidgetSettings Visitor { get; set; } = new();
         public bool ClockEnabled { get; set; }
         public bool ClockLocked { get; set; }
         public int ClockSize { get; set; } = 150;
@@ -100,6 +101,7 @@ namespace WallpaperControl
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryPath);
                 if (key == null) return result;
+                result.Visitor = VisitorWidgetSettings.Load(key);
                 result.EmailWatcher=EmailWatcherSettings.Parse(key.GetValue("EmailWatcherConfiguration") as string ?? "{}");
                 result.Launcher = LauncherSettings.Parse(key.GetValue("LauncherWidgetConfiguration") as string ?? "{}");
                 result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
@@ -298,6 +300,7 @@ namespace WallpaperControl
                 key.SetValue("WeatherWidgetY", WeatherLocation.Y, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetEnabled", CalendarEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetLocked", CalendarLocked ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("VisitorWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Visitor), RegistryValueKind.String);
                 key.SetValue("CalendarWidgetStyle", (int)CalendarStyle, RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetMaximumHeight", CalendarViewport.NormalizeMaximum(CalendarMaximumHeight), RegistryValueKind.DWord);
                 key.SetValue("CalendarWidgetMaxEntries", CalendarMaxEntries <= 3 ? 3 : CalendarMaxEntries <= 5 ? 5 : 9, RegistryValueKind.DWord);
@@ -320,6 +323,7 @@ namespace WallpaperControl
         public WidgetSettings Clone() => new()
         {
             loadFailed = loadFailed,
+            Visitor = Visitor.Clone(),
             Web = Web.Clone(),
             EmailWatcher = EmailWatcher.Clone(),
             Launcher = Launcher.Clone(), Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },

@@ -77,6 +77,7 @@
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = true;
             MinimumSize = new Size(960, 620); ClientSize = new Size(1260, 800);
             InitializeWallpaperPage();
+            InitializeVisitorUi();
             ResumeLayout(true);
             UpdateWidgetPresentation();
             LayoutWallpaperPage();
@@ -89,9 +90,11 @@
         };
         private void SelectMainSection(bool widgets)
         {
-            if (widgets == showingWidgets) return;
+            if (widgets == showingWidgets && !showingVisitor) return;
             if (!widgets && !ResolveWidgetNavigation()) return;
             if (widgets) widgetEditSession!.Begin();
+            showingVisitor = false;
+            if (visitorPage != null) visitorPage.Visible = false;
             showingWidgets = widgets;
             widgetsPage!.Visible = widgets; wallpaperPage!.Visible = !widgets;
             // A hidden page can acquire its handle only after a tray restore.
@@ -123,6 +126,7 @@
             wallpaperContent!.BackColor = wallpaperPage.BackColor;
             mainNavigation.BackColor = AppTheme.SidebarBackground(darkMode);
             widgetEditor.ApplyPresentation(darkMode, language);
+            ApplyVisitorPresentation();
             foreach (Control control in widgetsPage.Controls)
                 if (control != widgetEditor)
                 {
@@ -134,7 +138,7 @@
             foreach (Button button in new[] { wallpaperNavigation!, widgetsNavigation! })
             {
                 button.Text = $"{button.AccessibleDescription}   {Localization.Get((string)button.Tag!, language)}";
-                StyleButton(button, (button == widgetsNavigation) == showingWidgets ? AppTheme.SelectionBackground(darkMode) : mainNavigation.BackColor, AppTheme.TextPrimary(darkMode));
+                StyleButton(button, !showingVisitor && (button == widgetsNavigation) == showingWidgets ? AppTheme.SelectionBackground(darkMode) : mainNavigation.BackColor, AppTheme.TextPrimary(darkMode));
                 button.FlatAppearance.BorderSize = 0;
             }
         }

@@ -71,7 +71,9 @@ namespace WallpaperControl
         public void Start()
         {
             previewMode = false;
+            visitorWidgetsStarted = true;
             ApplyVisualState(settings, restoreLocations: true);
+            UpdateVisitorWidget();
         }
 
         /// <summary>
@@ -85,6 +87,8 @@ namespace WallpaperControl
             // Keep locations from the current live widget state. This allows
             // a widget to be moved while the settings dialog is open without
             // every checkbox/size change snapping it back to the old position.
+            var visitorLocation = settings.Visitor.Location;
+            settings.Visitor = previewSettings.Visitor.Clone(); settings.Visitor.Location = visitorLocation;
             WebWidgetSettings webPreview = previewSettings.Web.Clone();
             webPreview.CopyGeometry(settings.Web);
             settings.Web = webPreview;
@@ -163,6 +167,7 @@ namespace WallpaperControl
             // owns the enable/lock/size values; drag operations belong to the
             // widget windows themselves.
             WebWidgetSettings webGeometry = settings.Web.Clone();
+            Point visitorLocation = settings.Visitor.Location;
             Point twitchLocation = settings.TwitchLocation;
             Point packageLocation = settings.PackageLocation;
             Point notesLocation = settings.NotesLocation;
@@ -178,6 +183,7 @@ namespace WallpaperControl
             PreserveFeedContents(committedSettings); committedSettings.NowPlaying.Location = settings.NowPlaying.Location; committedSettings.Clipboard.Location = settings.Clipboard.Location;
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
+            settings.Visitor.Location = visitorLocation;
             settings.TwitchLocation = twitchLocation;
             settings.PackageLocation = packageLocation;
             settings.NotesLocation = notesLocation;
@@ -220,6 +226,7 @@ namespace WallpaperControl
         /// <param name="restoreLocations">True to restore saved positions as well as visual preferences.</param>
         private void ApplyVisualState(WidgetSettings target, bool restoreLocations)
         {
+            UpdateVisitorWidget(restoreLocations);
             NotificationSound = NotificationSounds.Normalize((int)target.NotificationSound);
             ApplyEmailWatcher(target,restoreLocations);
             // Preview mode keeps the widget windows interactive even though the
@@ -779,6 +786,7 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            DisposeVisitorWidget();
             DisposeEmailWatcher();
             DisposeTwitch();
             DisposeFeeds();

@@ -1,4 +1,4 @@
-using WallpaperControl.Video;
+﻿using WallpaperControl.Video;
 
 namespace WallpaperControl;
 
@@ -176,6 +176,7 @@ public partial class MainForm
         }
         else if (videoLiveTestItem != null) videoLiveTestItem.Enabled = true;
         if (selected) statusLabel.Visible = activateButton.Visible = false;
+        ApplyVisitorControlAvailability();
         LayoutWallpaperPage();
     }
     private void UpdateVideoEngineStatusColor()
@@ -266,6 +267,7 @@ public partial class MainForm
 
     private async Task ApplyWallpaperModeCoreAsync(WallpaperOperatingMode mode, bool replaceEngine = false)
     {
+        if (visitorMode?.Active == true) return;
         // Reject unsupported topology before touching native wallpaper paths,
         // image scheduler state or transition ownership (especially Span).
         if (mode == WallpaperOperatingMode.VideoWallpaper && videoMonitorCount() != 1)
@@ -425,7 +427,8 @@ public partial class MainForm
         }
         finally { ReleaseComObject(wallpaper); }
     }
-    private void RestoreImageMode()
+    private void RestoreImageMode() => RestoreImageModeCore(false);
+    private void RestoreImageModeCore(bool strict)
     {
         var snapshot = savedImageMode; savedImageMode = null;
         if (snapshot == null) return;
@@ -436,7 +439,7 @@ public partial class MainForm
             customSlideshowEngineActive = false;
             if (snapshot.Custom)
             {
-                if (servicesEnabled) StartCustomSlideshowEngine();
+                if (servicesEnabled || StartImageSessionForTests != null) StartCustomSlideshowEngineFromPath(snapshot.StaticPath);
                 else customSlideshowEngineActive = true;
                 slideshowPaused = snapshot.ManualPaused;
                 if (servicesEnabled && !customSlideshowEngineActive && !slideshowPaused && !fullscreenPolicy.IsPaused && Directory.Exists(folderTextBox.Text))
@@ -464,6 +467,7 @@ public partial class MainForm
         {
             customSlideshowEngineActive = false;
             AppLogger.Info($"Image mode restoration failed safely; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+            if (strict) throw;
         }
         finally { snapshot.Dispose(); }
     }

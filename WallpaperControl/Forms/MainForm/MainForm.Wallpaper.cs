@@ -37,26 +37,8 @@ namespace WallpaperControl
 
                 string nativePath = wallpaper.GetWallpaper(monitorCount > 0
                     ? wallpaper.GetMonitorDevicePathAt(0) : null);
-                if (PersistentDesktopTransitionManager.HasExternalWallpaperChange(nativePath))
-                {
-                    customWallpaperCancellation?.Cancel();
-                    PersistentDesktopTransitionManager.Shutdown();
-                    slideshowPaused = customSlideshowEngineActive || slideshowPaused;
-                    ArmCustomSlideshowPreciseTimer();
-                    return nativePath;
-                }
-                if (!string.IsNullOrWhiteSpace(hostedWallpaper) && File.Exists(hostedWallpaper))
-                {
-                    if (!PersistentDesktopTransitionManager.SupportsConfiguration(
-                            Screen.AllScreens.Length, wallpaper.GetPosition()))
-                    {
-                        customWallpaperCancellation?.Cancel();
-                        PersistentDesktopTransitionManager.ApplyNativeSelection(
-                            () => wallpaper.SetWallpaper(null, hostedWallpaper));
-                    }
-                    return hostedWallpaper;
-                }
-                return nativePath;
+                return ReconcileNativeWallpaper(nativePath, () => PersistentDesktopTransitionManager.SupportsConfiguration(
+                    Screen.AllScreens.Length, wallpaper.GetPosition()));
             }
             catch (Exception ex)
             {
@@ -67,6 +49,30 @@ namespace WallpaperControl
             {
                 ReleaseComObject(wallpaper);
             }
+        }
+
+        internal string? ReconcileNativeWallpaper(string? nativePath, Func<bool> supportsConfiguration)
+        {
+            string? hostedWallpaper = PersistentDesktopTransitionManager.GetDisplayedWallpaperPath();
+            if (PersistentDesktopTransitionManager.HasExternalWallpaperChange(nativePath))
+            {
+                customWallpaperCancellation?.Cancel();
+                PersistentDesktopTransitionManager.Shutdown();
+                slideshowPaused = customSlideshowEngineActive || slideshowPaused;
+                ArmCustomSlideshowPreciseTimer();
+                return nativePath;
+            }
+            if (!string.IsNullOrWhiteSpace(hostedWallpaper) && File.Exists(hostedWallpaper))
+            {
+                if (!supportsConfiguration())
+                {
+                    customWallpaperCancellation?.Cancel();
+                    FreezeNativeWallpaper(hostedWallpaper);
+                    PersistentDesktopTransitionManager.Shutdown();
+                }
+                return hostedWallpaper;
+            }
+            return nativePath;
         }
 
         /// <summary>
@@ -100,6 +106,7 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            if (visitorMode?.Active == true) return false;
             int lease = wallpaperOwnership.Generation;
             if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             LogScheduler($"manual request; direction={direction}");

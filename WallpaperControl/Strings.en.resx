@@ -1873,4 +1873,34 @@ Would you like to open the release page?</value>
   <data name="EmailNoProgram" xml:space="preserve"><value>No mail application / webmail</value></data>
   <data name="EmailWindowsDefault" xml:space="preserve"><value>Windows default</value></data>
   <data name="EmailCustomProgram" xml:space="preserve"><value>Other application …</value></data>
+  <data name="VisitorTitle" xml:space="preserve"><value>Visitor mode</value></data>
+  <data name="VisitorSource" xml:space="preserve"><value>Media source</value></data>
+  <data name="VisitorPath" xml:space="preserve"><value>Configured source</value></data>
+  <data name="VisitorBrowse" xml:space="preserve"><value>Choose source …</value></data>
+  <data name="VisitorImage" xml:space="preserve"><value>Single image</value></data>
+  <data name="VisitorVideo" xml:space="preserve"><value>Single video (MP4, loop)</value></data>
+  <data name="VisitorFolder" xml:space="preserve"><value>Media folder (images and MP4)</value></data>
+  <data name="VisitorInterval" xml:space="preserve"><value>Visitor folder interval (seconds)</value></data>
+  <data name="VisitorShuffle" xml:space="preserve"><value>Shuffle visitor folder</value></data>
+  <data name="VisitorWidget" xml:space="preserve"><value>Show mini widget</value></data>
+  <data name="VisitorLocked" xml:space="preserve"><value>Lock widget position</value></data>
+  <data name="VisitorBusy" xml:space="preserve"><value>Switching playback …</value></data>
+  <data name="VisitorActive" xml:space="preserve"><value>Visitor mode active</value></data>
+  <data name="VisitorInactive" xml:space="preserve"><value>Visitor mode off – normal playback</value></data>
+  <data name="VisitorMediaError" xml:space="preserve"><value>Visitor media is missing, damaged or unsupported. Visitor mode stays active with a neutral background. Check the source and save again.</value></data>
+  <data name="VisitorPlaybackError" xml:space="preserve"><value>Playback change failed. Visitor mode remains active if restoration fails. Check the source and try again.</value></data>
+  <data name="VisitorSaveError" xml:space="preserve"><value>Settings could not be saved. The state for the next launch is not secured.</value></data>
+  <data name="VisitorHelp" xml:space="preserve"><value>Save to apply source changes. Videos play silently and require one monitor. Visitor mode stays active on media errors. Windows controls the desktop before this application starts.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Active</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Off</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Switching …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Check source</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>Optional global hotkey: click the field and press a Ctrl/Alt combination. Delete clears it.</value></data>
+  <data name="VisitorWidgetScale" xml:space="preserve"><value>Widget size (%)</value></data>
+  <data name="VisitorStyleOpacity" xml:space="preserve"><value>Use style transparency</value></data>
+  <data name="VisitorOpacity" xml:space="preserve"><value>Background opacity (%)</value></data>
+  <data name="VisitorBackground" xml:space="preserve"><value>Choose background color …</value></data>
+  <data name="VisitorTextColor" xml:space="preserve"><value>Choose text color …</value></data>
+  <data name="VisitorResetColors" xml:space="preserve"><value>Restore style colors</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Show title</value></data>
 </root>

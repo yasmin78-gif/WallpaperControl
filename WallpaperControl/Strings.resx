@@ -1873,4 +1873,34 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="EmailNoProgram" xml:space="preserve"><value>Kein Mailprogramm / Webmail</value></data>
   <data name="EmailWindowsDefault" xml:space="preserve"><value>Windows-Standard</value></data>
   <data name="EmailCustomProgram" xml:space="preserve"><value>Anderes Programm …</value></data>
+  <data name="VisitorTitle" xml:space="preserve"><value>Besuchermodus</value></data>
+  <data name="VisitorSource" xml:space="preserve"><value>Medienquelle</value></data>
+  <data name="VisitorPath" xml:space="preserve"><value>Konfigurierte Quelle</value></data>
+  <data name="VisitorBrowse" xml:space="preserve"><value>Quelle auswählen …</value></data>
+  <data name="VisitorImage" xml:space="preserve"><value>Einzelbild</value></data>
+  <data name="VisitorVideo" xml:space="preserve"><value>Einzelvideo (MP4, Endlosschleife)</value></data>
+  <data name="VisitorFolder" xml:space="preserve"><value>Medienordner (Bilder und MP4)</value></data>
+  <data name="VisitorInterval" xml:space="preserve"><value>Wechselintervall im Besucherordner (Sekunden)</value></data>
+  <data name="VisitorShuffle" xml:space="preserve"><value>Zufällige Reihenfolge im Besucherordner</value></data>
+  <data name="VisitorWidget" xml:space="preserve"><value>Mini-Widget anzeigen</value></data>
+  <data name="VisitorLocked" xml:space="preserve"><value>Widgetposition sperren</value></data>
+  <data name="VisitorBusy" xml:space="preserve"><value>Wiedergabe wird umgeschaltet …</value></data>
+  <data name="VisitorActive" xml:space="preserve"><value>Besuchermodus aktiv</value></data>
+  <data name="VisitorInactive" xml:space="preserve"><value>Besuchermodus aus – normale Wiedergabe</value></data>
+  <data name="VisitorMediaError" xml:space="preserve"><value>Besuchermedium fehlt, ist beschädigt oder wird nicht unterstützt. Der Besuchermodus bleibt aktiv; ein neutraler Hintergrund wird verwendet. Bitte Quelle prüfen und erneut speichern.</value></data>
+  <data name="VisitorPlaybackError" xml:space="preserve"><value>Umschalten fehlgeschlagen. Der Besuchermodus wird bei fehlgeschlagener Wiederherstellung nicht freigegeben. Bitte Quelle prüfen und erneut versuchen.</value></data>
+  <data name="VisitorSaveError" xml:space="preserve"><value>Die Einstellungen konnten nicht gespeichert werden. Der Zustand für den nächsten Start ist nicht gesichert.</value></data>
+  <data name="VisitorHelp" xml:space="preserve"><value>Änderungen an der Quelle mit „Speichern“ übernehmen. Videos werden stumm abgespielt und benötigen einen Monitor. Bei Fehlern bleibt der Besuchermodus aktiv. Vor dem Start dieser Anwendung kontrolliert Windows den Desktop.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Aktiv</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Aus</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Umschalten …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Quelle prüfen</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>Optionaler globaler Hotkey: Feld anklicken und Ctrl/Alt-Kombination drücken. Entf löscht.</value></data>
+  <data name="VisitorWidgetScale" xml:space="preserve"><value>Widgetgröße (%)</value></data>
+  <data name="VisitorStyleOpacity" xml:space="preserve"><value>Transparenz der Stilvorlage verwenden</value></data>
+  <data name="VisitorOpacity" xml:space="preserve"><value>Hintergrunddeckung (%)</value></data>
+  <data name="VisitorBackground" xml:space="preserve"><value>Hintergrundfarbe auswählen …</value></data>
+  <data name="VisitorTextColor" xml:space="preserve"><value>Schriftfarbe auswählen …</value></data>
+  <data name="VisitorResetColors" xml:space="preserve"><value>Farben der Stilvorlage wiederherstellen</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Titel anzeigen</value></data>
 </root>

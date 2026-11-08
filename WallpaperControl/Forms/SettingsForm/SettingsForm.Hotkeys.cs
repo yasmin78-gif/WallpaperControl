@@ -327,7 +327,8 @@ namespace WallpaperControl
                 (rejectModifiers, rejectKey)
             };
 
-            bool duplicateFound = false;
+            bool duplicateFound = ReservedHotkey is { } reserved && values.Any(value =>
+                IsDuplicate(value.modifiers, value.key, reserved.Modifiers, reserved.Key));
 
             for (int i = 0;
                  i < values.Length &&

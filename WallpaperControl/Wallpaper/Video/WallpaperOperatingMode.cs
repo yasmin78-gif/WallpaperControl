@@ -1,6 +1,6 @@
 namespace WallpaperControl;
 
-internal enum WallpaperOperatingMode { ImageSlideshow, VideoWallpaper }
+internal enum WallpaperOperatingMode { ImageSlideshow, VideoWallpaper, Visitor }
 
 // Shared by every wallpaper producer. A lease captured before an await or dispatch
 // cannot be used after either mode changes, even if the user switches back quickly.

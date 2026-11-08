@@ -12,11 +12,16 @@ namespace WallpaperControl
     /// <param name="Modifiers">The native keyboard modifier flags.</param>
     /// <param name="Key">The virtual-key code.</param>
     /// <param name="DisplayName">The localized action name used in conflict messages.</param>
-    internal sealed record HotkeyBinding(int Id, uint Modifiers, uint Key, string DisplayName);
+    internal sealed record HotkeyBinding(int Id, uint Modifiers, uint Key, string DisplayName)
+    {
+        internal bool NoRepeat { get; init; }
+    }
 
     // Called by the window's UI thread. Localization and action dispatch stay in the UI.
     internal sealed class GlobalHotkeyManager
     {
+        internal static bool HasConflict(IEnumerable<HotkeyBinding> bindings, uint modifiers, uint key) =>
+            modifiers != 0 && key != 0 && bindings.Any(binding => binding.Modifiers == modifiers && binding.Key == key);
         private readonly Func<IntPtr, int, uint, uint, bool> register;
         private readonly Func<IntPtr, int, bool> unregister;
 
@@ -45,7 +50,7 @@ namespace WallpaperControl
             foreach (var binding in bindings)
             {
                 if (binding.Modifiers == 0 || binding.Key == 0) continue;
-                if (!register(handle, binding.Id, binding.Modifiers, binding.Key))
+                if (!register(handle, binding.Id, binding.Modifiers | (binding.NoRepeat ? 0x4000u : 0), binding.Key))
                     failures.Add($"{binding.DisplayName} ({FormatHotkey(binding.Modifiers, binding.Key)})");
             }
             return failures;

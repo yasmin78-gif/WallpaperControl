@@ -32,6 +32,7 @@ namespace WallpaperControl
             {
                 if (replaceBaseline) initialWidgetSettings = value.Clone();
                 calendarSources = new(value.CalendarSources);
+                LoadVisitorControls(value);
                 LoadEmailControls(value);
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
@@ -94,6 +95,7 @@ namespace WallpaperControl
             try
             {
                 Localize(Controls);
+                RefreshWidgetStyleChoices(visitorStyle, (SystemWidgetStyle)Math.Max(0, visitorStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(webStyle, (SystemWidgetStyle)Math.Max(0, webStyle.SelectedIndex));
                 launcherList.ApplyPresentation(language,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex),dark);
                 RefreshWidgetStyleChoices(launcherStyle,(SystemWidgetStyle)Math.Max(0,launcherStyle.SelectedIndex));

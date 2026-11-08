@@ -82,7 +82,8 @@ namespace WallpaperControl
             new HotkeyBinding(HOTKEY_NEXT, hotkeyNextModifiers, hotkeyNextKey, Localization.Get("SettingsHotkeyNext")),
             new HotkeyBinding(HOTKEY_PAUSE, hotkeyPauseModifiers, hotkeyPauseKey, Localization.Get("SettingsHotkeyPause")),
             new HotkeyBinding(HOTKEY_EXPLORER, hotkeyExplorerModifiers, hotkeyExplorerKey, Localization.Get("SettingsHotkeyExplorer")),
-            new HotkeyBinding(HOTKEY_REJECT, hotkeyRejectModifiers, hotkeyRejectKey, Localization.Get("SettingsHotkeyReject"))
+            new HotkeyBinding(HOTKEY_REJECT, hotkeyRejectModifiers, hotkeyRejectKey, Localization.Get("SettingsHotkeyReject")),
+            VisitorHotkeyBinding()
         };
 
         /// <summary>
@@ -106,7 +107,7 @@ namespace WallpaperControl
             bool nextChanged, bool pauseChanged, bool explorerChanged, bool rejectChanged, bool showErrors)
         {
             bool[] changed = { nextChanged, pauseChanged, explorerChanged, rejectChanged };
-            HotkeyBinding[] bindings = GetHotkeyBindings().Where((_, index) => changed[index]).ToArray();
+            HotkeyBinding[] bindings = GetHotkeyBindings().Where((_, index) => index < changed.Length && changed[index]).ToArray();
             ShowHotkeyErrors(hotkeyManager.Replace(Handle, bindings), showErrors);
         }
 
@@ -130,7 +131,7 @@ namespace WallpaperControl
         /// </summary>
         private void UnregisterHotKeys()
         {
-            hotkeyManager.Release(Handle, new[] { HOTKEY_NEXT, HOTKEY_PAUSE, HOTKEY_EXPLORER, HOTKEY_REJECT });
+            hotkeyManager.Release(Handle, new[] { HOTKEY_NEXT, HOTKEY_PAUSE, HOTKEY_EXPLORER, HOTKEY_REJECT, HOTKEY_VISITOR });
         }
 
         /// <summary>
@@ -147,6 +148,9 @@ namespace WallpaperControl
 
                 switch (id)
                 {
+                    case HOTKEY_VISITOR:
+                        if (visitorMode != null) _ = visitorMode.ToggleAsync();
+                        break;
                     case HOTKEY_NEXT:
                         AdvanceWallpaper(
                             DesktopSlideshowDirection.Forward);

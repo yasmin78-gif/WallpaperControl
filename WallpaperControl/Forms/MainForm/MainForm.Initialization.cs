@@ -19,10 +19,11 @@ namespace WallpaperControl
 
         // Isolated UI construction allows navigation tests without activating desktop services.
         internal MainForm(WidgetManager isolatedWidgets, Func<DesktopSlideshowState>? nativeStatus = null,
-            Func<string?>? currentWallpaper = null)
-            : this(isolatedWidgets, false, nativeStatus) { readCurrentWallpaperForTests = currentWallpaper; }
+            Func<string?>? currentWallpaper = null, VisitorModeSettings? visitorSettings = null)
+            : this(isolatedWidgets, false, nativeStatus, visitorSettings) { readCurrentWallpaperForTests = currentWallpaper; }
 
-        private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null)
+        private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null,
+            VisitorModeSettings? visitorSettings = null)
         {
             servicesEnabled = startServices;
             readNativeSlideshowStatus = nativeStatus ?? ReadNativeSlideshowStatus;
@@ -31,6 +32,7 @@ namespace WallpaperControl
                 AdvanceWallpaper(DesktopSlideshowDirection.Forward),
                 advanced => WallpaperInfoSnapshot.Create(lastDisplayedWallpaperPath, activeWallpaperCount, statistics.ViewCounts, advanced));
             statistics.Changed += widgetManager.RefreshWallpaperInfo;
+            InitializeVisitorMode(visitorSettings);
 
             Text = "Wallpaper Control";
 
@@ -666,7 +668,8 @@ namespace WallpaperControl
 
             // The application owns slideshow timing. Schedule the first change
             // at the next clock-aligned interval boundary.
-            if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.ImageSlideshow)
+            if (visitorMode?.Active == true) { /* Reserved before loading normal preferences. */ }
+            else if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.ImageSlideshow)
                 StartCustomSlideshowEngine();
             else if (Screen.AllScreens.Length == 1)
             {

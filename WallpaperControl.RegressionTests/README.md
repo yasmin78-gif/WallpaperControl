@@ -1,5 +1,31 @@
 # Regression checks
 
+Visitor mode has focused entry points:
+
+```powershell
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-mode-checks
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-ui-checks
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-regression-checks
+```
+
+The first covers serialized toggles, persistence, startup snapshots, error safety,
+ownership leases and hotkey policy. The second exercises the actual main form and
+widget with isolated preferences, image fixtures and a fake video backend, including
+pending-video cancellation, source changes, timer restoration and UI scaling. Image
+decoding is real; desktop image application is disabled by the existing isolated
+main-form construction path. It does not set a desktop wallpaper or register a
+global shortcut. A transparent test window is rendered to
+`%TEMP%\WallpaperControl-Visitor-Validation\visitor-ui.png` for visual inspection.
+
+The third runs these checks together with existing scheduler, native advance,
+layout, hotkey, settings, fullscreen, widget navigation, shared UI and wallpaper
+presentation suites. The normal full run also includes the visitor checks; no
+existing package or reminder tests are skipped or relaxed. Run UI suites sequentially
+and finish a running test process before rebuilding its assemblies on Windows.
+
+See [visitor-mode.md](../docs/visitor-mode.md) for implementation
+details, technical limits and the manual desktop acceptance checklist.
+
 Run from the repository root:
 
 ```powershell

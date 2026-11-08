@@ -153,7 +153,7 @@ internal sealed class MfVideoRenderer : IDisposable
                 return false;
             var copy = new byte[checked((int)length)];
             Marshal.Copy(pixels, copy, 0, copy.Length);
-            frame = new(new Size(header.Width, Math.Abs(header.Height)), timestamp, copy);
+            frame = new(new Size(header.Width, Math.Abs(header.Height)), timestamp, copy, header.Height > 0);
             return true;
         }
         finally { if (pixels != 0) Marshal.FreeCoTaskMem(pixels); }
@@ -171,4 +171,22 @@ internal sealed class MfVideoRenderer : IDisposable
     }
 }
 
-internal sealed record MfVideoFrame(Size Size, long Timestamp, byte[] Pixels);
+internal sealed record MfVideoFrame(Size Size, long Timestamp, byte[] Pixels, bool BottomUp = true)
+{
+    internal void SavePng(string path)
+    {
+        if (Size.Width <= 0 || Size.Height <= 0 || Pixels.Length != checked(Size.Width * Size.Height * 4))
+            throw new InvalidDataException("Invalid EVR frame dimensions.");
+        using Bitmap bitmap = new(Size.Width, Size.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+        var data = bitmap.LockBits(new Rectangle(Point.Empty, Size), System.Drawing.Imaging.ImageLockMode.WriteOnly,
+            System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+        try
+        {
+            int rowBytes = checked(Size.Width * 4);
+            for (int row = 0; row < Size.Height; row++)
+                Marshal.Copy(Pixels, (BottomUp ? Size.Height - 1 - row : row) * rowBytes, data.Scan0 + row * data.Stride, rowBytes);
+        }
+        finally { bitmap.UnlockBits(data); }
+        bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+    }
+}
