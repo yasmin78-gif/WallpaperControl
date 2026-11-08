@@ -1,4 +1,107 @@
-# Besuchermodus: Implementierung und Abnahme
+﻿# Besuchermodus: Implementierung und Abnahme
+
+## Nachbesserung nach manueller Abnahme
+
+Quellstand: `a48bc52` auf dem bestehenden Branch `codex/visitor-mode`.
+
+### Ursache der verzögerten Rückkehr
+
+Die Wiederherstellung setzte über `SetWallpaper` das ursprüngliche native Bild
+und startete danach den bestehenden Bildscheduler. Dieser las den Windows-Pfad
+erneut über `GetCurrentWallpaperPath()`. Windows kann zu diesem Zeitpunkt noch
+das Besucherbild melden. Dadurch initialisierte der persistente Desktop-Host das
+Besucherbild und überdeckte die native Wiederherstellung bis zum nächsten Wechsel.
+
+`RestoreImageModeCore` übergibt jetzt den Snapshot-Pfad direkt an
+`StartCustomSlideshowEngineFromPath`. Die vorhandene Rendererinitialisierung zeigt
+dadurch unmittelbar das Originalbild. Es wird kein zusätzlicher Playlistwechsel
+ausgelöst. Die Restzeit wird anschließend wieder eingesetzt. Normale Timer und
+Weiter-Kommandos bleiben bis zur vollständigen Deaktivierung gesperrt.
+
+Die neue Regression simuliert einen weiterhin auf das Besucherbild zeigenden
+Windows-Pfad und prüft den tatsächlich initialisierten Host-Pfad, jeweils mit
+laufender und pausierter Diashow. Sie prüft außerdem die Restzeit und das Ausbleiben
+eines zusätzlichen Übergangs. Die bisherigen isolierten Tests hatten lediglich
+den Zustand geprüft und die Desktop-Initialisierung übersprungen.
+
+### Neue Bedienung und Widgetintegration
+
+- Der Besucherschalter liegt auf **Wallpaper**, oberhalb der Diashowkarten.
+  Er erscheint nach dem Speichern einer verfügbaren Quelle. Eine ungespeicherte
+  Auswahl reicht nicht. Im aktiven Modus bleibt der Ausschalter auch bei einem
+  zwischenzeitlichen Quellenfehler erreichbar.
+- Die Seite **Besuchermodus** enthält Quelle, Intervall, Reihenfolge, Hotkey und
+  Status; keinen zweiten Schalter und keine Widgetoptionen.
+- **Widgets → Besuchermodus** enthält Sichtbarkeit, Positionssperre, Stil,
+  Skalierung, Schriftgröße, Hintergrunddeckung und Farbauswahl. Vorschau,
+  Speichern, Verwerfen und Standardwerte verwenden die bestehende Widgettransaktion.
+  Widgetänderungen starten die Besuchermedien nicht neu.
+- `WidgetSettings.Visitor` besitzt die Widgetkonfiguration, gespeichert als
+  `VisitorWidgetConfiguration` im bisherigen Registry-Schlüssel. Alte Sichtbarkeits-,
+  Sperr- und Positionswerte aus `VisitorMode` werden übernommen, solange die neue
+  Konfiguration noch fehlt. Medien und Aktivierungszustand bleiben beim Dienst.
+- Das kompakte Widget verwendet `WidgetHeader`, `WidgetDrawing.GetPalette`, die
+  gemeinsamen abgerundeten Formen, `LayeredWidgetBitmap`, `WidgetDragHandler` und
+  Snapping. Kopf und Schalter stehen in einer Zeile. Eine zusätzliche Statuszeile
+  entfällt; Details stehen im Tooltip. Die Standardfläche ist rund ein Drittel
+  kleiner als zuvor (248×72). Größere Schrift und Skalierung vergrößern das gemessene
+  Layout. Die Hintergrundtransparenz verändert weder Schrift noch Schalter.
+
+### Prüfung der Nachbesserung
+
+Die **36** gezielten Prüfungen unter `--visitor-revision-checks` und die bisherigen
+**27** Besucher-UI-/Medienprüfungen bestehen. Der Release-Publish ist erfolgreich.
+Hauptseite, Widgeteditor und alle drei Widgetstile wurden gerendert und visuell geprüft.
+Die kombinierte Besucher-/Scheduler-/Hotkey-/Einstellungs-/Vollbild-/Widgetregression
+unter `--visitor-regression-checks` besteht mit **2513 Prüfungen**.
+Der abschließende vollständige Lauf auf dem unveränderten Quellstand `a48bc52`
+bestand mit **6004 Prüfungen**, Exitcode 0. Protokoll:
+`%TEMP%\WallpaperControl-Visitor-Validation\revision-final.log`.
+
+Ein Gesamtlauf traf auf die veraltete Erwartung von 15 Widgetseiten. Ausschließlich
+diese Navigationsassertion in `NotesTests.Settings` wurde auf 16 Seiten einschließlich
+`VisitorTitle` erweitert; ebenso die erwartete Liste in `WidgetNavigationTests`.
+Es wurden keine Speicherassertions abgeschwächt oder entfernt.
+
+Ein weiterer Gesamtlauf brach in der unveränderten Speicherprüfung
+`NotesTests.Storage:69` / **Notes reopen clears completion timestamp** ab. Der separate
+Notizlauf bestand anschließend mit **986 Prüfungen**. Dieser vorübergehende Befund
+ist von der behobenen Darstellung und der erforderlichen Navigationsanpassung zu
+trennen. Die Notizspeicherung wurde nicht verändert.
+
+### Anwendung für die erneute Abnahme
+
+Der Release-Publish liegt unter `artifacts/visitor-mode-review/WallpaperControl.exe`.
+Vor dem Start die bisherige Instanz **vollständig über Beenden schließen**;
+Schließen zur Taskleiste reicht wegen der Einzelinstanzlogik nicht aus. Die EXE
+direkt aus dem veröffentlichten Ordner mit seinen Bibliotheken starten.
+Der Publish wurde mit `dotnet publish WallpaperControl/WallpaperControl.csproj
+-c Release --no-restore -o artifacts/visitor-mode-review` erstellt. Es wurden keine
+neuen Pakete oder Frameworks hinzugefügt. `ABNAHME.txt` im Ausgabeordner enthält
+eine kurze Startanleitung.
+
+1. Normale Diashow auf einem bekannten Bild laufen lassen. Besuchermodus ein- und
+   nach wenigen Sekunden ausschalten. Das Originalbild muss sofort erscheinen;
+   Playlistposition und verbleibende Frist müssen erhalten bleiben.
+2. Dasselbe mit pausierter Diashow sowie laufendem/pausiertem Video wiederholen.
+   Videoposition und manuellen Pausenzustand prüfen.
+3. Ohne gespeicherte Quelle darf kein Hauptseitenschalter erscheinen. Nur eine
+   Datei auswählen: weiterhin kein Schalter. Speichern: Schalter auf Wallpaper.
+4. Zwischen Hauptseite, Widget und Hotkey umschalten. Der Hauptseitenschalter muss
+   während des aktiven Modus bedienbar bleiben.
+5. Unter Widgets → Besuchermodus Stile, Schriftgröße, Skalierung, Farben und Deckung
+   ändern. Vorschau, Verwerfen, Speichern und Neustart prüfen.
+6. Widget verschieben und neu starten; Position prüfen. Danach sperren und prüfen,
+   dass der Schalter weiterhin bedienbar ist.
+7. Bild, MP4 und Ordner, fehlende Medien und neutralen Ersatz sowie einen Wechsel
+   kurz vor der normalen Schedulerfrist erneut prüfen.
+
+Neue Dateien: `Widgets/VisitorWidgetSettings.cs`,
+`Forms/WidgetSettingsEditor/WidgetSettingsEditor.VisitorPage.cs` und
+`WallpaperControl.RegressionTests/VisitorRevisionTests.cs`.
+Weitere Änderungen betreffen Scheduler-Wiederanlauf, Hauptseitenanordnung,
+Widgetsettings/-Manager/-Editor, den gemeinsamen Widgetkopf mit optionaler
+Schriftgröße, den gemeinsamen Schalterrenderer, Texte in fünf Sprachen und Tests.
 
 ## Ausgangspunkt und Git
 
@@ -6,16 +109,17 @@ Implementiert auf `codex/visitor-mode`, ausgehend von `d6ddbb5` (Release 2.3.1).
 Das Arbeitsverzeichnis war vor Beginn sauber. Die Implementierung ist nach zentraler
 Logik, Oberfläche, Widget, Hotkey und abschließender Absicherung gruppiert.
 Es wurden keine NuGet-Abhängigkeiten oder UI-Frameworks hinzugefügt.
-Der abgeschlossene Quellstand liegt in `f79bba9`; dieser Bericht wird separat
-versioniert. Die Anwendung zielt weiterhin auf .NET 10. Der vorhandene lokale
+Die Erstimplementierung liegt in `f79bba9`; die Nachbesserung nach manueller
+Abnahme liegt in `a48bc52`. Dieser Bericht wird separat versioniert. Die Anwendung zielt weiterhin auf .NET 10. Der vorhandene lokale
 SDK 11 Preview meldet beim Build lediglich den SDK-Vorschauhinweis.
 
 ## Bedienung
 
 In der linken Navigation **Besuchermodus** öffnen. Als Quelle Einzelbild, MP4 oder
 Medienordner wählen, die Quelle auswählen und **Speichern** drücken. Danach den
-Schalter betätigen. Der Schalter verwendet immer die zuletzt gespeicherte Quelle.
-Ohne gültige Quelle bleibt der Modus mit einem neutralen Hintergrund aktiv.
+Schalter auf der **Wallpaper-Hauptseite** betätigen. Er verwendet immer die zuletzt
+gespeicherte Quelle. Fällt diese im aktiven Modus aus, bleibt der Modus mit einem
+neutralen Hintergrund aktiv.
 
 Der Ordner verwendet das eingestellte Intervall in Sekunden und wahlweise eine
 zufällige Reihenfolge. Er wird vor jedem Wechsel neu eingelesen. Videos laufen
@@ -23,8 +127,11 @@ stumm in der vorhandenen Endlosschleife; im Ordner erfolgt der nächste Wechsel
 nach dem Intervall, unabhängig von der Videolänge. Unterordner werden wie beim
 bisherigen Bildordner nicht durchsucht.
 
-Das Mini-Widget und seine Positionssperre werden auf derselben Seite aktiviert und
-gespeichert. Den Hintergrund oder die Beschriftung des Widgets ziehen; der
+Das Mini-Widget und seine Positionssperre werden unter **Widgets → Besuchermodus**
+aktiviert und mit den übrigen Widgetoptionen gespeichert. Dort sind auch Minimal,
+Clean und Glow, Hintergrund-/Schriftfarbe, Hintergrunddeckung, Schriftgröße und
+Widgetskalierung einstellbar. Vorschau, Speichern und Verwerfen verwenden dieselbe
+Transaktion wie die übrigen Widgets. Den Hintergrund oder die Beschriftung des Widgets ziehen; der
 Schalter selbst dient ausschließlich zum Umschalten. Die Position wird nach dem
 Ziehen gespeichert. Das Widget verwendet die bestehende Desktop-Ebene und das
 vorhandene Snapping. Es schwebt nicht über gewöhnlichen Anwendungsfenstern.
@@ -80,8 +187,8 @@ kann der Zustand für den nächsten Start nicht garantiert werden.
   `WM_HOTKEY`-Verarbeitung. `AppLogger` und `SettingsPersistence` melden Fehler.
 
 Normale Einstellungen, Wallpaperordner, Verlauf und Statistiken werden durch
-Besuchermedien nicht ersetzt. Die normale Wallpaperseite ist während des Modus
-gesperrt. Remote-Weiter, Scheduler, normale Modusauswahl und manuelle Bildwechsel
+Besuchermedien nicht ersetzt. Die normalen Wiedergabesteuerelemente sind während des Modus
+gesperrt; der Besucherschalter auf der Wallpaper-Hauptseite bleibt bedienbar. Remote-Weiter, Scheduler, normale Modusauswahl und manuelle Bildwechsel
 erhalten währenddessen keine Wiedergabezuständigkeit. Andere Widgets behalten
 ihre Einstellungen; Weiter- und Wallpaperinfo-Widgets folgen der bestehenden
 Modusabhängigkeit und werden ausgeblendet.
@@ -165,7 +272,7 @@ isoliert sowohl am Ausgangscommit (625 Prüfungen einschließlich vorangestellte
 Videosuite) als auch mit Besuchermodus (670 Prüfungen im damaligen Zwischenstand).
 Ein anschließender Gesamtlauf bestand mit 5951 Prüfungen. Eine Ursache für den
 vorübergehenden Befund wurde nicht festgestellt; die Notizimplementierung und ihre
-Tests wurden nicht geändert. Diese Beobachtung wird nicht als behobener Fehler
+Speicherprüfungen wurden nicht geändert. Diese Beobachtung wird nicht als behobener Fehler
 ausgegeben.
 
 Ein während eines laufenden Testprozesses gestarteter Build wurde durch dessen
@@ -206,7 +313,8 @@ Paket- oder Notizspeicherung.
 
 1. Eine normale Bildsammlung aktivieren. Intervall, Zufallsoption, aktuelles Bild
    und Zeitpunkt des nächsten Wechsels notieren. Auch einmal manuell pausieren.
-2. Auf **Besuchermodus** ein harmloses Bild auswählen und speichern. Einschalten:
+2. Auf **Besuchermodus** ein harmloses Bild auswählen und speichern. Auf der
+   **Wallpaper-Hauptseite** einschalten:
    sofort nur dieses Bild beziehungsweise kurz den neutralen Hintergrund erwarten.
 3. Währenddessen Weiter per Hauptmaske, Tray/Remote und bestehendem Hotkey versuchen.
    Über mindestens ein normales Wechselintervall warten. Kein normales Bild darf
@@ -219,7 +327,7 @@ Paket- oder Notizspeicherung.
 6. Einen Besucherordner mit mindestens zwei Bildern und einem MP4 konfigurieren.
    Kurzes Intervall einstellen, Reihenfolge und anschließend Zufallsmodus prüfen.
    Normale Ordner-/Intervall-/Audioeinstellungen danach vergleichen.
-7. Mini-Widget einschalten und speichern. Beide Schaltrichtungen zwischen Hauptmaske
+7. Unter **Widgets → Besuchermodus** das Mini-Widget einschalten und speichern. Beide Schaltrichtungen zwischen Hauptmaske
    und Widget prüfen. Widget auf einen zweiten Monitor ziehen, Anwendung neu starten
    und Position prüfen. Positionssperre und Snapping testen. Vorhandene Widgets prüfen.
 8. Ein freies Besucherkürzel speichern. Mit anderer Anwendung im Vordergrund
