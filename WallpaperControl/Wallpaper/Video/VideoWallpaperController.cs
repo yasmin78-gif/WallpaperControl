@@ -1,7 +1,7 @@
 namespace WallpaperControl;
 
 [Flags]
-internal enum VideoPauseReason { None = 0, Manual = 1, Fullscreen = 2 }
+internal enum VideoPauseReason { None = 0, Manual = 1, Fullscreen = 2, Shutdown = 4 }
 internal enum VideoWallpaperState { Stopped, Initializing, Playing, Paused, Recovering, Failed }
 internal readonly record struct VideoShellGeneration(nint Shell, nint Host, nint DefView, uint ProcessId, long ProcessStartTicks);
 internal interface IVideoSession : IDisposable
@@ -19,6 +19,7 @@ internal interface IVideoSession : IDisposable
     void Play();
     void Pause();
     void Seek(long position);
+    Task<bool> SaveCurrentFrameAsync(string destination, CancellationToken cancellation) => Task.FromResult(false);
     Task SeekAsync(long position, CancellationToken cancellation) { cancellation.ThrowIfCancellationRequested(); Seek(position); return Task.CompletedTask; }
     event Action<Exception>? Failed;
 }
@@ -252,6 +253,24 @@ internal sealed class VideoWallpaperController : IDisposable
     { if (PauseReasons == VideoPauseReason.None) value.Play(); else value.Pause(); }
     private void CapturePosition()
     { try { if (session != null) position = session.Value.Position; } catch { /* Retain last successful sample. */ } }
+
+    internal async Task<bool> SaveCurrentFrameAsync(string expectedPath, string destination, bool freeze, CancellationToken cancellation)
+    {
+        if (disposed) return false;
+        if (freeze) SetPause(VideoPauseReason.Shutdown, true);
+        await lifecycle.WaitAsync(cancellation);
+        try
+        {
+            var owned = session;
+            int lease = generation;
+            if (owned == null || !string.Equals(path, expectedPath, StringComparison.OrdinalIgnoreCase)) return false;
+            await owned.Value.SynchronizePolicyAsync(cancellation);
+            bool saved = await owned.Value.SaveCurrentFrameAsync(destination, cancellation);
+            return saved && !disposed && generation == lease && ReferenceEquals(session, owned)
+                && string.Equals(path, expectedPath, StringComparison.OrdinalIgnoreCase);
+        }
+        finally { lifecycle.Release(); }
+    }
     private void ReleaseSession()
     {
         var old = session; session = null;

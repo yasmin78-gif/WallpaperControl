@@ -130,6 +130,12 @@ internal sealed class MpvVideoSession : IVideoSession
         catch (Exception ex) { if (!disposed) DispatchFailure(ex); }
     }
     public long Position => Interlocked.Read(ref position);
+    public async Task<bool> SaveCurrentFrameAsync(string destination, CancellationToken cancellation)
+    {
+        if (disposed || !prepared) return false;
+        // Read the decoded video through mpv itself, never the desktop or other windows.
+        return await client.SaveVideoFrameAsync(destination, cancellation) && !disposed;
+    }
     internal async Task<IReadOnlyDictionary<string, string?>> SnapshotAsync()
     {
         var result = new Dictionary<string, string?>();

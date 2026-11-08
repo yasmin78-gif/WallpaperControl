@@ -161,6 +161,64 @@ internal sealed class MpvClient : IAsyncDisposable
         }
     }
     private void SetCore(string key, string value) => Check(runtime.Export<Text>("mpv_set_property_string")(handle, key, value));
+    [StructLayout(LayoutKind.Explicit, Size = 16)]
+    private struct Node
+    {
+        [FieldOffset(0)] internal nint Pointer;
+        [FieldOffset(0)] internal long Integer;
+        [FieldOffset(8)] internal int Format;
+    }
+    [StructLayout(LayoutKind.Sequential)] private struct NodeList { internal int Count; internal nint Values, Keys; }
+    [StructLayout(LayoutKind.Sequential)] private struct ByteArray { internal nint Data; internal nuint Length; }
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CommandResult(nint self, nint args, out Node result);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void FreeNode(ref Node node);
+
+    internal async Task<bool> SaveVideoFrameAsync(string destination, CancellationToken cancellation)
+    {
+        MfVideoFrame? frame = null;
+        await Queue(() =>
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var strings = new[] { "screenshot-raw", "video" }.Select(Marshal.StringToCoTaskMemUTF8).ToArray();
+            nint args = Marshal.AllocHGlobal(3 * IntPtr.Size);
+            Node result = default;
+            try
+            {
+                for (int i = 0; i < strings.Length; i++) Marshal.WriteIntPtr(args, i * IntPtr.Size, strings[i]);
+                Marshal.WriteIntPtr(args, 2 * IntPtr.Size, 0);
+                Check(runtime.Export<CommandResult>("mpv_command_ret")(handle, args, out result));
+                if (result.Format != 8 || result.Pointer == 0) throw new InvalidDataException("mpv screenshot is not a map.");
+                var list = Marshal.PtrToStructure<NodeList>(result.Pointer);
+                if (list.Count is < 1 or > 32 || list.Values == 0 || list.Keys == 0) throw new InvalidDataException("Invalid mpv screenshot map.");
+                var fields = new Dictionary<string, Node>(StringComparer.Ordinal);
+                for (int i = 0; i < list.Count; i++) fields.Add(Marshal.PtrToStringUTF8(Marshal.ReadIntPtr(list.Keys, i * IntPtr.Size))!,
+                    Marshal.PtrToStructure<Node>(list.Values + i * 16));
+                int Number(string key) => fields[key].Format == 4 ? checked((int)fields[key].Integer) : throw new InvalidDataException("Invalid screenshot number.");
+                int width = Number("w"), height = Number("h"), stride = Number("stride"), rowBytes = checked(width * 4);
+                string? format = fields["format"].Format == 1 ? Marshal.PtrToStringUTF8(fields["format"].Pointer) : null;
+                if (fields["data"].Format != 9 || width <= 0 || height <= 0 || format is not ("bgr0" or "bgra")
+                    || Math.Abs((long)stride) < rowBytes || (long)rowBytes * height > 256 * 1024 * 1024)
+                    throw new InvalidDataException("Unsupported mpv screenshot layout.");
+                var bytes = Marshal.PtrToStructure<ByteArray>(fields["data"].Pointer);
+                long required = (height - 1L) * Math.Abs((long)stride) + rowBytes;
+                if (bytes.Data == 0 || (ulong)bytes.Length < (ulong)required) throw new InvalidDataException("Incomplete mpv screenshot pixels.");
+                byte[] pixels = new byte[checked(rowBytes * height)];
+                for (int y = 0; y < height; y++) Marshal.Copy(bytes.Data + checked(y * stride), pixels, y * rowBytes, rowBytes);
+                frame = new(new Size(width, height), 0, pixels, BottomUp: false);
+            }
+            finally
+            {
+                runtime.Export<FreeNode>("mpv_free_node_contents")(ref result);
+                Marshal.FreeHGlobal(args); foreach (nint value in strings) Marshal.FreeCoTaskMem(value);
+            }
+        }).WaitAsync(cancellation);
+        cancellation.ThrowIfCancellationRequested();
+        if (frame == null) return false;
+        // The pinned minimal runtime need not contain an image encoder. Use the
+        // existing managed still conversion after copying the owned raw video pixels.
+        frame.SavePng(destination);
+        return true;
+    }
     internal string? Read(string key)
     {
         nint text = runtime.Export<GetString>("mpv_get_property_string")(handle, key);

@@ -196,6 +196,13 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
     // Visibility is deliberately not a repair trigger: Show Desktop can change
     // visibility temporarily without destroying the renderer or its shell lease.
     public long Position => player.Position100ns();
+    public Task<bool> SaveCurrentFrameAsync(string destination, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (disposed || !prepared || !player.TryCaptureFrame(out var frame) || frame == null) return Task.FromResult(false);
+        frame.SavePng(destination);
+        return Task.FromResult(true);
+    }
     public void Play() { if (audioSilenceUnavailable) { Pause(); return; } playing = true; player.Play(); }
     public void Pause() { playing = false; player.Pause(); }
     public void Seek(long position) => player.Seek(position);
