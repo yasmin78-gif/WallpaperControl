@@ -1873,4 +1873,27 @@ Versión instalada: {0}
   <data name="EmailNoProgram" xml:space="preserve"><value>Sin programa / correo web</value></data>
   <data name="EmailWindowsDefault" xml:space="preserve"><value>Predeterminado de Windows</value></data>
   <data name="EmailCustomProgram" xml:space="preserve"><value>Otro programa …</value></data>
+  <data name="VisitorTitle" xml:space="preserve"><value>Modo de visitas</value></data>
+  <data name="VisitorSource" xml:space="preserve"><value>Fuente multimedia</value></data>
+  <data name="VisitorPath" xml:space="preserve"><value>Fuente configurada</value></data>
+  <data name="VisitorBrowse" xml:space="preserve"><value>Elegir fuente …</value></data>
+  <data name="VisitorImage" xml:space="preserve"><value>Imagen única</value></data>
+  <data name="VisitorVideo" xml:space="preserve"><value>Vídeo único (MP4, en bucle)</value></data>
+  <data name="VisitorFolder" xml:space="preserve"><value>Carpeta multimedia (imágenes y MP4)</value></data>
+  <data name="VisitorInterval" xml:space="preserve"><value>Intervalo de la carpeta de visitas (segundos)</value></data>
+  <data name="VisitorShuffle" xml:space="preserve"><value>Orden aleatorio en la carpeta de visitas</value></data>
+  <data name="VisitorWidget" xml:space="preserve"><value>Mostrar miniwidget</value></data>
+  <data name="VisitorLocked" xml:space="preserve"><value>Bloquear posición del widget</value></data>
+  <data name="VisitorBusy" xml:space="preserve"><value>Cambiando reproducción …</value></data>
+  <data name="VisitorActive" xml:space="preserve"><value>Modo de visitas activo</value></data>
+  <data name="VisitorInactive" xml:space="preserve"><value>Modo de visitas desactivado – reproducción normal</value></data>
+  <data name="VisitorMediaError" xml:space="preserve"><value>El medio de visitas falta, está dañado o no es compatible. El modo de visitas permanece activo con un fondo neutro. Revise la fuente y vuelva a guardar.</value></data>
+  <data name="VisitorPlaybackError" xml:space="preserve"><value>No se pudo cambiar la reproducción. El modo de visitas permanece activo si falla la restauración. Revise la fuente e inténtelo de nuevo.</value></data>
+  <data name="VisitorSaveError" xml:space="preserve"><value>No se pudieron guardar los ajustes. No se garantiza el estado en el próximo inicio.</value></data>
+  <data name="VisitorHelp" xml:space="preserve"><value>Guarde para aplicar los cambios. Los vídeos se reproducen sin sonido y requieren un solo monitor. El modo de visitas permanece activo si hay errores. Windows controla el escritorio antes de que se inicie esta aplicación.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Activo</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Desactivado</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Cambiando …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Revisar fuente</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>Atajo global opcional: haga clic aquí y pulse una combinación Ctrl/Alt. Supr borra el atajo.</value></data>
 </root>

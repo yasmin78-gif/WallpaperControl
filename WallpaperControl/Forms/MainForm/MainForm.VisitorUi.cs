@@ -23,17 +23,12 @@ public partial class MainForm
     {
         visitorNavigation = MainNavigationButton("VisitorTitle", "◉", 120);
         visitorNavigation.TabIndex = 2; mainNavigation!.Controls.Add(visitorNavigation);
-        visitorNavigation.Click += (_, _) =>
-        {
-            if (!ResolveWidgetNavigation()) return;
-            showingWidgets = false; showingVisitor = true;
-            widgetsPage!.Visible = wallpaperPage!.Visible = false; visitorPage!.Visible = true;
-            mainNavigation.SendToBack(); PerformLayout(); ApplyVisitorPresentation(); UpdateWidgetPresentation();
-        };
+        visitorNavigation.Click += (_, _) => SelectVisitorSection();
         visitorPage = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Visible = false, Padding = new Padding(24) };
         FlowLayoutPanel content = new() { Dock = DockStyle.Top, AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false };
         Label Label(string key) => new() { Text = Localization.Get(key), Tag = key, AutoSize = true, MaximumSize = new Size(670, 0), Margin = new Padding(3, 12, 3, 5) };
-        content.Controls.Add(Label("VisitorTitle"));
+        var title = Label("VisitorTitle"); title.Font = CreateOwnedFont("Segoe UI", 16, FontStyle.Bold);
+        content.Controls.Add(title);
         content.Controls.Add(visitorSwitch); content.Controls.Add(visitorStatus);
         content.Controls.Add(Label("VisitorSource")); content.Controls.Add(visitorSource);
         content.Controls.Add(Label("VisitorPath")); content.Controls.Add(visitorPath);
@@ -80,6 +75,14 @@ public partial class MainForm
         ApplyVisitorPresentation(); UpdateVisitorUi();
     }
 
+    private void SelectVisitorSection()
+    {
+        if (!ResolveWidgetNavigation()) return;
+        showingWidgets = false; showingVisitor = true;
+        widgetsPage!.Visible = wallpaperPage!.Visible = false; visitorPage!.Visible = true;
+        mainNavigation!.SendToBack(); PerformLayout(); ApplyVisitorPresentation(); UpdateWidgetPresentation();
+    }
+
     private async Task SaveVisitorUiAsync()
     {
         var source = (VisitorSourceKind)Math.Max(0, visitorSource.SelectedIndex);
@@ -93,11 +96,11 @@ public partial class MainForm
         bool changed = old.Modifiers != modifiers || old.Key != key;
         if (changed && servicesEnabled && IsHandleCreated)
         {
-            var failures = hotkeyManager.Replace(Handle, new[] { new HotkeyBinding(HOTKEY_VISITOR, modifiers, key, Localization.Get("VisitorTitle")) });
+            var failures = hotkeyManager.Replace(Handle, new[] { new HotkeyBinding(HOTKEY_VISITOR, modifiers, key, Localization.Get("VisitorTitle")) { NoRepeat = true } });
             if (failures.Count > 0)
             {
-                hotkeyManager.Replace(Handle, new[] { old });
-                ShowHotkeyErrors(failures, true); return;
+                var rollbackFailures = hotkeyManager.Replace(Handle, new[] { old });
+                ShowHotkeyErrors(failures.Concat(rollbackFailures).ToArray(), true); return;
             }
         }
         await visitorMode!.ConfigureAsync(s => s with { Source = source, Path = path,
@@ -152,5 +155,5 @@ public partial class MainForm
     private void UpdateVisitorHotkeyText() => visitorHotkey.Text = visitorHotkeyModifiers == 0 || visitorHotkeyKey == 0
         ? Localization.Get("SettingsModifierDisabled") : GlobalHotkeyManager.FormatHotkey(visitorHotkeyModifiers, visitorHotkeyKey);
     private HotkeyBinding VisitorHotkeyBinding() => new(HOTKEY_VISITOR, visitorMode?.Settings.HotkeyModifiers ?? 0,
-        visitorMode?.Settings.HotkeyKey ?? 0, Localization.Get("VisitorTitle"));
+        visitorMode?.Settings.HotkeyKey ?? 0, Localization.Get("VisitorTitle")) { NoRepeat = true };
 }

@@ -43,24 +43,29 @@ internal sealed class VisitorModeStore(string registryPath = @"Software\Wallpape
 {
     internal VisitorModeSettings Load()
     {
+        bool safetyLatch = false;
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(registryPath);
+            safetyLatch = key?.GetValue("VisitorModeActive") is int active && active != 0;
             var settings = JsonSerializer.Deserialize<VisitorModeSettings>(key?.GetValue("VisitorMode") as string ?? "{}");
-            return settings == null ? new() : settings with
+            return settings == null ? new() { Active = safetyLatch } : settings with
             {
+                Active = settings.Active || safetyLatch,
                 Path = settings.Path ?? "",
                 IntervalMilliseconds = Math.Clamp(settings.IntervalMilliseconds, 1000u, 86400000u)
             };
         }
-        catch (Exception ex) { AppLogger.Warning("Could not load visitor mode settings.", ex); return new(); }
+        catch (Exception ex) { AppLogger.Warning("Could not load visitor mode settings.", ex); return new() { Active = safetyLatch }; }
     }
     internal bool Save(VisitorModeSettings settings)
     {
         try
         {
             using var key = Registry.CurrentUser.CreateSubKey(registryPath);
+            if (settings.Active) key.SetValue("VisitorModeActive", 1, RegistryValueKind.DWord);
             key.SetValue("VisitorMode", JsonSerializer.Serialize(settings), RegistryValueKind.String);
+            if (!settings.Active) key.SetValue("VisitorModeActive", 0, RegistryValueKind.DWord);
             return true;
         }
         catch (Exception ex) { SettingsPersistence.ReportFailure("Could not save visitor mode settings.", ex); return false; }
@@ -98,7 +103,14 @@ internal sealed class VisitorModeService
             if (active)
             {
                 // Capture before reserving the visitor desktop; persisted startup already has a snapshot.
-                Settings = Settings with { Active = true, Resume = startup ? Settings.Resume : capture() };
+                VisitorResumeState? resume = Settings.Resume;
+                if (!startup)
+                {
+                    try { resume = capture(); }
+                    catch (Exception ex)
+                    { AppLogger.Warning("Normal playback snapshot unavailable; visitor safety takes priority.", ex); Error = "VisitorPlaybackError"; }
+                }
+                Settings = Settings with { Active = true, Resume = resume };
                 if (!save(Settings)) Error = "VisitorSaveError";
                 Changed?.Invoke();
                 await activate();
@@ -134,6 +146,8 @@ internal sealed class VisitorModeService
         finally { Busy = false; changes.Release(); if (!closed) Changed?.Invoke(); }
     }
     internal void ReportMediaError() { Error = "VisitorMediaError"; Changed?.Invoke(); }
+    internal void ReportMediaReady()
+    { if (Error == "VisitorMediaError") { Error = null; Changed?.Invoke(); } }
     internal void Close() { closed = true; Changed = null; }
     internal async Task DrainAsync()
     { Close(); await changes.WaitAsync(); changes.Release(); }

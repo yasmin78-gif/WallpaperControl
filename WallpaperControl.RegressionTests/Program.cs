@@ -88,6 +88,15 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    if(args.Length==1&&args[0]=="--visitor-regression-checks")
+    {
+        VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check);
+        SchedulerDiagnosticsTests.Run(Check); NativeSlideshowAdvanceTests.Run(Check); LayoutEngineActivationTests.Run(Check);
+        HotkeyTests.Run(Check); SettingsTests.Run(Check); FullscreenTests.Run(Check);
+        WallpaperWidgetModeTests.Run(Check); WidgetNavigationTests.Run(Check); SharedUiTests.Run(Check);
+        SlideshowStatusUiTests.Run(Check); WallpaperLayoutTests.Run(Check);
+        Console.WriteLine($"All {passed} visitor and existing playback/widget regression checks passed."); return 0;
+    }
     if(args.Length==1&&args[0]=="--visitor-ui-checks") { VisitorModeTests.Ui(Check); Console.WriteLine($"All {passed} visitor UI checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-mode-checks") { VisitorModeTests.Run(Check); Console.WriteLine($"All {passed} visitor mode checks passed."); return 0; }
     if(args.Length==2&&args[0]=="--email-package-checks") { EmailWatcherIntegrationTests.Package(args[1],Check); Console.WriteLine($"All {passed} published email package checks passed."); return 0; }
@@ -147,6 +156,7 @@ try
     VideoPhase2Tests.Run(Check);
     if (args.Contains("--video")) { VideoWallpaperTests.Run(Check); Console.WriteLine($"All {passed} video checks passed."); return 0; }
     VideoWallpaperTests.Run(Check);
+    VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check);
     if (args.Contains("--wallpaper-layout"))
     {
         WallpaperLayoutTests.Run(Check);

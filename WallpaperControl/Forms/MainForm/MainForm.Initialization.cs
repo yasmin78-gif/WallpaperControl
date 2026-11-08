@@ -19,10 +19,11 @@ namespace WallpaperControl
 
         // Isolated UI construction allows navigation tests without activating desktop services.
         internal MainForm(WidgetManager isolatedWidgets, Func<DesktopSlideshowState>? nativeStatus = null,
-            Func<string?>? currentWallpaper = null)
-            : this(isolatedWidgets, false, nativeStatus) { readCurrentWallpaperForTests = currentWallpaper; }
+            Func<string?>? currentWallpaper = null, VisitorModeSettings? visitorSettings = null)
+            : this(isolatedWidgets, false, nativeStatus, visitorSettings) { readCurrentWallpaperForTests = currentWallpaper; }
 
-        private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null)
+        private MainForm(WidgetManager? widgets, bool startServices, Func<DesktopSlideshowState>? nativeStatus = null,
+            VisitorModeSettings? visitorSettings = null)
         {
             servicesEnabled = startServices;
             readNativeSlideshowStatus = nativeStatus ?? ReadNativeSlideshowStatus;
@@ -31,7 +32,7 @@ namespace WallpaperControl
                 AdvanceWallpaper(DesktopSlideshowDirection.Forward),
                 advanced => WallpaperInfoSnapshot.Create(lastDisplayedWallpaperPath, activeWallpaperCount, statistics.ViewCounts, advanced));
             statistics.Changed += widgetManager.RefreshWallpaperInfo;
-            InitializeVisitorMode();
+            InitializeVisitorMode(visitorSettings);
 
             Text = "Wallpaper Control";
 

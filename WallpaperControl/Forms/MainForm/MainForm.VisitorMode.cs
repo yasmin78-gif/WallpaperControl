@@ -11,11 +11,12 @@ public partial class MainForm
     private string? visitorCurrentPath;
     private bool visitorClosing;
     private string? neutralVisitorPath;
+    private readonly Random visitorRandom = new();
 
-    private void InitializeVisitorMode()
+    private void InitializeVisitorMode(VisitorModeSettings? initial = null)
     {
         var store = new VisitorModeStore();
-        visitorMode = new(servicesEnabled ? store.Load() : new(),
+        visitorMode = new(initial ?? (servicesEnabled ? store.Load() : new()),
             value => !servicesEnabled || store.Save(value), CaptureVisitorResume,
             ActivateVisitorMediaAsync, RestoreVisitorResumeAsync);
         widgetManager.ConfigureVisitorMode(visitorMode);
@@ -35,7 +36,16 @@ public partial class MainForm
     private VisitorResumeState CaptureVisitorResume()
     {
         bool video = wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper;
-        if (!video) { visitorImageSnapshot?.Dispose(); visitorImageSnapshot = CaptureImageMode(); }
+        if (!video)
+        {
+            visitorImageSnapshot?.Dispose();
+            try { visitorImageSnapshot = CaptureImageMode(); }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("Native image collection snapshot unavailable; retaining current image.", ex);
+                visitorImageSnapshot = new() { Custom = customSlideshowEngineActive, ManualPaused = slideshowPaused, StaticPath = GetCurrentWallpaperPath() };
+            }
+        }
         var images = new Dictionary<string, string>();
         if (servicesEnabled && !video)
         {
@@ -46,6 +56,7 @@ public partial class MainForm
                 for (uint i = 0; i < wallpaper.GetMonitorDevicePathCount(); i++)
                 { string monitor = wallpaper.GetMonitorDevicePathAt(i); images[monitor] = wallpaper.GetWallpaper(monitor); }
             }
+            catch (Exception ex) { AppLogger.Warning("Per-monitor visitor resume snapshot unavailable.", ex); }
             finally { ReleaseComObject(wallpaper); }
         }
         TryGetSelectedInterval(out uint interval);
@@ -54,9 +65,11 @@ public partial class MainForm
             Video = video, VideoPath = videoWallpaper?.ActivePath ?? videoPathText.Text,
             VideoPosition = video ? videoWallpaper?.PlaybackPosition ?? 0 : 0,
             VideoPaused = video && (videoWallpaper?.PauseReasons & VideoPauseReason.Manual) != 0,
-            ImagePath = visitorImageSnapshot?.StaticPath, MonitorImages = images,
-            Custom = customSlideshowEngineActive, NativeActive = visitorImageSnapshot?.NativeActive ?? false,
-            ImagePaused = slideshowPaused, Interval = interval, Shuffle = shuffleCheckBox.Checked,
+            ImagePath = video ? savedImageMode?.StaticPath : visitorImageSnapshot?.StaticPath, MonitorImages = images,
+            Custom = video ? savedImageMode?.Custom ?? false : customSlideshowEngineActive,
+            NativeActive = video ? savedImageMode?.NativeActive ?? false : visitorImageSnapshot?.NativeActive ?? false,
+            ImagePaused = video ? savedImageMode?.ManualPaused ?? slideshowPaused : slideshowPaused,
+            Interval = interval, Shuffle = shuffleCheckBox.Checked,
             RemainingTicks = customSlideshowNextChange == DateTime.MaxValue ? 0 :
                 Math.Max(0, (customSlideshowNextChange - DateTime.Now).Ticks)
         };
@@ -106,6 +119,9 @@ public partial class MainForm
         customSlideshowPreciseTimer.Change(Timeout.Infinite, Timeout.Infinite);
         StopVideoLiveTest();
         wallpaperPreviewForm.Hide();
+        // Cover normal media before any asynchronous native cleanup can yield.
+        ShowVisitorNeutral();
+        videoWallpaper?.Stop();
         while (visitorAdvanceRunning) await Task.Delay(10);
         await wallpaperModeChange.WaitAsync();
         try
@@ -158,10 +174,12 @@ public partial class MainForm
                 using (Image image = Image.FromFile(path)) { _ = image.Width; }
                 if (videoWallpaper != null) await videoWallpaper.StopAsync();
                 if (visitorClosing || wallpaperOwnership.Closed) return false;
-                await wallpaperTransitionService.ApplyAsync(null, path, WallpaperTransitionKind.Direct, 0,
-                    WallpaperTransitionDirection.Left, WallpaperZoomMode.In);
+                if (servicesEnabled)
+                    await wallpaperTransitionService.ApplyAsync(null, path, WallpaperTransitionKind.Direct, 0,
+                        WallpaperTransitionDirection.Left, WallpaperZoomMode.In);
             }
             visitorCurrentPath = path;
+            visitorMode.ReportMediaReady();
             return true;
         }
         catch (Exception ex) { AppLogger.Warning("Visitor media could not be displayed.", ex); return false; }
@@ -177,11 +195,17 @@ public partial class MainForm
             string[] files = Directory.GetFiles(settings.Path).Where(path => WallpaperImageInfo.IsSupportedWallpaperExtension(path)
                 || Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase)).OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
             string? displayed = await WallpaperCandidateRunner.TryAdvanceAsync(files, visitorCurrentPath, settings.Shuffle, false,
-                customSlideshowRandom, path => TryDisplayVisitorMediaAsync(path, Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase)));
-            if (displayed == null) { ShowVisitorNeutral(); visitorMode.ReportMediaError(); }
+                visitorRandom, path => TryDisplayVisitorMediaAsync(path, Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase)));
+            if (displayed == null) await UseVisitorFallbackAsync();
         }
-        catch (Exception ex) { ShowVisitorNeutral(); visitorMode!.ReportMediaError(); AppLogger.Warning("Visitor folder unavailable.", ex); }
+        catch (Exception ex) { await UseVisitorFallbackAsync(); AppLogger.Warning("Visitor folder unavailable.", ex); }
         finally { visitorAdvanceRunning = false; }
+    }
+
+    private async Task UseVisitorFallbackAsync()
+    {
+        if (videoWallpaper != null) await videoWallpaper.StopAsync();
+        ShowVisitorNeutral(); visitorMode!.ReportMediaError();
     }
 
     private async Task RestoreVisitorResumeAsync(VisitorResumeState? resume)
@@ -198,6 +222,10 @@ public partial class MainForm
             ShowVisitorNeutral();
             if (resume?.Video == true)
             {
+                // A process restart retired the COM snapshot that normal video mode
+                // uses when later returning to images. Retain its persisted image state too.
+                savedImageMode ??= new ImageModeSnapshot { StaticPath = resume.ImagePath,
+                    Custom = resume.Custom || resume.NativeActive, ManualPaused = resume.ImagePaused };
                 var engine = await EnsureVideoWallpaperAsync(resume.VideoPath, wallpaperModeRequest, false)
                     ?? throw new InvalidOperationException("Video backend unavailable.");
                 engine.SetAudio(videoSoundCheck.Checked, videoVolumeSlider.Value);
@@ -212,12 +240,26 @@ public partial class MainForm
                 SwitchWallpaperOperatingMode(WallpaperOperatingMode.ImageSlideshow);
                 if (resume != null)
                 {
+                    if (servicesEnabled && !string.IsNullOrEmpty(resume.ImagePath) && !File.Exists(resume.ImagePath))
+                        throw new FileNotFoundException("Original image no longer exists.");
+                    bool memorySnapshot = visitorImageSnapshot != null;
+                    bool wasLoading = loading; loading = true;
+                    try
+                    {
+                        var interval = intervals.FirstOrDefault(item => item.Value == resume.Interval);
+                        if (interval != null) intervalComboBox.SelectedItem = interval;
+                        shuffleCheckBox.Checked = resume.Shuffle;
+                    }
+                    finally { loading = wasLoading; }
                     savedImageMode = visitorImageSnapshot ?? new ImageModeSnapshot
                     { StaticPath = resume.ImagePath, Custom = resume.Custom, ManualPaused = resume.ImagePaused };
                     visitorImageSnapshot = null;
-                    RestoreImageMode();
-                    if (resume.NativeActive && !resume.Custom && savedImageMode == null && servicesEnabled && !resume.ImagePaused && !fullscreenPolicy.IsPaused)
-                        SetWallpaperFolder(folderTextBox.Text, showError: false);
+                    RestoreImageModeCore(strict: true);
+                    if (resume.NativeActive && !resume.Custom && !memorySnapshot && servicesEnabled && !resume.ImagePaused && !fullscreenPolicy.IsPaused)
+                        if (!SetWallpaperFolder(folderTextBox.Text, showError: false))
+                            throw new InvalidOperationException("Original native slideshow could not be restored.");
+                    if (resume.NativeActive && !resume.Custom && !memorySnapshot && fullscreenPolicy.IsPaused && !resume.ImagePaused)
+                        nativeSlideshowAutoPaused = true;
                     if (servicesEnabled && !resume.Custom) RestoreVisitorMonitorImages(resume);
                     if (resume.Custom)
                     {
@@ -254,9 +296,13 @@ public partial class MainForm
     private async Task ObserveVisitorVideoAsync()
     {
         if (visitorMode?.Active != true || visitorMode.Busy || visitorClosing || visitorAdvanceRunning || videoWallpaper == null) return;
-        await videoWallpaper.TickAsync();
-        if (visitorMode.Active && !visitorMode.Busy && videoWallpaper.State == VideoWallpaperState.Failed)
+        var controller = videoWallpaper;
+        await controller.TickAsync();
+        if (!visitorClosing && !IsDisposed && !wallpaperOwnership.Closed && ReferenceEquals(controller, videoWallpaper)
+            && visitorMode.Active && !visitorMode.Busy && controller.State == VideoWallpaperState.Failed)
         { ShowVisitorNeutral(); visitorMode.ReportMediaError(); }
+        else if (!visitorClosing && ReferenceEquals(controller, videoWallpaper) && visitorMode.Active && !visitorMode.Busy && controller.HasSession)
+            visitorMode.ReportMediaReady();
     }
 
     private async Task StopVisitorAndCloseAsync()

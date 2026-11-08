@@ -204,6 +204,8 @@ internal sealed class MediaFoundationVideoSession : IVideoSession
         if (disposed) return;
         disposed = true; Failed = null; ready.TrySetCanceled();
         render.Paint -= Paint;
+        // Remove sensitive frames before a driver can block in player disposal.
+        render.Hide();
         try { player.TrySilence(); player.Dispose(); }
         finally
         {

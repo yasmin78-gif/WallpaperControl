@@ -1845,4 +1845,27 @@
   <data name="EmailNoProgram" xml:space="preserve"><value>アプリなし / Webメール</value></data>
   <data name="EmailWindowsDefault" xml:space="preserve"><value>Windowsの既定</value></data>
   <data name="EmailCustomProgram" xml:space="preserve"><value>その他のアプリ …</value></data>
+  <data name="VisitorTitle" xml:space="preserve"><value>来客モード</value></data>
+  <data name="VisitorSource" xml:space="preserve"><value>メディアソース</value></data>
+  <data name="VisitorPath" xml:space="preserve"><value>設定済みソース</value></data>
+  <data name="VisitorBrowse" xml:space="preserve"><value>ソースを選択 …</value></data>
+  <data name="VisitorImage" xml:space="preserve"><value>単一画像</value></data>
+  <data name="VisitorVideo" xml:space="preserve"><value>単一動画（MP4、ループ）</value></data>
+  <data name="VisitorFolder" xml:space="preserve"><value>メディアフォルダー（画像とMP4）</value></data>
+  <data name="VisitorInterval" xml:space="preserve"><value>来客用フォルダーの切替間隔（秒）</value></data>
+  <data name="VisitorShuffle" xml:space="preserve"><value>来客用フォルダーをシャッフル</value></data>
+  <data name="VisitorWidget" xml:space="preserve"><value>ミニウィジェットを表示</value></data>
+  <data name="VisitorLocked" xml:space="preserve"><value>ウィジェットの位置を固定</value></data>
+  <data name="VisitorBusy" xml:space="preserve"><value>再生を切り替えています …</value></data>
+  <data name="VisitorActive" xml:space="preserve"><value>来客モード有効</value></data>
+  <data name="VisitorInactive" xml:space="preserve"><value>来客モード無効 — 通常再生</value></data>
+  <data name="VisitorMediaError" xml:space="preserve"><value>来客用メディアが見つからないか、破損しているか、未対応です。来客モードを維持して無地の背景を表示します。ソースを確認して保存し直してください。</value></data>
+  <data name="VisitorPlaybackError" xml:space="preserve"><value>再生の切替に失敗しました。復元に失敗した場合は来客モードを維持します。ソースを確認して再試行してください。</value></data>
+  <data name="VisitorSaveError" xml:space="preserve"><value>設定を保存できませんでした。次回起動時の状態は保証されません。</value></data>
+  <data name="VisitorHelp" xml:space="preserve"><value>変更を適用するには保存してください。動画は無音で再生され、モニターは1台のみ対応します。エラー時も来客モードは有効です。このアプリの起動前はWindowsがデスクトップを制御します。</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>有効</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>無効</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>切替中 …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>ソースを確認</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>任意のグローバルホットキー：ここをクリックしてCtrl/Altの組み合わせを押します。Deleteで解除します。</value></data>
 </root>

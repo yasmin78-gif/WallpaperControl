@@ -426,7 +426,8 @@ public partial class MainForm
         }
         finally { ReleaseComObject(wallpaper); }
     }
-    private void RestoreImageMode()
+    private void RestoreImageMode() => RestoreImageModeCore(false);
+    private void RestoreImageModeCore(bool strict)
     {
         var snapshot = savedImageMode; savedImageMode = null;
         if (snapshot == null) return;
@@ -465,6 +466,7 @@ public partial class MainForm
         {
             customSlideshowEngineActive = false;
             AppLogger.Info($"Image mode restoration failed safely; type={ex.GetType().Name}; hr=0x{ex.HResult:X8}");
+            if (strict) throw;
         }
         finally { snapshot.Dispose(); }
     }

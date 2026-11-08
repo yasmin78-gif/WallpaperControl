@@ -27,8 +27,11 @@ namespace WallpaperControl
             if (visitorMode?.Active == true)
             {
                 FitMainWindowToMonitor();
+                await UpdateFullscreenPauseAsync();
                 await visitorMode.SetActiveAsync(true, startup: true);
                 if (!IsDisposed) widgetManager.Start();
+                await CheckForUpdatesAutomaticallyAsync();
+                if (!IsDisposed) automaticUpdateCheckTimer.Start();
                 return;
             }
             FitMainWindowToMonitor();

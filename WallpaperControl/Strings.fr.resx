@@ -1873,4 +1873,27 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="EmailNoProgram" xml:space="preserve"><value>Aucun logiciel / webmail</value></data>
   <data name="EmailWindowsDefault" xml:space="preserve"><value>Par défaut sous Windows</value></data>
   <data name="EmailCustomProgram" xml:space="preserve"><value>Autre logiciel …</value></data>
+  <data name="VisitorTitle" xml:space="preserve"><value>Mode visiteurs</value></data>
+  <data name="VisitorSource" xml:space="preserve"><value>Source multimédia</value></data>
+  <data name="VisitorPath" xml:space="preserve"><value>Source configurée</value></data>
+  <data name="VisitorBrowse" xml:space="preserve"><value>Choisir une source …</value></data>
+  <data name="VisitorImage" xml:space="preserve"><value>Image unique</value></data>
+  <data name="VisitorVideo" xml:space="preserve"><value>Vidéo unique (MP4, en boucle)</value></data>
+  <data name="VisitorFolder" xml:space="preserve"><value>Dossier multimédia (images et MP4)</value></data>
+  <data name="VisitorInterval" xml:space="preserve"><value>Intervalle du dossier visiteurs (secondes)</value></data>
+  <data name="VisitorShuffle" xml:space="preserve"><value>Lecture aléatoire du dossier visiteurs</value></data>
+  <data name="VisitorWidget" xml:space="preserve"><value>Afficher le mini-widget</value></data>
+  <data name="VisitorLocked" xml:space="preserve"><value>Verrouiller la position du widget</value></data>
+  <data name="VisitorBusy" xml:space="preserve"><value>Changement de lecture …</value></data>
+  <data name="VisitorActive" xml:space="preserve"><value>Mode visiteurs actif</value></data>
+  <data name="VisitorInactive" xml:space="preserve"><value>Mode visiteurs désactivé – lecture normale</value></data>
+  <data name="VisitorMediaError" xml:space="preserve"><value>Le média visiteurs est absent, endommagé ou non pris en charge. Le mode visiteurs reste actif avec un fond neutre. Vérifiez la source et enregistrez à nouveau.</value></data>
+  <data name="VisitorPlaybackError" xml:space="preserve"><value>Le changement de lecture a échoué. Le mode visiteurs reste actif si la restauration échoue. Vérifiez la source et réessayez.</value></data>
+  <data name="VisitorSaveError" xml:space="preserve"><value>Impossible d’enregistrer les paramètres. L’état au prochain démarrage n’est pas garanti.</value></data>
+  <data name="VisitorHelp" xml:space="preserve"><value>Enregistrez pour appliquer les modifications. Les vidéos sont muettes et nécessitent un seul écran. En cas d’erreur, le mode visiteurs reste actif. Windows contrôle le bureau avant le démarrage de cette application.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Actif</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Désactivé</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Changement …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Vérifier la source</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>Raccourci global facultatif : cliquez ici et appuyez sur une combinaison Ctrl/Alt. Suppr efface le raccourci.</value></data>
 </root>
