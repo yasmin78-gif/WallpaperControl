@@ -176,6 +176,7 @@ public partial class MainForm
         }
         else if (videoLiveTestItem != null) videoLiveTestItem.Enabled = true;
         if (selected) statusLabel.Visible = activateButton.Visible = false;
+        ApplyVisitorControlAvailability();
         LayoutWallpaperPage();
     }
     private void UpdateVideoEngineStatusColor()
@@ -438,7 +439,7 @@ public partial class MainForm
             customSlideshowEngineActive = false;
             if (snapshot.Custom)
             {
-                if (servicesEnabled) StartCustomSlideshowEngine();
+                if (servicesEnabled || StartImageSessionForTests != null) StartCustomSlideshowEngineFromPath(snapshot.StaticPath);
                 else customSlideshowEngineActive = true;
                 slideshowPaused = snapshot.ManualPaused;
                 if (servicesEnabled && !customSlideshowEngineActive && !slideshowPaused && !fullscreenPolicy.IsPaused && Directory.Exists(folderTextBox.Text))

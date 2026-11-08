@@ -100,6 +100,7 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
+            if (visitorMode?.Active == true) return false;
             int lease = wallpaperOwnership.Generation;
             if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             LogScheduler($"manual request; direction={direction}");

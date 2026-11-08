@@ -35,6 +35,7 @@
             InitializeLauncherPage(AddPage("LauncherTitle", "↗"));
             InitializeEmailWatcherPage(AddPage("EmailTitle", "✉"));
             InitializeTwitchPage(AddPage("TwitchTitle", "◈"));
+            InitializeVisitorPage(AddPage("VisitorTitle", "◉"));
             #region Clock widget page
 
             Label widgetsTitle = new Label

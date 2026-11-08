@@ -1868,4 +1868,10 @@
   <data name="VisitorSwitching" xml:space="preserve"><value>切替中 …</value></data>
   <data name="VisitorFallback" xml:space="preserve"><value>ソースを確認</value></data>
   <data name="VisitorHotkey" xml:space="preserve"><value>任意のグローバルホットキー：ここをクリックしてCtrl/Altの組み合わせを押します。Deleteで解除します。</value></data>
+  <data name="VisitorWidgetScale" xml:space="preserve"><value>ウィジェットのサイズ（%）</value></data>
+  <data name="VisitorStyleOpacity" xml:space="preserve"><value>スタイルの透明度を使用</value></data>
+  <data name="VisitorOpacity" xml:space="preserve"><value>背景の不透明度（%）</value></data>
+  <data name="VisitorBackground" xml:space="preserve"><value>背景色を選択 …</value></data>
+  <data name="VisitorTextColor" xml:space="preserve"><value>文字色を選択 …</value></data>
+  <data name="VisitorResetColors" xml:space="preserve"><value>スタイルの色に戻す</value></data>
 </root>

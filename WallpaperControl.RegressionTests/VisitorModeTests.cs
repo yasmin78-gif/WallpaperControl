@@ -24,16 +24,15 @@ internal static class VisitorModeTests
                 var source = Field<ComboBox>(form, "visitorSource");
                 check(source.Items.Count == 3 && !toggle.Checked, "Visitor UI: three source types and compatible off default");
                 toggle.Checked = true;
-                check(service.Active && toggle.Checked && !content.Enabled && service.Error != null, "Visitor UI: main switch activates safe mode for missing source");
+                check(service.Active && toggle.Checked && !Field<Panel>(form, "slideshowCard").Enabled && service.Error != null, "Visitor UI: main switch activates safe mode for missing source");
                 service.SetActiveAsync(false).GetAwaiter().GetResult();
                 check(!toggle.Checked && content.Enabled, "Visitor UI: service synchronizes main switch and restores controls");
                 using (App.VisitorModeWidgetForm widget = new(service, _ => { }))
                 {
-                    var widgetToggle = Field<CheckBox>(widget, "toggle");
-                    widgetToggle.Checked = true;
-                    check(service.Active && toggle.Checked && widgetToggle.Checked, "Visitor widget: toggle synchronizes shared service and main switch");
+                    widget.ToggleAsync().GetAwaiter().GetResult();
+                    check(service.Active && toggle.Checked, "Visitor widget: toggle synchronizes shared service and main switch");
                     toggle.Checked = false;
-                    check(!service.Active && !widgetToggle.Checked, "Visitor widget: main switch synchronizes widget in reverse");
+                    check(!service.Active && widget.AccessibleDescription == App.Localization.Get("VisitorInactive"), "Visitor widget: main switch synchronizes widget in reverse");
                 }
                 var hotkey = Message.Create(IntPtr.Zero, 0x0312, (IntPtr)5, IntPtr.Zero);
                 form.GetType().GetMethod("WndProc", Members)!.Invoke(form, new object[] { hotkey });

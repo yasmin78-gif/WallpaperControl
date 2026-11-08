@@ -145,6 +145,13 @@ namespace WallpaperControl
                 int selectorWidth = Math.Min(Px(300), width / 2);
                 int top = Math.Max(LabelAt(mainHeading, 0, 0, width - selectorWidth - small, 32),
                     InputAt(wallpaperModeCombo, width - selectorWidth, 0, selectorWidth)) + gap;
+                if (visitorMode != null && VisitorMainSwitchAvailable)
+                {
+                    visitorMainBar.SetBounds(0, top, width, Px(40));
+                    visitorSwitch.SetBounds(0, 0, Px(76), Px(34));
+                    visitorMainLabel.SetBounds(Px(80), 0, Math.Max(1, width - Px(80)), Px(34));
+                    top = visitorMainBar.Bottom + gap;
+                }
                 if (videoStatusLabel.Visible) top = LabelAt(videoStatusLabel, 0, top, width) + small;
                 if (wallpaperWarning && !VideoConfigurationSelected && wallpaperOwnership.AllowsImages)
                 {

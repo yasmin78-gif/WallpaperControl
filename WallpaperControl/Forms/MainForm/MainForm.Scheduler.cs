@@ -38,7 +38,10 @@ namespace WallpaperControl
         /// <summary>
         /// Enables application-controlled wallpaper scheduling for the current folder.
         /// </summary>
-        private void StartCustomSlideshowEngine()
+        private void StartCustomSlideshowEngine() => StartCustomSlideshowEngineFromPath(null);
+
+        internal Func<string, bool>? StartImageSessionForTests = null;
+        private void StartCustomSlideshowEngineFromPath(string? restoredPath)
         {
             if (!wallpaperOwnership.AllowsImages) return;
             string folder = folderTextBox.Text;
@@ -51,7 +54,7 @@ namespace WallpaperControl
                 return;
             }
 
-            string? current = GetCurrentWallpaperPath();
+            string? current = restoredPath ?? GetCurrentWallpaperPath();
 
             if (string.IsNullOrWhiteSpace(current) ||
                 !File.Exists(current))
@@ -65,6 +68,12 @@ namespace WallpaperControl
 
             try
             {
+                if (StartImageSessionForTests != null)
+                {
+                    customSlideshowEngineActive = StartImageSessionForTests(current);
+                    RecalculateCustomSlideshowSchedule();
+                    return;
+                }
                 wallpaper =
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
@@ -126,7 +135,7 @@ namespace WallpaperControl
         /// </summary>
         private void ArmCustomSlideshowPreciseTimer()
         {
-            if (!wallpaperOwnership.AllowsImages || !customSlideshowEngineActive ||
+            if (visitorMode?.Active == true || !wallpaperOwnership.AllowsImages || !customSlideshowEngineActive ||
                 customSlideshowChangeRunning ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||
                 customSlideshowNextChange == DateTime.MaxValue)
@@ -195,7 +204,7 @@ namespace WallpaperControl
         private void ProcessPreciseCustomSlideshowTick()
         {
             Interlocked.Exchange(ref schedulerDispatchUtcTicks, DateTime.UtcNow.Ticks);
-            if (!wallpaperOwnership.AllowsImages || exitRequested || IsDisposed || Disposing) return;
+            if (visitorMode?.Active == true || !wallpaperOwnership.AllowsImages || exitRequested || IsDisposed || Disposing) return;
             _ = UpdateFullscreenPauseAsync();
             if (!customSlideshowEngineActive ||
                 !fullscreenPolicy.AllowsSlideshow(slideshowPaused) ||

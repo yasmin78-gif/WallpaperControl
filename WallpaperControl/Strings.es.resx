@@ -1896,4 +1896,10 @@ Versión instalada: {0}
   <data name="VisitorSwitching" xml:space="preserve"><value>Cambiando …</value></data>
   <data name="VisitorFallback" xml:space="preserve"><value>Revisar fuente</value></data>
   <data name="VisitorHotkey" xml:space="preserve"><value>Atajo global opcional: haga clic aquí y pulse una combinación Ctrl/Alt. Supr borra el atajo.</value></data>
+  <data name="VisitorWidgetScale" xml:space="preserve"><value>Tamaño del widget (%)</value></data>
+  <data name="VisitorStyleOpacity" xml:space="preserve"><value>Usar transparencia del estilo</value></data>
+  <data name="VisitorOpacity" xml:space="preserve"><value>Opacidad del fondo (%)</value></data>
+  <data name="VisitorBackground" xml:space="preserve"><value>Elegir color de fondo …</value></data>
+  <data name="VisitorTextColor" xml:space="preserve"><value>Elegir color de texto …</value></data>
+  <data name="VisitorResetColors" xml:space="preserve"><value>Restaurar colores del estilo</value></data>
 </root>

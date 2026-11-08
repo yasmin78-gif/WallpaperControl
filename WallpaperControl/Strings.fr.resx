@@ -1896,4 +1896,10 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VisitorSwitching" xml:space="preserve"><value>Changement …</value></data>
   <data name="VisitorFallback" xml:space="preserve"><value>Vérifier la source</value></data>
   <data name="VisitorHotkey" xml:space="preserve"><value>Raccourci global facultatif : cliquez ici et appuyez sur une combinaison Ctrl/Alt. Suppr efface le raccourci.</value></data>
+  <data name="VisitorWidgetScale" xml:space="preserve"><value>Taille du widget (%)</value></data>
+  <data name="VisitorStyleOpacity" xml:space="preserve"><value>Utiliser la transparence du style</value></data>
+  <data name="VisitorOpacity" xml:space="preserve"><value>Opacité du fond (%)</value></data>
+  <data name="VisitorBackground" xml:space="preserve"><value>Choisir la couleur du fond …</value></data>
+  <data name="VisitorTextColor" xml:space="preserve"><value>Choisir la couleur du texte …</value></data>
+  <data name="VisitorResetColors" xml:space="preserve"><value>Restaurer les couleurs du style</value></data>
 </root>

@@ -15,18 +15,22 @@ internal sealed class VisitorToggleSwitch : CheckBox
     protected override void OnPaint(PaintEventArgs e)
     {
         e.Graphics.Clear(BackColor);
-        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        int height = Math.Max(8, Height - 8), width = Math.Min(Width - 8, height * 2);
-        Rectangle bounds = new(4, 4, width, height);
+        DrawSwitch(e.Graphics, new Rectangle(4, 4, Width - 8, Height - 8), Checked, Enabled);
+        if (Focused && ShowFocusCues) ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
+    }
+    internal static void DrawSwitch(Graphics graphics, Rectangle area, bool active, bool enabled)
+    {
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        int height = Math.Max(8, area.Height), width = Math.Min(area.Width, height * 2);
+        Rectangle bounds = new(area.X, area.Y, width, height);
         using GraphicsPath path = new();
         path.AddArc(bounds.Left, bounds.Top, height, height, 90, 180);
         path.AddArc(bounds.Right - height, bounds.Top, height, height, 270, 180); path.CloseFigure();
-        using SolidBrush track = new(!Enabled ? Color.DimGray : Checked ? Color.SeaGreen : Color.SlateGray);
-        e.Graphics.FillPath(track, path);
+        using SolidBrush track = new(!enabled ? Color.DimGray : active ? Color.SeaGreen : Color.SlateGray);
+        graphics.FillPath(track, path);
         using SolidBrush thumb = new(Color.White);
         int diameter = height - 6;
-        e.Graphics.FillEllipse(thumb, Checked ? bounds.Right - diameter - 3 : bounds.Left + 3, bounds.Top + 3, diameter, diameter);
-        if (Focused && ShowFocusCues) ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
+        graphics.FillEllipse(thumb, active ? bounds.Right - diameter - 3 : bounds.Left + 3, bounds.Top + 3, diameter, diameter);
     }
     protected override void OnCheckedChanged(EventArgs e) { base.OnCheckedChanged(e); Invalidate(); }
     protected override void OnEnabledChanged(EventArgs e) { base.OnEnabledChanged(e); Invalidate(); }
