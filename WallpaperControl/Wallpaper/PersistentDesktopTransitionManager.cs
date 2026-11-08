@@ -13,6 +13,17 @@ namespace WallpaperControl
         private static int generation;
         private static bool activitySuspended;
         private static string? nativeWallpaperAtStart;
+        private static NativeWallpaperHandoff? nativeHandoff;
+
+        // SetWallpaper can return before GetWallpaper reflects the new selection.
+        // Only known predecessors of this own write are deferred, with a monotonic limit.
+        private sealed class NativeWallpaperHandoff(IEnumerable<string?> predecessors, TimeProvider clock)
+        {
+            private readonly HashSet<string> paths = predecessors.Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            private readonly long started = clock.GetTimestamp();
+            internal bool Allows(string path) => clock.GetElapsedTime(started) < TimeSpan.FromSeconds(5) && paths.Contains(path);
+        }
 
         internal static bool SupportsConfiguration(int monitorCount, DesktopWallpaperPosition position) =>
             monitorCount == 1;
@@ -29,15 +40,17 @@ namespace WallpaperControl
         // All production callers run on the UI thread. The lock also serializes
         // concurrent requests; the guard rejects native message-loop reentrancy.
         internal static bool TryStartSession(string currentWallpaperPath, Action takeOwnership,
-            Func<IPersistentWallpaperHost>? createHost = null)
+            Func<IPersistentWallpaperHost>? createHost = null, IEnumerable<string?>? nativePredecessors = null,
+            TimeProvider? handoffClock = null)
         {
             lock (initializationLock)
             {
                 if (!TryInitializeHost(currentWallpaperPath, createHost)) return false;
                 try
                 {
-                    takeOwnership();
                     nativeWallpaperAtStart = currentWallpaperPath;
+                    nativeHandoff = nativePredecessors == null ? null : new(nativePredecessors, handoffClock ?? TimeProvider.System);
+                    takeOwnership();
                     return true;
                 }
                 catch { Shutdown(); throw; }
@@ -248,9 +261,17 @@ namespace WallpaperControl
         }
 
         // Animated images deliberately differ from the native image retained at startup.
-        internal static bool HasExternalWallpaperChange(string? nativePath) =>
-            GetDisplayedWallpaperPath() != null && !string.IsNullOrWhiteSpace(nativePath) &&
-            !string.Equals(nativePath, nativeWallpaperAtStart, StringComparison.OrdinalIgnoreCase);
+        internal static bool HasExternalWallpaperChange(string? nativePath, bool observeHandoff = true)
+        {
+            if (GetDisplayedWallpaperPath() == null || string.IsNullOrWhiteSpace(nativePath)) return false;
+            if (string.Equals(nativePath, nativeWallpaperAtStart, StringComparison.OrdinalIgnoreCase))
+            { if (observeHandoff) nativeHandoff = null; return false; }
+            if (nativeHandoff?.Allows(nativePath) == true) return false;
+            // An unrelated selection, expired handoff or a change after acknowledgement
+            // must still use the existing external-change pause policy.
+            if (observeHandoff) nativeHandoff = null;
+            return true;
+        }
 
         internal static void ApplyNativeSelection(Action applyNative)
         {
@@ -267,6 +288,7 @@ namespace WallpaperControl
             {
                 generation++;
                 nativeWallpaperAtStart = null;
+                nativeHandoff = null;
                 persistentHost?.Dispose();
                 persistentHost = null;
                 compositionReady = Task.CompletedTask;

@@ -40,7 +40,8 @@ namespace WallpaperControl
         /// </summary>
         private void StartCustomSlideshowEngine() => StartCustomSlideshowEngineFromPath(null);
 
-        internal Func<string, bool>? StartImageSessionForTests = null;
+        internal Func<string, string?[]?, bool>? StartImageSessionForTests = null;
+        private string?[]? restoredNativePredecessors;
         private void StartCustomSlideshowEngineFromPath(string? restoredPath)
         {
             if (!wallpaperOwnership.AllowsImages) return;
@@ -70,7 +71,7 @@ namespace WallpaperControl
             {
                 if (StartImageSessionForTests != null)
                 {
-                    customSlideshowEngineActive = StartImageSessionForTests(current);
+                    customSlideshowEngineActive = StartImageSessionForTests(current, restoredNativePredecessors);
                     RecalculateCustomSlideshowSchedule();
                     return;
                 }
@@ -78,9 +79,17 @@ namespace WallpaperControl
                     (IDesktopWallpaper)
                     new DesktopWallpaper();
 
+                string?[]? predecessors = restoredNativePredecessors;
+                if (predecessors != null)
+                {
+                    uint count = wallpaper.GetMonitorDevicePathCount();
+                    string beforeWrite = wallpaper.GetWallpaper(count > 0 ? wallpaper.GetMonitorDevicePathAt(0) : null);
+                    predecessors = predecessors.Append(beforeWrite).ToArray();
+                }
+
                 // Stop native Windows scheduling while retaining the visible image.
                 if (!PersistentDesktopTransitionManager.TryStartSession(
-                        current, () => wallpaper.SetWallpaper(null, current)))
+                        current, () => wallpaper.SetWallpaper(null, current), nativePredecessors: predecessors))
                 {
                     customSlideshowEngineActive = false;
                     LogScheduler("start rejected: desktop session unavailable");

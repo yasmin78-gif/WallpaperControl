@@ -254,7 +254,10 @@ public partial class MainForm
                     savedImageMode = visitorImageSnapshot ?? new ImageModeSnapshot
                     { StaticPath = resume.ImagePath, Custom = resume.Custom, ManualPaused = resume.ImagePaused };
                     visitorImageSnapshot = null;
-                    RestoreImageModeCore(strict: true);
+                    restoredNativePredecessors = new[] { visitorCurrentPath, neutralVisitorPath }
+                        .Concat(resume.MonitorImages.Values).ToArray();
+                    try { RestoreImageModeCore(strict: true); }
+                    finally { restoredNativePredecessors = null; }
                     if (resume.NativeActive && !resume.Custom && !memorySnapshot && servicesEnabled && !resume.ImagePaused && !fullscreenPolicy.IsPaused)
                         if (!SetWallpaperFolder(folderTextBox.Text, showError: false))
                             throw new InvalidOperationException("Original native slideshow could not be restored.");

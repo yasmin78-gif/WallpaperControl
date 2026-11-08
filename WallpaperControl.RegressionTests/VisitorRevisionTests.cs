@@ -1,4 +1,4 @@
-extern alias WallpaperApp;
+﻿extern alias WallpaperApp;
 using App = WallpaperApp::WallpaperControl;
 using System.Drawing;
 using System.Reflection;
@@ -42,11 +42,17 @@ internal static class VisitorRevisionTests
                     service.SetActiveAsync(true).GetAwaiter().GetResult();
                     nativePath = visitor; // Windows still reports visitor media while SetWallpaper is pending.
                     var host = new FakeHost(); int starts = 0;
-                    form.StartImageSessionForTests = path => { starts++; return App.PersistentDesktopTransitionManager.TryStartSession(path, () => { }, () => host); };
+                    form.StartImageSessionForTests = (path, predecessors) => { starts++; return App.PersistentDesktopTransitionManager.TryStartSession(path, () => { }, () => host = new(), predecessors); };
                     long remaining = service.Settings.Resume!.RemainingTicks;
                     check(Field<CheckBox>(form, "visitorSwitch").Enabled && !Field<Panel>(form, "slideshowCard").Enabled,
                         "Visitor revision: main switch remains enabled while normal wallpaper controls are locked");
                     service.SetActiveAsync(false).GetAwaiter().GetResult();
+                    string? reconciled = form.ReconcileNativeWallpaper(nativePath, () => true);
+                    form.GetType().GetMethod("CheckSlideshowStatus", Members)!.Invoke(form, null);
+                    check(reconciled == original && !host.IsDisposed && Field<bool>(form, "slideshowPaused") == paused,
+                        "Visitor pause: delayed own native read retains renderer and original manual pause=" + paused);
+                    check(Field<Button>(form, "pauseButton").Text == App.Localization.Get(paused ? "ResumeSlideshow" : "PauseSlideshow"),
+                        "Visitor pause: main page status matches original manual pause=" + paused);
                     check(starts == 1 && host.CurrentWallpaperPath == original && host.Transitions == 0 && nativePath == visitor,
                         "Visitor revision: original image presented immediately despite stale Windows path; paused=" + paused);
                     check(Field<bool>(form, "slideshowPaused") == paused && Field<bool>(form, "customSlideshowEngineActive")
@@ -60,8 +66,31 @@ internal static class VisitorRevisionTests
                         form.DrawToBitmap(image, new Rectangle(0, 0, image.Width, image.Height)); image.Save(Path.Combine(preview, "visitor-main-revised.png"));
                         form.Hide();
                     }
+                    for (int toggle = 0; toggle < 6; toggle++)
+                    {
+                        nativePath = original;
+                        check(form.ReconcileNativeWallpaper(nativePath, () => true) == original, "Visitor pause: native acknowledgement keeps original image");
+                        service.SetActiveAsync(true).GetAwaiter().GetResult(); nativePath = visitor;
+                        service.SetActiveAsync(false).GetAwaiter().GetResult();
+                        check(form.ReconcileNativeWallpaper(nativePath, () => true) == original && Field<bool>(form, "slideshowPaused") == paused
+                            && host.Transitions == 0, "Visitor pause: rapid round trip retains pause without extra image advance " + paused + "/" + toggle);
+                    }
+                    nativePath = original; form.ReconcileNativeWallpaper(nativePath, () => true);
+                    var policy = Field<App.FullscreenPausePolicy>(form, "fullscreenPolicy");
+                    policy.Update(true, true, DateTime.UtcNow);
+                    service.SetActiveAsync(true).GetAwaiter().GetResult(); nativePath = visitor;
+                    service.SetActiveAsync(false).GetAwaiter().GetResult(); form.ReconcileNativeWallpaper(nativePath, () => true);
+                    form.GetType().GetMethod("CheckSlideshowStatus", Members)!.Invoke(form, null);
+                    check(policy.IsPaused && Field<bool>(form, "slideshowPaused") == paused
+                        && Field<Label>(form, "statusLabel").Text == App.Localization.Get("StatusFullscreenPaused"),
+                        "Visitor pause: fullscreen reason and its status remain independent of manual pause");
+                    nativePath = original; form.ReconcileNativeWallpaper(nativePath, () => true);
+                    check(form.ReconcileNativeWallpaper("external-user-wallpaper", () => true) == "external-user-wallpaper"
+                        && Field<bool>(form, "slideshowPaused") && policy.IsPaused && host.IsDisposed,
+                        "Visitor pause: real external changes still pause the image engine without clearing fullscreen pause");
                     App.PersistentDesktopTransitionManager.Shutdown();
                 }
+                VerifyNativeHandoff(check, original, visitor);
                 using (var registry = Registry.CurrentUser.CreateSubKey(key))
                     registry.SetValue("VisitorMode", "{\"WidgetEnabled\":true,\"WidgetLocked\":true,\"WidgetX\":-123,\"WidgetY\":45}");
                 var settings = App.WidgetSettings.Load(key);
@@ -140,6 +169,41 @@ internal static class VisitorRevisionTests
         });
         thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join();
         if (error != null) throw error;
+    }
+    private static void VerifyNativeHandoff(Action<bool, string> check, string original, string visitor)
+    {
+        var clock = new ManualClock();
+        void Start() => App.PersistentDesktopTransitionManager.TryStartSession(original, () => { }, () => new FakeHost(),
+            new[] { visitor, "neutral" }, clock);
+        Start();
+        check(!App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(original, observeHandoff: false)
+            && App.PersistentDesktopTransitionManager.HasExternalWallpaperChange("diagnostic-only-external", observeHandoff: false)
+            && !App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(visitor),
+            "Visitor pause: diagnostic reads neither acknowledge nor consume the pending native handoff");
+        check(!App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(visitor)
+            && !App.PersistentDesktopTransitionManager.HasExternalWallpaperChange("neutral"),
+            "Visitor pause: only recorded visitor and neutral predecessors are deferred");
+        check(App.PersistentDesktopTransitionManager.HasExternalWallpaperChange("unrelated-user-wallpaper"),
+            "Visitor pause: genuine unrelated external wallpaper is still detected immediately");
+        Start();
+        check(!App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(original)
+            && App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(visitor),
+            "Visitor pause: after native acknowledgement even the former visitor path is external again");
+        Start(); clock.Advance(TimeSpan.FromSeconds(5));
+        check(App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(visitor),
+            "Visitor pause: handoff expires using monotonic time and never suppresses a change indefinitely");
+        App.PersistentDesktopTransitionManager.Shutdown();
+        App.PersistentDesktopTransitionManager.TryStartSession(original, () => { }, () => new FakeHost());
+        check(App.PersistentDesktopTransitionManager.HasExternalWallpaperChange(visitor),
+            "Visitor pause: ordinary image sessions retain existing external-change policy");
+        App.PersistentDesktopTransitionManager.Shutdown();
+    }
+    private sealed class ManualClock : TimeProvider
+    {
+        private long ticks;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => ticks;
+        internal void Advance(TimeSpan duration) => ticks += duration.Ticks;
     }
     private sealed class FakeHost : App.IPersistentWallpaperHost
     {
