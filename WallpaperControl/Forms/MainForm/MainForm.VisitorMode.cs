@@ -1,4 +1,4 @@
-using System.Drawing.Imaging;
+﻿using System.Drawing.Imaging;
 
 namespace WallpaperControl;
 
@@ -18,6 +18,7 @@ public partial class MainForm
         visitorMode = new(servicesEnabled ? store.Load() : new(),
             value => !servicesEnabled || store.Save(value), CaptureVisitorResume,
             ActivateVisitorMediaAsync, RestoreVisitorResumeAsync);
+        widgetManager.ConfigureVisitorMode(visitorMode);
         // Reserve before preferences, timers, hotkeys or the normal desktop warm-up.
         if (visitorMode.Active)
         {

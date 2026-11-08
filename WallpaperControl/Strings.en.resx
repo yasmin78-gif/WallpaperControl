@@ -1891,4 +1891,8 @@ Would you like to open the release page?</value>
   <data name="VisitorPlaybackError" xml:space="preserve"><value>Playback change failed. Visitor mode remains active if restoration fails. Check the source and try again.</value></data>
   <data name="VisitorSaveError" xml:space="preserve"><value>Settings could not be saved. The state for the next launch is not secured.</value></data>
   <data name="VisitorHelp" xml:space="preserve"><value>Save to apply source changes. Videos play silently and require one monitor. Visitor mode stays active on media errors. Windows controls the desktop before this application starts.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Active</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Off</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Switching …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Check source</value></data>
 </root>

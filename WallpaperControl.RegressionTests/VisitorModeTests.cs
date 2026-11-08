@@ -25,6 +25,14 @@ internal static class VisitorModeTests
                 check(service.Active && toggle.Checked && !content.Enabled && service.Error != null, "Visitor UI: main switch activates safe mode for missing source");
                 service.SetActiveAsync(false).GetAwaiter().GetResult();
                 check(!toggle.Checked && content.Enabled, "Visitor UI: service synchronizes main switch and restores controls");
+                using (App.VisitorModeWidgetForm widget = new(service, _ => { }))
+                {
+                    var widgetToggle = Field<CheckBox>(widget, "toggle");
+                    widgetToggle.Checked = true;
+                    check(service.Active && toggle.Checked && widgetToggle.Checked, "Visitor widget: toggle synchronizes shared service and main switch");
+                    toggle.Checked = false;
+                    check(!service.Active && !widgetToggle.Checked, "Visitor widget: main switch synchronizes widget in reverse");
+                }
                 var ownership = Field<App.WallpaperModeOwnership>(form, "wallpaperOwnership");
                 var desktop = new FakeDesktop();
                 var controller = new App.VideoWallpaperController(desktop, _ => { });

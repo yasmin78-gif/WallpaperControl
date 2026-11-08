@@ -1891,4 +1891,8 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VisitorPlaybackError" xml:space="preserve"><value>Umschalten fehlgeschlagen. Der Besuchermodus wird bei fehlgeschlagener Wiederherstellung nicht freigegeben. Bitte Quelle prüfen und erneut versuchen.</value></data>
   <data name="VisitorSaveError" xml:space="preserve"><value>Die Einstellungen konnten nicht gespeichert werden. Der Zustand für den nächsten Start ist nicht gesichert.</value></data>
   <data name="VisitorHelp" xml:space="preserve"><value>Änderungen an der Quelle mit „Speichern“ übernehmen. Videos werden stumm abgespielt und benötigen einen Monitor. Bei Fehlern bleibt der Besuchermodus aktiv. Vor dem Start dieser Anwendung kontrolliert Windows den Desktop.</value></data>
+  <data name="VisitorOn" xml:space="preserve"><value>Aktiv</value></data>
+  <data name="VisitorOff" xml:space="preserve"><value>Aus</value></data>
+  <data name="VisitorSwitching" xml:space="preserve"><value>Umschalten …</value></data>
+  <data name="VisitorFallback" xml:space="preserve"><value>Quelle prüfen</value></data>
 </root>

@@ -71,7 +71,9 @@ namespace WallpaperControl
         public void Start()
         {
             previewMode = false;
+            visitorWidgetsStarted = true;
             ApplyVisualState(settings, restoreLocations: true);
+            UpdateVisitorWidget();
         }
 
         /// <summary>
@@ -779,6 +781,7 @@ namespace WallpaperControl
         /// </summary>
         public void Dispose()
         {
+            DisposeVisitorWidget();
             DisposeEmailWatcher();
             DisposeTwitch();
             DisposeFeeds();
