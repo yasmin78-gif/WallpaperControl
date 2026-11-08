@@ -1895,4 +1895,5 @@ Would you like to open the release page?</value>
   <data name="VisitorOff" xml:space="preserve"><value>Off</value></data>
   <data name="VisitorSwitching" xml:space="preserve"><value>Switching …</value></data>
   <data name="VisitorFallback" xml:space="preserve"><value>Check source</value></data>
+  <data name="VisitorHotkey" xml:space="preserve"><value>Optional global hotkey: click the field and press a Ctrl/Alt combination. Delete clears it.</value></data>
 </root>

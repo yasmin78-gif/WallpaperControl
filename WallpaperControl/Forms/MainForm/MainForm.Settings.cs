@@ -152,6 +152,8 @@ namespace WallpaperControl
                     windowOpacityPercent,
                     widgetManager.Settings.NotificationSound, widgetManager.Settings.NotificationTones,widgetManager.SnappingEnabled);
 
+            dialog.ReservedHotkey = VisitorHotkeyBinding();
+
             string languageBefore =
                 Localization.CurrentLanguage;
 

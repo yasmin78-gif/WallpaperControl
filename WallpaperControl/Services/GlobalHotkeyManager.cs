@@ -17,6 +17,8 @@ namespace WallpaperControl
     // Called by the window's UI thread. Localization and action dispatch stay in the UI.
     internal sealed class GlobalHotkeyManager
     {
+        internal static bool HasConflict(IEnumerable<HotkeyBinding> bindings, uint modifiers, uint key) =>
+            modifiers != 0 && key != 0 && bindings.Any(binding => binding.Modifiers == modifiers && binding.Key == key);
         private readonly Func<IntPtr, int, uint, uint, bool> register;
         private readonly Func<IntPtr, int, bool> unregister;
 

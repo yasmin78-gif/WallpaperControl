@@ -33,6 +33,10 @@ internal static class VisitorModeTests
                     toggle.Checked = false;
                     check(!service.Active && !widgetToggle.Checked, "Visitor widget: main switch synchronizes widget in reverse");
                 }
+                var hotkey = Message.Create(IntPtr.Zero, 0x0312, (IntPtr)5, IntPtr.Zero);
+                form.GetType().GetMethod("WndProc", Members)!.Invoke(form, new object[] { hotkey });
+                check(service.Active && toggle.Checked, "Visitor hotkey: native message activates shared service without foreground window");
+                service.SetActiveAsync(false).GetAwaiter().GetResult();
                 var ownership = Field<App.WallpaperModeOwnership>(form, "wallpaperOwnership");
                 var desktop = new FakeDesktop();
                 var controller = new App.VideoWallpaperController(desktop, _ => { });
@@ -136,5 +140,8 @@ internal static class VisitorModeTests
         check(!ownership.AllowsImages && !ownership.IsCurrentImage(lease), "Visitor: stale scheduler and image requests rejected");
         ownership.Switch(App.WallpaperOperatingMode.ImageSlideshow);
         check(!ownership.IsCurrentImage(lease), "Visitor: stale work rejected even after returning to images");
+        var bindings = new[] { new App.HotkeyBinding(1, 3, 0x50, "Pause") };
+        check(App.GlobalHotkeyManager.HasConflict(bindings, 3, 0x50) && !App.GlobalHotkeyManager.HasConflict(bindings, 0, 0x50)
+            && !App.GlobalHotkeyManager.HasConflict(bindings, 3, 0x56), "Visitor hotkey: detects existing shortcuts and permits disabled or distinct bindings");
     }
 }

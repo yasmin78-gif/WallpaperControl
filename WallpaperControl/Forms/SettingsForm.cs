@@ -10,6 +10,8 @@ namespace WallpaperControl
     // Coordinates accepting, resetting, and disposing the settings dialog. See Forms/SettingsForm/README.md.
     internal sealed partial class SettingsForm : Form
     {
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        internal HotkeyBinding? ReservedHotkey { get; set; }
         /// <summary>
         /// Restores the dialog&apos;s default values and refreshes appearance preview.
         /// </summary>
@@ -71,7 +73,8 @@ namespace WallpaperControl
                 (rejectModifiers, rejectKey)
             };
 
-            bool duplicateFound = false;
+            bool duplicateFound = ReservedHotkey is { } reserved && activeHotkeys.Any(value =>
+                IsDuplicate(value.modifiers, value.key, reserved.Modifiers, reserved.Key));
 
             for (int i = 0; i < activeHotkeys.Length && !duplicateFound; i++)
             {

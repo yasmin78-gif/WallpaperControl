@@ -15,6 +15,9 @@ public partial class MainForm
     private readonly CheckBox visitorWidget = new() { AutoSize = true };
     private readonly CheckBox visitorLocked = new() { AutoSize = true };
     private readonly Button visitorApply = new() { AutoSize = true, MinimumSize = new Size(140, 36) };
+    private readonly TextBox visitorHotkey = new() { ReadOnly = true, Width = 360 };
+    private uint visitorHotkeyModifiers, visitorHotkeyKey;
+    private const int HOTKEY_VISITOR = 5;
 
     private void InitializeVisitorUi()
     {
@@ -38,6 +41,18 @@ public partial class MainForm
         content.Controls.Add(browse);
         content.Controls.Add(Label("VisitorInterval")); content.Controls.Add(visitorInterval);
         content.Controls.Add(visitorShuffle); content.Controls.Add(visitorWidget); content.Controls.Add(visitorLocked);
+        content.Controls.Add(Label("VisitorHotkey")); content.Controls.Add(visitorHotkey);
+        visitorHotkey.KeyDown += (_, e) =>
+        {
+            e.SuppressKeyPress = true;
+            if (e.KeyCode is Keys.Delete or Keys.Back) { visitorHotkeyModifiers = visitorHotkeyKey = 0; }
+            else if (e.KeyCode is not (Keys.ControlKey or Keys.ShiftKey or Keys.Menu) && (e.Control || e.Alt))
+            {
+                visitorHotkeyModifiers = (e.Control ? 2u : 0) | (e.Alt ? 1u : 0) | (e.Shift ? 4u : 0);
+                visitorHotkeyKey = (uint)e.KeyCode;
+            }
+            UpdateVisitorHotkeyText();
+        };
         content.Controls.Add(visitorApply); content.Controls.Add(Label("VisitorHelp"));
         visitorPage.Controls.Add(content); Controls.Add(visitorPage); mainNavigation.SendToBack();
         visitorSwitch.CheckedChanged += async (_, _) =>
@@ -57,6 +72,7 @@ public partial class MainForm
         };
         visitorApply.Click += async (_, _) => await SaveVisitorUiAsync();
         var settings = visitorMode!.Settings;
+        visitorHotkeyModifiers = settings.HotkeyModifiers; visitorHotkeyKey = settings.HotkeyKey;
         visitorSource.SelectedIndex = -1;
         visitorPath.Text = settings.Path; visitorInterval.Value = settings.IntervalMilliseconds / 1000;
         visitorShuffle.Checked = settings.Shuffle; visitorWidget.Checked = settings.WidgetEnabled; visitorLocked.Checked = settings.WidgetLocked;
@@ -64,14 +80,29 @@ public partial class MainForm
         ApplyVisitorPresentation(); UpdateVisitorUi();
     }
 
-    private Task SaveVisitorUiAsync()
+    private async Task SaveVisitorUiAsync()
     {
         var source = (VisitorSourceKind)Math.Max(0, visitorSource.SelectedIndex);
         string path = visitorPath.Text;
         uint interval = (uint)visitorInterval.Value * 1000;
         bool shuffle = visitorShuffle.Checked, widget = visitorWidget.Checked, locked = visitorLocked.Checked;
-        return visitorMode!.ConfigureAsync(s => s with { Source = source, Path = path,
-            IntervalMilliseconds = interval, Shuffle = shuffle, WidgetEnabled = widget, WidgetLocked = locked });
+        uint modifiers = visitorHotkeyModifiers, key = visitorHotkeyKey;
+        if (GlobalHotkeyManager.HasConflict(GetHotkeyBindings().Where(b => b.Id != HOTKEY_VISITOR), modifiers, key))
+        { visitorStatus.Text = Localization.Get("SettingsDuplicateHotkey"); return; }
+        var old = VisitorHotkeyBinding();
+        bool changed = old.Modifiers != modifiers || old.Key != key;
+        if (changed && servicesEnabled && IsHandleCreated)
+        {
+            var failures = hotkeyManager.Replace(Handle, new[] { new HotkeyBinding(HOTKEY_VISITOR, modifiers, key, Localization.Get("VisitorTitle")) });
+            if (failures.Count > 0)
+            {
+                hotkeyManager.Replace(Handle, new[] { old });
+                ShowHotkeyErrors(failures, true); return;
+            }
+        }
+        await visitorMode!.ConfigureAsync(s => s with { Source = source, Path = path,
+            IntervalMilliseconds = interval, Shuffle = shuffle, WidgetEnabled = widget, WidgetLocked = locked,
+            HotkeyModifiers = modifiers, HotkeyKey = key });
     }
 
     private void UpdateVisitorUi()
@@ -106,6 +137,7 @@ public partial class MainForm
         visitorSwitch.AccessibleName = Localization.Get("VisitorTitle");
         visitorPath.AccessibleName = Localization.Get("VisitorPath");
         visitorInterval.AccessibleName = Localization.Get("VisitorInterval");
+        visitorHotkey.AccessibleName = Localization.Get("VisitorHotkey"); UpdateVisitorHotkeyText();
         visitorShuffle.Text = Localization.Get("VisitorShuffle"); visitorWidget.Text = Localization.Get("VisitorWidget");
         visitorLocked.Text = Localization.Get("VisitorLocked"); visitorApply.Text = Localization.Get("SettingsSave");
         int selected = visitorSource.SelectedIndex < 0 ? (int)visitorMode!.Settings.Source : visitorSource.SelectedIndex;
@@ -116,4 +148,9 @@ public partial class MainForm
         visitorNavigation.FlatAppearance.BorderSize = 0;
         UpdateVisitorUi();
     }
+
+    private void UpdateVisitorHotkeyText() => visitorHotkey.Text = visitorHotkeyModifiers == 0 || visitorHotkeyKey == 0
+        ? Localization.Get("SettingsModifierDisabled") : GlobalHotkeyManager.FormatHotkey(visitorHotkeyModifiers, visitorHotkeyKey);
+    private HotkeyBinding VisitorHotkeyBinding() => new(HOTKEY_VISITOR, visitorMode?.Settings.HotkeyModifiers ?? 0,
+        visitorMode?.Settings.HotkeyKey ?? 0, Localization.Get("VisitorTitle"));
 }
