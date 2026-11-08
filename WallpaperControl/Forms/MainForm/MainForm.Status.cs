@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -18,6 +18,7 @@ namespace WallpaperControl
         private void RefreshWallpaperUi()
         {
             ObserveRuntimeResources();
+            if (visitorMode?.Active == true) { _ = ObserveVisitorVideoAsync(); return; }
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
                 if (videoWallpaper != null) _ = ObserveVideoRecoveryAsync();
@@ -68,6 +69,7 @@ namespace WallpaperControl
         /// </summary>
         private void CheckSlideshowStatus()
         {
+            if (visitorMode?.Active == true) return;
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             { UpdateVideoControls(); return; }
             if (servicesEnabled) UpdateCurrentWallpaperDisplay();

@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -24,6 +24,13 @@ namespace WallpaperControl
             EventArgs e)
         {
             if (!servicesEnabled) return;
+            if (visitorMode?.Active == true)
+            {
+                FitMainWindowToMonitor();
+                await visitorMode.SetActiveAsync(true, startup: true);
+                if (!IsDisposed) widgetManager.Start();
+                return;
+            }
             FitMainWindowToMonitor();
             await UpdateFullscreenPauseAsync();
             while (wallpaperOwnership.AllowsImages && fullscreenPolicy.IsPaused && !IsDisposed)
@@ -106,12 +113,14 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                visitorClosing = true; visitorTimer.Stop(); visitorTimer.Dispose(); visitorMode?.Close();
+                visitorImageSnapshot?.Dispose(); visitorImageSnapshot = null;
                 runtimeResources?.Dispose(); runtimeResources = null;
                 DisposeVideoWallpaper();
                 StopVideoLiveTest();
                 wallpaperLayoutReady = false;
                 customWallpaperCancellation?.Cancel();
-                if (nativeSlideshowAutoPaused && !slideshowPaused)
+                if (visitorMode?.Active != true && nativeSlideshowAutoPaused && !slideshowPaused)
                 {
                     try { RestoreNativeSlideshowAfterFullscreen(); }
                     catch (Exception ex) { AppLogger.Warning("Could not restore Windows slideshow on exit.", ex); }
@@ -277,7 +286,14 @@ namespace WallpaperControl
                 return;
             }
 
-            if (slideshowPaused &&
+            if (visitorMode?.Active == true && !videoShutdownFinished)
+            {
+                e.Cancel = true;
+                if (!visitorClosing) { visitorClosing = true; _ = StopVisitorAndCloseAsync(); }
+                base.OnFormClosing(e); return;
+            }
+
+            if (visitorMode?.Active != true && slideshowPaused &&
                 !closingAfterPauseResume)
             {
                 e.Cancel = true;
@@ -303,7 +319,7 @@ namespace WallpaperControl
 
             // Return slideshow ownership to Windows on exit. Its last native image
             // may become visible; a synthetic handoff is unreliable on Windows 11.
-            if (customSlideshowEngineActive)
+            if (visitorMode?.Active != true && customSlideshowEngineActive)
             {
                 string? folder = appSettings.LoadLastWallpaperFolder();
 

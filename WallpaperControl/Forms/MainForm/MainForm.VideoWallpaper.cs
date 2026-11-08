@@ -1,4 +1,4 @@
-using WallpaperControl.Video;
+﻿using WallpaperControl.Video;
 
 namespace WallpaperControl;
 
@@ -266,6 +266,7 @@ public partial class MainForm
 
     private async Task ApplyWallpaperModeCoreAsync(WallpaperOperatingMode mode, bool replaceEngine = false)
     {
+        if (visitorMode?.Active == true) return;
         // Reject unsupported topology before touching native wallpaper paths,
         // image scheduler state or transition ownership (especially Span).
         if (mode == WallpaperOperatingMode.VideoWallpaper && videoMonitorCount() != 1)

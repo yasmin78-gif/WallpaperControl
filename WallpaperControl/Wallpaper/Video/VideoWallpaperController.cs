@@ -72,6 +72,7 @@ internal sealed class VideoWallpaperController : IDisposable
     internal int RecoveryAttempts => attempts;
     internal bool HasSession => session != null;
     internal string ActivePath => path;
+    internal long PlaybackPosition { get { CapturePosition(); return position; } }
     internal bool ChangePending => starting;
     internal bool SoundEnabled { get; private set; }
     internal int Volume { get; private set; } = 50;
@@ -119,7 +120,7 @@ internal sealed class VideoWallpaperController : IDisposable
         if (session != null) Status(PolicyState);
         else if (!recoverable) { desired = false; Status(VideoWallpaperState.Stopped); }
     }
-    internal async Task<bool> StartAsync(string selectedPath, Func<Task>? beforeCreate = null)
+    internal async Task<bool> StartAsync(string selectedPath, Func<Task>? beforeCreate = null, long restorePosition = 0)
     {
         if (disposed) return false;
         InvalidatePending();
@@ -150,7 +151,7 @@ internal sealed class VideoWallpaperController : IDisposable
                 path = selectedPath; shell = null; recoverable = true; position = 0; starting = false;
                 BeginIncident(); return false;
             }
-            return await InitializeAsync(lease, token, selectedPath, target.Value, 0);
+            return await InitializeAsync(lease, token, selectedPath, target.Value, Math.Max(0, restorePosition));
         }
         catch (OperationCanceledException) when (!Current(lease) || token.IsCancellationRequested) { return false; }
         catch (Exception ex) { if (Current(lease)) RejectChange("VideoErrorPlayback", ex); return false; }

@@ -31,6 +31,7 @@ namespace WallpaperControl
                 AdvanceWallpaper(DesktopSlideshowDirection.Forward),
                 advanced => WallpaperInfoSnapshot.Create(lastDisplayedWallpaperPath, activeWallpaperCount, statistics.ViewCounts, advanced));
             statistics.Changed += widgetManager.RefreshWallpaperInfo;
+            InitializeVisitorMode();
 
             Text = "Wallpaper Control";
 
@@ -666,7 +667,8 @@ namespace WallpaperControl
 
             // The application owns slideshow timing. Schedule the first change
             // at the next clock-aligned interval boundary.
-            if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.ImageSlideshow)
+            if (visitorMode?.Active == true) { /* Reserved before loading normal preferences. */ }
+            else if (appSettings.LoadWallpaperOperatingMode() == WallpaperOperatingMode.ImageSlideshow)
                 StartCustomSlideshowEngine();
             else if (Screen.AllScreens.Length == 1)
             {
