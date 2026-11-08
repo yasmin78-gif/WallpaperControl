@@ -15,17 +15,28 @@ transition rendus directement sur le bureau et à des widgets de bureau
 optionnels. Il s'intègre proprement au bureau Windows et restaure la
 gestion native des fonds d'écran lorsque l'application se ferme.
 
-**Version actuelle : v2.3.1**
+**Version actuelle : v2.4.0**
 
-## ✨ Nouveautés de la version 2.3.1
+## ✨ Nouveautés de la version 2.4.0
 
-- Rattrapage des e-mails correspondants après la veille ou une période hors ligne, sans notifications en double.
-- Glisser-déposer amélioré dans le lanceur : les dialogues s’ouvrent après le dépôt.
-- Diagnostics de connexion Twitch détaillés sans identifiants ni contenu des réponses dans les journaux.
+- Nouveau mode Visiteur avec une image, une vidéo MP4 ou un dossier de médias distinct pour accueillir vos invités.
+- Restauration du fond précédent, de la position vidéo, de la pause manuelle et du temps restant du diaporama à la désactivation, selon les données disponibles.
+- Conservation d’un fond statique sûr à la fermeture ; des instantanés vidéo protègent aussi le bureau après un plantage ou un arrêt forcé.
+- Commande par raccourci clavier ou widget de bureau, avec une présentation compacte sans titre.
 
-[Télécharger l’installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Notes de version et somme SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
+[Télécharger l’installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Notes de version et somme SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
 
 ## ✨ Fonctionnalités
+
+-   🛡️ **Mode Visiteur**
+    -   Choisir une image, une vidéo MP4 ou un dossier de médias distinct
+    -   Empêcher les changements habituels et la planification de remplacer les médias visiteurs
+    -   Conserver le mode actif après le redémarrage de l’application
+    -   Restaurer l’état de lecture normal précédent à la désactivation, selon les données disponibles
+    -   Conserver la dernière image sûre ou une image vidéo comme fond Windows à la fermeture
+    -   Enregistrer un instantané vidéo toutes les 15 secondes ; un arrêt forcé conserve le dernier instantané réussi
+    -   Utiliser un raccourci configurable et un widget de bureau personnalisable
+    -   Masquer le titre du widget pour afficher uniquement un interrupteur compact
 
 -   🖼️ **Contrôle du diaporama de fonds d'écran**
     -   Sélection du dossier de fonds d'écran

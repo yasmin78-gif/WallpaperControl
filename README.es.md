@@ -15,17 +15,28 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.3.1**
+**Versión actual: v2.4.0**
 
-## ✨ Novedades de la versión 2.3.1
+## ✨ Novedades de la versión 2.4.0
 
-- Recuperación de avisos de correos coincidentes tras la suspensión o un período sin conexión, sin duplicados.
-- Arrastrar y soltar mejorado en el lanzador: los diálogos se abren después de soltar.
-- Diagnóstico detallado de conexiones de Twitch sin registrar credenciales ni contenido de respuestas.
+- Nuevo modo Visitante con una imagen, un vídeo MP4 o una carpeta de medios independiente para recibir visitas.
+- Restauración del fondo anterior, la posición del vídeo, la pausa manual y el tiempo restante de la presentación al desactivarlo, según los datos disponibles.
+- Conservación de un fondo estático seguro al salir; las capturas del vídeo también protegen el escritorio tras un fallo o cierre forzado.
+- Control mediante atajo de teclado o widget de escritorio, con un diseño compacto sin título.
 
-[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
+[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
 
 ## ✨ Funciones
+
+-   🛡️ **Modo Visitante**
+    -   Selecciona una imagen, un vídeo MP4 o una carpeta de medios independiente
+    -   Evita que los cambios habituales y la programación sustituyan los medios de visitantes
+    -   Mantén el modo activo al reiniciar la aplicación
+    -   Restaura el estado de reproducción normal anterior al desactivarlo, según los datos disponibles
+    -   Conserva la última imagen segura o un fotograma como fondo de Windows al salir
+    -   Guarda un fotograma cada 15 segundos; un cierre forzado conserva la última captura segura realizada correctamente
+    -   Usa un atajo configurable y un widget de escritorio personalizable
+    -   Oculta el título del widget para mostrar solo un interruptor compacto
 
 -   🖼️ **Control de presentación de fondos**
     -   Selecciona tu carpeta de fondos

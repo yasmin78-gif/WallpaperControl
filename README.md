@@ -15,17 +15,28 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.3.1**
+**Current release: v2.4.0**
 
-## ✨ New in 2.3.1
+## ✨ New in 2.4.0
 
-- Catch up on matching emails after sleep or time offline, without duplicate notifications.
-- Improve Quick Launcher drag-and-drop by opening shortcut dialogs after the drop completes.
-- Add detailed Twitch connection diagnostics without logging credentials or response contents.
+- Add Visitor Mode with a separate image, MP4 video, or media folder for a guest-friendly desktop.
+- Restore the previous wallpaper, playback position, manual pause, and remaining slideshow time when leaving Visitor Mode, where available.
+- Keep a safe static wallpaper after exit; video checkpoints also protect the desktop after a crash or forced process termination.
+- Control Visitor Mode with a hotkey or desktop widget, including a compact toggle-only layout with a hidden title.
 
-[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
+[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
 
 ## ✨ Features
+
+-   🛡️ **Visitor Mode**
+    -   Choose a separate visitor image, MP4 video, or media folder
+    -   Keep normal wallpaper changes and scheduling from replacing visitor media
+    -   Retain the active mode across application restarts
+    -   Restore the previous normal playback state when the mode is switched off, where available
+    -   Keep the last safe image or a video still as native Windows wallpaper on exit
+    -   Save video checkpoints every 15 seconds; a forced exit retains the last successful safe snapshot
+    -   Use a configurable hotkey and a styled desktop toggle widget
+    -   Hide the widget title for a compact toggle-only layout
 
 -   🖼️ **Wallpaper slideshow control**
     -   Select your wallpaper folder

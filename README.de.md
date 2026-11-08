@@ -15,17 +15,28 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.3.1**
+**Aktuelle Version: v2.4.0**
 
-## ✨ Neu in 2.3.1
+## ✨ Neu in 2.4.0
 
-- Passende E-Mails nach dem Aufwachen oder einer Offlinezeit ohne doppelte Meldungen nachholen.
-- Verbessertes Drag-and-drop im Quick Launcher: Dialoge öffnen sich nach dem Ablegen.
-- Detaillierte Twitch-Verbindungsdiagnose ohne Zugangsdaten oder Antwortinhalte im Protokoll.
+- Besuchermodus mit separatem Bild, MP4-Video oder Medienordner für einen besucherfreundlichen Desktop.
+- Beim Ausschalten vorheriges Wallpaper, Videoposition, manuelle Pause und verbleibende Diashowzeit wiederherstellen, soweit verfügbar.
+- Sicheres statisches Wallpaper beim Beenden erhalten; Video-Checkpoints sichern den Desktop auch bei Absturz oder erzwungenem Prozessende ab.
+- Besuchermodus per Hotkey oder Desktop-Widget steuern, auf Wunsch kompakt als Toggle ohne Titel.
 
-[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.3.1/WallpaperControl-2.3.1-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.3.1)
+[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
 
 ## ✨ Funktionen
+
+-   🛡️ **Besuchermodus**
+    -   Separates Besucherbild, MP4-Video oder einen Medienordner auswählen
+    -   Normale Wallpaperwechsel und Zeitpläne ersetzen keine Besuchermedien
+    -   Aktiven Modus über Programmneustarts hinweg beibehalten
+    -   Beim Ausschalten den vorherigen normalen Wiedergabezustand wiederherstellen, soweit verfügbar
+    -   Beim Beenden das letzte sichere Bild oder ein Videostandbild als Windows-Wallpaper erhalten
+    -   Video-Checkpoints alle 15 Sekunden; beim erzwungenen Beenden bleibt der letzte erfolgreiche sichere Stand
+    -   Konfigurierbarer Hotkey und gestaltbares Desktop-Widget mit Toggle
+    -   Widget-Titel ausblenden und nur einen kompakten Toggle anzeigen
 
 -   🖼️ **Wallpaper-Diashow-Steuerung**
     -   Wallpaper-Ordner auswählen
