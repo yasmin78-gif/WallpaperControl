@@ -1,5 +1,133 @@
 ﻿# Besuchermodus: Implementierung und Abnahme
 
+## Sicheres statisches Wallpaper bei Beenden, Absturz und Prozessabbruch
+
+Diese Ergänzung auf `codex/visitor-mode` ersetzt das bisherige Verhalten, beim
+Beenden stets den neutralen Hintergrund zu setzen. Der frühere Shutdown-Pfad
+rief vor dem Stoppen des Videos `ShowVisitorNeutral` auf. Jetzt werden zunächst
+Besucherwechsel und laufende Vorbereitungen beendet beziehungsweise abgebrochen,
+danach wird das sichere Standbild nativ an Windows übergeben und erst anschließend
+werden Videoengine und Desktop-Host freigegeben. Späteres Dispose überschreibt
+dieses Bild nicht. Ohne Besuchermodus bleibt der bisherige Beenden-Pfad erhalten.
+
+Ausgangspunkt: sauberer Stand `cc3dfef`; Implementierung mit Regressionstests:
+`e8ba09b`. Die nachfolgenden älteren Abschnitte dokumentieren vorherige Abnahmen.
+
+### Bildwahl und dauerhafte Ablage
+
+- Bilder werden schon beim Anzeigen als eigene BMP-Kopie gespeichert. Beim Beenden
+  bleibt diese tatsächlich angezeigte Kopie erhalten, auch wenn die Quelldatei
+  inzwischen verändert oder gelöscht wurde. Im Ordner zählt das zuletzt erfolgreich
+  angezeigte Medium; ein noch vorbereiteter Wechsel darf es nicht ersetzen.
+- Für Videos wird bevorzugt der aktuelle decodierte Videoframe verwendet. Media
+  Foundation nutzt den vorhandenen EVR-Readback, mpv `screenshot-raw video` auf
+  seinem bestehenden nativen Worker. Es wird kein Desktop-Screenshot angefertigt.
+  Der gepinnte minimale mpv-Build benötigt dadurch keinen zusätzlichen Bildencoder.
+- Falls das nicht gelingt, versucht der Windows-Shell-Thumbnailanbieter ein
+  Standbild ausschließlich aus dem Besuchervideo zu gewinnen. Dateisymbole sind
+  ausgeschlossen. Danach folgt ein vorhandener sicherer Frame desselben Videos
+  oder der neutrale Ersatz. Normale/private Wallpaperquellen werden nicht gesucht.
+- Standbilder liegen unter `%LOCALAPPDATA%\WallpaperControl\VisitorMode`.
+  Drei begrenzte BMP-Slots (`safe-0.bmp` bis `safe-2.bmp`) und der atomar ersetzte
+  Zeiger `last-safe.txt` verhindern das Überschreiben des gerade nativen Bildes.
+  Die Ablage liegt außerhalb des Programm-/Abnahmeordners und bleibt bei Neustart
+  und Releasewechsel bestehen. Temporäre Frame-Dateien werden bereinigt.
+- Die native Übergabe verwendet den vorhandenen Windows-Wallpaperpfad für alle
+  Monitore sowie die vorhandene Behandlung eigener Wallpaperänderungen. Der Pfad
+  wird auch beim späteren Wiederherstellen als eigener Vorgänger berücksichtigt.
+
+Die Framevorbereitung hat je Versuch eine Frist von zwei Sekunden; verspätete Ergebnisse
+dürfen ausschließlich ihre temporäre Datei schreiben und keinen neuen nativen
+Hintergrund mehr veröffentlichen. Ein blockierter nativer Treiberaufruf selbst
+lässt sich damit nicht zwangsweise unterbrechen.
+
+### Absturz, Task-Manager und Windows-Neustart
+
+Da beim harten Prozessende kein Shutdown-Code laufen kann, wird die native
+Absicherung bereits während des Betriebs geschrieben: Bilder sofort, Videos nach
+dem ersten erfolgreichen Start und anschließend im Abstand von 15 Sekunden.
+Ein reguläres Beenden versucht zusätzlich einen frischen Frame vor dem Freigeben
+der Wiedergabe. Bei Absturz oder erzwungenem Prozessende bleibt der letzte
+erfolgreich an Windows übergebene sichere Stand erhalten. Das ist keine Garantie
+für den exakten letzten sichtbaren Videoframe oder eine maximale Frame-Altersgrenze
+bei Aufnahmefehlern. Vor der allerersten erfolgreichen nativen Übergabe ist diese
+Absicherung noch nicht gegeben; ein Stromausfall hat zusätzliche Windows-/Datenträgergrenzen.
+
+Windows verwaltet dieses statische Wallpaper selbst, auch vor dem nächsten
+Programm-/Autostart nach einem Windows-Neustart. Der aktive Besuchermodus und
+der ursprüngliche normale Wiederherstellungszustand werden beim Beenden nicht
+verändert. Beim Programmstart wird die sichere Kopie bereits vor dem Start der
+Medienwiedergabe verwendet. Späteres Deaktivieren verwendet weiterhin den
+gespeicherten normalen Zustand und seine bisherigen Wiederherstellungsgrenzen.
+Windows-Themes, Spotlight, Richtlinien und andere Programme können das native
+Wallpaper außerhalb der Laufzeit überschreiben; die Anwendung kann dies vor
+ihrem Start nicht verhindern. Anmelde-/Sperrbildschirm sind davon unabhängig.
+
+### Prüfung und manuelle Abnahme
+
+Neue isolierte Übergabetests: **29 bestanden** (`--visitor-handoff-checks`).
+Sie prüfen unter anderem Quelländerung/-verlust, letzten Ordnerinhalt, Abbruch
+eines laufenden Wechsels, Veröffentlichung vor Videodispose, verspätete Ergebnisse,
+ungültige Medien, mehrere simulierte Monitore sowie gespeicherten Neustart und
+anschließende Wiederherstellung mit 23 Sekunden Timerrestzeit.
+Ein eigener Kindprozess wird nach erfolgreichem Speichern tatsächlich erzwungen
+beendet; sein simuliertes natives Profil, sichere Bilddaten und Besuchersnapshot
+bleiben erhalten. Dabei wird das echte Desktop-Wallpaper nicht verändert.
+
+Zusätzlich bestehen **2 native Medienprüfungen** mit dem tatsächlich gepinnten
+mpv-DLL und dem installierten Windows-Thumbnailanbieter. Beide liefern die blauen
+Pixel eines Test-MP4, kein Symbol. Diese Tests verwenden unsichtbare Testfenster;
+physische Monitore und ein echter Windows-Neustart bleiben manuell zu prüfen.
+Das vorhandene FFmpeg wurde nur zur Erzeugung der Testdatei verwendet und ist
+keine neue Laufzeitabhängigkeit.
+
+Reproduzierbare Einstiege (PowerShell im Repository):
+
+```powershell
+dotnet build WallpaperControl/WallpaperControl.csproj -c Release --no-restore
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-handoff-checks
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-handoff-native-checks <Test-MP4> <absoluter-Pfad-zur-gepinnten-libmpv-2.dll>
+dotnet run --project WallpaperControl.RegressionTests
+dotnet publish WallpaperControl/WallpaperControl.csproj -c Release --no-restore -o artifacts/visitor-mode-handoff-review
+```
+
+Release-Build: **0 Warnungen, 0 Fehler**, Publish erfolgreich. Die DLL der
+Abnahmeausgabe stimmt per SHA-256 mit der Release-Buildausgabe überein
+(`2576CE254185B28F3C8772D4938657C1BA1AB42EB2509B1C84CFA80BBB4D6A4A`).
+
+Abschließender vollständiger Regressionstest für `e8ba09b`: **6071 bestanden**,
+Exitcode 0. Er umfasst auch die bestehenden Video-, Scheduler-, Hotkey-, Widget-,
+Status- und Remote-Prüfungen. Die zusätzlich gestarteten nativen Medienprüfungen
+sind darin nicht enthalten. Der früher dokumentierte Fehler in
+`PackageTrackingTests.cs:89` trat in diesem Lauf nicht auf. Paket-/Notiztests und
+ihre Assertions wurden für diese Änderung nicht angepasst.
+Das vollständige Protokoll liegt unter
+`%TEMP%\WallpaperControl-Visitor-Validation\handoff-final-complete.log`.
+
+Für die Abnahme die bisherige Instanz vollständig über **Beenden** schließen und
+`artifacts/visitor-mode-handoff-review/WallpaperControl.exe` starten:
+
+1. Besucher-Einzelbild einschalten, explizit beenden: dasselbe Bild bleibt sichtbar.
+   Mit einem Ordner wiederholen und während eines Bild-/Videowechsels beenden.
+2. Besucher-MP4 einige Sekunden abspielen, beenden: ein sicherer Videoframe bleibt.
+   Mit fehlender/beschädigter Quelle muss ein sicherer Ersatz bleiben.
+3. Mit aktivem Bild und Video den Prozess im Task-Manager beenden. Beim Video
+   vorher mindestens einen erfolgreichen Frame-Checkpoint abwarten (15 Sekunden).
+   Der zuletzt gespeicherte sichere Stand bleibt ohne Shutdown sichtbar.
+4. Windows neu starten und den Desktop bereits vor dem Programm-/Autostart prüfen.
+   Danach müssen Besuchermodus und sichere Wiedergabe weiter aktiv sein.
+5. Besuchermodus deaktivieren: ursprüngliches Wallpaper, manuellen Pausenzustand,
+   Timerrestzeit und gegebenenfalls Videoposition prüfen. Keine private Quelle
+   darf vorher eingeblendet werden.
+6. Auf mehreren physischen Monitoren prüfen: statisches Bild bleibt überall.
+   Die unveränderte Live-Videoengine unterstützt nur einen Monitor; beim Beenden
+   kann auch ohne gestartete Videoengine ein sicheres Video-Thumbnail übergeben werden.
+7. Ohne Besuchermodus beenden und bestehende Video-, Hotkey-, Widget-, Scheduler-
+   und Remote-Funktionen prüfen.
+
+Technische Referenzen: [mpv screenshot-raw](https://mpv.io/manual/stable/#screenshot-raw)
+und [Windows IShellItemImageFactory::GetImage](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishellitemimagefactory-getimage).
+
 ## Bugfix: Diashow bleibt nach dem Besuchermodus pausiert
 
 Produktiver Quellstand: `24f2b79`, Branch `codex/visitor-mode`.
@@ -310,8 +438,9 @@ War vor dem Besuchermodus ein normales Video aktiv, bleibt auch der darunterlieg
 Bildmodus für ein späteres normales Umschalten von Video zurück zu Bildern erhalten;
 dieser Zustand wird nach einem Neustart aus dem Besuchersnapshot rekonstruiert.
 
-Beim expliziten Beenden im Besuchermodus wird ein neutraler statischer Hintergrund
-gesetzt. Die normale Windows-Diashow wird nicht wiederhergestellt. Der aktive
+Beim expliziten Beenden im Besuchermodus bleibt das sichere Bild beziehungsweise
+ein sicherer Videoframe als statisches Windows-Wallpaper erhalten; nur bei Fehlern
+wird neutraler Ersatz gesetzt. Die normale Windows-Diashow wird nicht wiederhergestellt. Der aktive
 Zustand und der ursprüngliche Wiederherstellungszustand bleiben gespeichert.
 
 ## Grenzen
@@ -319,7 +448,7 @@ Zustand und der ursprüngliche Wiederherstellungszustand bleiben gespeichert.
 - Vor dem Start des Prozesses kontrolliert Windows den Desktop. Die Anwendung
   kann Anmeldebildschirm, Windows-Themes, andere Wallpaperprogramme oder manuelle
   externe Desktopänderungen nicht sperren. Das sichere Beenden hinterlässt einen
-  neutralen Hintergrund, ersetzt jedoch keine Windows-Anmelderichtlinie.
+  sicheren statischen Hintergrund, ersetzt jedoch keine Windows-Anmelderichtlinie.
 - Die vorhandene Videoengine unterstützt MP4 auf einem Monitor. Nicht unterstützte
   Besuchervideos auf mehreren Monitoren führen zum neutralen Ersatz; Bilder werden
   mit dem vorhandenen nativen Wallpaperpfad auf allen Monitoren angezeigt.
@@ -437,7 +566,8 @@ Paket- oder Notizspeicherung.
 10. Fehlende Datei, beschädigtes Bild/Video und leeren/gelöschten Ordner testen.
     Der Modus muss aktiv bleiben und neutral anzeigen. Quelle reparieren und
     erneut speichern. Auch einen Ordner mit defekter und gültiger Datei prüfen.
-11. Aktiv im Besuchermodus explizit beenden. Der Desktop muss neutral bleiben.
+11. Aktiv im Besuchermodus explizit beenden. Das sichere Bild beziehungsweise ein
+    sicherer Videoframe muss bleiben; nur bei Medienfehlern neutraler Ersatz.
     Neu starten, auch mit `--tray`: kein normales Wallpaper darf von der Anwendung
     eingeblendet werden. Danach ausschalten und den ursprünglichen Zustand prüfen.
 12. Vollbildanwendung öffnen, Modus wechseln und Vollbild verlassen. Manuelle
