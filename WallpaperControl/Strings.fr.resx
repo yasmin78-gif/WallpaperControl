@@ -1902,4 +1902,5 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="VisitorBackground" xml:space="preserve"><value>Choisir la couleur du fond …</value></data>
   <data name="VisitorTextColor" xml:space="preserve"><value>Choisir la couleur du texte …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Restaurer les couleurs du style</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Afficher le titre</value></data>
 </root>

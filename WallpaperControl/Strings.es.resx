@@ -1902,4 +1902,5 @@ Versión instalada: {0}
   <data name="VisitorBackground" xml:space="preserve"><value>Elegir color de fondo …</value></data>
   <data name="VisitorTextColor" xml:space="preserve"><value>Elegir color de texto …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Restaurar colores del estilo</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Mostrar título</value></data>
 </root>

@@ -1,5 +1,34 @@
 ﻿# Besuchermodus: Implementierung und Abnahme
 
+## Optionaler Widget-Titel
+
+Unter **Widgets → Besuchermodus → Titel anzeigen** lässt sich der Titel ausblenden.
+Dann wird ausschließlich der Toggle gezeichnet; Titel, Kartenhintergrund und deren
+Platzbedarf entfallen. Bei 100 % Größe und 96 DPI beträgt die Fenstergröße
+58 × 32 Pixel einschließlich eines kleinen transparenten Randes. Benutzerskalierung
+und Monitor-DPI skalieren Größe und Trefferfläche gemeinsam. Die Titelschriftgröße
+vergrößert das kompakte Widget nicht. Zugänglicher Name und Status-Tooltip bleiben
+erhalten.
+
+Die Einstellung wird über die bestehenden Widgetfunktionen live angezeigt,
+gespeichert und bei **Verwerfen** zurückgesetzt. Bestehende Konfigurationen zeigen
+den Titel weiterhin an. Ohne Titel kann das entsperrte Widget direkt am Toggle
+verschoben werden; Ziehen schaltet den Besuchermodus nicht um. Die Positionssperre
+bleibt wirksam.
+
+Manuelle Abnahme: Titel ausschalten, kompakte Darstellung und Klick prüfen,
+Widget am Toggle verschieben, sperren, speichern und Anwendung neu starten.
+Anschließend Titel einschalten und ursprüngliche Gestaltung prüfen.
+Neue Release-Ausgabe: `artifacts/visitor-mode-widget-title-review/WallpaperControl.exe`.
+
+Validierung: **2725 kombinierte Besucher-/Wiedergabe-/Widgetprüfungen bestanden**;
+anschließend nach Ergänzung der kompakten Drag-Behandlung **82 Besucherprüfungen
+bestanden**, einschließlich der neuen Klick-/Dragprüfungen. Release-Build und
+Publish erfolgreich, **0 Warnungen, 0 Fehler**. Protokolle:
+`%TEMP%\WallpaperControl-Visitor-Validation\widget-title-regression.log` und
+`widget-title-final.log`. Der vollständige 6071er-Lauf im folgenden Abschnitt
+bezieht sich auf den vorherigen Wallpaper-Übergabestand.
+
 ## Sicheres statisches Wallpaper bei Beenden, Absturz und Prozessabbruch
 
 Diese Ergänzung auf `codex/visitor-mode` ersetzt das bisherige Verhalten, beim

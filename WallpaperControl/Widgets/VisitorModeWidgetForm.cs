@@ -21,12 +21,14 @@ internal sealed class VisitorModeWidgetForm : Form
         FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual; AutoScaleMode = AutoScaleMode.None;
         ClientSize = new Size(220, 48);
-        MouseDown += (_, e) => { switchPressed = e.Button == MouseButtons.Left && switchBounds.Contains(e.Location); pressPoint = e.Location; };
-        drag = new WidgetDragHandler(this, () => settings.Locked || switchPressed, RenderLayeredWindow, moved);
+        MouseDown += (_, e) => { switchPressed = e.Button == MouseButtons.Left && switchBounds.Contains(e.Location); pressPoint = PointToScreen(e.Location); };
+        // Without a header, the switch also supplies the drag surface. Screen-space
+        // movement distinguishes a drag from a click even when the window follows it.
+        drag = new WidgetDragHandler(this, () => settings.Locked || (switchPressed && settings.ShowTitle), RenderLayeredWindow, moved);
         MouseUp += async (_, e) =>
         {
             bool toggle = switchPressed && e.Button == MouseButtons.Left && switchBounds.Contains(e.Location)
-                && Math.Abs(e.X - pressPoint.X) < 4 && Math.Abs(e.Y - pressPoint.Y) < 4;
+                && Math.Abs(PointToScreen(e.Location).X - pressPoint.X) < 4 && Math.Abs(PointToScreen(e.Location).Y - pressPoint.Y) < 4;
             switchPressed = false;
             if (toggle && !service.Busy) await ToggleAsync();
         };
@@ -58,8 +60,8 @@ internal sealed class VisitorModeWidgetForm : Form
         using (Graphics graphics = Graphics.FromImage(measure))
         using (Font font = new("Segoe UI Semibold", settings.FontSize, FontStyle.Bold))
             titleWidth = graphics.MeasureString(title.ToUpper(System.Globalization.CultureInfo.GetCultureInfo(language)), font).Width;
-        int width = (int)Math.Ceiling(Math.Max(210, titleWidth + 106));
-        int height = (int)Math.Ceiling(Math.Max(48, 32 * fontScale + 16));
+        int width = settings.ShowTitle ? (int)Math.Ceiling(Math.Max(210, titleWidth + 106)) : 58;
+        int height = settings.ShowTitle ? (int)Math.Ceiling(Math.Max(48, 32 * fontScale + 16)) : 32;
         var palette = WidgetDrawing.GetPalette(settings.Style);
         Color panel = settings.BackgroundArgb is int background ? Color.FromArgb(background) : palette.panel;
         panel = Color.FromArgb(settings.BackgroundOpacityPercent is int opacity ? opacity * 255 / 100 : palette.panel.A, panel);
@@ -67,11 +69,14 @@ internal sealed class VisitorModeWidgetForm : Form
         Bitmap bitmap = new((int)Math.Ceiling(width * scale), (int)Math.Ceiling(height * scale), PixelFormat.Format32bppPArgb);
         using Graphics g = Graphics.FromImage(bitmap);
         g.Clear(Color.Transparent); g.ScaleTransform(scale, scale); g.SmoothingMode = SmoothingMode.AntiAlias;
-        using (var path = WidgetDrawing.RoundedRectangle(new RectangleF(.5f, .5f, width - 1, height - 1), 12))
-        using (var fill = new SolidBrush(panel))
-        using (var border = new Pen(palette.border)) { g.FillPath(fill, path); g.DrawPath(border, path); }
-        WidgetHeader.Draw(g, title, language, settings.Style, width, 70, text, settings.TextArgb.HasValue ? text : palette.accent, settings.FontSize);
-        Rectangle toggle = new(width - 66, 12, 50, 24);
+        if (settings.ShowTitle)
+        {
+            using (var path = WidgetDrawing.RoundedRectangle(new RectangleF(.5f, .5f, width - 1, height - 1), 12))
+            using (var fill = new SolidBrush(panel))
+            using (var border = new Pen(palette.border)) { g.FillPath(fill, path); g.DrawPath(border, path); }
+            WidgetHeader.Draw(g, title, language, settings.Style, width, 70, text, settings.TextArgb.HasValue ? text : palette.accent, settings.FontSize);
+        }
+        Rectangle toggle = settings.ShowTitle ? new(width - 66, 12, 50, 24) : new(4, 4, 50, 24);
         VisitorToggleSwitch.DrawSwitch(g, toggle, service.Active, !service.Busy);
         switchBounds = Rectangle.Round(new RectangleF(toggle.X * scale, toggle.Y * scale, toggle.Width * scale, toggle.Height * scale));
         return bitmap;

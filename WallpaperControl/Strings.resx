@@ -1902,4 +1902,5 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="VisitorBackground" xml:space="preserve"><value>Hintergrundfarbe auswählen …</value></data>
   <data name="VisitorTextColor" xml:space="preserve"><value>Schriftfarbe auswählen …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Farben der Stilvorlage wiederherstellen</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Titel anzeigen</value></data>
 </root>

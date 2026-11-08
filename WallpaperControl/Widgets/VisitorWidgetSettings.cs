@@ -6,6 +6,7 @@ internal sealed class VisitorWidgetSettings
 {
     public bool Enabled { get; set; }
     public bool Locked { get; set; }
+    public bool ShowTitle { get; set; } = true;
     public Point Location { get; set; } = new(40, 140);
     public SystemWidgetStyle Style { get; set; }
     public int ScalePercent { get; set; } = 100;

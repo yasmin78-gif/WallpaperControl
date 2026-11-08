@@ -3,6 +3,7 @@ namespace WallpaperControl;
 internal sealed partial class WidgetSettingsEditor
 {
     private readonly CheckBox visitorEnabled = new(), visitorLocked = new(), visitorStyleOpacity = new();
+    private readonly CheckBox visitorShowTitle = new();
     private readonly ComboBox visitorStyle = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 280 };
     private readonly NumericUpDown visitorScale = new() { Minimum = 50, Maximum = 200, Increment = 10, Width = 120 };
     private readonly NumericUpDown visitorFont = new() { Minimum = 8, Maximum = 24, Width = 120 };
@@ -17,6 +18,7 @@ internal sealed partial class WidgetSettingsEditor
         AddWallpaperInfoControl(layout, new Label { Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold) }, "VisitorTitle");
         AddWallpaperInfoControl(layout, visitorEnabled, "VisitorWidget");
         AddWallpaperInfoControl(layout, visitorLocked, "SettingsWidgetLocked");
+        AddWallpaperInfoControl(layout, visitorShowTitle, "VisitorWidgetShowTitle");
         AddWallpaperInfoControl(layout, new Label(), "SettingsSystemStyle"); layout.Controls.Add(visitorStyle);
         AddWallpaperInfoControl(layout, new Label(), "VisitorWidgetScale"); layout.Controls.Add(visitorScale);
         AddWallpaperInfoControl(layout, new Label(), "WidgetFontSize"); layout.Controls.Add(visitorFont);
@@ -41,6 +43,7 @@ internal sealed partial class WidgetSettingsEditor
         LoadVisitorControls(initialWidgetSettings);
         visitorEnabled.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
         visitorLocked.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+        visitorShowTitle.CheckedChanged += (_, _) => { visitorFont.Enabled = visitorShowTitle.Checked; NotifyWidgetPreviewChanged(); };
         visitorStyle.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
         visitorScale.ValueChanged += (_, _) => NotifyWidgetPreviewChanged();
         visitorFont.ValueChanged += (_, _) => NotifyWidgetPreviewChanged();
@@ -51,6 +54,7 @@ internal sealed partial class WidgetSettingsEditor
     {
         var visitor = value.Visitor;
         visitorEnabled.Checked = visitor.Enabled; visitorLocked.Checked = visitor.Locked;
+        visitorShowTitle.Checked = visitor.ShowTitle; visitorFont.Enabled = visitor.ShowTitle;
         visitorScale.Value = Math.Clamp(visitor.ScalePercent, 50, 200); visitorFont.Value = Math.Clamp(visitor.FontSize, 8, 24);
         visitorStyleOpacity.Checked = !visitor.BackgroundOpacityPercent.HasValue;
         visitorOpacity.Value = Math.Clamp(visitor.BackgroundOpacityPercent ?? 44, 0, 100); visitorOpacity.Enabled = !visitorStyleOpacity.Checked;
@@ -61,6 +65,7 @@ internal sealed partial class WidgetSettingsEditor
     {
         var value = initialWidgetSettings.Visitor.Clone();
         value.Enabled = visitorEnabled.Checked; value.Locked = visitorLocked.Checked;
+        value.ShowTitle = visitorShowTitle.Checked;
         value.Style = (SystemWidgetStyle)Math.Max(0, visitorStyle.SelectedIndex);
         value.ScalePercent = (int)visitorScale.Value; value.FontSize = (int)visitorFont.Value;
         value.BackgroundOpacityPercent = visitorStyleOpacity.Checked ? null : (int)visitorOpacity.Value;

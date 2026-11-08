@@ -94,6 +94,8 @@ internal static class VisitorRevisionTests
                 using (var registry = Registry.CurrentUser.CreateSubKey(key))
                     registry.SetValue("VisitorMode", "{\"WidgetEnabled\":true,\"WidgetLocked\":true,\"WidgetX\":-123,\"WidgetY\":45}");
                 var settings = App.WidgetSettings.Load(key);
+                check(settings.Visitor.ShowTitle && App.VisitorWidgetSettings.Parse("{}").ShowTitle,
+                    "Visitor widget title: existing configurations keep the title visible");
                 check(settings.Visitor.Enabled && settings.Visitor.Locked && settings.Visitor.Location == new Point(-123, 45),
                     "Visitor revision: legacy widget visibility lock and position migrate without losing settings");
                 settings.Visitor.Style = App.SystemWidgetStyle.Clean; settings.Visitor.ScalePercent = 150; settings.Visitor.FontSize = 16;
@@ -117,6 +119,15 @@ internal static class VisitorRevisionTests
                 session.Discard();
                 check(manager.Settings.Visitor.ScalePercent == 150 && Field<NumericUpDown>(editor, "visitorScale").Value == 150,
                     "Visitor revision: discard restores visitor design and editor controls");
+                Field<CheckBox>(editor, "visitorShowTitle").Checked = false;
+                check(session.IsDirty && !manager.Settings.Visitor.ShowTitle && App.WidgetSettings.Load(key).Visitor.ShowTitle,
+                    "Visitor widget title: hiding uses live preview without saving prematurely");
+                session.Discard();
+                check(manager.Settings.Visitor.ShowTitle && Field<CheckBox>(editor, "visitorShowTitle").Checked,
+                    "Visitor widget title: discard restores visibility and the editor checkbox");
+                Field<CheckBox>(editor, "visitorShowTitle").Checked = false;
+                check(session.Save() && !App.WidgetSettings.Load(key).Visitor.ShowTitle,
+                    "Visitor widget title: hidden title survives canonical persistence");
                 Field<CheckBox>(editor, "visitorLocked").Checked = false;
                 Field<NumericUpDown>(editor, "visitorFont").Value = 18;
                 check(session.Save() && App.WidgetSettings.Load(key).Visitor.FontSize == 18 && !App.WidgetSettings.Load(key).Visitor.Locked,
@@ -143,6 +154,16 @@ internal static class VisitorRevisionTests
                     image.Save(Path.Combine(output, "visitor-widget-" + language + "-" + style + ".png"));
                 }
                 widget.Apply(loaded.Visitor, "de");
+                widget.Apply(new() { ShowTitle = false, FontSize = 24 }, "de");
+                using (Bitmap compact = widget.RenderBitmap())
+                    check(compact.Size == new Size(58, 32) && compact.GetPixel(0, 0).A == 0
+                        && Field<Rectangle>(widget, "switchBounds") == new Rectangle(4, 4, 50, 24),
+                        "Visitor widget title: only the toggle remains with a compact transparent window and matching hit target");
+                widget.Apply(new() { ShowTitle = false, ScalePercent = 150 }, "ja");
+                using (Bitmap compact = widget.RenderBitmap(192))
+                    check(compact.Size == new Size(174, 96) && Field<Rectangle>(widget, "switchBounds") == new Rectangle(12, 12, 150, 72),
+                        "Visitor widget title: compact size and toggle hit target scale together with DPI");
+                widget.Apply(loaded.Visitor, "de");
                 using (Bitmap image = widget.RenderBitmap(192))
                     check(image.Width > 400 && image.Height > 96, "Visitor revision: font size and user scale combine with monitor DPI");
                 var drag = Field<App.WidgetDragHandler>(widget, "drag");
@@ -157,6 +178,17 @@ internal static class VisitorRevisionTests
                 drag.GetType().GetMethod("EndDrag", Members)!.Invoke(drag, new object[] { widget, new MouseEventArgs(MouseButtons.Left, 1, 2, 2, 0) });
                 check(widget.Location == new Point(120, 110) && moved == widget.Location,
                     "Visitor revision: unlocked drag uses shared positioning and reports the final saved location");
+                widget.Apply(new() { ShowTitle = false }, "de");
+                cursor = new(10, 10); widget.Location = new(80, 90);
+                typeof(Control).GetMethod("OnMouseDown", Members)!.Invoke(widget, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 15, 15, 0) });
+                cursor = new(50, 30);
+                typeof(Control).GetMethod("OnMouseMove", Members)!.Invoke(widget, new object[] { new MouseEventArgs(MouseButtons.Left, 0, 15, 15, 0) });
+                typeof(Control).GetMethod("OnMouseUp", Members)!.Invoke(widget, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 15, 15, 0) });
+                check(widget.Location == new Point(120, 110) && !serviceForWidget.Active,
+                    "Visitor widget title: dragging the compact toggle moves the widget without changing visitor mode");
+                typeof(Control).GetMethod("OnMouseDown", Members)!.Invoke(widget, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 15, 15, 0) });
+                typeof(Control).GetMethod("OnMouseUp", Members)!.Invoke(widget, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 15, 15, 0) });
+                check(serviceForWidget.Active, "Visitor widget title: a compact toggle click still changes visitor mode");
             }
             catch (Exception ex) { error = ex; }
             finally

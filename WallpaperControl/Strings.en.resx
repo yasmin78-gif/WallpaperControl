@@ -1902,4 +1902,5 @@ Would you like to open the release page?</value>
   <data name="VisitorBackground" xml:space="preserve"><value>Choose background color …</value></data>
   <data name="VisitorTextColor" xml:space="preserve"><value>Choose text color …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Restore style colors</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Show title</value></data>
 </root>

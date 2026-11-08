@@ -1874,4 +1874,5 @@
   <data name="VisitorBackground" xml:space="preserve"><value>背景色を選択 …</value></data>
   <data name="VisitorTextColor" xml:space="preserve"><value>文字色を選択 …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>スタイルの色に戻す</value></data>
+  <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>タイトルを表示</value></data>
 </root>
