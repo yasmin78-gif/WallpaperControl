@@ -94,6 +94,7 @@ try
         VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check); VisitorRevisionTests.Run(Check);
         SchedulerDiagnosticsTests.Run(Check); NativeSlideshowAdvanceTests.Run(Check); LayoutEngineActivationTests.Run(Check);
         HotkeyTests.Run(Check); SettingsTests.Run(Check); FullscreenTests.Run(Check);
+        StabilizationTests.Run(Check);
         WallpaperWidgetModeTests.Run(Check); WidgetNavigationTests.Run(Check); SharedUiTests.Run(Check);
         SlideshowStatusUiTests.Run(Check); WallpaperLayoutTests.Run(Check);
         Console.WriteLine($"All {passed} visitor and existing playback/widget regression checks passed."); return 0;

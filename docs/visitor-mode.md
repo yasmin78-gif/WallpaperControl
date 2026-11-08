@@ -1,5 +1,103 @@
 ﻿# Besuchermodus: Implementierung und Abnahme
 
+## Bugfix: Diashow bleibt nach dem Besuchermodus pausiert
+
+Produktiver Quellstand: `24f2b79`, Branch `codex/visitor-mode`.
+
+### Tatsächliche Ursache
+
+Der ursprüngliche manuelle Pausenzustand wurde korrekt im `ImageModeSnapshot`
+gespeichert und wiederhergestellt. Er wurde jedoch anschließend überschrieben:
+`GetCurrentWallpaperPath()` verglich den nativen Windows-Pfad mit dem beim Start
+des wiederhergestellten Renderers erwarteten Originalpfad. Windows kann nach
+`SetWallpaper` noch das Besucherbild oder den neutralen Zwischenhintergrund melden.
+Diese eigene, noch ausstehende Änderung wurde als externe Wallpaperänderung
+interpretiert. Der vorhandene externe Änderungszweig beendete den Renderer und
+setzte `slideshowPaused = customSlideshowEngineActive || slideshowPaused` auf true.
+Die Hauptseitenanzeige zeigte diesen nachträglich gesetzten Zustand korrekt an;
+die Ursache lag weder im Schalter noch in einer vergessenen Besuchermodus-Pause.
+
+### Gezielte Korrektur
+
+- Beim Wiederherstellen erhält die bestehende Desktop-Session die bekannten
+  vorherigen Besucher-/Neutralpfade, die native Zuordnung aus dem Snapshot sowie
+  den unmittelbar vor dem eigenen `SetWallpaper` gelesenen Windows-Pfad.
+- Solange Windows den neuen Originalpfad noch nicht bestätigt hat, werden nur
+  diese bekannten Vorgänger als eigene ausstehende Übergänge behandelt. Der
+  Originalrenderer bleibt sichtbar; Pause und verbleibende Timerfrist bleiben
+  unverändert. Es wird weder `ResumeSlideshow` pauschal aufgerufen noch ein
+  zusätzlicher Wallpaperwechsel ausgelöst.
+- Ein beliebiger anderer externer Pfad wird weiterhin sofort erkannt. Sobald
+  Windows den Originalpfad meldet, endet die Übergangsbehandlung. Sie ist außerdem
+  auf höchstens fünf Sekunden begrenzt, gemessen mit einer monotonen Uhr. Dies ist
+  keine Wartezeit und kein neuer Slideshow-Timer, sondern eine eng begrenzte
+  Zuordnung der noch ausstehenden eigenen nativen Schreiboperation.
+- Die Zuordnung wird beim nächsten Sessionstart beziehungsweise Shutdown ersetzt
+  oder verworfen. Normale Sessions ohne Besucherwiederherstellung verwenden die
+  bisherige externe Änderungserkennung.
+- Diagnoseabfragen beobachten diese Zuordnung ohne sie zu bestätigen oder zu
+  verbrauchen. Damit verändert das Protokollieren keinen Wiedergabezustand.
+
+Die native Abfrage und ihre Wiedergabefolgen teilen jetzt
+`ReconcileNativeWallpaper`. Regressionstests durchlaufen damit auch den tatsächlichen
+Zweig, der vorher den manuellen Pausenzustand überschrieben hat. Die bisherigen
+Tests hatten nur den Zustand unmittelbar nach der Wiederherstellung geprüft.
+
+### Regressionen und erneute manuelle Prüfung
+
+Die erweiterte Besucherprüfung besteht mit **74 Prüfungen**. Sie umfasst aktive
+und manuell pausierte Diashow, unveränderte Restzeit, sofort sichtbares Original,
+Hauptseitenstatus, wiederholte schnelle Umschaltungen ohne zusätzlichen Bildwechsel,
+unabhängige Vollbildpause und weiterhin wirksame echte externe Änderungen.
+Eine kontrollierte monotone Testuhr prüft Ablauf und Bestätigung des nativen
+Übergangs ohne reale Wartezeiten. Der kombinierte Regressionseinstieg führt nun
+auch die bestehenden Renderer-Stabilisierungs-/Auditprüfungen aus.
+
+Der erste vollständige Lauf brach am bereits dokumentierten, unveränderten
+Pakettest `PackageTrackingTests.cs:89` / **Packages metadata fixture is persisted
+before refresh** ab. Dieser Befund wird separat behandelt; die Paketspeicherung
+und ihre Tests wurden nicht verändert.
+Ein zweiter vollständiger Lauf brach in der ebenfalls unveränderten Prüfung
+`NoteReminderTests.cs:67` / **Stale editor cannot erase delivery or snooze state**
+ab. Der anschließende separate Erinnerungslauf besteht mit **746 Prüfungen**.
+Der vollständige Gesamtlauf wird für diesen Stand deshalb nicht als durchgängig
+grün ausgewiesen. An Paket-/Notizspeicherung und ihren Assertions wurde nichts geändert.
+
+| Prüfung dieses Bugfixes | Ergebnis |
+| --- | --- |
+| Erweiterte Besucher-/Pauseprüfung | 74 bestanden |
+| Kombinierte Besucher-/Scheduler-/Hotkey-/Vollbild-/Widget-/Rendererregression | 2690 bestanden |
+| Vorhandene Videosuite | 402 bestanden |
+| Separater Erinnerungslauf | 746 bestanden |
+| Release-Build und Publish | erfolgreich |
+
+Protokolle unter `%TEMP%\WallpaperControl-Visitor-Validation`:
+`pause-checks.log`, `pause-focused.log`, `pause-video.log`, `pause-reminders.log`,
+`pause-full.log` und `pause-final.log`.
+
+Die neue Anwendung liegt unter
+`artifacts/visitor-mode-pause-review/WallpaperControl.exe`.
+Die bisherige Instanz vollständig über **Beenden** schließen, dann diese EXE aus
+ihrem vollständigen Veröffentlichungsordner starten. Die ältere Review-Ausgabe
+wird dabei nicht überschrieben.
+
+1. Aktive Diashow: Bild und Restfrist notieren, Besuchermodus ein-/ausschalten.
+   Originalbild sofort sichtbar; die Diashow darf nicht als manuell pausiert
+   erscheinen und muss nach der verbleibenden Frist weiterschalten. Den Status
+   zusätzlich mindestens zehn Sekunden nach dem Ausschalten beobachten.
+2. Manuell pausierte Diashow: dieselbe Folge prüfen. Die Pause muss erhalten bleiben.
+3. Beide Fälle mehrfach schnell wiederholen; kein zusätzlicher Bildwechsel beim
+   Ausschalten und keine nachträglich erscheinende manuelle Pause.
+4. Vollbildpause vor dem Umschalten aktivieren. Diese Pause darf beim Ausschalten
+   des Besuchermodus nicht aufgehoben werden.
+5. Video einschließlich Position/Pause sowie Hotkey und Widget kurz gegenprüfen.
+
+Geändert: `MainForm.VisitorMode.cs`, `MainForm.Scheduler.cs`,
+`MainForm.Wallpaper.cs`, `MainForm.WallpaperDiagnostics.cs`,
+`PersistentDesktopTransitionManager.cs`, `VisitorRevisionTests.cs` und der
+kombinierte Testeinstieg in `Program.cs`. `VisitorModeService`, das gespeicherte
+Pausenformat und die Video-/Hotkey-/Widgetimplementierungen bleiben unverändert.
+
 ## Nachbesserung nach manueller Abnahme
 
 Quellstand: `a48bc52` auf dem bestehenden Branch `codex/visitor-mode`.
