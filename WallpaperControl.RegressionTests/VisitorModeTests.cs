@@ -3,6 +3,74 @@ using App = WallpaperApp::WallpaperControl;
 
 internal static class VisitorModeTests
 {
+    private const System.Reflection.BindingFlags Members = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+    private static T Field<T>(object target, string name) => (T)target.GetType().GetField(name, Members)!.GetValue(target)!;
+    private static void Set(object target, string name, object value) => target.GetType().GetField(name, Members)!.SetValue(target, value);
+    internal static void Ui(Action<bool, string> check)
+    {
+        Exception? error = null;
+        Thread thread = new(() =>
+        {
+            string key = @"Software\WallpaperControl.RegressionTests-VisitorUi-" + Guid.NewGuid();
+            try
+            {
+                using App.WidgetManager widgets = new(() => { }, registryPath: key);
+                using App.MainForm form = new(widgets, () => 0, () => null);
+                var service = Field<App.VisitorModeService>(form, "visitorMode");
+                var toggle = Field<CheckBox>(form, "visitorSwitch");
+                var content = Field<Panel>(form, "wallpaperContent");
+                var source = Field<ComboBox>(form, "visitorSource");
+                check(source.Items.Count == 3 && !toggle.Checked, "Visitor UI: three source types and compatible off default");
+                toggle.Checked = true;
+                check(service.Active && toggle.Checked && !content.Enabled && service.Error != null, "Visitor UI: main switch activates safe mode for missing source");
+                service.SetActiveAsync(false).GetAwaiter().GetResult();
+                check(!toggle.Checked && content.Enabled, "Visitor UI: service synchronizes main switch and restores controls");
+                var ownership = Field<App.WallpaperModeOwnership>(form, "wallpaperOwnership");
+                var desktop = new FakeDesktop();
+                var controller = new App.VideoWallpaperController(desktop, _ => { });
+                controller.StartAsync("normal.mp4").GetAwaiter().GetResult();
+                desktop.Session!.CurrentPosition = 87654321;
+                controller.SetPause(App.VideoPauseReason.Manual, true);
+                Set(form, "videoWallpaper", controller);
+                ownership.Switch(App.WallpaperOperatingMode.VideoWallpaper);
+                service.SetActiveAsync(true).GetAwaiter().GetResult();
+                check(service.Settings.Resume?.VideoPosition == 87654321 && service.Settings.Resume.VideoPaused,
+                    "Visitor UI: normal video position and manual pause captured");
+                service.SetActiveAsync(false).GetAwaiter().GetResult();
+                check(!service.Active && controller.PlaybackPosition == 87654321 && controller.PauseReasons.HasFlag(App.VideoPauseReason.Manual)
+                    && ownership.Mode == App.WallpaperOperatingMode.VideoWallpaper && desktop.Session!.SoughtBeforePresent,
+                    "Visitor UI: normal video seeks before presentation and restores manual pause");
+            }
+            catch (Exception ex) { error = ex; }
+            finally { Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(key, false); }
+        });
+        thread.SetApartmentState(ApartmentState.STA); thread.Start(); thread.Join();
+        if (error != null) throw error;
+    }
+
+    private sealed class FakeDesktop : App.IVideoDesktop
+    {
+        internal FakeSession? Session;
+        public int MonitorCount => 1;
+        public bool FileExists(string path) => true;
+        public Task ValidateAsync(string path, CancellationToken cancellation) => Task.CompletedTask;
+        public App.VideoShellGeneration? ResolveShell() => new(1, 2, 3, 4, 5);
+        public App.IVideoSession Create(string path, App.VideoShellGeneration shell) => Session = new();
+    }
+    private sealed class FakeSession : App.IVideoSession
+    {
+        internal long CurrentPosition;
+        internal bool SoughtBeforePresent, Presented;
+        public long Position => CurrentPosition;
+        public Task InitializeAsync(CancellationToken cancellation) => Task.CompletedTask;
+        public bool IsAttached(App.VideoShellGeneration shell) => true;
+        public void Seek(long position) { CurrentPosition = position; SoughtBeforePresent = !Presented; }
+        public void Present() => Presented = true;
+        public void Play() { }
+        public void Pause() { }
+        public void Dispose() { }
+        public event Action<Exception>? Failed { add { } remove { } }
+    }
     internal static void Run(Action<bool, string> check) => RunAsync(check).GetAwaiter().GetResult();
     private static async Task RunAsync(Action<bool, string> check)
     {
