@@ -53,6 +53,8 @@ Validierung dieser Erweiterung:
   wurden die abschließenden UI-Ergänzungen mit 1654 Layout-/Besucherprüfungen
   und erneut 29 Übergabe-/Neustartprüfungen erfolgreich kontrolliert.
 - 402 bestehende Videoprüfungen und 21 Positionswiederherstellungsprüfungen bestanden.
+- Release-Build erfolgreich mit 0 Warnungen und 0 Fehlern; eigenständige
+  Win-x64-Einzeldatei mit Dateiversion 2.5.0.0 veröffentlicht (lokale Abnahmeausgabe).
 - Der zunächst gefundene Überlappungsfehler neuer, ausgeblendeter Steuerelemente
   wurde durch explizit leere Bounds behoben; bestehende Tests wurden nicht gelockert.
 - Kein erneuter vollständiger globaler Paket-/Notiz-/Netzwerkregressionslauf;
