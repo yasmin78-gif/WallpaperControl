@@ -15,21 +15,26 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.4.0**
+**Current release: v2.5.0**
 
-## ✨ New in 2.4.0
+## ✨ New in 2.5.0
 
-- Add Visitor Mode with a separate image, MP4 video, or media folder for a guest-friendly desktop.
-- Restore the previous wallpaper, playback position, manual pause, and remaining slideshow time when leaving Visitor Mode, where available.
-- Keep a safe static wallpaper after exit; video checkpoints also protect the desktop after a crash or forced process termination.
-- Control Visitor Mode with a hotkey or desktop widget, including a compact toggle-only layout with a hidden title.
+- Control visitor-folder slideshows from the wallpaper page: pause/resume, interval, shuffle, pinning, and the Next Wallpaper widget.
+- Copy the current normal image into an existing visitor folder without changing the original or overwriting files.
+- Eliminate the white flash before visitor animations while preserving the safe native wallpaper.
+- Restore Calendar and Notes & Reminders widget positions after temporary resolution changes or monitor reconnection.
 
-[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
+[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.5.0/WallpaperControl-2.5.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.5.0)
 
 ## ✨ Features
 
 -   🛡️ **Visitor Mode**
     -   Choose a separate visitor image, MP4 video, or media folder
+    -   Control visitor-folder playback with pause/resume, interval, shuffle, pinning, and Next/Previous actions
+    -   Keep the enabled Next Wallpaper widget available for visitor folders
+    -   Use the existing layout and transition settings without changing the normal playback snapshot
+    -   Keep rejecting images and normal wallpaper history unavailable in Visitor Mode
+    -   Copy the current normal image to the visitor folder only when an existing folder source is configured; retain originals and use numbered names on collisions
     -   Keep normal wallpaper changes and scheduling from replacing visitor media
     -   Retain the active mode across application restarts
     -   Restore the previous normal playback state when the mode is switched off, where available
