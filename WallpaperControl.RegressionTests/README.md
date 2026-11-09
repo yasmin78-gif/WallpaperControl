@@ -1,5 +1,20 @@
 # Regression checks
 
+Display-position recovery for Calendar and Notes has a focused entry point:
+
+```powershell
+dotnet run --project WallpaperControl.RegressionTests -- --widget-display-position-checks
+```
+
+It simulates temporary resolution/work-area changes through the actual widget
+rendering/message paths, with invisible windows, an isolated notes store and a fake
+calendar provider. It does not change the real monitor configuration or user widget
+settings. It covers restoring locked widgets after 3440 → 1920 → 3440 changes,
+monitor disconnect/reconnect with negative coordinates, repeated changes, DPI-sized
+fallbacks, explicit settings restoration and the shared drag-completion callback.
+Run `-- --calendar-scroll-checks` and `-- --notes` for the existing calendar and
+notes interaction/rendering suites.
+
 Visitor mode has focused entry points:
 
 ```powershell
