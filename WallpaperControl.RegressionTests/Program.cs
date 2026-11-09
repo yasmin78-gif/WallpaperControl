@@ -90,12 +90,13 @@ try
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
     if(args.Length==3&&args[0]=="--visitor-handoff-native-checks") { VisitorHandoffTests.Native(args[1], args[2], Check); Console.WriteLine($"All {passed} native visitor handoff checks passed."); return 0; }
+    if(args.Length==1&&args[0]=="--visitor-flash-checks") { VisitorFlashTests.Run(Check); Console.WriteLine($"All {passed} visitor flash checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-playback-checks") { VisitorPlaybackTests.Run(Check); Console.WriteLine($"All {passed} visitor playback checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-handoff-checks") { VisitorHandoffTests.Run(Check); Console.WriteLine($"All {passed} visitor handoff checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-revision-checks") { VisitorRevisionTests.Run(Check); Console.WriteLine($"All {passed} visitor revision checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-regression-checks")
     {
-        VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check); VisitorRevisionTests.Run(Check); VisitorHandoffTests.Run(Check); VisitorPlaybackTests.Run(Check);
+        VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check); VisitorRevisionTests.Run(Check); VisitorHandoffTests.Run(Check); VisitorPlaybackTests.Run(Check); VisitorFlashTests.Run(Check);
         SchedulerDiagnosticsTests.Run(Check); NativeSlideshowAdvanceTests.Run(Check); LayoutEngineActivationTests.Run(Check);
         HotkeyTests.Run(Check); SettingsTests.Run(Check); FullscreenTests.Run(Check);
         StabilizationTests.Run(Check);
@@ -163,7 +164,7 @@ try
     VideoPhase2Tests.Run(Check);
     if (args.Contains("--video")) { VideoWallpaperTests.Run(Check); Console.WriteLine($"All {passed} video checks passed."); return 0; }
     VideoWallpaperTests.Run(Check);
-    VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check); VisitorRevisionTests.Run(Check); VisitorHandoffTests.Run(Check); VisitorPlaybackTests.Run(Check);
+    VisitorModeTests.Run(Check); VisitorModeTests.Ui(Check); VisitorRevisionTests.Run(Check); VisitorHandoffTests.Run(Check); VisitorPlaybackTests.Run(Check); VisitorFlashTests.Run(Check);
     if (args.Contains("--wallpaper-layout"))
     {
         WallpaperLayoutTests.Run(Check);

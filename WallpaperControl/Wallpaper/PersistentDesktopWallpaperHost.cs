@@ -151,7 +151,9 @@ namespace WallpaperControl
             Invalidate(true);
             Update();
 
-            return true;
+            // The empty child window stays transparent during attachment and
+            // sizing. Reveal it only after the initial decoded frame was painted.
+            return SetLayeredWindowAttributes(Handle, 0, 255, LWA_ALPHA);
         }
 
         /// <summary>
@@ -1050,7 +1052,7 @@ namespace WallpaperControl
                 return false;
             }
 
-            if (!SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA))
+            if (!SetLayeredWindowAttributes(hwnd, 0, currentFrame == null ? (byte)0 : (byte)255, LWA_ALPHA))
             {
                 return false;
             }

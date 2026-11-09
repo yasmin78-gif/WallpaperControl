@@ -25,7 +25,8 @@ public partial class MainForm
     private VisitorWallpaperHandoff GetVisitorHandoff() => VisitorHandoffForTests ?? (visitorHandoff ??= new(
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WallpaperControl", "VisitorMode"),
         path => PersistentDesktopTransitionManager.ApplyNativeSelection(() => FreezeNativeWallpaper(path)),
-        readNative: ReadVisitorNativeWallpaper));
+        readNative: ReadVisitorNativeWallpaper,
+        publishCovered: path => PersistentDesktopTransitionManager.ApplyCoveredNativeSelection(() => FreezeNativeWallpaper(path))));
 
     private static string? ReadVisitorNativeWallpaper()
     {
@@ -226,15 +227,23 @@ public partial class MainForm
                     var handoff = GetVisitorHandoff();
                     string? previous = VisitorFolderActive && visitorCurrentPath != null
                         && WallpaperImageInfo.IsSupportedWallpaperExtension(visitorCurrentPath) && handoff.HasStaticImage ? handoff.StaticPath : null;
-                    if (!handoff.PublishImage(path)) { if (!visitorClosing) ShowVisitorNeutral(); return false; }
+                    // Keep the old safe native image until its covering renderer is
+                    // composition-ready. Updating the crash-safe underlay must not
+                    // tear that renderer down before the animation can begin.
+                    var transitionToken = visitorTransitionCancellation.Token;
+                    bool rendererReady = previous != null && handoff.CanPublishCovered && !visitorClosing
+                        && await PersistentDesktopTransitionManager.InitializeHostAsync(previous, transitionToken);
+                    transitionToken.ThrowIfCancellationRequested();
+                    if (visitorClosing || wallpaperOwnership.Closed) return false;
+                    if (!handoff.PublishImage(path, rendererReady)) { if (!visitorClosing) ShowVisitorNeutral(); return false; }
                     visitorCheckpointVideoPath = null;
                     visitorCurrentPath = path;
-                    if (servicesEnabled && previous != null && !visitorClosing)
+                    if (rendererReady && previous != null && !visitorClosing)
                     {
                         try
                         {
                             await wallpaperTransitionService.ApplyAsync(previous, handoff.StaticPath, selectedTransitionKind,
-                                selectedTransitionDurationMilliseconds, selectedTransitionDirection, selectedZoomMode, visitorTransitionCancellation.Token);
+                                selectedTransitionDurationMilliseconds, selectedTransitionDirection, selectedZoomMode, transitionToken);
                         }
                         catch (OperationCanceledException) when (visitorTransitionCancellation.IsCancellationRequested) { }
                         catch (Exception ex) { PersistentDesktopTransitionManager.Shutdown(); AppLogger.Warning("Visitor transition unavailable; safe native image retained.", ex); }

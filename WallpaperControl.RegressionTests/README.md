@@ -22,6 +22,7 @@ dotnet run --project WallpaperControl.RegressionTests -- --visitor-mode-checks
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-ui-checks
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-regression-checks
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-playback-checks
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-flash-checks
 ```
 
 The playback entry point covers visitor-folder Next/Previous, Next-widget visibility,
@@ -29,6 +30,13 @@ manual/fullscreen pause separation, remaining timer time, real automatic timer t
 interval/shuffle updates without reloading media, unchanged normal resume snapshots,
 and normal-image copying into an existing visitor folder. Copy tests verify original
 bytes, collision handling, non-folder/active-mode guards and damaged-image rejection.
+
+The flash entry point exercises the real visitor presentation path with a simulated
+desktop host: the old safe wallpaper is retained until composition is ready, the
+native checkpoint is updated under the same cover, and repeated Next does not
+dispose/recreate the renderer. It also checks cancellation and native handoff before
+renderer disposal on exit. It does not take over the actual desktop; GPU/DWM output
+requires manual visual acceptance.
 
 The first covers serialized toggles, persistence, startup snapshots, error safety,
 ownership leases and hotkey policy. The second exercises the actual main form and

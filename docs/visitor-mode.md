@@ -1,5 +1,61 @@
 ﻿# Besuchermodus: Implementierung und Abnahme
 
+## Korrektur: Weißes Aufblitzen vor Besucherübergängen
+
+Im Abnahmevideo `2026-11-09_11h10_18.mp4` ist vor einem Besucher-Bildwechsel eine
+weiße Desktopfläche sichtbar. Der neue Besucherübergabepfad setzte das native
+Wallpaper mit `ApplyNativeSelection`; dieser Pfad beendet ausdrücklich den
+bestehenden Desktop-Host. Die anschließende Animation musste ihn neu initialisieren.
+Dabei wurde der leere Host bereits angezeigt und aktualisiert, bevor `currentFrame`
+geladen war. Der leere Fensterhintergrund konnte so kurz sichtbar werden.
+
+Die Korrektur erhält den bisherigen sicheren Frame und denselben Host:
+
+1. Vor dem nativen Bildwechsel wird ein Renderer mit dem alten sicheren Bild
+   vorbereitet und dessen bestehende Kompositionsbereitschaft abgewartet.
+2. Das neue sichere BMP wird dauerhaft gespeichert und als natives Windows-Bild
+   gesetzt, während der fertige alte Frame es abdeckt. Der neue eng begrenzte
+   `ApplyCoveredNativeSelection`-Pfad prüft den bereiten Host, behält ihn bei und
+   bestätigt nach dem Windows-Aufruf seine Desktopplatzierung erneut.
+3. Die bestehende Transition-Engine animiert im gleichen Host zum neuen sicheren
+   Bild. Wiederholtes Weiter schließt/öffnet den Host nicht mehr.
+4. Beim Beenden beziehungsweise beim sicheren direkten Ersatz bleibt der bisherige
+   Ablauf erhalten: natives Bild zuerst, dann Host freigeben.
+
+Auch ein erstmals angelegter Host bleibt beim Anheften und Größenanpassen mit
+Alpha 0 transparent. Erst nachdem das erste decodierte Bitmap vollständig gemalt
+wurde, wird er mit Alpha 255 sichtbar. Dies gilt auch für normale Rendererstarts.
+Fehlgeschlagenes Laden hinterlässt damit kein sichtbar leeres Hostfenster.
+
+Die dauerhafte native Absicherung und die begrenzten sicheren BMP-Slots bleiben
+erhalten. Bei fehlendem Renderer wird weiterhin der sichere direkte Ersatzpfad
+verwendet. Beim Abbruch während der Vorbereitung bleibt die vorherige tatsächlich
+angezeigte Kopie unverändert; ein noch unangezeigtes Ziel wird nicht veröffentlicht.
+
+Die fokussierten Prüfungen laufen mit
+`dotnet run --project WallpaperControl.RegressionTests -- --visitor-flash-checks`.
+Sie verwenden den tatsächlichen MainForm-/Handoff-/TransitionManager-Pfad mit
+isolierten Einstellungen, echten Bildkopien und einem simulierten Desktop-Host.
+Sie prüfen verzögerte Kompositionsbereitschaft, Reihenfolge von nativer Absicherung
+und Animation, Wiederverwendung des Hosts und Beenden während der Vorbereitung.
+Sie ändern weder das echte Windows-Wallpaper noch die Monitoranordnung. Die
+physische GPU-/DWM-Ausgabe muss zusätzlich manuell abgenommen werden.
+
+Validierung: 11 neue Ablaufprüfungen bestanden; 2767 kombinierte Besucher-/
+Wiedergabe-/Widgetprüfungen und 402 Videoprüfungen bestanden. Nach der abschließenden
+Absicherung des übernommenen nativen Aufrufs wurden die 11 Ablaufprüfungen sowie
+29 Übergabe-/Neustartprüfungen und 29 Wiedergabe-/Kopierprüfungen erneut erfolgreich
+ausgeführt. Die Protokolle liegen unter `artifacts/visitor-flash-review/*.log`.
+
+Abnahmeausgabe: `artifacts/visitor-flash-review/WallpaperControl.exe`, weiterhin
+Version 2.5.0 als eigenständige Win-x64-Einzeldatei. Vor dem Ersetzen oder Starten
+die bisherige Instanz vollständig über **Beenden** schließen. Zuerst den ersten
+Weiterklick nach Aktivierung, dann wiederholtes Weiter/Zurück und automatische
+Wechsel prüfen. Zusätzlich während der Vorbereitung/Animation beenden und neu
+starten: Das sichere statische Bild und der aktive Besuchermodus müssen erhalten
+bleiben. Neue Initialisierung darf kurz das bisherige Bild länger stehen lassen,
+aber kein weißes oder leeres Fenster zeigen.
+
 ## Besucherordner steuern und normale Bilder übernehmen
 
 Abnahmestand dieser Erweiterung: **2.5.0** auf `codex/visitor-slideshow-controls`.
