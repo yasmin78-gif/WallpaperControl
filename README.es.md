@@ -15,21 +15,26 @@ transición renderizados directamente en el escritorio y widgets
 opcionales. Se integra limpiamente con el escritorio de Windows y
 restaura la gestión nativa de fondos al cerrar la aplicación.
 
-**Versión actual: v2.4.0**
+**Versión actual: v2.5.0**
 
-## ✨ Novedades de la versión 2.4.0
+## ✨ Novedades de la versión 2.5.0
 
-- Nuevo modo Visitante con una imagen, un vídeo MP4 o una carpeta de medios independiente para recibir visitas.
-- Restauración del fondo anterior, la posición del vídeo, la pausa manual y el tiempo restante de la presentación al desactivarlo, según los datos disponibles.
-- Conservación de un fondo estático seguro al salir; las capturas del vídeo también protegen el escritorio tras un fallo o cierre forzado.
-- Control mediante atajo de teclado o widget de escritorio, con un diseño compacto sin título.
+- Controla la presentación de visitantes desde la página de fondos: pausa/reanudación, intervalo, orden aleatorio, fijación y widget de siguiente fondo.
+- Copia la imagen normal actual a una carpeta de visitantes existente sin modificar el original ni sobrescribir archivos.
+- Eliminación del destello blanco antes de las animaciones de visitantes, manteniendo el fondo nativo seguro.
+- Restauración de las posiciones de los widgets Calendario y Notas y recordatorios tras cambios temporales de resolución o al reconectar un monitor.
 
-[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
+[Descargar el instalador Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.5.0/WallpaperControl-2.5.0-Setup-x64.exe) · [Notas de versión y suma SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.5.0)
 
 ## ✨ Funciones
 
 -   🛡️ **Modo Visitante**
     -   Selecciona una imagen, un vídeo MP4 o una carpeta de medios independiente
+    -   Controla la presentación de visitantes con pausa/reanudación, intervalo, orden aleatorio, fijación y acciones Siguiente/Anterior
+    -   Mantén disponible el widget de siguiente fondo si está activado y utilizas una carpeta de visitantes
+    -   Usa los ajustes existentes de visualización y transición sin cambiar el estado normal guardado para restaurarlo
+    -   Mantén deshabilitados el descarte de imágenes y el historial normal de fondos en modo Visitante
+    -   Copia la imagen normal actual solo si hay una carpeta de visitantes existente configurada; conserva los originales y numera los archivos si coinciden los nombres
     -   Evita que los cambios habituales y la programación sustituyan los medios de visitantes
     -   Mantén el modo activo al reiniciar la aplicación
     -   Restaura el estado de reproducción normal anterior al desactivarlo, según los datos disponibles

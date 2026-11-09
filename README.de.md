@@ -15,21 +15,26 @@ Desktop gerenderte Übergangseffekte und optionale Desktop-Widgets. Dabei
 integriert es sich sauber in den Windows-Desktop und stellt beim Beenden
 der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
-**Aktuelle Version: v2.4.0**
+**Aktuelle Version: v2.5.0**
 
-## ✨ Neu in 2.4.0
+## ✨ Neu in 2.5.0
 
-- Besuchermodus mit separatem Bild, MP4-Video oder Medienordner für einen besucherfreundlichen Desktop.
-- Beim Ausschalten vorheriges Wallpaper, Videoposition, manuelle Pause und verbleibende Diashowzeit wiederherstellen, soweit verfügbar.
-- Sicheres statisches Wallpaper beim Beenden erhalten; Video-Checkpoints sichern den Desktop auch bei Absturz oder erzwungenem Prozessende ab.
-- Besuchermodus per Hotkey oder Desktop-Widget steuern, auf Wunsch kompakt als Toggle ohne Titel.
+- Besucherordner auf der Wallpaper-Seite steuern: Pause/Fortsetzen, Intervall, Zufallsreihenfolge, Anheften und Weiter-Widget.
+- Das aktuelle normale Bild in einen vorhandenen Besucherordner kopieren, ohne Originale zu verändern oder Dateien zu überschreiben.
+- Weißes Aufblitzen vor Besucheranimationen beseitigen und das sichere native Wallpaper erhalten.
+- Positionen von Kalender und Aufgaben nach vorübergehenden Auflösungsänderungen oder erneutem Anschließen eines Monitors wiederherstellen.
 
-[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.4.0/WallpaperControl-2.4.0-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.4.0)
+[Windows-x64-Installer herunterladen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.5.0/WallpaperControl-2.5.0-Setup-x64.exe) · [Release Notes und SHA-256-Prüfsumme](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.5.0)
 
 ## ✨ Funktionen
 
 -   🛡️ **Besuchermodus**
     -   Separates Besucherbild, MP4-Video oder einen Medienordner auswählen
+    -   Besucherdiashow mit Pause/Fortsetzen, Intervall, Zufallsreihenfolge, Anheften sowie Weiter/Zurück steuern
+    -   Das aktivierte Weiter-Widget auch bei einem Besucherordner verwenden
+    -   Vorhandene Darstellungs- und Übergangseinstellungen nutzen, ohne den normalen Wiederherstellungszustand zu verändern
+    -   Aussortieren und normaler Wallpaperverlauf bleiben im Besuchermodus gesperrt
+    -   Aktuelles normales Bild nur bei konfigurierter, vorhandener Ordnerquelle in den Besucherordner kopieren; Originale erhalten und Namenskollisionen nummerieren
     -   Normale Wallpaperwechsel und Zeitpläne ersetzen keine Besuchermedien
     -   Aktiven Modus über Programmneustarts hinweg beibehalten
     -   Beim Ausschalten den vorherigen normalen Wiedergabezustand wiederherstellen, soweit verfügbar

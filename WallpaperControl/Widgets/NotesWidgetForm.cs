@@ -15,6 +15,7 @@ namespace WallpaperControl
         private readonly Func<DateTime> clock;
         private readonly Action<NoteEntry?> edit;
         private readonly WidgetDragHandler drag;
+        private readonly WidgetDisplayPosition displayPosition;
         private readonly System.Windows.Forms.Timer timer = new() { Interval = 30000 };
         private readonly List<(NoteEntry Entry, RectangleF Bounds)> rows = new();
         private WidgetSettings settings;
@@ -30,11 +31,16 @@ namespace WallpaperControl
             Action<NoteEntry?> edit, Func<DateTime>? clock = null)
         {
             this.store = store; this.settings = settings.Clone(); this.edit = edit; this.clock = clock ?? (() => DateTime.Now);
+            displayPosition = new(settings.NotesLocation);
             Text = Localization.Get("NotesTitle", settings.ClockLanguageCode);
             AutoScaleMode = AutoScaleMode.None; FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false; StartPosition = FormStartPosition.Manual; ClientSize = new Size(LogicalWidth, 120);
             Location = WidgetSettings.EnsureVisible(settings.NotesLocation, Size);
-            drag = new WidgetDragHandler(this, () => this.settings.NotesLocked, Render, moved);
+            drag = new WidgetDragHandler(this, () => this.settings.NotesLocked, Render, point =>
+            {
+                displayPosition.Remember(point);
+                moved(point);
+            });
             store.Changed += RefreshData; timer.Tick += TimerTick;
         }
 
@@ -44,6 +50,7 @@ namespace WallpaperControl
             get { CreateParams cp = base.CreateParams; cp.ExStyle |= 0x00080000 | 0x00000080 | 0x08000000; return cp; }
         }
         internal void Apply(WidgetSettings value) { settings = value.Clone(); Text = Localization.Get("NotesTitle", settings.ClockLanguageCode); Render(); }
+        internal void RestoreLocation(Point location) { displayPosition.Remember(location); Render(); }
         private void TimerTick(object? sender, EventArgs e) => RefreshData();
         internal void RefreshData() { if (!suspended) Render(); }
         internal void SetActivitySuspended(bool value)
@@ -74,12 +81,11 @@ namespace WallpaperControl
             rendering = true;
             try
             {
-                Rectangle area = Screen.FromControl(this).WorkingArea;
+                Rectangle area = displayPosition.WorkingArea(Size);
                 using Bitmap bitmap = RenderBitmap(area.Height, DeviceDpi);
                 ClientSize = bitmap.Size;
                 if (!widgetDragging)
-                    Location = new Point(Math.Clamp(Left, area.Left, Math.Max(area.Left, area.Right - Width)),
-                        Math.Clamp(Top, area.Top, Math.Max(area.Top, area.Bottom - Height)));
+                    Location = displayPosition.Resolve(Size, area);
                 LayeredWidgetBitmap.Update(Handle, Location, bitmap);
             }
             finally { rendering = false; }

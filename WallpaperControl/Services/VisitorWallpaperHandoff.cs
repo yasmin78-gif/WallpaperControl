@@ -5,7 +5,8 @@ namespace WallpaperControl;
 
 // Only callers with visitor media ownership may publish here. No normal source lookup.
 internal sealed class VisitorWallpaperHandoff(string directory, Action<string> publish,
-    Func<string, string, CancellationToken, Task<bool>>? extract = null, Func<string?>? readNative = null)
+    Func<string, string, CancellationToken, Task<bool>>? extract = null, Func<string?>? readNative = null,
+    Action<string>? publishCovered = null)
 {
     private static readonly string[] Slots = ["safe-0.bmp", "safe-1.bmp", "safe-2.bmp"];
     internal string StaticPath
@@ -23,9 +24,10 @@ internal sealed class VisitorWallpaperHandoff(string directory, Action<string> p
         }
     }
     internal bool HasStaticImage => ValidImage(StaticPath);
+    internal bool CanPublishCovered => publishCovered != null;
 
     internal bool PublishExistingOrNeutral() => HasStaticImage ? TryPublish(StaticPath) : PublishNeutral();
-    internal bool PublishImage(string source)
+    internal bool PublishImage(string source, bool rendererReady = false)
     {
         string temporary = Path.Combine(directory, "still-" + Guid.NewGuid().ToString("N") + ".tmp");
         string pointer = Path.Combine(directory, "pointer-" + Guid.NewGuid().ToString("N") + ".tmp");
@@ -46,7 +48,7 @@ internal sealed class VisitorWallpaperHandoff(string directory, Action<string> p
             File.Move(temporary, target, overwrite: true);
             File.WriteAllText(pointer, Path.GetFileName(target));
             File.Move(pointer, Path.Combine(directory, "last-safe.txt"), overwrite: true);
-            return TryPublish(target);
+            return TryPublish(target, rendererReady);
         }
         catch (Exception ex) { AppLogger.Warning("Could not persist visitor wallpaper handoff.", ex); return false; }
         finally { DeleteTemporary(temporary); DeleteTemporary(pointer); }
@@ -107,9 +109,9 @@ internal sealed class VisitorWallpaperHandoff(string directory, Action<string> p
     }
     private static async Task CleanupLatePreparationAsync(Task<bool> operation, string path)
     { try { await operation.ConfigureAwait(false); } catch { } finally { DeleteTemporary(path); } }
-    private bool TryPublish(string path)
+    private bool TryPublish(string path, bool rendererReady = false)
     {
-        try { publish(path); return true; }
+        try { (rendererReady ? publishCovered ?? throw new InvalidOperationException("No covered handoff configured.") : publish)(path); return true; }
         catch (Exception ex) { AppLogger.Warning("Could not hand visitor wallpaper to Windows.", ex); return false; }
     }
     private static bool ValidImage(string path)

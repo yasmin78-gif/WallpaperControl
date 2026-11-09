@@ -7,5 +7,6 @@ Each widget retains its own content, refresh interval, asynchronous cancellation
 - `NextWidgetRenderer`: Minimal, Clean, and Glow rendering plus hover feedback. Minimal preserves the original next button. Rendering is separate from click/drag handling; styles do not change its size or position.
 - `WidgetDragHandler`: mouse subscriptions, capture, screen-relative movement, redraw, and the final position callback for calendar, system, and weather. Each widget disposes its handler. The clock and next-wallpaper button retain their distinct interaction behavior.
 - `DesktopWidgetNative`: desktop attachment/placement and shared handling of non-activating mouse messages for all widgets.
+- `WidgetDisplayPosition`: retains the preferred calendar/notes position independently of temporary display/work-area fallbacks. Monitor selection starts from the preferred coordinates, including negative origins. Automatic rendering never persists a fallback; completed user drags and explicit settings restoration update the preferred position.
 
 Keep data retrieval and widget-specific rendering out of these helpers. For drawing/drag changes, run the regression suite and then manually check transparency, moving/locking widgets, and fullscreen suspension. The automated native-upload checks use windows that are never shown.

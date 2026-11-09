@@ -17,6 +17,7 @@ namespace WallpaperControl
         internal static string GetEventTitle(string title, string language) =>
             string.IsNullOrWhiteSpace(title) ? Localization.Get("CalendarUntitledEvent", language) : title;
         private readonly WidgetDragHandler dragHandler;
+        private readonly WidgetDisplayPosition displayPosition;
         private const int WidgetWidth = CalendarViewport.Width;
         private readonly CalendarViewport viewport = new();
         private int maximumHeight = CalendarViewport.DefaultMaximumHeight;
@@ -57,6 +58,7 @@ namespace WallpaperControl
             int maximumHeight = CalendarViewport.DefaultMaximumHeight)
         {
             this.calendarProvider = calendarProvider ?? throw new ArgumentNullException(nameof(calendarProvider));
+            displayPosition = new(location);
 
             AutoScaleMode = AutoScaleMode.None; // Calendar drawing scales explicitly from 96-DPI coordinates.
             FormBorderStyle = FormBorderStyle.None;
@@ -64,7 +66,11 @@ namespace WallpaperControl
             StartPosition = FormStartPosition.Manual;
             DoubleBuffered = true;
 
-            dragHandler = new WidgetDragHandler(this, () => this.locked, RenderLayeredWindow, locationChanged);
+            dragHandler = new WidgetDragHandler(this, () => this.locked, RenderLayeredWindow, point =>
+            {
+                displayPosition.Remember(point);
+                locationChanged(point);
+            });
             refreshTimer.Tick += (_, _) => RefreshCalendar();
 
             Apply(locked, style, maxEntries, showLocation, refreshMinutes, languageCode, maximumHeight);
@@ -72,6 +78,12 @@ namespace WallpaperControl
         }
 
         protected override bool ShowWithoutActivation => true;
+
+        internal void RestoreLocation(Point location)
+        {
+            displayPosition.Remember(location);
+            RenderLayeredWindow();
+        }
 
         protected override CreateParams CreateParams
         {
@@ -220,11 +232,10 @@ namespace WallpaperControl
             if (activitySuspended || !IsHandleCreated || IsDisposed) return;
 
             if (updateContent) displayedEvents = calendarProvider.GetUpcoming(DateTime.Now, maxEntries, languageCode);
-            Rectangle workArea = Screen.FromControl(this).WorkingArea;
+            Rectangle workArea = displayPosition.WorkingArea(Size);
             using Bitmap bitmap = RenderBitmap(displayedEvents, workArea.Height, DeviceDpi);
             if (!widgetDragging && !thumbDragging)
-                Location = new Point(Math.Clamp(Left, workArea.Left, Math.Max(workArea.Left, workArea.Right - Width)),
-                    Math.Clamp(Top, workArea.Top, Math.Max(workArea.Top, workArea.Bottom - Height)));
+                Location = displayPosition.Resolve(Size, workArea);
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
         }
 

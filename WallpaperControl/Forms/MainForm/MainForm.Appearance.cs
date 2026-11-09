@@ -166,6 +166,7 @@ namespace WallpaperControl
                 pinButton,
                 buttonBackground,
                 foreground);
+            StyleButton(visitorCopyButton, buttonBackground, foreground);
 
             StyleButton(
                 nextWallpaperButton,

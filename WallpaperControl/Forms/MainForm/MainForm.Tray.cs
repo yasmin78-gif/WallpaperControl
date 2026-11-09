@@ -88,6 +88,7 @@ namespace WallpaperControl
         /// </summary>
         private void UpdateTrayPauseText()
         {
+            if (VisitorFolderActive) { trayPauseItem.Text = Localization.Get(visitorMode!.Settings.SlideshowPaused ? "ResumeSlideshow" : "PauseSlideshow"); return; }
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
                 trayPauseItem.Text = Localization.Get(((videoWallpaper?.PauseReasons ?? VideoPauseReason.None) & VideoPauseReason.Manual) != 0 ? "VideoResume" : "VideoPause");

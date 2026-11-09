@@ -279,6 +279,22 @@ namespace WallpaperControl
             Shutdown();
         }
 
+        // Visitor crash protection updates the native underlay while a composed
+        // safe frame covers it. Keep the same host and reassert its desktop band
+        // after Windows processes the native wallpaper change.
+        internal static void ApplyCoveredNativeSelection(Action applyNative)
+        {
+            lock (initializationLock)
+            {
+                var host = persistentHost;
+                if (host is not { IsDisposed: false } || !compositionReady.IsCompletedSuccessfully)
+                    throw new InvalidOperationException("No composed wallpaper cover is available.");
+                applyNative();
+                if (!ReferenceEquals(host, persistentHost) || host.IsDisposed || !host.EnsureDesktopPlacement())
+                    throw new InvalidOperationException("Wallpaper cover was lost during native handoff.");
+            }
+        }
+
         /// <summary>
         /// Disposes the persistent desktop host and clears its shared reference.
         /// </summary>

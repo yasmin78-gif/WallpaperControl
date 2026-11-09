@@ -165,6 +165,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (VisitorFolderActive) { if (!visitorMode!.Settings.SlideshowPaused) await ToggleVisitorPauseAsync(); return; }
             if (!wallpaperOwnership.AllowsImages) return;
             string? wallpaperPath =
                 GetCurrentWallpaperPath();
@@ -293,7 +294,7 @@ namespace WallpaperControl
         /// <returns>A task representing completion of the asynchronous operation.</returns>
         private async Task ToggleSlideshowPauseAsync(bool refreshDisplay)
         {
-            if (visitorMode?.Active == true) return;
+            if (visitorMode?.Active == true) { await ToggleVisitorPauseAsync(); return; }
             if (wallpaperOwnership.Mode == WallpaperOperatingMode.VideoWallpaper)
             {
                 if (videoWallpaper != null) videoWallpaper.SetPause(VideoPauseReason.Manual,

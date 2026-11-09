@@ -510,7 +510,7 @@ namespace WallpaperControl
 
                     if (restoreLocations)
                     {
-                        calendarWidget.Location = WidgetSettings.EnsureVisible(target.CalendarLocation, calendarWidget.Size);
+                        calendarWidget.RestoreLocation(target.CalendarLocation);
                     }
                     DesktopWidgetNative.KeepOnDesktop(calendarWidget);
                     if (previewMode) DesktopWidgetNative.EnableInteraction(calendarWidget);
@@ -579,7 +579,7 @@ namespace WallpaperControl
                 else
                 {
                     notesWidget.Apply(target);
-                    if (restoreLocations) notesWidget.Location = WidgetSettings.EnsureVisible(target.NotesLocation, notesWidget.Size);
+                    if (restoreLocations) notesWidget.RestoreLocation(target.NotesLocation);
                     DesktopWidgetNative.KeepOnDesktop(notesWidget);
                     if (previewMode) DesktopWidgetNative.EnableInteraction(notesWidget);
                 }

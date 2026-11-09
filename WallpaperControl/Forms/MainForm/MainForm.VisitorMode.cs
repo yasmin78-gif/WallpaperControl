@@ -12,6 +12,8 @@ public partial class MainForm
     private bool visitorClosing;
     private string? neutralVisitorPath;
     private readonly Random visitorRandom = new();
+    private readonly VisitorSlideshowClock visitorSlideshowClock = new();
+    private CancellationTokenSource visitorTransitionCancellation = new();
     private readonly HashSet<string> visitorVideoSources = new(StringComparer.OrdinalIgnoreCase);
     private VisitorWallpaperHandoff? visitorHandoff;
     internal VisitorWallpaperHandoff? VisitorHandoffForTests = null;
@@ -23,7 +25,8 @@ public partial class MainForm
     private VisitorWallpaperHandoff GetVisitorHandoff() => VisitorHandoffForTests ?? (visitorHandoff ??= new(
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WallpaperControl", "VisitorMode"),
         path => PersistentDesktopTransitionManager.ApplyNativeSelection(() => FreezeNativeWallpaper(path)),
-        readNative: ReadVisitorNativeWallpaper));
+        readNative: ReadVisitorNativeWallpaper,
+        publishCovered: path => PersistentDesktopTransitionManager.ApplyCoveredNativeSelection(() => FreezeNativeWallpaper(path))));
 
     private static string? ReadVisitorNativeWallpaper()
     {
@@ -58,8 +61,12 @@ public partial class MainForm
         }
         visitorTimer.Tick += async (_, _) =>
         {
-            if (visitorMode.Active && !visitorMode.Busy && !visitorAdvanceRunning && !visitorClosing && !fullscreenPolicy.IsPaused)
+            UpdateVisitorPlaybackPause();
+            if (VisitorFolderActive && !visitorMode.Busy && !visitorAdvanceRunning && !visitorClosing && visitorSlideshowClock.Due)
+            {
                 await AdvanceVisitorFolderAsync();
+                visitorSlideshowClock.Restart(visitorMode.Settings.IntervalMilliseconds);
+            }
         };
     }
 
@@ -144,6 +151,7 @@ public partial class MainForm
     private async Task ActivateVisitorMediaAsync()
     {
         visitorTimer.Stop();
+        visitorTransitionCancellation.Cancel();
         ++wallpaperModeRequest;
         SwitchWallpaperOperatingMode(WallpaperOperatingMode.Visitor);
         customWallpaperCancellation?.Cancel();
@@ -162,6 +170,7 @@ public partial class MainForm
             if (visitorClosing || wallpaperOwnership.Closed) return;
             if (imageTransitionTasks.Count > 0) await Task.WhenAll(imageTransitionTasks.ToArray());
             if (visitorClosing || wallpaperOwnership.Closed) return;
+            visitorTransitionCancellation.Dispose(); visitorTransitionCancellation = new();
             customSlideshowEngineActive = false;
             ShowVisitorCover();
             if (videoWallpaper != null) await videoWallpaper.StopAsync();
@@ -169,7 +178,9 @@ public partial class MainForm
             if (visitorMode!.Settings.Source == VisitorSourceKind.Folder)
             {
                 await AdvanceVisitorFolderAsync();
-                visitorTimer.Interval = (int)visitorMode.Settings.IntervalMilliseconds;
+                visitorSlideshowClock.Restart(visitorMode.Settings.IntervalMilliseconds);
+                UpdateVisitorPlaybackPause();
+                visitorTimer.Interval = 250;
                 if (!visitorClosing) visitorTimer.Start();
             }
             else if (!await TryDisplayVisitorMediaAsync(visitorMode.Settings.Path, visitorMode.Settings.Source == VisitorSourceKind.Video) && !visitorClosing)
@@ -192,9 +203,10 @@ public partial class MainForm
             if (video)
             {
                 if (!Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase) || videoMonitorCount() != 1) return false;
+                if (servicesEnabled) PersistentDesktopTransitionManager.Shutdown();
                 var engine = await EnsureVideoWallpaperAsync(path, wallpaperModeRequest, false);
                 if (engine == null || visitorClosing || wallpaperOwnership.Closed) return false;
-                engine.SetPause(VideoPauseReason.Manual, false);
+                engine.SetPause(VideoPauseReason.Manual, VisitorFolderActive && visitorMode.Settings.SlideshowPaused);
                 engine.SetPause(VideoPauseReason.Fullscreen, fullscreenPolicy.IsPaused);
                 // Visitor playback never changes the normal audio preferences.
                 engine.SetAudio(false, videoVolumeSlider.Value);
@@ -212,8 +224,30 @@ public partial class MainForm
                 if (visitorClosing || wallpaperOwnership.Closed) return false;
                 if (VisitorHandoffEnabled)
                 {
-                    if (!GetVisitorHandoff().PublishImage(path)) { if (!visitorClosing) ShowVisitorNeutral(); return false; }
+                    var handoff = GetVisitorHandoff();
+                    string? previous = VisitorFolderActive && visitorCurrentPath != null
+                        && WallpaperImageInfo.IsSupportedWallpaperExtension(visitorCurrentPath) && handoff.HasStaticImage ? handoff.StaticPath : null;
+                    // Keep the old safe native image until its covering renderer is
+                    // composition-ready. Updating the crash-safe underlay must not
+                    // tear that renderer down before the animation can begin.
+                    var transitionToken = visitorTransitionCancellation.Token;
+                    bool rendererReady = previous != null && handoff.CanPublishCovered && !visitorClosing
+                        && await PersistentDesktopTransitionManager.InitializeHostAsync(previous, transitionToken);
+                    transitionToken.ThrowIfCancellationRequested();
+                    if (visitorClosing || wallpaperOwnership.Closed) return false;
+                    if (!handoff.PublishImage(path, rendererReady)) { if (!visitorClosing) ShowVisitorNeutral(); return false; }
                     visitorCheckpointVideoPath = null;
+                    visitorCurrentPath = path;
+                    if (rendererReady && previous != null && !visitorClosing)
+                    {
+                        try
+                        {
+                            await wallpaperTransitionService.ApplyAsync(previous, handoff.StaticPath, selectedTransitionKind,
+                                selectedTransitionDurationMilliseconds, selectedTransitionDirection, selectedZoomMode, transitionToken);
+                        }
+                        catch (OperationCanceledException) when (visitorTransitionCancellation.IsCancellationRequested) { }
+                        catch (Exception ex) { PersistentDesktopTransitionManager.Shutdown(); AppLogger.Warning("Visitor transition unavailable; safe native image retained.", ex); }
+                    }
                 }
                 visitorCurrentPath = path;
             }
@@ -225,21 +259,23 @@ public partial class MainForm
         catch (Exception ex) { AppLogger.Warning("Visitor media could not be displayed.", ex); return false; }
     }
 
-    private async Task AdvanceVisitorFolderAsync()
+    private Task<bool> AdvanceVisitorFolderAsync() => AdvanceVisitorFolderDirectionAsync(false);
+    private async Task<bool> AdvanceVisitorFolderDirectionAsync(bool previous)
     {
-        if (visitorAdvanceRunning || visitorClosing) return;
+        if (visitorAdvanceRunning || visitorClosing || !VisitorFolderActive) return false;
         visitorAdvanceRunning = true;
         try
         {
             var settings = visitorMode!.Settings;
             string[] files = Directory.GetFiles(settings.Path).Where(path => WallpaperImageInfo.IsSupportedWallpaperExtension(path)
                 || Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase)).OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
-            string? displayed = await WallpaperCandidateRunner.TryAdvanceAsync(files, visitorCurrentPath, settings.Shuffle, false,
+            string? displayed = await WallpaperCandidateRunner.TryAdvanceAsync(files, visitorCurrentPath, settings.Shuffle, previous,
                 visitorRandom, path => TryDisplayVisitorMediaAsync(path, Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase)));
             if (displayed == null) await UseVisitorFallbackAsync();
+            return displayed != null;
         }
-        catch (Exception ex) { await UseVisitorFallbackAsync(); AppLogger.Warning("Visitor folder unavailable.", ex); }
-        finally { visitorAdvanceRunning = false; }
+        catch (Exception ex) { await UseVisitorFallbackAsync(); AppLogger.Warning("Visitor folder unavailable.", ex); return false; }
+        finally { visitorAdvanceRunning = false; UpdateVisitorUi(); }
     }
 
     private async Task UseVisitorFallbackAsync()
@@ -251,6 +287,8 @@ public partial class MainForm
 
     private async Task RestoreVisitorResumeAsync(VisitorResumeState? resume)
     {
+        visitorTransitionCancellation.Cancel();
+        RestoreVisitorPlaybackControls();
         visitorTimer.Stop();
         // A folder timer may already be preparing a video. Cancel and join it first.
         ++wallpaperModeRequest; videoWallpaper?.CancelPendingStart();
@@ -354,6 +392,7 @@ public partial class MainForm
 
     private async Task StopVisitorAndCloseAsync()
     {
+        visitorTransitionCancellation.Cancel();
         visitorTimer.Stop(); ++wallpaperModeRequest;
         videoWallpaper?.CancelPendingStart();
         await CancelVisitorCheckpointAsync();

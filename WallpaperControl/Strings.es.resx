@@ -1903,4 +1903,7 @@ Versión instalada: {0}
   <data name="VisitorTextColor" xml:space="preserve"><value>Elegir color de texto …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Restaurar colores del estilo</value></data>
   <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Mostrar título</value></data>
+  <data name="VisitorCopyImage" xml:space="preserve"><value>Copiar a carpeta de visitantes</value></data>
+  <data name="VisitorCopySuccess" xml:space="preserve"><value>La imagen está disponible en la carpeta de visitantes.</value></data>
+  <data name="VisitorCopyError" xml:space="preserve"><value>No se pudo copiar la imagen a la carpeta de visitantes. Comprueba el origen y los permisos de escritura.</value></data>
 </root>
