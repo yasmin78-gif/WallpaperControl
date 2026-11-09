@@ -1,5 +1,89 @@
 ﻿# Besuchermodus: Implementierung und Abnahme
 
+## Besucherordner steuern und normale Bilder übernehmen
+
+Abnahmestand dieser Erweiterung: **2.5.0** auf `codex/visitor-slideshow-controls`.
+Die Veröffentlichung 2.4.0 und ihre Release Notes bleiben als Historie unverändert.
+
+Ist als Besucherquelle ein **Ordner** gewählt, bedienen die vorhandenen Regler auf
+der Wallpaper-Hauptseite jetzt die Besucherdiashow: Intervall, Zufallsreihenfolge,
+Pause/Fortsetzen, Anheften sowie Weiter/Zurück über die vorhandenen Aktionspfade.
+Das aktivierte Weiter-Widget bleibt für diesen Modus sichtbar; bei Besucher-Einzelbild
+und Einzelvideo bleibt es verborgen. Die Hauptseite zeigt den Besucherordner und
+das aktuelle Besuchermedium an. Aussortieren, Rückgängigmachen und der normale
+Wallpaperverlauf bleiben im Besuchermodus gesperrt.
+
+Der Besucherordner hat einen eigenen manuellen Pausenzustand und eine monotone
+Restzeitmessung. Eine Pause friert die Restzeit ein; Fortsetzen startet mit dieser
+Restzeit. Vollbildpause bleibt ein unabhängiger Grund. Ein manueller Weiterwechsel
+setzt die laufende Zeitfrist nicht zurück. Ändern des Intervalls startet eine neue
+Frist, Ändern der Zufallsreihenfolge lädt kein Bild neu. Diese Einstellungen und
+die Besucher-Pause werden gespeichert; die laufende Restzeit ist pro Prozess.
+Der ursprüngliche normale Wiederherstellungssnapshot bleibt unverändert.
+
+Darstellung, Übergangseffekt, Richtung und Dauer verwenden die vorhandenen gemeinsamen
+Darstellungseinstellungen. Bei Bild-zu-Bild-Wechseln im Besucherordner nutzt die
+vorhandene Transition-Engine ausschließlich bereits geprüfte sichere BMP-Kopien.
+Das neue sichere native Wallpaper wird vorher hinterlegt, sodass ein Prozessabbruch
+auch während eines Übergangs keinen Rückfall auf die normale Sammlung auslöst.
+Bei nicht unterstützter Monitor-/Darstellungskonfiguration bleibt der vorhandene
+direkte native Ersatzpfad wirksam. Videoübergänge bleiben bei der bisherigen
+Videoengine; deren Einmonitorgrenze wird nicht verändert.
+
+Im normalen Bildmodus erscheint **In Besucherordner kopieren** ausschließlich,
+wenn tatsächlich eine vorhandene Ordnerquelle für Besucher konfiguriert ist.
+Einzelbild, Einzelvideo und fehlende Ordner bieten diese Aktion nicht an.
+Die Aktion kopiert das bei Betätigung aktuelle Originalbild, verändert oder
+verschiebt das Original nicht und überschreibt keine vorhandene Datei. Bei
+Namenskollisionen wird ein nummerierter Dateiname verwendet. Unvollständige Kopien
+haben eine temporäre, für die Diashow ausgeschlossene Erweiterung; erst die
+vollständige Datei wird atomar unter ihrem Bildnamen veröffentlicht. Eine bereits
+im Zielordner liegende Datei wird nicht erneut dupliziert. Im Besuchermodus selbst
+ist die Kopieraktion ausgeblendet und zusätzlich im Ausführungspfad gesperrt.
+
+Neue fokussierte Prüfung:
+`dotnet run --project WallpaperControl.RegressionTests -- --visitor-playback-checks`.
+Sie verwendet isolierte Widgeteinstellungen, lokale Bildfixtures und deaktivierte
+native Wallpaper-Schreibzugriffe der bestehenden Testinitialisierung.
+
+Validierung dieser Erweiterung:
+
+- 29 fokussierte Besucher-Wiedergabe-/Kopierprüfungen bestanden.
+- 2754 kombinierte Besucher-/Wiedergabe-/Widgetprüfungen bestanden; anschließend
+  wurden die abschließenden UI-Ergänzungen mit 1654 Layout-/Besucherprüfungen
+  und erneut 29 Übergabe-/Neustartprüfungen erfolgreich kontrolliert.
+- 402 bestehende Videoprüfungen und 21 Positionswiederherstellungsprüfungen bestanden.
+- Der zunächst gefundene Überlappungsfehler neuer, ausgeblendeter Steuerelemente
+  wurde durch explizit leere Bounds behoben; bestehende Tests wurden nicht gelockert.
+- Kein erneuter vollständiger globaler Paket-/Notiz-/Netzwerkregressionslauf;
+  diese Ergebnisse beziehen sich auf die genannten fokussierten Suites.
+
+Die Protokolle liegen unter `artifacts/visitor-playback-*.log`.
+Die eigenständige Abnahmeausgabe liegt unter
+`artifacts/visitor-slideshow-review/WallpaperControl.exe`. Die bisherige Instanz
+vor dem Start vollständig über **Beenden** schließen. Diese Ausgabe enthält die
+verwalteten Abhängigkeiten und die .NET-Laufzeit in der EXE; das unveränderte externe
+Videopaket bleibt wie beim bestehenden Installer erforderlich. Für einen Austausch
+der EXE in einer vollständigen 2.4.0-Installation kann diese Einzeldatei verwendet
+werden. Die laufende Installation wurde nicht automatisch ersetzt.
+
+Manuelle Abnahme:
+
+1. Besucherordner mit mehreren Bildern einstellen und aktivieren. Besucherpfad
+   und Dateiname auf der Hauptseite prüfen; Weiter-Widget einblenden und benutzen.
+2. Intervall und Zufallsreihenfolge ändern: Das aktuelle Bild bleibt erhalten,
+   der normale Wiederherstellungssnapshot wird nicht verändert.
+3. Pausieren, kurz warten, fortsetzen: Restzeit prüfen. Vollbildpause zusätzlich
+   prüfen; manuelles Fortsetzen darf eine Vollbildpause nicht aufheben.
+4. Übergänge, Richtung, Dauer und Bilddarstellung ändern. Während eines Übergangs
+   deaktivieren beziehungsweise beenden: Nur sichere Besucherbilder dürfen vor
+   der expliziten normalen Wiederherstellung erscheinen.
+5. Aussortieren und Rückgängigmachen bleiben gesperrt. Besuchermodus deaktivieren:
+   ursprüngliche Quelle, Pause und Timerrestzeit müssen wiederhergestellt werden.
+6. Im normalen Modus ein Bild in den Besucherordner kopieren, Namenskollision
+   wiederholen und Originaldatei prüfen. Bei Einzelbild-/Einzelvideoquelle und
+   ungültigem Ordner darf die Kopieraktion nicht erscheinen.
+
 ## Optionaler Widget-Titel
 
 Unter **Widgets → Besuchermodus → Titel anzeigen** lässt sich der Titel ausblenden.

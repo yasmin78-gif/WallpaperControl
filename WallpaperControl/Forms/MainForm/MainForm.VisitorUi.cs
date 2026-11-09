@@ -107,9 +107,12 @@ public partial class MainForm
                 ShowHotkeyErrors(failures.Concat(rollbackFailures).ToArray(), true); return;
             }
         }
-        await visitorMode!.ConfigureAsync(s => s with { Source = source, Path = path,
+        bool mediaChanged = visitorMode!.Settings.Source != source || !string.Equals(visitorMode.Settings.Path, path, StringComparison.OrdinalIgnoreCase);
+        bool intervalChanged = visitorMode.Settings.IntervalMilliseconds != interval;
+        await visitorMode.ConfigureAsync(s => s with { Source = source, Path = path,
             IntervalMilliseconds = interval, Shuffle = shuffle,
-            HotkeyModifiers = modifiers, HotkeyKey = key });
+            HotkeyModifiers = modifiers, HotkeyKey = key }, reloadMedia: mediaChanged);
+        if (!mediaChanged && intervalChanged && VisitorFolderActive) visitorSlideshowClock.Restart(visitorMode.Settings.IntervalMilliseconds);
     }
 
     private void UpdateVisitorUi()
@@ -118,6 +121,7 @@ public partial class MainForm
         visitorUiUpdating = true;
         try
         {
+            ProjectVisitorPlaybackControls();
             visitorSwitch.Checked = visitorMode!.Active;
             visitorSwitch.Enabled = !visitorMode.Busy;
             visitorApply.Enabled = !visitorMode.Busy;
@@ -126,6 +130,7 @@ public partial class MainForm
             visitorMainBar.Visible = VisitorMainSwitchAvailable;
             visitorMainLabel.Text = Localization.Get("VisitorTitle") + " · " + Localization.Get(visitorMode.Active ? "VisitorOn" : "VisitorOff");
             ApplyVisitorControlAvailability();
+            UpdateVisitorCopyButton();
             LayoutWallpaperPage();
             if (!visitorMode.Active && !visitorMode.Busy) { CheckSlideshowStatus(); UpdateVideoControls(); ArmCustomSlideshowPreciseTimer(); }
         }
@@ -135,13 +140,25 @@ public partial class MainForm
     private void ApplyVisitorControlAvailability()
     {
         if (visitorMode == null || wallpaperContent == null) return;
-        foreach (Control control in wallpaperContent!.Controls)
+        IEnumerable<Control> Descendants(Control parent) => parent.Controls.Cast<Control>().SelectMany(c => new[] { c }.Concat(Descendants(c)));
+        var controls = Descendants(wallpaperContent).Where(c => c != visitorMainBar && !visitorMainBar.Contains(c)).ToArray();
+        if (visitorMode.Active)
         {
-            if (control == visitorMainBar) continue;
-            if (visitorMode.Active)
-            {
+            foreach (Control control in controls)
                 if (!visitorDisabledControls.ContainsKey(control)) visitorDisabledControls[control] = control.Enabled;
-                control.Enabled = false;
+            foreach (Control control in controls) control.Enabled = false;
+            if (VisitorFolderActive)
+                foreach (Control control in new Control[] { slideshowCard, currentWallpaperCard, displayCard,
+                    visitorFolderDisplay, intervalComboBox, shuffleCheckBox, pauseButton, pinButton, nextWallpaperButton,
+                    positionComboBox, transitionComboBox, transitionDirectionComboBox, transitionDurationComboBox }
+                    .Concat(controls.OfType<Label>())) control.Enabled = true;
+            if (VisitorFolderActive)
+            {
+                bool ready = !visitorMode.Busy && !visitorClosing;
+                pauseButton.Enabled = pinButton.Enabled = intervalComboBox.Enabled = shuffleCheckBox.Enabled = ready;
+                transitionDirectionComboBox.Enabled = ready && selectedTransitionKind is WallpaperTransitionKind.DesktopWipe
+                    or WallpaperTransitionKind.DesktopSlide or WallpaperTransitionKind.DesktopZoomFade;
+                nextWallpaperButton.Enabled = ready && !visitorSlideshowClock.Paused && !visitorAdvanceRunning;
             }
         }
         if (!visitorMode.Active)
@@ -149,6 +166,12 @@ public partial class MainForm
             foreach (var entry in visitorDisabledControls) if (!entry.Key.IsDisposed) entry.Key.Enabled = entry.Value;
             visitorDisabledControls.Clear();
         }
+        visitorFolderDisplay.Visible = VisitorFolderActive;
+        folderTextBox.Visible = folderButton.Visible = wallpaperCountLabel.Visible = !VisitorFolderActive;
+        bool selectedVideo = wallpaperModeCombo.SelectedIndex == 1 && !VisitorFolderActive;
+        videoCard.Visible = selectedVideo;
+        slideshowCard.Visible = displayCard.Visible = currentWallpaperCard.Visible = nextWallpaperButton.Visible = !selectedVideo;
+        if (VisitorFolderActive) { videoStatusLabel.Visible = false; statusLabel.Visible = visitorSlideshowClock.Paused; }
     }
 
     private void ApplyVisitorPresentation()
@@ -166,6 +189,7 @@ public partial class MainForm
         Translate(visitorPage);
         visitorSwitch.AccessibleName = Localization.Get("VisitorTitle");
         visitorPath.AccessibleName = Localization.Get("VisitorPath");
+        visitorFolderDisplay.AccessibleName = Localization.Get("VisitorPath");
         visitorInterval.AccessibleName = Localization.Get("VisitorInterval");
         visitorHotkey.AccessibleName = Localization.Get("VisitorHotkey"); UpdateVisitorHotkeyText();
         visitorSwitch.BackColor = visitorMainBar.BackColor = AppTheme.WindowBackground(darkMode);

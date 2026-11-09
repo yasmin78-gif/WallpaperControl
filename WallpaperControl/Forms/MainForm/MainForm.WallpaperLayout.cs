@@ -21,10 +21,13 @@ namespace WallpaperControl
                 label.Font = fieldFont;
             slideshowCard.Controls.AddRange(new Control[] { slideshowHeading, folderLabel, folderTextBox, folderButton,
                 wallpaperCountLabel, intervalLabel, intervalComboBox, windowsIntervalLabel, shuffleCheckBox });
+            slideshowCard.Controls.Add(visitorFolderDisplay);
             displayCard.Controls.AddRange(new Control[] { displayHeading, positionLabel, positionComboBox, transitionLabel,
                 transitionComboBox, directionHeading, transitionDirectionComboBox, transitionDurationLabel, transitionDurationComboBox });
             currentWallpaperCard.Controls.AddRange(new Control[] { currentHeading, currentWallpaperLabel, pauseButton, pinButton,
                 explorerButton, rejectButton, undoRejectButton, historyButton, statisticsButton });
+            currentWallpaperCard.Controls.Add(visitorCopyButton);
+            visitorCopyButton.Click += async (_, _) => await CopyCurrentWallpaperToVisitorFolderAsync();
             wallpaperContent!.Controls.AddRange(new Control[] { slideshowCard, displayCard, currentWallpaperCard });
             InitializeVideoWallpaperUi();
             wallpaperContent.TabIndex = 0;
@@ -33,7 +36,7 @@ namespace WallpaperControl
             int tab = 0;
             foreach (Control control in new Control[] { folderTextBox, folderButton, intervalComboBox, shuffleCheckBox,
                 positionComboBox, transitionComboBox, transitionDirectionComboBox, transitionDurationComboBox,
-                pauseButton, pinButton, explorerButton, rejectButton, undoRejectButton, historyButton, statisticsButton })
+                pauseButton, pinButton, explorerButton, rejectButton, undoRejectButton, historyButton, statisticsButton, visitorCopyButton })
                 control.TabIndex = tab++;
             wallpaperLayoutReady = true;
             LocalizeWallpaperGroups();
@@ -153,7 +156,8 @@ namespace WallpaperControl
                     top = visitorMainBar.Bottom + gap;
                 }
                 if (videoStatusLabel.Visible) top = LabelAt(videoStatusLabel, 0, top, width) + small;
-                if (wallpaperWarning && !VideoConfigurationSelected && wallpaperOwnership.AllowsImages)
+                if (wallpaperWarning && (!VideoConfigurationSelected || VisitorFolderActive)
+                    && (wallpaperOwnership.AllowsImages || VisitorFolderActive))
                 {
                     top = LabelAt(statusLabel, 0, top, width) + small;
                     if (wallpaperActivation)
@@ -193,9 +197,16 @@ namespace WallpaperControl
                 int leftY = LabelAt(slideshowHeading, padding, padding, fieldWidth, 28) + gap;
                 leftY = LabelAt(folderLabel, padding, leftY, fieldWidth) + Px(4);
                 int browseWidth = Px(54);
-                int folderBottom = InputAt(folderTextBox, padding, leftY, Math.Max(1, fieldWidth - browseWidth - small));
+                int folderBottom = InputAt(VisitorFolderActive ? visitorFolderDisplay : folderTextBox, padding, leftY,
+                    Math.Max(1, fieldWidth - (VisitorFolderActive ? 0 : browseWidth + small)));
                 folderButton.SetBounds(padding + fieldWidth - browseWidth, leftY, browseWidth, Math.Max(Px(30), folderTextBox.Height));
                 leftY = LabelAt(wallpaperCountLabel, padding, Math.Max(folderBottom, folderButton.Bottom) + small, fieldWidth, 20) + gap;
+                if (VisitorFolderActive)
+                {
+                    folderTextBox.SetBounds(0, 0, 0, 0); folderButton.SetBounds(0, 0, 0, 0);
+                    wallpaperCountLabel.SetBounds(0, 0, 0, 0);
+                }
+                else visitorFolderDisplay.SetBounds(0, 0, 0, 0);
                 leftY = Field(intervalLabel, intervalComboBox, padding, leftY, fieldWidth);
                 leftY = LabelAt(windowsIntervalLabel, padding, leftY, fieldWidth, 20) + small;
                 shuffleCheckBox.AutoSize = false;
@@ -238,10 +249,12 @@ namespace WallpaperControl
                 ActionRow(pauseButton, pinButton);
                 ActionRow(explorerButton, rejectButton);
                 ActionRow(undoRejectButton, historyButton, statisticsButton);
+                if (visitorCopyButton.Visible) ActionRow(visitorCopyButton);
+                else visitorCopyButton.SetBounds(0, 0, 0, 0);
                 currentWallpaperCard.SetBounds(0, nextWallpaperButton.Bottom + gap, width, currentY - small + padding);
 
                 Point scroll = wallpaperPage.AutoScrollPosition;
-                int contentHeight = VideoConfigurationSelected ? videoCard.Bottom : currentWallpaperCard.Bottom;
+                int contentHeight = VideoConfigurationSelected && !VisitorFolderActive ? videoCard.Bottom : currentWallpaperCard.Bottom;
                 wallpaperContent.SetBounds(Math.Max(gap, (wallpaperPage.ClientSize.Width - width) / 2) + scroll.X,
                     gap + scroll.Y, width, contentHeight);
                 wallpaperPage.AutoScrollMinSize = new Size(0, wallpaperContent.Height + 2 * gap);

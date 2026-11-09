@@ -106,7 +106,7 @@ namespace WallpaperControl
         private async Task<bool> AdvanceWallpaperAsync(
             DesktopSlideshowDirection direction)
         {
-            if (visitorMode?.Active == true) return false;
+            if (visitorMode?.Active == true) return await AdvanceVisitorManuallyAsync(direction);
             int lease = wallpaperOwnership.Generation;
             if (!wallpaperOwnership.IsCurrentImage(lease)) return false;
             LogScheduler($"manual request; direction={direction}");
@@ -310,6 +310,8 @@ namespace WallpaperControl
         /// </summary>
         private void UpdateCurrentWallpaperDisplay()
         {
+            if (visitorMode?.Active == true) { UpdateVisitorUi(); return; }
+            UpdateVisitorCopyButton();
             if (!wallpaperOwnership.AllowsImages) return;
             string? path =
                 GetCurrentWallpaperPath();

@@ -1875,4 +1875,7 @@
   <data name="VisitorTextColor" xml:space="preserve"><value>文字色を選択 …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>スタイルの色に戻す</value></data>
   <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>タイトルを表示</value></data>
+  <data name="VisitorCopyImage" xml:space="preserve"><value>来客用フォルダーにコピー</value></data>
+  <data name="VisitorCopySuccess" xml:space="preserve"><value>画像を来客用フォルダーで利用できます。</value></data>
+  <data name="VisitorCopyError" xml:space="preserve"><value>画像を来客用フォルダーにコピーできませんでした。元のファイルと書き込み権限を確認してください。</value></data>
 </root>

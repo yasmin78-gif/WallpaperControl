@@ -256,7 +256,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
-            if (!wallpaperOwnership.AllowsImages) return;
+            if (!wallpaperOwnership.AllowsImages && !VisitorFolderActive) return;
             if (loading)
                 return;
 
@@ -331,6 +331,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (visitorMode?.Active == true) { if (!loading && !visitorUiUpdating) _ = SaveVisitorPlaybackOptionsAsync(); return; }
             if (loading)
                 return;
 
@@ -354,6 +355,7 @@ namespace WallpaperControl
             object? sender,
             EventArgs e)
         {
+            if (visitorMode?.Active == true) { if (!loading && !visitorUiUpdating) _ = SaveVisitorPlaybackOptionsAsync(); return; }
             if (loading)
                 return;
 

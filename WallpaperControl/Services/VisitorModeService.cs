@@ -12,6 +12,7 @@ internal sealed record VisitorModeSettings
     public string Path { get; init; } = "";
     public uint IntervalMilliseconds { get; init; } = 300000;
     public bool Shuffle { get; init; }
+    public bool SlideshowPaused { get; init; }
     public bool WidgetEnabled { get; init; }
     public bool WidgetLocked { get; init; }
     public int WidgetX { get; init; } = 40;

@@ -118,6 +118,8 @@ namespace WallpaperControl
             {
                 visitorClosing = true; visitorTimer.Stop(); visitorTimer.Dispose(); visitorMode?.Close();
                 visitorCheckpointCancellation?.Cancel();
+                if (!visitorTransitionCancellation.IsCancellationRequested) visitorTransitionCancellation.Cancel();
+                visitorTransitionCancellation.Dispose();
                 visitorImageSnapshot?.Dispose(); visitorImageSnapshot = null;
                 runtimeResources?.Dispose(); runtimeResources = null;
                 DisposeVideoWallpaper();

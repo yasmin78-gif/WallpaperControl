@@ -12,7 +12,7 @@ internal sealed partial class WidgetManager
         visitorService = service;
         service.Changed += VisitorStateChanged;
     }
-    private void VisitorStateChanged() => UpdateVisitorWidget();
+    private void VisitorStateChanged() { UpdateVisitorWidget(); UpdateWallpaperWidget(nextWidget); }
     private void UpdateVisitorWidget(bool restoreLocations = false)
     {
         if (!visitorWidgetsStarted || visitorService == null) return;

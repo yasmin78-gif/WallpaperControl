@@ -15,6 +15,8 @@ internal sealed partial class WidgetManager
     }
 
     private bool ModeAllowsWidget(Form widget) => wallpaperMode == WallpaperOperatingMode.ImageSlideshow
+        || (widget is NextWidgetForm && wallpaperMode == WallpaperOperatingMode.Visitor
+            && visitorService?.Active == true && visitorService.Settings.Source == VisitorSourceKind.Folder)
         || widget is not NextWidgetForm and not WallpaperInfoWidgetForm;
 
     private void UpdateWallpaperWidget(Form? widget)

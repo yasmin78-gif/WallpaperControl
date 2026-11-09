@@ -21,7 +21,14 @@ Visitor mode has focused entry points:
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-mode-checks
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-ui-checks
 dotnet run --project WallpaperControl.RegressionTests -- --visitor-regression-checks
+dotnet run --project WallpaperControl.RegressionTests -- --visitor-playback-checks
 ```
+
+The playback entry point covers visitor-folder Next/Previous, Next-widget visibility,
+manual/fullscreen pause separation, remaining timer time, real automatic timer ticks,
+interval/shuffle updates without reloading media, unchanged normal resume snapshots,
+and normal-image copying into an existing visitor folder. Copy tests verify original
+bytes, collision handling, non-folder/active-mode guards and damaged-image rejection.
 
 The first covers serialized toggles, persistence, startup snapshots, error safety,
 ownership leases and hotkey policy. The second exercises the actual main form and

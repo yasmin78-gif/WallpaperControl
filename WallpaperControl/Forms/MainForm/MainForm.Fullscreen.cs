@@ -24,6 +24,7 @@ namespace WallpaperControl
                 if (!fullscreenPolicy.Update(pauseOnFullscreen,
                     pauseOnFullscreen ? FullscreenActivityDetector.GetFullscreenState() : false, DateTime.UtcNow)) return;
                 bool paused = fullscreenPolicy.IsPaused;
+                UpdateVisitorPlaybackPause();
                 videoWallpaper?.SetPause(VideoPauseReason.Fullscreen, paused);
                 LogScheduler($"fullscreen pause changed; suspended={paused}; propagation begin");
                 // Reuse the existing UI timer: sample exit more often without

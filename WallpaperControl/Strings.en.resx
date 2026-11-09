@@ -1903,4 +1903,7 @@ Would you like to open the release page?</value>
   <data name="VisitorTextColor" xml:space="preserve"><value>Choose text color …</value></data>
   <data name="VisitorResetColors" xml:space="preserve"><value>Restore style colors</value></data>
   <data name="VisitorWidgetShowTitle" xml:space="preserve"><value>Show title</value></data>
+  <data name="VisitorCopyImage" xml:space="preserve"><value>Copy to visitor folder</value></data>
+  <data name="VisitorCopySuccess" xml:space="preserve"><value>The image is available in the visitor folder.</value></data>
+  <data name="VisitorCopyError" xml:space="preserve"><value>The image could not be copied to the visitor folder. Check the source and write permissions.</value></data>
 </root>
