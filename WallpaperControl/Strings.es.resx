@@ -1951,4 +1951,9 @@ Versión instalada: {0}
   <data name="PriceWatchDiscount" xml:space="preserve"><value>Descuento</value></data>
   <data name="PriceWatchDrmFree" xml:space="preserve"><value>Sin DRM</value></data>
   <data name="PriceWatchAboutGame" xml:space="preserve"><value>Sobre el juego</value></data>
+  <data name="PriceWatchRefreshInfo" xml:space="preserve"><value>Actualizar datos del juego</value></data>
+  <data name="PriceWatchReleased" xml:space="preserve"><value>Lanzamiento</value></data>
+  <data name="PriceWatchDevelopers" xml:space="preserve"><value>Desarrolladores</value></data>
+  <data name="PriceWatchPublishers" xml:space="preserve"><value>Editores</value></data>
+  <data name="PriceWatchGameNotFound" xml:space="preserve"><value>Los datos del juego no están disponibles.</value></data>
 </root>

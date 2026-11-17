@@ -1923,4 +1923,9 @@
   <data name="PriceWatchDiscount" xml:space="preserve"><value>割引</value></data>
   <data name="PriceWatchDrmFree" xml:space="preserve"><value>DRM なし</value></data>
   <data name="PriceWatchAboutGame" xml:space="preserve"><value>ゲームについて</value></data>
+  <data name="PriceWatchRefreshInfo" xml:space="preserve"><value>ゲーム情報を更新</value></data>
+  <data name="PriceWatchReleased" xml:space="preserve"><value>発売日</value></data>
+  <data name="PriceWatchDevelopers" xml:space="preserve"><value>開発元</value></data>
+  <data name="PriceWatchPublishers" xml:space="preserve"><value>発売元</value></data>
+  <data name="PriceWatchGameNotFound" xml:space="preserve"><value>ゲーム情報を取得できません。</value></data>
 </root>

@@ -64,6 +64,21 @@ internal static class PriceWatchTests
             "typed history preserves a point without a price");
         handler.Data = Array.Empty<App.PriceWatchPrices>();
         check((await client.PricesAsync(Id, default)).Data.Length == 0, "valid empty price response");
+        var metadata = new App.PriceWatchGameInfo(Id, "Detailed fixture title", new(2024, 2, 29),
+            ["First developer", "Second developer"], ["Publisher"], new("https://assets.example.invalid/cover.jpg?t=12"));
+        handler.Data = metadata;
+        var gameInfo = await client.InfoAsync(Id, default);
+        check(handler.Path == "/info" && handler.Body.GetProperty("id").GetGuid() == Id &&
+            gameInfo.Data.ReleaseDate == new DateOnly(2024, 2, 29)
+            && gameInfo.Data.Developers.SequenceEqual(metadata.Developers)
+            && gameInfo.Data.Boxart?.OriginalString == "https://assets.example.invalid/cover.jpg?t=12",
+            "game info decodes the fixed request, date, all companies and cover address");
+        await Fails(() => client.InfoAsync(Guid.NewGuid(), default), App.PriceWatchFailure.InvalidResponse,
+            "game info rejects the wrong ITAD identifier", check);
+        handler.Status = HttpStatusCode.NotFound;
+        await Fails(() => client.InfoAsync(Id, default), App.PriceWatchFailure.GameNotFound,
+            "missing game info reports unavailable", check);
+        handler.Status = HttpStatusCode.OK;
         handler.Data = sample.Data;
         await Fails(() => client.PricesAsync(Guid.NewGuid(), default), App.PriceWatchFailure.InvalidResponse,
             "mismatched product identity rejected", check);
@@ -185,6 +200,7 @@ internal static class PriceWatchTests
                 }
                 CheckDesign(check, widget, defaults);
                 CheckSettingsDesign(check);
+                CheckGameInfoStorageAndPresentation(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);
                 CheckDesktopTrayLifecycle(check);
@@ -534,6 +550,66 @@ internal static class PriceWatchTests
         }
     }
 
+    private static void CheckGameInfoStorageAndPresentation(Action<bool, string> check)
+    {
+        using var storage = new TemporaryWatchlist();
+        Directory.CreateDirectory(storage.DirectoryPath);
+        using (var old = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={storage.FilePath};Pooling=False"))
+        {
+            old.Open();
+            using var command = old.CreateCommand();
+            command.CommandText = """
+                CREATE TABLE watched (live INTEGER NOT NULL, id TEXT NOT NULL, title TEXT NOT NULL,
+                    kind TEXT, snapshot TEXT, fetched_ticks INTEGER, PRIMARY KEY (live, id));
+                INSERT INTO watched (live, id, title, kind) VALUES (0, $id, 'Legacy fixture title', 'package');
+                """;
+            command.Parameters.AddWithValue("$id", Id.ToString("D"));
+            command.ExecuteNonQuery();
+        }
+
+        var store = storage.Store;
+        var entry = store.Read(false).Single();
+        check(entry.Game.Title == "Legacy fixture title" && store.ReadInfo(false, Id) == null,
+            "opening the pre-metadata SQLite schema preserves the watchlist");
+        var info = new App.PriceWatchGameInfo(Id, "Full fixture title", new(2024, 2, 29),
+            ["CD PROJEKT RED", "CD Project Red", "CD Projekt Red", "Second developer"],
+            ["CD Project Red", "CD PROJEKT RED"], new("https://assets.example.invalid/example.jpg"));
+        var fetched = new App.PriceWatchReply<App.PriceWatchGameInfo>(DateTimeOffset.UtcNow, info);
+        check(store.SaveInfo(false, Id, fetched) && !store.SaveInfo(true, Id, fetched)
+            && !store.SaveInfo(false, Id, fetched with { FetchedAt = fetched.FetchedAt.AddHours(-1) })
+            && storage.Store.ReadInfo(false, Id)?.Data.Developers.SequenceEqual(info.Developers) == true,
+            "metadata persists by mode and older records cannot overwrite it");
+        using var details = new App.PriceWatchDetailForm(entry, "Testdaten", "de", App.SystemWidgetStyle.Glow,
+            () => Task.CompletedTask, () => false, info: info, refreshInfo: () => Task.CompletedTask);
+        var group = details.Controls.Find("PriceWatchGameInfo", true).Single();
+        var labelText = group.Text;
+        details.PresentInfo(null, "fixture connection error");
+        check(group.Text == labelText && labelText == string.Join(Environment.NewLine,
+            "Veröffentlicht: 29.02.2024", "Entwickler: CD PROJEKT RED, Second developer", "Publisher: CD Project Red"),
+            "detail formats a compact date and deduplicates names independently in their original order");
+        check(store.ReadInfo(false, Id)?.Data.Developers.SequenceEqual(info.Developers) == true
+            && store.ReadInfo(false, Id)?.Data.Publishers.SequenceEqual(info.Publishers) == true,
+            "display formatting leaves stored company arrays intact");
+        details.Opacity = 0;
+        details.Show();
+        Application.DoEvents();
+        var updateButton = details.Controls.Find("PriceWatchRefreshInfo", true).Single();
+        var actions = updateButton.Parent!;
+        actions.PerformLayout();
+        var buttons = actions.Controls.OfType<Button>().ToArray();
+        check(buttons.Select(button => button.Text).SequenceEqual(
+                ["Preise abrufen", "Spielinfos aktualisieren", "Entfernen", "Schließen"])
+            && buttons.Select(button => button.Top).Distinct().Count() == 1
+            && buttons.All(button => button.Width >= button.GetPreferredSize(Size.Empty).Width
+                && actions.ClientRectangle.Contains(button.Bounds)),
+            "shown detail fits all four unabridged German action buttons on one row");
+        details.Hide();
+        details.PresentInfo(info with { ReleaseDate = null, Publishers = [] });
+        check(group.Text == "Entwickler: CD PROJEKT RED, Second developer", "missing game info fields are omitted");
+        store.Remove(false, Id);
+        check(storage.Store.ReadInfo(false, Id) == null, "removing the watchlist entry removes related metadata");
+    }
+
     private static void CheckDesktopTrayLifecycle(Action<bool, string> check)
     {
         const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -609,9 +685,25 @@ internal static class PriceWatchTests
             ClickAt(new((int)((widgetLayout.Content.Left + 14) * widgetLayout.Scale),
                 (int)((widgetLayout.Content.Top + 12) * widgetLayout.Scale)));
             Application.DoEvents();
-            check(detailOpened, "clicking a watchlist row opens offer details without another price request");
+            check(detailOpened && storage.Store.ReadInfo(false, Id)?.Data.Developers.Length == 1,
+                "opening details fetches and caches offline game info without another price request");
             check(nativeChrome && activationHandled && escapeHandled,
                 "shown details handle focus loss and return, native resize and drag, and Escape");
+            var cachedAt = storage.Store.ReadInfo(false, Id)?.FetchedAt;
+            bool cachedInfoVisible = false;
+            widget.BeginInvoke(new Action(() =>
+            {
+                var details = Application.OpenForms.OfType<App.PriceWatchDetailForm>().SingleOrDefault();
+                if (details == null) return;
+                cachedInfoVisible = details.Controls.Find("PriceWatchGameInfo", true).Single().Text.Contains("Example developer");
+                details.Close();
+            }));
+            ClickAt(new((int)((widgetLayout.Content.Left + 14) * widgetLayout.Scale),
+                (int)((widgetLayout.Content.Top + 12) * widgetLayout.Scale)));
+            Application.DoEvents();
+            check(cachedInfoVisible && cachedAt != null && storage.Store.ReadInfo(false, Id)?.FetchedAt == cachedAt,
+                "reopening details uses SQLite game info without fetching it again");
+
 
             Invoke(main, "RestoreFromTray");
             Application.DoEvents();
