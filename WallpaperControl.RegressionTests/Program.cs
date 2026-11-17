@@ -146,6 +146,8 @@ try
     if (args.Length == 1 && args[0] == "--system-drive-checks") { SystemDriveTests.Run(Check); Console.WriteLine($"All {passed} system drive checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-checks") { NowPlayingTests.Run(Check); Console.WriteLine($"All {passed} Now Playing checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--now-playing-native-checks") { NowPlayingTests.Native(Check); Console.WriteLine($"All {passed} native Now Playing checks passed."); return 0; }
+    if (args.Length == 1 && args[0] == "--pricewatch-checks")
+    { PriceWatchTests.Run(Check); Console.WriteLine($"All {passed} PriceWatch checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--feed-notification-checks")
     { FeedNotificationTests.Run(Check); Console.WriteLine($"All {passed} focused feed notification and tone checks passed."); return 0; }
     if (args.Length == 1 && args[0] == "--widget-navigation-checks")

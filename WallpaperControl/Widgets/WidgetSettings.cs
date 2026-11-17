@@ -13,6 +13,7 @@ namespace WallpaperControl
         public WebWidgetSettings Web { get; set; } = new();
         public NotificationSoundKind NotificationSound { get; set; } = NotificationSoundKind.Chime;
         public NotificationSoundPreferences NotificationTones { get; set; } = new();
+        public PriceWatchWidgetSettings PriceWatch { get; set; } = new();
         public FeedWidgetSettings Feed { get; set; } = new();
         public NowPlayingSettings NowPlaying { get; set; } = new();
         public ClipboardWidgetSettings Clipboard { get; set; } = new();
@@ -106,6 +107,7 @@ namespace WallpaperControl
                 result.Launcher = LauncherSettings.Parse(key.GetValue("LauncherWidgetConfiguration") as string ?? "{}");
                 result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
                 result.NowPlaying = NowPlayingSettings.Parse(key.GetValue("NowPlayingConfiguration") as string ?? "{}");
+                result.PriceWatch = PriceWatchWidgetSettings.Parse(key.GetValue("PriceWatchWidgetConfiguration") as string ?? "{}");
                 result.Feed = FeedWidgetSettings.Parse(key.GetValue("FeedWidgetConfiguration") as string ?? "{}");
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
                 result.NotificationSound = NotificationSounds.Normalize(ReadInt(key, "NotificationSound", (int)NotificationSoundKind.Chime));
@@ -229,6 +231,7 @@ namespace WallpaperControl
                 key.SetValue("LauncherWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Launcher), RegistryValueKind.String);
                 key.SetValue("ClipboardWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Clipboard), RegistryValueKind.String);
                 key.SetValue("NowPlayingConfiguration", System.Text.Json.JsonSerializer.Serialize(NowPlaying), RegistryValueKind.String);
+                key.SetValue("PriceWatchWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(PriceWatch), RegistryValueKind.String);
                 key.SetValue("FeedWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Feed), RegistryValueKind.String);
                 key.SetValue("PackageStatusNotifications", PackageStatusNotifications ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("WebWidgetConfiguration", System.Text.Json.JsonSerializer.Serialize(Web), RegistryValueKind.String);
@@ -325,6 +328,7 @@ namespace WallpaperControl
             loadFailed = loadFailed,
             Visitor = Visitor.Clone(),
             Web = Web.Clone(),
+            PriceWatch = PriceWatch.Clone(),
             EmailWatcher = EmailWatcher.Clone(),
             Launcher = Launcher.Clone(), Clipboard = Clipboard.Clone(), NowPlaying = NowPlaying.Clone(), Feed = Feed.Clone(), NotificationTones = NotificationTones with { },
             NotificationSound = NotificationSounds.Normalize((int)NotificationSound), PackageStatusNotifications = PackageStatusNotifications,

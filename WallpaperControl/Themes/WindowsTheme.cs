@@ -42,6 +42,17 @@ namespace WallpaperControl
             DwmSetWindowAttribute(form.Handle, 20, ref value, sizeof(int));
         }
 
+        internal static void ApplyCustomFrame(Form form)
+        {
+            if (!form.IsHandleCreated || !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)) return;
+            const int windowCornerPreference = 33;
+            int round = 2;
+            DwmSetWindowAttribute(form.Handle, windowCornerPreference, ref round, sizeof(int));
+            const int borderColor = 34;
+            int noBorder = unchecked((int)0xFFFFFFFE);
+            DwmSetWindowAttribute(form.Handle, borderColor, ref noBorder, sizeof(int));
+        }
+
         /// <summary>
         /// Sets a Desktop Window Manager attribute on the specified native window.
         /// </summary>

@@ -37,6 +37,7 @@ namespace WallpaperControl
                 LoadWebControls(value.Web);
                 LoadPackageControls(value);
                 LoadTwitchControls(value);
+                LoadPriceWatchControls(value);
                 LoadFeedControls(value); LoadNowPlayingControls(value); LoadClipboardControls(value); LoadLauncherControls(value);
                 notesEnabled.Checked = value.NotesEnabled;
                 notesLocked.Checked = value.NotesLocked;
@@ -104,6 +105,7 @@ namespace WallpaperControl
                 RefreshWidgetStyleChoices(clipboardStyle, (SystemWidgetStyle)Math.Max(0,clipboardStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(nowPlayingStyle, (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(feedStyle, (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex));
+                RefreshWidgetStyleChoices(priceWatchStyle, (SystemWidgetStyle)Math.Max(0, priceWatchStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(twitchStyle, (SystemWidgetStyle)Math.Max(0, twitchStyle.SelectedIndex));
                 RefreshWidgetStyleChoices(packageStyle, (SystemWidgetStyle)Math.Max(0, packageStyle.SelectedIndex));
                 RefreshClockStyleChoices(GetSelectedClockStyle()); RefreshSystemStyleChoices(GetSelectedSystemStyle());

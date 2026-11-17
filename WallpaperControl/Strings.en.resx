@@ -1906,4 +1906,49 @@ Would you like to open the release page?</value>
   <data name="VisitorCopyImage" xml:space="preserve"><value>Copy to visitor folder</value></data>
   <data name="VisitorCopySuccess" xml:space="preserve"><value>The image is available in the visitor folder.</value></data>
   <data name="VisitorCopyError" xml:space="preserve"><value>The image could not be copied to the visitor folder. Check the source and write permissions.</value></data>
+  <data name="PriceWatchTitle" xml:space="preserve"><value>PriceWatch</value></data>
+  <data name="PriceWatchEnabled" xml:space="preserve"><value>Show the PriceWatch widget</value></data>
+  <data name="PriceWatchOptIn" xml:space="preserve"><value>Allow private live requests</value></data>
+  <data name="PriceWatchModeHint" xml:space="preserve"><value>Local test data is used by default. Live requests run only when you select Search or Refresh.</value></data>
+  <data name="PriceWatchEditCredentials" xml:space="preserve"><value>Enter pilot credentials</value></data>
+  <data name="PriceWatchDeleteCredentials" xml:space="preserve"><value>Delete pilot credentials</value></data>
+  <data name="PriceWatchSaveCredentials" xml:space="preserve"><value>Save securely</value></data>
+  <data name="PriceWatchDeleted" xml:space="preserve"><value>Pilot credentials deleted.</value></data>
+  <data name="PriceWatchStoreError" xml:space="preserve"><value>Credentials could not be saved or deleted. Check the input and try again.</value></data>
+  <data name="PriceWatchUsername" xml:space="preserve"><value>Username</value></data>
+  <data name="PriceWatchPassword" xml:space="preserve"><value>Password</value></data>
+  <data name="PriceWatchSearch" xml:space="preserve"><value>Search</value></data>
+  <data name="PriceWatchSelect" xml:space="preserve"><value>Select edition</value></data>
+  <data name="PriceWatchTest" xml:space="preserve"><value>Test data</value></data>
+  <data name="PriceWatchLive" xml:space="preserve"><value>Live · IsThereAnyDeal</value></data>
+  <data name="PriceWatchLoading" xml:space="preserve"><value>Request in progress …</value></data>
+  <data name="PriceWatchNoResults" xml:space="preserve"><value>No games found.</value></data>
+  <data name="PriceWatchGame" xml:space="preserve"><value>Base game</value></data>
+  <data name="PriceWatchPackage" xml:space="preserve"><value>Package / edition</value></data>
+  <data name="PriceWatchDlc" xml:space="preserve"><value>DLC</value></data>
+  <data name="PriceWatchUnknown" xml:space="preserve"><value>Unknown type</value></data>
+  <data name="PriceWatchWait" xml:space="preserve"><value>Try again in {0} s.</value></data>
+  <data name="PriceWatchNoSelection" xml:space="preserve"><value>No game selected</value></data>
+  <data name="PriceWatchUpdated" xml:space="preserve"><value>Updated:</value></data>
+  <data name="PriceWatchPreview" xml:space="preserve"><value>Preview · requests paused</value></data>
+  <data name="PriceWatchRefresh" xml:space="preserve"><value>Get prices</value></data>
+  <data name="PriceWatchNoOffer" xml:space="preserve"><value>No offer</value></data>
+  <data name="PriceWatchCredentials" xml:space="preserve"><value>Check your pilot credentials.</value></data>
+  <data name="PriceWatchBusy" xml:space="preserve"><value>Service temporarily busy.</value></data>
+  <data name="PriceWatchInvalidRequest" xml:space="preserve"><value>Check the input and try again.</value></data>
+  <data name="PriceWatchTimeout" xml:space="preserve"><value>The request timed out.</value></data>
+  <data name="PriceWatchConnection" xml:space="preserve"><value>Could not reach PriceWatch.</value></data>
+  <data name="PriceWatchInvalidResponse" xml:space="preserve"><value>PriceWatch returned invalid data.</value></data>
+  <data name="PriceWatchCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="PriceWatchWatchlistEmpty" xml:space="preserve"><value>Your watchlist is empty</value></data>
+  <data name="PriceWatchNotChecked" xml:space="preserve"><value>Price not checked yet</value></data>
+  <data name="PriceWatchStorageError" xml:space="preserve"><value>Could not read or save the watchlist.</value></data>
+  <data name="PriceWatchDetails" xml:space="preserve"><value>Game details</value></data>
+  <data name="PriceWatchRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="PriceWatchConfirmRemove" xml:space="preserve"><value>Remove this game from the watchlist?</value></data>
+  <data name="PriceWatchMerchant" xml:space="preserve"><value>Store</value></data>
+  <data name="PriceWatchPrice" xml:space="preserve"><value>Price</value></data>
+  <data name="PriceWatchDiscount" xml:space="preserve"><value>Discount</value></data>
+  <data name="PriceWatchDrmFree" xml:space="preserve"><value>DRM-free</value></data>
+  <data name="PriceWatchAboutGame" xml:space="preserve"><value>About the game</value></data>
 </root>

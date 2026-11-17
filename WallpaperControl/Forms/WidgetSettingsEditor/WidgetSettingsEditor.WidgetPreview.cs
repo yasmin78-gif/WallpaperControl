@@ -37,6 +37,10 @@ namespace WallpaperControl
             preview.Clipboard.ScreenshotCapacity=clipboardScreenshotCapacity.SelectedItem is int imageCount?imageCount:20;
             preview.Clipboard.ScreenshotLifetimeHours=ClipboardWidgetSettings.ScreenshotLifetimes[Math.Max(0,clipboardScreenshotLifetime.SelectedIndex)];
             preview.NowPlaying.Enabled = nowPlayingEnabled.Checked; preview.NowPlaying.Locked = nowPlayingLocked.Checked; preview.NowPlaying.HideEmpty = nowPlayingHideEmpty.Checked; preview.NowPlaying.WheelVolume = nowPlayingWheel.Checked; preview.NowPlaying.Style = (SystemWidgetStyle)Math.Max(0, nowPlayingStyle.SelectedIndex);
+            preview.PriceWatch.Enabled = priceWatchEnabled.Checked;
+            preview.PriceWatch.Locked = priceWatchLocked.Checked;
+            preview.PriceWatch.Live = priceWatchLive.Checked;
+            preview.PriceWatch.Style = (SystemWidgetStyle)Math.Max(0, priceWatchStyle.SelectedIndex);
             preview.Feed.Enabled = feedEnabled.Checked; preview.Feed.Locked = feedLocked.Checked; preview.Feed.Style = (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex); preview.Feed.MaximumHeight = (int)feedHeight.Value;
             preview.PackageStatusNotifications = packageNotifications.Checked;
             ReadWebControls(preview.Web);

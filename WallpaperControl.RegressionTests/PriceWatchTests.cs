@@ -1,0 +1,731 @@
+extern alias WallpaperApp;
+using App = WallpaperApp::WallpaperControl;
+using Microsoft.Win32;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
+
+internal static class PriceWatchTests
+{
+    private const string OfferUrl = "https://offers.example.invalid/A%2fb?ref=one&ref=two";
+    private static readonly Guid Id = new("10000000-0000-4000-8000-000000000002");
+
+    internal static void Run(Action<bool, string> check)
+    {
+        RunClient(check).GetAwaiter().GetResult();
+#if DEBUG
+        App.Localization.Initialize();
+        check(true, "startup localization audit passes for all supported languages");
+#endif
+        CheckStorageAndLayout(check);
+    }
+
+    private static async Task RunClient(Action<bool, string> check)
+    {
+        var fixtures = new App.PriceWatchTestData();
+        var titles = await fixtures.SearchAsync("Cyberpunk", default);
+        check(titles.Data.Select(x => x.Type).SequenceEqual(new[] { "game", "package", "dlc" })
+            && titles.Data.Select(x => x.Id).Distinct().Count() == 3, "offline search distinguishes the three editions");
+        var sample = await fixtures.PricesAsync(Id, default);
+        check(sample.Data.Single().Deals.Select(x => x.Shop.Id).SequenceEqual(new[] { 35, 61 }),
+            "offline prices have both required shops");
+        check((await fixtures.PricesAsync(Guid.Empty, default)).Data.Length == 0, "offline unknown game is empty");
+
+        using var handler = new Handler();
+        using var http = new HttpClient(handler);
+        var client = new App.PriceWatchClient(http, () => new App.TrackingCredential("fixture-user:fixture-value"));
+        handler.Data = titles.Data;
+        var search = await client.SearchAsync("Cyberpunk", default);
+        check(search.Data[1].Id == Id && search.Data[1].Type == "package" && handler.Path == "/search",
+            "typed client posts search and keeps the selected package identity");
+        check(handler.SecureOrigin && handler.BasicOnly && handler.Body.GetProperty("title").GetString() == "Cyberpunk",
+            "authorization stays on the fixed HTTPS origin and credentials are absent from JSON");
+
+        handler.Data = new Dictionary<string, Guid?> { ["bundle/32470"] = Id };
+        var mapping = await client.LookupAsync(new("https://store.steampowered.com/bundle/32470/"), default);
+        check(mapping.Data["bundle/32470"] == Id && handler.Path == "/lookup", "typed Steam bundle lookup");
+        var annotated = sample.Data[0].Deals[0] with { Url = new(OfferUrl), Platforms = [new(1, "Windows")], Drm = [new(1000, "DRM Free")] };
+        handler.Data = new[] { new App.PriceWatchPrices(Id, [annotated]) };
+        var offers = await client.PricesAsync(Id, default);
+        check(offers.Data[0].Id == Id && offers.Data[0].Deals[0].Price.Amount == 40
+            && handler.Body.GetProperty("shops").EnumerateArray().Select(x => x.GetInt32()).SequenceEqual(new[] { 35, 61 }),
+            "typed EUR prices are scoped to the selection and the two shops");
+        check(offers.Data[0].Deals[0].Platforms?.Single().Name == "Windows"
+            && offers.Data[0].Deals[0].Drm?.Single().Name == "DRM Free",
+            "existing price response preserves optional platform and activation fields");
+        check(offers.Data[0].Deals[0].Url.OriginalString == OfferUrl,
+            "original offer URL including query and escape spelling reaches the C# model");
+        handler.Data = new[] { new App.PriceWatchHistory(new(35, "GOG"), DateTimeOffset.UtcNow, null) };
+        var history = await client.HistoryAsync(Id, 30, default);
+        check(history.Data[0].Deal == null && handler.Body.GetProperty("days").GetInt32() == 30 && handler.Path == "/history",
+            "typed history preserves a point without a price");
+        handler.Data = Array.Empty<App.PriceWatchPrices>();
+        check((await client.PricesAsync(Id, default)).Data.Length == 0, "valid empty price response");
+        handler.Data = sample.Data;
+        await Fails(() => client.PricesAsync(Guid.NewGuid(), default), App.PriceWatchFailure.InvalidResponse,
+            "mismatched product identity rejected", check);
+        handler.Invalid = true;
+        await Fails(() => client.PricesAsync(Id, default), App.PriceWatchFailure.InvalidResponse, "malformed response is sanitized", check);
+        handler.Invalid = false;
+        handler.Status = HttpStatusCode.Unauthorized;
+        await Fails(() => client.PricesAsync(Id, default), App.PriceWatchFailure.Credentials, "401 is a credential error", check);
+        handler.Status = HttpStatusCode.BadRequest;
+        await Fails(() => client.PricesAsync(Id, default), App.PriceWatchFailure.InvalidRequest, "400 is an input error", check);
+        handler.Status = HttpStatusCode.ServiceUnavailable;
+        handler.Retry = new RetryConditionHeaderValue(DateTimeOffset.UtcNow.AddMinutes(1));
+        await Fails(() => client.PricesAsync(Id, default), App.PriceWatchFailure.Busy, "503 with HTTP-date Retry-After", check, true);
+        int calls = handler.Calls;
+        await Fails(() => client.PricesAsync(Id, default), App.PriceWatchFailure.Busy, "manual repeat respects cooldown", check, true);
+        check(handler.Calls == calls, "cooldown performs no extra HTTP call");
+        handler.Status = HttpStatusCode.TooManyRequests;
+        handler.Retry = new RetryConditionHeaderValue(TimeSpan.FromSeconds(12));
+        var fresh = new App.PriceWatchClient(http, () => new App.TrackingCredential("fixture-user:fixture-value"));
+        await Fails(() => fresh.PricesAsync(Id, default), App.PriceWatchFailure.Busy, "429 with seconds Retry-After", check, true);
+        handler.Delay = true;
+        var quick = new App.PriceWatchClient(http, () => new App.TrackingCredential("fixture-user:fixture-value"), TimeSpan.FromMilliseconds(150));
+        await Fails(() => quick.PricesAsync(Id, default), App.PriceWatchFailure.Timeout, "deadline cancels mocked HTTP", check);
+        using var cancelled = new CancellationTokenSource();
+        var awaiting = quick.PricesAsync(Id, cancelled.Token);
+        cancelled.Cancel();
+        try { await awaiting; check(false, "user cancellation propagates"); }
+        catch (OperationCanceledException) { check(true, "user cancellation propagates"); }
+        calls = handler.Calls;
+        var missing = new App.PriceWatchClient(http, () => null);
+        await Fails(() => missing.PricesAsync(Id, default), App.PriceWatchFailure.Credentials, "missing credential is local", check);
+        check(handler.Calls == calls, "missing credential causes no HTTP call");
+    }
+
+    private static async Task Fails(Func<Task> call, App.PriceWatchFailure failure, string name,
+        Action<bool, string> check, bool retry = false)
+    {
+        try { await call(); check(false, name); }
+        catch (App.PriceWatchException error)
+        {
+            check(error.Failure == failure && (!retry || error.RetryAfter > TimeSpan.Zero)
+                && error.InnerException == null && error.Message == failure.ToString(), name);
+        }
+    }
+
+    private static void CheckStorageAndLayout(Action<bool, string> check)
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                var defaults = App.PriceWatchWidgetSettings.Parse("{}");
+                check(!defaults.Live && !defaults.Enabled, "legacy settings default to disabled and offline");
+                var path = @"Software\WallpaperControl\Regression\PriceWatch-" + Guid.NewGuid().ToString("N");
+                try
+                {
+                    var credentials = new App.PriceWatchCredentials(path);
+                    const string fixturePassword = "fixture-password-only";
+                    check(credentials.Save("fixture-user", fixturePassword), "pilot credentials save through protected store");
+                    using (var values = Registry.CurrentUser.OpenSubKey(path))
+                    {
+                        string? value = values?.GetValue("pricewatch") as string;
+                        check(!string.IsNullOrEmpty(value) && !value.Contains(fixturePassword, StringComparison.Ordinal),
+                            "credential registry value contains ciphertext");
+                    }
+                    check(credentials.Load() != null && credentials.Delete() && credentials.Load() == null,
+                        "protected credential load and delete");
+                }
+                finally { Registry.CurrentUser.DeleteSubKeyTree(path, false); }
+
+                using var editor = new App.WidgetSettingsEditor(new App.WidgetSettings());
+                check(editor.WidgetKeys.Contains("PriceWatchTitle") && !editor.ReadWidgetSettings(false).PriceWatch.Enabled,
+                    "settings editor exposes an opt-in PriceWatch page");
+                int sourceCalls = 0;
+                using var storage = new TemporaryWatchlist();
+                CheckWatchlist(check, storage.Store);
+                var reopened = storage.Store;
+                reopened.Migrate(new App.PriceWatchGame(Id, "Legacy", "package"), null);
+                check(reopened.Read(false).Length == 1102 && reopened.Read(false).All(entry => entry.Game.Id != Id),
+                    "reopening SQLite preserves the watchlist and does not re-import a removed legacy selection");
+                using var widget = new App.PriceWatchWidgetForm(_ => { sourceCalls++; return new App.PriceWatchTestData(); },
+                    defaults, "de", _ => { }, new App.PriceWatchStore(Path.Combine(storage.DirectoryPath, "widget.sqlite")));
+                widget.Apply(defaults, "de", true);
+                widget.PerformLayout();
+                using var dialog = new App.PriceWatchSearchForm(new App.PriceWatchTestData(), false, "de", defaults.Style);
+                dialog.PerformLayout();
+                check(sourceCalls == 0,
+                    "constructing the widget and entering preview do not request data");
+                check(dialog.Text.Contains("Testdaten") && widget.ModeCaption.Contains("Testdaten"), "both surfaces label offline test data");
+                dialog.Opacity = 0;
+                dialog.Shown += (_, _) => dialog.BeginInvoke(new Action(() =>
+                {
+                    var table = dialog.Controls[0];
+                    var query = table.Controls.Cast<Control>().OfType<TextBox>().Single();
+                    var list = table.Controls.Cast<Control>().OfType<ListBox>().Single();
+                    query.Text = "Cyberpunk 2077";
+                    table.Controls.Cast<Control>().OfType<Button>().Single().PerformClick();
+                    check(list.Items.Count == 3, "search dialog shows three local edition rows");
+                    list.SelectedIndex = 1;
+                    var actions = table.Controls.Cast<Control>().OfType<FlowLayoutPanel>().Single();
+                    actions.Controls.Cast<Control>().OfType<Button>()
+                        .Single(button => button.DialogResult != DialogResult.Cancel).PerformClick();
+                }));
+                check(dialog.ShowDialog() == DialogResult.OK && dialog.SelectedGame?.Id == Id,
+                    "search dialog confirms the exact selected offline edition");
+                foreach (int dpi in new[] { 96, 144, 192 })
+                {
+                    var area = new Size(480, 300);
+                    Size dialogSize = new(Math.Min(area.Width, 460 * dpi / 96), Math.Min(area.Height, 295 * dpi / 96));
+                    dialog.Size = dialogSize;
+                    dialog.PerformLayout();
+                    var results = dialog.Controls[0].Controls.Cast<Control>().OfType<ListBox>().Single();
+                    check(results.Width > 0 && results.Height > 0
+                        && dialog.Controls[0].ClientRectangle.Contains(results.Bounds),
+                        $"search result viewport fits at simulated {dpi} DPI");
+                    using var image = widget.RenderBitmap(area, dpi, out var layout);
+                    check(ValidLayout(image, area, layout), $"widget actions fit and hit-test at simulated {dpi} DPI");
+                }
+                CheckDesign(check, widget, defaults);
+                CheckSettingsDesign(check);
+                CheckOfferPresentation(check);
+                CheckShopLinksAndChrome(check);
+                CheckDesktopTrayLifecycle(check);
+
+            }
+            catch (Exception error) { failure = error; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        if (failure != null) throw new InvalidOperationException("PriceWatch UI checks failed.", failure);
+    }
+
+    private static bool ValidLayout(Bitmap image, Size area, App.PriceWatchWidgetLayout layout)
+    {
+        var bounds = new RectangleF(0, 0, image.Width / layout.Scale, image.Height / layout.Scale);
+        Point Center(RectangleF rect) => new((int)((rect.Left + rect.Width / 2) * layout.Scale),
+            (int)((rect.Top + rect.Height / 2) * layout.Scale));
+        return image.Width <= area.Width && image.Height <= area.Height && layout.CaptionsFit
+            && bounds.Contains(layout.Search) && bounds.Contains(layout.Refresh)
+            && !layout.Search.IntersectsWith(layout.Refresh)
+            && layout.ActionAt(Center(layout.Search)) == 1 && layout.ActionAt(Center(layout.Refresh)) == 2
+            && layout.ActionAt(Point.Empty) == 0 && image.GetPixel(0, 0).A == 0;
+    }
+
+    private static void CheckDesign(Action<bool, string> check, App.PriceWatchWidgetForm widget,
+        App.PriceWatchWidgetSettings settings)
+    {
+        foreach (bool dark in new[] { false, true })
+        {
+            foreach (var state in new[] { (false, false, false), (true, false, false), (true, true, false), (true, true, true) })
+            {
+                var (text, background) = App.PriceWatchWidgetRenderer.ActionColors(dark, state.Item1, state.Item2, state.Item3);
+                check(Contrast(text, background) >= 4.5, $"button caption contrast {dark}/{state}");
+            }
+
+            foreach (var style in Enum.GetValues<App.SystemWidgetStyle>())
+            {
+                settings.Style = style;
+                widget.ApplyTheme(dark);
+                var (panel, text, muted, accent) = App.PriceWatchWidgetRenderer.ContentColors(dark, style);
+                foreach (Color wallpaper in new[] { Color.Black, Color.White })
+                {
+                    var background = Blend(panel, wallpaper);
+                    check(new[] { text, muted, accent }.All(color => Contrast(color, background) >= 4.5),
+                        $"widget text keeps contrast over wallpaper {dark}/{style}/{wallpaper.Name}");
+                }
+
+                foreach (var language in new[] { "de", "en", "fr", "es", "ja" })
+                {
+                    bool fits = true;
+                    foreach (bool live in new[] { false, true })
+                    {
+                        settings.Live = live;
+                        widget.Apply(settings, language, true);
+                        App.PriceWatchRowDisplay BlankRow(int _) => new("Testspiel", "Edition",
+            [new("GOG", "", ""), new("Steam", "", "")]);
+        Bitmap DrawRows(bool focused, out App.PriceWatchWidgetLayout result) =>
+            App.PriceWatchWidgetRenderer.Draw(new(480, 520), 96, App.SystemWidgetStyle.Clean, true, "de",
+                "Testdaten", "", "", "Suchen", "Preise abrufen", true, true, 0, 0,
+                new App.CalendarViewport(390), 2, BlankRow, out result, keyboardFocus: focused);
+        using var resting = DrawRows(false, out var restingLayout);
+        using var focused = DrawRows(true, out _);
+        int sampleX = (int)restingLayout.Content.Right - 2, sampleY = (int)restingLayout.Content.Top + 2;
+        check(resting.GetPixel(sampleX, sampleY) == resting.GetPixel(sampleX, sampleY + App.PriceWatchWidgetRenderer.RowHeight),
+            "rows share the same background without persistent selection");
+        check(Enumerable.Range(20, 100).Any(x => resting.GetPixel(x, 4) != focused.GetPixel(x, 4)),
+            "keyboard focus has a visible outline separate from game rows");
+
+        foreach (int dpi in new[] { 96, 144, 192 })
+                        {
+                            var area = new Size(480, 300);
+                            using var preview = widget.RenderBitmap(area, dpi, out var layout);
+                            fits &= ValidLayout(preview, area, layout);
+                        }
+                    }
+                    check(fits, $"all action captions fit at 100%, 150%, 200% in both modes {dark}/{style}/{language}");
+                }
+            }
+        }
+
+        settings.Live = false;
+        widget.Apply(settings, "de", false);
+        using var compact = widget.RenderBitmap(new(480, 300), 96, out _);
+        check(compact.Width == 390 && compact.Height < 176, "watchlist shares the Feed width and collapses when empty");
+        check(widget.AccessibilityObject.GetChild(0)?.Role == AccessibleRole.PushButton
+            && widget.AccessibilityObject.GetChild(1)?.State == AccessibleStates.Unavailable,
+            "canvas actions retain accessible names and disabled state");
+        foreach (int dpi in new[] { 96, 144, 192 })
+        {
+            var area = new Size(480, 300);
+            var viewport = new App.CalendarViewport(390);
+            const int count = 1200;
+            int rowsDrawn = 0;
+            App.PriceWatchRowDisplay Row(int index)
+            {
+                rowsDrawn++;
+                return new($"Cyberpunk 2077: Ultimate Edition · {index}", "Paket / Edition",
+                    [new("GOG", "40,00 €", "−50 %"), new("Steam", "80,00 €", "0 %")]);
+            }
+            Bitmap Draw(out App.PriceWatchWidgetLayout layout) =>
+                App.PriceWatchWidgetRenderer.Draw(area, dpi, App.SystemWidgetStyle.Glow, true, "de",
+                    "Testdaten", "Keine Spiele", "Die Abfrage hat zu lange gedauert.", "Suchen", "Preise abrufen",
+                    true, true, 0, 0, viewport, count, Row, out layout);
+            using var top = Draw(out var first);
+            check(ValidLayout(top, area, first) && viewport.CanScroll && rowsDrawn < 12,
+                $"virtualized large list and actions fit at {dpi} DPI");
+            check(viewport.Wheel(-120, 3) && viewport.ScrollOffset > 0,
+                $"wheel scroll advances the watchlist at {dpi} DPI");
+            using var scrolled = Draw(out var middle);
+            check(middle.Content.Height % App.PriceWatchWidgetRenderer.RowHeight == 0
+                && middle.ScrollOffset % App.PriceWatchWidgetRenderer.RowHeight == 0,
+                $"scrolling keeps both offer lines of every visible row at {dpi} DPI");
+            check(viewport.DragThumb(viewport.Track.Bottom, 0), $"thumb can reach list end at {dpi} DPI");
+            rowsDrawn = 0;
+            using var bottom = Draw(out var end);
+            Point endPoint = new((int)((end.Content.Left + 8) * end.Scale),
+                (int)((end.Content.Bottom - 2) * end.Scale));
+            check(ValidLayout(bottom, area, end) && end.RowAt(endPoint) == count - 1 && rowsDrawn < 12,
+                $"bottom row is visible and clickable at {dpi} DPI");
+            using var small = App.PriceWatchWidgetRenderer.Draw(area, dpi, App.SystemWidgetStyle.Clean, true, "de",
+                "Testdaten", "Keine Spiele", "", "Suchen", "Preise abrufen", true, true, 0, 0,
+                new App.CalendarViewport(390), 1, Row, out _);
+            check(first.Content.Height > App.PriceWatchWidgetRenderer.RowHeight ? small.Height < top.Height : small.Height == top.Height,
+                $"watchlist grows only when another whole row fits at {dpi} DPI");
+        }
+    }
+
+    private sealed class TemporaryWatchlist : IDisposable
+    {
+        internal string DirectoryPath { get; } = Path.Combine(Path.GetTempPath(), $"pricewatch-list-{Guid.NewGuid():N}");
+        internal string FilePath => Path.Combine(DirectoryPath, "watchlist.sqlite");
+        internal App.PriceWatchStore Store => new(FilePath);
+        public void Dispose()
+        {
+            if (Directory.Exists(DirectoryPath)) Directory.Delete(DirectoryPath, true);
+        }
+    }
+
+    private static void CheckWatchlist(Action<bool, string> check, App.PriceWatchStore store)
+    {
+        var variants = new App.PriceWatchTestData().SearchAsync("Cyberpunk", default).Result.Data;
+        var edition = variants[1];
+        store.Migrate(edition, edition with { Title = "Live edition" });
+        check(store.Read(false).Single().Game == edition && store.Read(true).Single().Game.Title == "Live edition",
+            "legacy test and live selections migrate independently even with identical ITAD UUIDs");
+        check(!store.Add(false, edition with { Title = "Duplicate" }) && store.Read(false).Single().Game == edition,
+            "duplicate ITAD ID does not replace a saved edition");
+        check(store.Add(false, variants[0]) && store.Add(false, variants[2]) && store.Read(false).Length == 3,
+            "base game, package and DLC coexist independently");
+        var offers = new App.PriceWatchTestData().PricesAsync(edition.Id, default).Result;
+        check(store.SaveSnapshot(false, edition.Id, offers)
+            && !store.SaveSnapshot(false, edition.Id, new(offers.FetchedAt.AddHours(-1), []))
+            && store.Read(false).Single(entry => entry.Game == edition).Snapshot?.Data[0].Deals.Length == 2,
+            "SQLite keeps last accepted price snapshot when older data arrives");
+        store.Remove(false, edition.Id);
+        check(!store.SaveSnapshot(false, edition.Id, offers) && store.Read(true).Single().Game.Id == edition.Id,
+            "deleting one mode cannot recreate or remove the corresponding entry in the other mode");
+        for (int i = 0; i < 1100; i++)
+            store.Add(false, new(Guid.NewGuid(), $"Test game {i}", "game"));
+        check(store.Read(false).Length == 1102, "watchlist stores more than a thousand games without an application cap");
+    }
+
+    private static void CheckSettingsDesign(Action<bool, string> check)
+    {
+        foreach (float scale in new[] { 1f, 1.5f, 2f })
+        {
+            using var editor = new App.WidgetSettingsEditor(new App.WidgetSettings(), dark: true, language: "de");
+            editor.SelectWidget("PriceWatchTitle");
+            editor.Scale(new SizeF(scale, scale));
+            editor.Size = new(900, 520);
+            editor.PerformLayout();
+            var page = editor.Controls.Cast<Control>().OfType<TabControl>().Single().SelectedTab!;
+            var layout = page.Controls.Cast<Control>().OfType<FlowLayoutPanel>().Single();
+            layout.PerformLayout();
+            var actions = layout.Controls.Cast<Control>().OfType<Button>().ToArray();
+            check(page.AutoScroll && actions.Length == 2
+                && actions.All(button => button.GetPreferredSize(Size.Empty).Width <= button.Width
+                    && layout.ClientRectangle.Contains(button.Bounds)
+                    && Contrast(button.ForeColor, button.BackColor) >= 4.5)
+                && !actions[0].Bounds.IntersectsWith(actions[1].Bounds),
+                $"settings actions fit and use shared dark control contrast at {scale * 100:0}%");
+        }
+    }
+
+    private static void CheckOfferPresentation(Action<bool, string> check)
+    {
+        var data = new App.PriceWatchTestData();
+        var edition = data.SearchAsync("Cyberpunk", default).Result.Data[1];
+        var snapshot = data.PricesAsync(edition.Id, default).Result;
+        var entry = new App.PriceWatchEntry(edition, snapshot);
+        var culture = System.Globalization.CultureInfo.GetCultureInfo("de");
+        var shops = App.PriceWatchOfferDisplay.Shops;
+        check(shops.Select(shop => App.PriceWatchOfferDisplay.Columns(shop,
+                App.PriceWatchOfferDisplay.ForShop(entry, shop.Id).Single(), culture, "Kein Angebot"))
+            .SequenceEqual(new App.PriceWatchOfferColumns[] { new("GOG", "40,00 €", "−50 %"), new("Steam", "80,00 €", "0 %") }),
+            "widget offer cells preserve seller, amount and signed discount");
+        check(App.PriceWatchOfferDisplay.Columns(shops[1], null, culture, "Kein Angebot") == new App.PriceWatchOfferColumns("Steam", "Kein Angebot", ""),
+            "missing retailer has its own no-offer row");
+        var (merchant, price, discount) = App.PriceWatchWidgetRenderer.OfferBounds(47, 90, 155);
+        check(merchant.Right < price.Left && price.Right < discount.Left && discount.Right == 202,
+            "widget offer cells have independent fixed columns");
+        var gog = App.PriceWatchOfferDisplay.ForShop(entry, 35).Single() with
+        {
+            Platforms = [new(1, "Windows"), new(3, "Mac")],
+            Drm = [new(1000, "Drm Free")]
+        };
+        var steam = App.PriceWatchOfferDisplay.ForShop(entry, 61).Single() with
+        {
+            Platforms = [new(1, "Windows"), new(3, "Mac")],
+            Drm = null
+        };
+        var enriched = new App.PriceWatchEntry(edition, new(snapshot.FetchedAt, [new(edition.Id, [gog, steam])]));
+        using (var details = new App.PriceWatchDetailForm(enriched, "Testdaten", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, shopLinksEnabled: true))
+        {
+            var table = (TableLayoutPanel)details.Controls.Find("PriceWatchOffers", true).Single();
+            var gogInfo = (Label)table.GetControlFromPosition(0, 2)!;
+            var steamInfo = (Label)table.GetControlFromPosition(0, 4)!;
+            check(table.GetControlFromPosition(0, 1) is LinkLabel { Text: "GOG" }
+                && table.GetControlFromPosition(0, 3) is LinkLabel { Text: "Steam" }
+                && gogInfo.Text == "Windows, Mac · DRM-frei" && steamInfo.Text == "Windows, Mac"
+                && table.GetColumnSpan(gogInfo) == 3
+                && table.GetColumnSpan(steamInfo) == 3, "metadata stays below its exact offer and merchant links are kept");
+            check(!details.Controls.Find("PriceWatchAbout", true).Single().Visible,
+                "unavailable game description has no visible section");
+            var drmOnly = gog with { Platforms = null, Drm = [new(500, "Custom DRM")] };
+            details.Present(new(edition, new(snapshot.FetchedAt, [new(edition.Id, [drmOnly])])), "");
+            check(table.GetControlFromPosition(0, 2)?.Text == "Custom DRM"
+                && details.Controls.Find("PriceWatchOfferInfo", true).Length == 1,
+                "unknown DRM names remain unchanged and missing metadata adds no labels or separators");
+            var longOffer = gog with
+            {
+                Platforms = Enumerable.Range(1, 20).Select(i => new App.PriceWatchOfferTag(i, $"Plattform {i}")).ToArray(),
+                Drm = null
+            };
+            details.Present(new(edition, new(snapshot.FetchedAt, [new(edition.Id, [longOffer])])), "");
+            details.Size = new(305, 170);
+            details.PerformLayout();
+            table.PerformLayout();
+            var longInfo = (Label)table.GetControlFromPosition(0, 2)!;
+            check(!longInfo.Text.Contains("Aktivierung") && longInfo.Text.Contains("Plattform 20")
+                && longInfo.GetPreferredSize(new(longInfo.MaximumSize.Width, 0)).Height > longInfo.Font.Height * 2
+                && details.Controls.OfType<Panel>().Any(panel => panel.AutoScroll),
+                "long per-offer metadata wraps and the outer dialog can scroll");
+        }
+
+        foreach (var style in Enum.GetValues<App.SystemWidgetStyle>())
+        foreach (float scale in new[] { 1f, 1.5f, 2f })
+        {
+            var onlyGog = new App.PriceWatchReply<App.PriceWatchPrices[]>(snapshot.FetchedAt,
+                [new(edition.Id, [App.PriceWatchOfferDisplay.ForShop(entry, 35).Single()])]);
+            using var details = new App.PriceWatchDetailForm(new(
+                    edition with { Title = string.Concat(Enumerable.Repeat(edition.Title + " ", 4)).TrimEnd() }, onlyGog),
+                "Testdaten", "de", style, () => Task.CompletedTask, () => false);
+            details.Scale(new SizeF(scale, scale));
+            details.Size = new Size((int)(330 * scale), (int)(245 * scale));
+            details.PerformLayout();
+            var table = (TableLayoutPanel)details.Controls.Find("PriceWatchOffers", true).Single();
+            table.PerformLayout();
+            check(table.RowCount == 3 && table.GetControlFromPosition(0, 1)?.Text == "GOG"
+                && table.GetControlFromPosition(1, 1)?.Text == "40,00 €"
+                && table.GetControlFromPosition(2, 1)?.Text == "−50 %"
+                && table.GetControlFromPosition(0, 2)?.Text == "Steam"
+                && table.GetControlFromPosition(1, 2)?.Text == "Kein Angebot"
+                && table.Controls.Cast<Control>().All(cell => table.ClientRectangle.Contains(cell.Bounds)),
+                $"detail offer columns and empty offer fit in {style} at {scale * 100:0}%");
+        }
+    }
+
+    private static void CheckShopLinksAndChrome(Action<bool, string> check)
+    {
+        check(App.PriceWatchShopLinks.Validate(new Uri(OfferUrl))?.OriginalString == OfferUrl
+            && App.PriceWatchShopLinks.Validate(new Uri("http://offers.example.invalid/game")) != null
+            && App.PriceWatchShopLinks.Validate(new Uri("/game", UriKind.Relative)) == null
+            && App.PriceWatchShopLinks.Validate(new Uri("file:///C:/game.exe")) == null
+            && App.PriceWatchShopLinks.Validate(new Uri("javascript:alert(1)")) == null
+            && App.PriceWatchShopLinks.Validate(new Uri("https://name@example.invalid/")) == null,
+            "offer links accept only absolute HTTP(S) without credentials and keep the original URL");
+
+        foreach (int scale in new[] { 1, 2 })
+        {
+            var area = new Size(400 * scale, 250 * scale);
+            var close = new Rectangle(362 * scale, 6 * scale, 30 * scale, 23 * scale);
+            int Hit(int x, int y) => App.PriceWatchDetailForm.HitZone(area, new(x * scale, y * scale),
+                6 * scale, 35 * scale, close);
+            check(Hit(2, 2) == 13 && Hit(200, 2) == 12 && Hit(398, 2) == 14
+                && Hit(2, 100) == 10 && Hit(398, 100) == 11
+                && Hit(2, 248) == 16 && Hit(200, 248) == 15 && Hit(398, 248) == 17
+                && Hit(60, 16) == 2 && Hit(376, 18) == 1 && Hit(200, 110) == 1,
+                $"borderless frame hits all edges, caption and close control at {scale * 100}%");
+        }
+        var work = new Rectangle(-1920, -100, 1280, 720);
+        check(App.PriceWatchDetailForm.FitBounds(new(-2400, -200, 1700, 900), work) == work
+            && work.Contains(App.PriceWatchDetailForm.FitBounds(new(-700, 600, 500, 300), work)),
+            "borderless window bounds stay in a small work area with a negative monitor origin");
+
+        var fixtures = new App.PriceWatchTestData();
+        var game = fixtures.SearchAsync("Cyberpunk", default).Result.Data[1];
+        var sample = fixtures.PricesAsync(game.Id, default).Result;
+        var offer = sample.Data[0].Deals[0] with { Url = new(OfferUrl) };
+        var snapshot = new App.PriceWatchReply<App.PriceWatchPrices[]>(sample.FetchedAt, [new(game.Id, [offer])]);
+        var entry = new App.PriceWatchEntry(game, snapshot);
+        var opened = new List<string>();
+        using var details = new App.PriceWatchDetailForm(entry, "Live", "de", App.SystemWidgetStyle.Glow,
+            () => Task.CompletedTask, () => false, shopLinksEnabled: true, openLink: u => opened.Add(u.OriginalString));
+        var table = (TableLayoutPanel)details.Controls.Find("PriceWatchOffers", true).Single();
+        var link = (LinkLabel)table.GetControlFromPosition(0, 1)!;
+        typeof(LinkLabel).GetMethod("OnLinkClicked", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(link, [new LinkLabelLinkClickedEventArgs(link.Links[0])]);
+        check(details.FormBorderStyle == FormBorderStyle.None && details.CancelButton != null
+            && details.Controls.Find("PriceWatchChromeClose", true).Single() is Button
+            && link.TabStop && table.GetControlFromPosition(0, 2) is not LinkLabel
+            && opened.SequenceEqual([OfferUrl]),
+            "borderless detail keeps Esc, top close, keyboard link and a plain missing-offer merchant");
+
+        using var storage = new TemporaryWatchlist();
+        storage.Store.Add(true, game);
+        storage.Store.SaveSnapshot(true, game.Id, snapshot);
+        check(storage.Store.Read(true).Single().Snapshot!.Data[0].Deals[0].Url.OriginalString == OfferUrl,
+            "cached SQLite snapshot retains original offer URL");
+        var settings = new App.PriceWatchWidgetSettings { Live = true, Locked = true };
+        using var widget = new App.PriceWatchWidgetForm(_ => throw new InvalidOperationException("Price source was called"),
+            settings, "de", _ => { }, storage.Store, u => opened.Add(u.OriginalString));
+        widget.FitToScreen(new(30, 30));
+        widget.Show();
+        const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+        var layout = (App.PriceWatchWidgetLayout)typeof(App.PriceWatchWidgetForm).GetField("layout", members)!.GetValue(widget)!;
+        bool missingIsPlain = ClickMerchant(1) == Cursors.Default;
+        bool activeUsesHand = ClickMerchant(0) == Cursors.Hand;
+        check(missingIsPlain && activeUsesHand && opened.SequenceEqual([OfferUrl, OfferUrl]),
+            "only the widget merchant with an offer uses the hand cursor and opens its exact URL");
+        widget.Apply(settings, "de", true);
+        ClickMerchant(0);
+        check(opened.Count == 2, "widget preview blocks browser links");
+
+        Cursor ClickMerchant(int shop)
+        {
+            var bounds = App.PriceWatchWidgetRenderer.RowOfferBounds(layout.Content, layout.Content.Top, shop).Merchant;
+            var point = new Point((int)((bounds.X + 4) * layout.Scale), (int)((bounds.Y + 8) * layout.Scale));
+            nint coordinates = (point.X & 0xffff) | ((point.Y & 0xffff) << 16);
+            SendMessage(widget.Handle, 0x0200, 0, coordinates);
+            var cursor = widget.Cursor;
+            SendMessage(widget.Handle, 0x0201, 1, coordinates);
+            SendMessage(widget.Handle, 0x0202, 0, coordinates);
+            return cursor;
+        }
+    }
+
+    private static void CheckDesktopTrayLifecycle(Action<bool, string> check)
+    {
+        const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+        static T Get<T>(object target, string name) =>
+            (T)target.GetType().GetField(name, members)!.GetValue(target)!;
+        static object? Invoke(object target, string name, params object[] args) =>
+            target.GetType().GetMethod(name, members)!.Invoke(target, args);
+
+        var path = @"Software\WallpaperControl\Regression\PriceWatchTray-" + Guid.NewGuid().ToString("N");
+        try
+        {
+            var settings = new App.WidgetSettings { ClockLanguageCode = "de" };
+            settings.PriceWatch.Enabled = true;
+            settings.Save(path);
+            using var storage = new TemporaryWatchlist();
+            using var manager = new App.WidgetManager(() => { }, registryPath: path);
+            typeof(App.WidgetManager).GetField("priceWatchStore", members)!.SetValue(manager, storage.Store);
+            using var main = new App.MainForm(manager);
+            manager.Start();
+            main.Opacity = 0;
+            main.Show();
+            var widget = Get<App.PriceWatchWidgetForm>(manager, "priceWatchWidget");
+            var session = Get<App.WidgetEditSession>(main, "widgetEditSession");
+            var editor = Get<App.WidgetSettingsEditor>(main, "widgetEditor");
+            var search = widget.AccessibilityObject.GetChild(0)!;
+            var prices = widget.AccessibilityObject.GetChild(1)!;
+            bool Enabled(AccessibleObject control) => !control.State.HasFlag(AccessibleStates.Unavailable);
+            check(widget.Enabled && Enabled(search) && !Enabled(prices), "desktop startup enables search only");
+
+            Invoke(main, "SelectMainSection", true);
+            check(session.Active && !Enabled(search) && !Enabled(prices), "visible editor suppresses price and search actions");
+            check(ClickSearch(select: false) == null, "preview click opens no dialog");
+            check(session.Save() && !Enabled(search), "save keeps preview active while editor is visible");
+
+            // The real close-to-tray path resolves the session before hiding the main form.
+            check(Invoke(main, "ResolveWidgetNavigation") is true, "clean editor exit needs no prompt");
+            Invoke(main, "HideMainWindowToTray");
+            check(!main.Visible && !session.Active && widget.Enabled && Enabled(search) && !Enabled(prices),
+                "close to tray resumes desktop search with no selected edition");
+            check(ClickSearch(select: true) == Id, "desktop mouse down/up opens offline search and confirms the edition");
+            check(Enabled(prices) && storage.Store.Read(false).Single().Game.Id == Id,
+                "desktop price action enables and stores only after explicit edition selection");
+            Click(prices);
+            check(storage.Store.Read(false).Single().Snapshot?.Data.Single().Deals.Length == 2,
+                "desktop price click persists both offline offers");
+            bool detailOpened = false, nativeChrome = false, activationHandled = false, escapeHandled = false;
+            widget.BeginInvoke(new Action(() =>
+            {
+                var details = Application.OpenForms.OfType<App.PriceWatchDetailForm>().SingleOrDefault();
+                if (details == null) return;
+                var offers = (TableLayoutPanel)details.Controls.Find("PriceWatchOffers", true).Single();
+                detailOpened = offers.RowCount == 3 && offers.ColumnCount == 3
+                    && offers.GetControlFromPosition(0, 1)?.Text == "GOG"
+                    && offers.GetControlFromPosition(0, 2)?.Text == "Steam"
+                    && offers.GetControlFromPosition(2, 1)?.Text == "−50 %";
+                var close = (Button)details.Controls.Find("PriceWatchChromeClose", true).Single();
+                int NativeHit(Point local)
+                {
+                    var point = details.PointToScreen(local);
+                    nint coordinates = (point.X & 0xffff) | ((point.Y & 0xffff) << 16);
+                    return (int)SendMessage(details.Handle, 0x0084, 0, coordinates);
+                }
+                activationHandled = SendMessage(details.Handle, 0x0086, 0, 0) != 0;
+                SendMessage(details.Handle, 0x0086, 1, 0);
+                nativeChrome = NativeHit(new(0, 0)) == 13
+                    && NativeHit(new(close.Left / 2, close.Top + 2)) == 2
+                    && NativeHit(new(close.Left + 2, close.Top + 2)) == 1;
+                escapeHandled = (bool)typeof(Form).GetMethod("ProcessDialogKey", members)!
+                    .Invoke(details, [Keys.Escape])!;
+                if (!escapeHandled) details.Close();
+            }));
+            var widgetLayout = Get<App.PriceWatchWidgetLayout>(widget, "layout");
+            ClickAt(new((int)((widgetLayout.Content.Left + 14) * widgetLayout.Scale),
+                (int)((widgetLayout.Content.Top + 12) * widgetLayout.Scale)));
+            Application.DoEvents();
+            check(detailOpened, "clicking a watchlist row opens offer details without another price request");
+            check(nativeChrome && activationHandled && escapeHandled,
+                "shown details handle focus loss and return, native resize and drag, and Escape");
+
+            Invoke(main, "RestoreFromTray");
+            Application.DoEvents();
+            check(main.Visible && session.Active && !Enabled(search) && !Enabled(prices),
+                "tray restore resumes the visible widget editor preview");
+            main.WindowState = FormWindowState.Minimized;
+            Application.DoEvents();
+            check(!main.Visible && !session.Active && Enabled(search) && Enabled(prices),
+                "minimizing a saved editor also restores desktop interaction");
+
+            Invoke(main, "RestoreFromTray");
+            Application.DoEvents();
+            Get<CheckBox>(editor, "priceWatchLive").Checked = true;
+            main.WindowState = FormWindowState.Minimized;
+            Application.DoEvents();
+            check(session.Active && session.IsDirty && !Enabled(search) && !Enabled(prices)
+                && !App.WidgetSettings.Load(path).PriceWatch.Live,
+                "minimizing an unsaved live-mode draft keeps the draft and blocks requests");
+
+            Guid? ClickSearch(bool select)
+            {
+                Guid? found = null;
+                bool dialogOpened = false;
+                widget.BeginInvoke(new Action(() =>
+                {
+                    var dialog = Application.OpenForms.OfType<App.PriceWatchSearchForm>().SingleOrDefault();
+                    if (dialog == null) return;
+                    dialogOpened = dialog.Visible && dialog.Text.EndsWith(widget.ModeCaption, StringComparison.Ordinal);
+                    if (select)
+                    {
+                        Control table = dialog.Controls[0];
+                        table.Controls.OfType<TextBox>().Single().Text = "Cyberpunk 2077";
+                        table.Controls.OfType<Button>().Single().PerformClick();
+                        table.Controls.OfType<ListBox>().Single().SelectedIndex = 1;
+                        table.Controls.OfType<FlowLayoutPanel>().Single().Controls.OfType<Button>()
+                            .Single(button => button.DialogResult != DialogResult.Cancel).PerformClick();
+                        found = dialog.SelectedGame?.Id;
+                    }
+                    else dialog.Close();
+                }));
+                Click(search);
+                Application.DoEvents();
+                return select && dialogOpened ? found : dialogOpened ? Guid.Empty : null;
+            }
+
+            void Click(AccessibleObject action)
+            {
+                var bounds = action.Bounds;
+                Point point = widget.PointToClient(new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2));
+                ClickAt(point);
+            }
+
+            void ClickAt(Point point)
+            {
+                nint coordinates = (point.X & 0xffff) | ((point.Y & 0xffff) << 16);
+                SendMessage(widget.Handle, 0x0201, 1, coordinates);
+                SendMessage(widget.Handle, 0x0202, 0, coordinates);
+            }
+        }
+        finally { Registry.CurrentUser.DeleteSubKeyTree(path, false); }
+    }
+
+    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+    private static extern nint SendMessage(nint window, uint message, nint state, nint coordinates);
+
+    private static Color Blend(Color fore, Color background)
+    {
+        int Mix(int a, int b) => (a * fore.A + b * (255 - fore.A)) / 255;
+        return Color.FromArgb(Mix(fore.R, background.R), Mix(fore.G, background.G), Mix(fore.B, background.B));
+    }
+
+    private static double Contrast(Color left, Color right)
+    {
+        static double Luminance(Color color)
+        {
+            static double Linear(byte channel)
+            {
+                double value = channel / 255d;
+                return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * Linear(color.R) + 0.7152 * Linear(color.G) + 0.0722 * Linear(color.B);
+        }
+
+        double a = Luminance(left) + 0.05, b = Luminance(right) + 0.05;
+        return Math.Max(a, b) / Math.Min(a, b);
+    }
+
+    private sealed class Handler : HttpMessageHandler
+    {
+        internal object? Data;
+        internal bool Invalid, Delay, SecureOrigin, BasicOnly;
+        internal int Calls;
+        internal string? Path;
+        internal JsonElement Body;
+        internal HttpStatusCode Status = HttpStatusCode.OK;
+        internal RetryConditionHeaderValue? Retry;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Calls++;
+            Path = request.RequestUri!.AbsolutePath;
+            SecureOrigin = request.Method == HttpMethod.Post && request.RequestUri is { Scheme: "https", Host: "api.nightmahr.de" };
+            BasicOnly = request.Headers.Authorization?.Scheme == "Basic" && !request.Headers.Contains("ITAD-API-Key");
+            using var json = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
+            Body = json.RootElement.Clone();
+            if (Delay) await Task.Delay(Timeout.Infinite, token);
+            string response = Invalid ? "invalid-json" : JsonSerializer.Serialize(new
+            {
+                source = "IsThereAnyDeal", fetchedAt = DateTimeOffset.UtcNow, data = Data
+            }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            return new HttpResponseMessage(Status)
+            {
+                Headers = { RetryAfter = Retry }, Content = new StringContent(response, Encoding.UTF8, "application/json")
+            };
+        }
+    }
+}

@@ -63,7 +63,11 @@ namespace WallpaperControl
 
         public WidgetSettings Settings => settings.Clone();
 
-        internal void SetEditing(bool active) => previewMode = active;
+        internal void SetEditing(bool active)
+        {
+            previewMode = active;
+            priceWatchWidget?.Apply(settings.PriceWatch, settings.ClockLanguageCode, active);
+        }
 
         /// <summary>
         /// Creates or updates widgets from saved preferences outside settings-preview mode.
@@ -96,6 +100,10 @@ namespace WallpaperControl
             var launcherLocation=settings.Launcher.Location; var launcherEntries=settings.Launcher.Entries; settings.Launcher=previewSettings.Launcher.Clone(); settings.Launcher.Location=launcherLocation; settings.Launcher.Entries=launcherEntries;
             var clipboardLocation = settings.Clipboard.Location; settings.Clipboard = previewSettings.Clipboard.Clone(); settings.Clipboard.Location = clipboardLocation;
             var mediaLocation = settings.NowPlaying.Location; settings.NowPlaying = previewSettings.NowPlaying.Clone(); settings.NowPlaying.Location = mediaLocation;
+            settings.PriceWatch.Enabled = previewSettings.PriceWatch.Enabled;
+            settings.PriceWatch.Locked = previewSettings.PriceWatch.Locked;
+            settings.PriceWatch.Live = previewSettings.PriceWatch.Live;
+            settings.PriceWatch.Style = previewSettings.PriceWatch.Style;
             settings.Feed.Enabled = previewSettings.Feed.Enabled; settings.Feed.Locked = previewSettings.Feed.Locked; settings.Feed.Style = previewSettings.Feed.Style; settings.Feed.MaximumHeight = previewSettings.Feed.MaximumHeight;
             settings.NotificationSound = previewSettings.NotificationSound; settings.PackageStatusNotifications = previewSettings.PackageStatusNotifications;
             settings.TwitchEnabled = previewSettings.TwitchEnabled; settings.TwitchLocked = previewSettings.TwitchLocked;
@@ -180,6 +188,9 @@ namespace WallpaperControl
 
             committedSettings.EmailWatcher.Location=settings.EmailWatcher.Location;
             committedSettings.Launcher.Location=settings.Launcher.Location; committedSettings.Launcher.Entries=settings.Launcher.Entries.ToList();
+            committedSettings.PriceWatch.Location = settings.PriceWatch.Location;
+            committedSettings.PriceWatch.TestSelection = settings.PriceWatch.TestSelection;
+            committedSettings.PriceWatch.LiveSelection = settings.PriceWatch.LiveSelection;
             PreserveFeedContents(committedSettings); committedSettings.NowPlaying.Location = settings.NowPlaying.Location; committedSettings.Clipboard.Location = settings.Clipboard.Location;
             settings = committedSettings.Clone();
             settings.Web.CopyGeometry(webGeometry);
@@ -235,6 +246,7 @@ namespace WallpaperControl
             ApplyPackageWidget(target, restoreLocations);
             ApplyTwitchWidget(target, restoreLocations);
             ApplyFeedWidget(target, restoreLocations);
+            ApplyPriceWatch(target, restoreLocations);
             ApplyNowPlayingWidget(target, restoreLocations);
             ApplyClipboardWidget(target, restoreLocations); ApplyLauncherWidget(target,restoreLocations);
             ApplyWebWidget(target, restoreLocations);
@@ -726,7 +738,7 @@ namespace WallpaperControl
             manager.ShowDialog(owner);
         }
 
-        internal void RefreshWebTheme(bool dark) { emailWidget?.ApplyTheme(dark); webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); launcherWidget?.ApplyTheme(dark); }
+        internal void RefreshWebTheme(bool dark) { emailWidget?.ApplyTheme(dark); webWidget?.ApplyTheme(dark); packageWidget?.ApplyTheme(dark); twitchWidget?.ApplyTheme(dark); feedWidget?.ApplyTheme(dark); priceWatchWidget?.ApplyTheme(dark); nowPlayingWidget?.ApplyTheme(dark); clipboardWidget?.ApplyTheme(dark); launcherWidget?.ApplyTheme(dark); }
 
         private void ApplyWebWidget(WidgetSettings target, bool restoreLocations)
         {
@@ -769,6 +781,7 @@ namespace WallpaperControl
             packageNotifications?.SetSuspended(suspended || packagePowerSuspended);
             if (suspended) ClearPackageNotifications?.Invoke();
             nowPlayingWidget?.SetActivitySuspended(suspended); clipboardWidget?.SetActivitySuspended(suspended); launcherWidget?.SetActivitySuspended(suspended);
+            priceWatchWidget?.SetSuspended(suspended || packagePowerSuspended);
             feedWidget?.SetActivitySuspended(suspended); feeds?.SetSuspended(suspended || packagePowerSuspended);
             twitchWidget?.SetActivitySuspended(suspended); twitchScheduler?.SetSuspended(suspended);
             twitchNotifications?.SetSuspended(suspended || packagePowerSuspended);
@@ -790,6 +803,7 @@ namespace WallpaperControl
             DisposeEmailWatcher();
             DisposeTwitch();
             DisposeFeeds();
+            DisposePriceWatch();
             DisposeNowPlaying(); DisposeClipboardMaintenance(); DisposeClipboard(); DisposeLauncher(); DisposeLauncherWebsiteIcons(); LauncherEntriesChanged=null;
             noteReminders?.Dispose(); noteReminders = null;
             packageWidget?.Close(); packageWidget?.Dispose(); packageWidget = null;

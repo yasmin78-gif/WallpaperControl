@@ -23,6 +23,15 @@ namespace WallpaperControl
             await ToggleSlideshowPauseAsync(refreshDisplay: true);
         }
 
+        private void HideMainWindowToTray()
+        {
+            // Retain an unsaved draft on minimize. A clean editor session can
+            // end now and start again only when the Widgets page is visible.
+            widgetEditSession?.TryLeave(() => WidgetEditDecision.Cancel);
+            Hide();
+            ShowInTaskbar = false;
+        }
+
         /// <summary>
         /// Restores and activates the main window while preventing overlapping restore operations.
         /// </summary>
@@ -69,6 +78,7 @@ namespace WallpaperControl
                     SetForegroundWindow(
                         Handle);
 
+                    if (showingWidgets && !showingVisitor) widgetEditSession?.Begin();
                     UpdateCurrentWallpaperDisplay();
                     // Repaint the entire restored surface, including child controls.
                     // The layered window can retain stale pixels after hiding and

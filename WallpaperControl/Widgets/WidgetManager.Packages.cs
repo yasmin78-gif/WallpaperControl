@@ -15,6 +15,7 @@ internal sealed partial class WidgetManager
         emailPresentation.SetBlocked(value || emailCommitted.HoldDuringFullscreen && EmailFullscreenState() != false);
         if (value) emailWidget?.Hide();
         emailService?.SetPowerSuspended(value);
+        priceWatchWidget?.SetSuspended(activitySuspended || value);
         packageNotifications?.SetSuspended(value || activitySuspended);
         if (value) ClearPackageNotifications?.Invoke();
         packageScheduler?.SetPowerSuspended(value);

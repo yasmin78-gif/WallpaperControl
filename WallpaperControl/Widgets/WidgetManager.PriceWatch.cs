@@ -1,0 +1,58 @@
+namespace WallpaperControl;
+
+internal sealed partial class WidgetManager
+{
+    private readonly PriceWatchTestData priceWatchTestData = new();
+    private PriceWatchWidgetForm? priceWatchWidget;
+    private HttpClient? priceWatchHttp;
+    private PriceWatchClient? priceWatchClient;
+    private PriceWatchStore? priceWatchStore;
+
+    private IPriceWatchSource GetPriceWatchSource(bool live)
+    {
+        if (!live) return priceWatchTestData;
+        priceWatchHttp ??= PriceWatchClient.CreateHttpClient();
+        return priceWatchClient ??= new(priceWatchHttp, PriceWatchCredentials.Current.Load);
+    }
+
+    private void ApplyPriceWatch(WidgetSettings target, bool restoreLocations)
+    {
+        if (!target.PriceWatch.Enabled)
+        {
+            DisposePriceWatch();
+            return;
+        }
+
+        if (priceWatchWidget == null || priceWatchWidget.IsDisposed)
+        {
+            priceWatchWidget = new(GetPriceWatchSource, target.PriceWatch, target.ClockLanguageCode, point =>
+            {
+                settings.PriceWatch.Location = point;
+                if (!previewMode) settings.Save(registryPath);
+            }, priceWatchStore ??= new(PriceWatchStore.DefaultPath));
+            priceWatchWidget.Apply(target.PriceWatch, target.ClockLanguageCode, previewMode);
+            priceWatchWidget.SetSuspended(activitySuspended || packagePowerSuspended);
+            priceWatchWidget.FitToScreen(target.PriceWatch.Location);
+            RegisterDesktopWidget(priceWatchWidget);
+            priceWatchWidget.Show();
+            if (!DesktopWidgetNative.AttachToDesktop(priceWatchWidget, priceWatchWidget.Location))
+                priceWatchWidget.Hide();
+        }
+        else
+        {
+            priceWatchWidget.Apply(target.PriceWatch, target.ClockLanguageCode, previewMode);
+            if (restoreLocations) priceWatchWidget.FitToScreen(target.PriceWatch.Location);
+            DesktopWidgetNative.KeepOnDesktop(priceWatchWidget);
+        }
+        if (previewMode) DesktopWidgetNative.EnableInteraction(priceWatchWidget);
+    }
+
+    private void DisposePriceWatch()
+    {
+        priceWatchWidget?.Dispose();
+        priceWatchWidget = null;
+        priceWatchClient = null;
+        priceWatchHttp?.Dispose();
+        priceWatchHttp = null;
+    }
+}

@@ -256,9 +256,7 @@ namespace WallpaperControl
                 WindowState ==
                     FormWindowState.Minimized)
             {
-                if (showingWidgets) widgetEditSession?.Begin();
-                Hide();
-                ShowInTaskbar = false;
+                HideMainWindowToTray();
             }
         }
 
@@ -284,9 +282,7 @@ namespace WallpaperControl
             {
                 e.Cancel = true;
 
-                if (showingWidgets) widgetEditSession?.Begin();
-                Hide();
-                ShowInTaskbar = false;
+                HideMainWindowToTray();
 
                 base.OnFormClosing(e);
                 return;
