@@ -9,6 +9,9 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly Label edition = new() { AutoSize = true, Margin = new(0, 0, 0, 8) };
     private readonly Label updated = new() { AutoSize = true, Margin = new(0, 6, 0, 0) };
     private readonly Label status = new() { AutoSize = true, Margin = new(0, 4, 0, 0) };
+    private readonly Label gameInfo = new() { Name = "PriceWatchGameInfo", AutoSize = true, UseMnemonic = false,
+        Margin = new(0, 8, 0, 0) };
+    private PriceWatchGameInfo? currentInfo;
     private readonly Label descriptionText = new() { AutoSize = true, UseMnemonic = false, Margin = Padding.Empty };
     private readonly TableLayoutPanel header = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2,
         Padding = new(10), Margin = Padding.Empty };
@@ -34,7 +37,8 @@ internal sealed class PriceWatchDetailForm : Form
 
     internal PriceWatchDetailForm(PriceWatchEntry entry, string mode, string language, SystemWidgetStyle style,
         Func<Task> refresh, Func<bool> remove, string? description = null,
-        bool shopLinksEnabled = false, Action<Uri>? openLink = null)
+        bool shopLinksEnabled = false, Action<Uri>? openLink = null, PriceWatchGameInfo? info = null,
+        Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false)
     {
         this.language = language;
         this.shopLinksEnabled = shopLinksEnabled;
@@ -72,26 +76,36 @@ internal sealed class PriceWatchDetailForm : Form
         cover.Paint += (_, e) => PriceWatchWidgetRenderer.DrawCoverPlaceholder(e.Graphics,
             new RectangleF(1, 1, Math.Max(1, cover.Width - 2), Math.Max(1, cover.Height - 2)), dark, muted);
         content.Controls.Add(header, 0, 0);
-        // Future release date, developer and publisher belong below the game header.
+        content.Controls.Add(gameInfo, 0, 1);
         about.ColumnStyles.Add(new(SizeType.Percent, 100));
         var aboutHeading = new Label { AutoSize = true, Text = T("PriceWatchAboutGame"), Margin = new(0, 0, 0, 3) };
         about.Controls.Add(aboutHeading, 0, 0);
         about.Controls.Add(descriptionText, 0, 1);
         descriptionText.Text = description ?? "";
         about.Visible = !string.IsNullOrWhiteSpace(description);
-        content.Controls.Add(about, 0, 1);
+        content.Controls.Add(about, 0, 2);
         offers.ColumnStyles.Add(new(SizeType.Percent, 38));
         offers.ColumnStyles.Add(new(SizeType.Percent, 35));
         offers.ColumnStyles.Add(new(SizeType.Percent, 27));
-        content.Controls.Add(offers, 0, 2);
+        content.Controls.Add(offers, 0, 3);
         // A history section can be placed after the offers when a chart is available.
-        content.Controls.Add(updated, 0, 3);
-        content.Controls.Add(status, 0, 4);
+        content.Controls.Add(updated, 0, 4);
+        content.Controls.Add(status, 0, 5);
         var fetch = new Button { Text = T("PriceWatchRefresh"), AutoSize = true };
         var delete = new Button { Text = T("PriceWatchRemove"), AutoSize = true };
         var close = new Button { Text = T("AboutClose"), AutoSize = true, DialogResult = DialogResult.Cancel };
-        actions.Controls.AddRange([fetch, delete, close]);
-        content.Controls.Add(actions, 0, 5);
+        var fetchInfo = new Button { Name = "PriceWatchRefreshInfo", Text = T("PriceWatchRefreshInfo"), AutoSize = true };
+        actions.Controls.Add(fetch);
+        if (refreshInfo != null) actions.Controls.Add(fetchInfo);
+        else fetchInfo.Dispose();
+        actions.Controls.AddRange([delete, close]);
+        foreach (Button button in actions.Controls)
+        {
+            button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            button.Margin = new Padding(0, 0, 4, 4);
+            button.Padding = new Padding(5, 0, 5, 0);
+        }
+        content.Controls.Add(actions, 0, 6);
         scroll.Controls.Add(content);
         Controls.Add(scroll);
         scroll.TabIndex = 1;
@@ -115,19 +129,32 @@ internal sealed class PriceWatchDetailForm : Form
             if (remove()) Close();
             else SetStatus(T("PriceWatchStorageError"));
         };
-        fetch.Click += async (_, _) =>
+        fetch.Click += async (_, _) => await Run(refresh);
+        if (refreshInfo != null)
         {
-            fetch.Enabled = delete.Enabled = false;
-            SetStatus(T("PriceWatchLoading"));
-            try { await refresh(); }
-            finally
-            {
-                if (!IsDisposed) fetch.Enabled = delete.Enabled = true;
-            }
-        };
+            fetchInfo.Click += async (_, _) => await Run(refreshInfo);
+            if (fetchInfoOnOpen) Load += async (_, _) => await Run(refreshInfo);
+        }
         scroll.Resize += (_, _) => FitText();
         FitText();
+        PresentInfo(info);
         Present(entry, "");
+
+        async Task Run(Func<Task> action)
+        {
+            fetch.Enabled = delete.Enabled = false;
+            if (!fetchInfo.IsDisposed) fetchInfo.Enabled = false;
+            SetStatus(T("PriceWatchLoading"));
+            try { await action(); }
+            finally
+            {
+                if (!IsDisposed)
+                {
+                    fetch.Enabled = delete.Enabled = true;
+                    if (!fetchInfo.IsDisposed) fetchInfo.Enabled = true;
+                }
+            }
+        }
     }
 
     private void DrawHeader(Graphics graphics, bool dark, SystemWidgetStyle style)
@@ -148,7 +175,7 @@ internal sealed class PriceWatchDetailForm : Form
 
     internal void Present(PriceWatchEntry entry, string message)
     {
-        heading.Text = entry.Game.Title;
+        heading.Text = currentInfo?.Title ?? entry.Game.Title;
         edition.Text = T(PriceWatchSearchForm.EditionKey(entry.Game.Type));
         offers.SuspendLayout();
         try
@@ -176,6 +203,32 @@ internal sealed class PriceWatchDetailForm : Form
         updated.Text = entry.Snapshot == null ? T("PriceWatchNotChecked") :
             $"{T("PriceWatchUpdated")} {entry.Snapshot.FetchedAt.ToLocalTime().ToString("g", culture)}";
         SetStatus(message);
+    }
+
+    internal void PresentInfo(PriceWatchGameInfo? info, string message = "")
+    {
+        if (info != null) currentInfo = info;
+        if (currentInfo is { } game)
+        {
+            heading.Text = game.Title;
+            var fields = new List<string>();
+            if (game.ReleaseDate is { } date)
+                fields.Add($"{T("PriceWatchReleased")}: {date.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}");
+            if (game.Developers.Length > 0)
+                fields.Add($"{T("PriceWatchDevelopers")}: {FormatCompanies(game.Developers)}");
+            if (game.Publishers.Length > 0)
+                fields.Add($"{T("PriceWatchPublishers")}: {FormatCompanies(game.Publishers)}");
+            gameInfo.Text = string.Join(Environment.NewLine, fields);
+        }
+        gameInfo.Visible = gameInfo.Text.Length > 0;
+        SetStatus(message);
+    }
+
+    private static string FormatCompanies(IEnumerable<string> names)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        return string.Join(", ", names.Where(name => seen.Add(
+            string.Equals(name, "CD Project Red", StringComparison.OrdinalIgnoreCase) ? "CD PROJEKT RED" : name)));
     }
 
     private void SetStatus(string message)
@@ -248,7 +301,7 @@ internal sealed class PriceWatchDetailForm : Form
         int width = AvailableContentWidth;
         heading.MaximumSize = edition.MaximumSize = new(Math.Max(1, width - header.Padding.Horizontal
             - cover.Width - cover.Margin.Horizontal), 0);
-        descriptionText.MaximumSize = status.MaximumSize = updated.MaximumSize = new(width, 0);
+        gameInfo.MaximumSize = descriptionText.MaximumSize = status.MaximumSize = updated.MaximumSize = new(width, 0);
         foreach (Control cell in offers.Controls)
             if (cell.Name == "PriceWatchOfferInfo") cell.MaximumSize = new(width, 0);
         actions.MaximumSize = new(width, 0);
@@ -345,7 +398,7 @@ internal sealed class PriceWatchDetailForm : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        FitToMonitor(fitContents: true);
+        FitToMonitor(fitContents: true, fitActions: true);
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -368,11 +421,19 @@ internal sealed class PriceWatchDetailForm : Form
         base.OnResizeEnd(e);
     }
 
-    private void FitToMonitor(bool fitContents)
+    private void FitToMonitor(bool fitContents, bool fitActions = false)
     {
         var area = Screen.FromRectangle(Bounds).WorkingArea;
         MinimumSize = new(Math.Min(ChromePixels(300), area.Width), Math.Min(ChromePixels(150), area.Height));
-        Width = Math.Min(Width, area.Width);
+        int width = Width;
+        if (fitActions)
+        {
+            int buttonRow = actions.Controls.Cast<Button>().Sum(button => button.GetPreferredSize(Size.Empty).Width
+                + button.Margin.Horizontal);
+            width = Math.Max(width, buttonRow + Padding.Horizontal + content.Padding.Horizontal
+                + SystemInformation.VerticalScrollBarWidth + Width - ClientSize.Width);
+        }
+        Width = Math.Min(width, area.Width);
         FitText();
         content.PerformLayout();
         if (fitContents) Height = content.Height + Padding.Vertical + Height - ClientSize.Height;

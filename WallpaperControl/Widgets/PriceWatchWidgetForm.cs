@@ -29,6 +29,7 @@ internal sealed class PriceWatchWidgetForm : Form
     private CancellationTokenSource? active;
     private PriceWatchSearchForm? searchDialog;
     private PriceWatchDetailForm? detailDialog;
+    private readonly HashSet<(bool Live, Guid Id)> autoInfoAttempted = [];
     private bool storageError;
     private PriceWatchException? failure;
 
@@ -445,6 +446,10 @@ internal sealed class PriceWatchWidgetForm : Form
     private void ShowDetails(int index)
     {
         var entry = entries[index];
+        bool live = settings.Live;
+        PriceWatchReply<PriceWatchGameInfo>? cachedInfo = null;
+        bool cacheRead = TryInfoStore(() => cachedInfo = store.ReadInfo(live, entry.Game.Id));
+        bool fetchOnOpen = cacheRead && cachedInfo == null && autoInfoAttempted.Add((live, entry.Game.Id));
         selectedIndex = index;
         dialogOpen = true;
         failure = null;
@@ -455,9 +460,11 @@ internal sealed class PriceWatchWidgetForm : Form
                 () => RefreshPricesAsync(fromDetails: true), () =>
                 {
                     if (!CanOperate || !UseStore(() => store.Remove(settings.Live, entry.Game.Id))) return false;
+                    autoInfoAttempted.Remove((live, entry.Game.Id));
                     ReadEntries();
                     return true;
-                }, shopLinksEnabled: settings.Live, openLink: openLink);
+                }, shopLinksEnabled: live, openLink: openLink, info: cachedInfo?.Data,
+                refreshInfo: () => RefreshInfoAsync(live, entry.Game.Id), fetchInfoOnOpen: fetchOnOpen);
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }
@@ -466,6 +473,47 @@ internal sealed class PriceWatchWidgetForm : Form
             detailDialog = null;
             dialogOpen = false;
             active?.Cancel();
+            Render();
+        }
+    }
+
+    private static bool TryInfoStore(Action work)
+    {
+        try
+        {
+            work();
+            return true;
+        }
+        catch (Exception error) when (error is SqliteException or IOException or UnauthorizedAccessException or JsonException or FormatException)
+        {
+            return false;
+        }
+    }
+
+    private async Task RefreshInfoAsync(bool live, Guid id)
+    {
+        if (!CanOperate || detailDialog is not { } dialog) return;
+        using var operation = new CancellationTokenSource();
+        active = operation;
+        try
+        {
+            var info = await source(live).InfoAsync(id, operation.Token);
+            if (operation.IsCancellationRequested || dialog.IsDisposed) return;
+            if (!TryInfoStore(() =>
+            {
+                store.SaveInfo(live, id, info);
+                dialog.PresentInfo(store.ReadInfo(live, id)?.Data);
+            })) dialog.PresentInfo(null, T("PriceWatchStorageError"));
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+        catch (PriceWatchException error)
+        {
+            if (!operation.IsCancellationRequested && !dialog.IsDisposed)
+                dialog.PresentInfo(null, PriceWatchSearchForm.ErrorText(error, language));
+        }
+        finally
+        {
+            active = null;
             Render();
         }
     }

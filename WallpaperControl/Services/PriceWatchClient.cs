@@ -8,6 +8,8 @@ using System.Text.Json.Serialization;
 namespace WallpaperControl;
 
 internal sealed record PriceWatchGame(Guid Id, string Title, string? Type);
+internal sealed record PriceWatchGameInfo(Guid Id, string Title, DateOnly? ReleaseDate, string[] Developers,
+    string[] Publishers, Uri? Boxart);
 internal sealed record PriceWatchShop(int Id, string Name);
 internal sealed record PriceWatchMoney(decimal Amount, int AmountInt, string Currency);
 internal sealed record PriceWatchOfferTag(int Id, string Name);
@@ -19,7 +21,7 @@ internal sealed record PriceWatchPrices(Guid Id, PriceWatchOffer[] Deals);
 internal sealed record PriceWatchChange(PriceWatchMoney Price, PriceWatchMoney Regular, decimal Cut);
 internal sealed record PriceWatchHistory(PriceWatchShop Shop, DateTimeOffset Timestamp, PriceWatchChange? Deal);
 internal sealed record PriceWatchReply<T>(DateTimeOffset FetchedAt, T Data);
-internal enum PriceWatchFailure { Credentials, Busy, InvalidRequest, Timeout, Connection, InvalidResponse }
+internal enum PriceWatchFailure { Credentials, Busy, GameNotFound, InvalidRequest, Timeout, Connection, InvalidResponse }
 internal sealed class PriceWatchException(PriceWatchFailure failure, TimeSpan? retryAfter = null) : Exception(failure.ToString())
 {
     internal PriceWatchFailure Failure { get; } = failure;
@@ -28,6 +30,7 @@ internal sealed class PriceWatchException(PriceWatchFailure failure, TimeSpan? r
 
 internal interface IPriceWatchSource
 {
+    Task<PriceWatchReply<PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token);
     Task<PriceWatchReply<PriceWatchGame[]>> SearchAsync(string title, CancellationToken token);
     Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token);
 }
@@ -70,6 +73,20 @@ internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?
             || item.Deals.Any(deal => deal is null || !ValidShop(deal.Shop) || !ValidMoney(deal.Price)
                 || !ValidMoney(deal.Regular) || deal.Cut is < 0 or > 100 || deal.Timestamp == default
                 || deal.Url is not { IsAbsoluteUri: true, Scheme: "https", UserInfo.Length: 0 })))
+            throw new PriceWatchException(PriceWatchFailure.InvalidResponse);
+        return reply;
+    }
+
+    public async Task<PriceWatchReply<PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token)
+    {
+        if (id == Guid.Empty) throw new PriceWatchException(PriceWatchFailure.InvalidRequest);
+        var reply = await PostAsync<PriceWatchGameInfo>("info", new { id }, token);
+        var info = reply.Data;
+        if (info.Id != id || string.IsNullOrWhiteSpace(info.Title)
+            || info.Developers == null || info.Developers.Any(string.IsNullOrWhiteSpace)
+            || info.Publishers == null || info.Publishers.Any(string.IsNullOrWhiteSpace)
+            || info.Boxart is { } cover && (!cover.IsAbsoluteUri || cover.Scheme != "https"
+                || PriceWatchShopLinks.Validate(cover) == null))
             throw new PriceWatchException(PriceWatchFailure.InvalidResponse);
         return reply;
     }
@@ -121,6 +138,7 @@ internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?
                 {
                     HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => PriceWatchFailure.Credentials,
                     HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable => PriceWatchFailure.Busy,
+                    HttpStatusCode.NotFound when path == "info" => PriceWatchFailure.GameNotFound,
                     HttpStatusCode.BadRequest or HttpStatusCode.UnsupportedMediaType => PriceWatchFailure.InvalidRequest,
                     _ => PriceWatchFailure.Connection
                 }, wait);

@@ -92,6 +92,33 @@ internal sealed class PriceWatchStore(string path)
         return command.ExecuteNonQuery() != 0;
     }
 
+    internal PriceWatchReply<PriceWatchGameInfo>? ReadInfo(bool live, Guid id)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT payload FROM game_info WHERE live = $mode AND id = $id";
+        BindKey(command, live, id);
+        return command.ExecuteScalar() is string payload
+            ? JsonSerializer.Deserialize<PriceWatchReply<PriceWatchGameInfo>>(payload) : null;
+    }
+
+    internal bool SaveInfo(bool live, Guid id, PriceWatchReply<PriceWatchGameInfo> info)
+    {
+        if (info.Data.Id != id) return false;
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO game_info (live, id, payload, fetched_ticks)
+            SELECT live, id, $payload, $fetched FROM watched WHERE live = $mode AND id = $id
+            ON CONFLICT (live, id) DO UPDATE SET payload = excluded.payload, fetched_ticks = excluded.fetched_ticks
+            WHERE game_info.fetched_ticks <= excluded.fetched_ticks
+            """;
+        BindKey(command, live, id);
+        command.Parameters.AddWithValue("$payload", JsonSerializer.Serialize(info));
+        command.Parameters.AddWithValue("$fetched", info.FetchedAt.UtcTicks);
+        return command.ExecuteNonQuery() != 0;
+    }
+
     private static void BindKey(SqliteCommand command, bool live, Guid id)
     {
         command.Parameters.AddWithValue("$mode", live);
@@ -103,7 +130,7 @@ internal sealed class PriceWatchStore(string path)
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var connection = new SqliteConnection(new SqliteConnectionStringBuilder
         {
-            DataSource = path, Pooling = false, DefaultTimeout = 3
+            DataSource = path, Pooling = false, DefaultTimeout = 3, ForeignKeys = true
         }.ToString());
         try
         {
@@ -120,6 +147,10 @@ internal sealed class PriceWatchStore(string path)
                         snapshot TEXT,
                         fetched_ticks INTEGER,
                         PRIMARY KEY (live, id)
+                    );
+                    CREATE TABLE IF NOT EXISTS game_info (
+                        live INTEGER NOT NULL, id TEXT NOT NULL, payload TEXT NOT NULL, fetched_ticks INTEGER NOT NULL,
+                        PRIMARY KEY (live, id), FOREIGN KEY (live, id) REFERENCES watched (live, id) ON DELETE CASCADE
                     );
                     CREATE TABLE IF NOT EXISTS migration (name TEXT PRIMARY KEY);
                     """;

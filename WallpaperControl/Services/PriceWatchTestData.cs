@@ -17,6 +17,15 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
             Games.Where(game => game.Title.Contains(title, StringComparison.OrdinalIgnoreCase)).ToArray()));
     }
 
+    public Task<PriceWatchReply<PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var game = Games.FirstOrDefault(item => item.Id == id)
+            ?? throw new PriceWatchException(PriceWatchFailure.GameNotFound);
+        return Task.FromResult(new PriceWatchReply<PriceWatchGameInfo>(DateTimeOffset.UtcNow,
+            new(id, game.Title, new DateOnly(2020, 12, 10), ["Example developer"], ["Example publisher"], null)));
+    }
+
     public Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();

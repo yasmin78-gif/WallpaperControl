@@ -1951,4 +1951,9 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PriceWatchDiscount" xml:space="preserve"><value>Rabatt</value></data>
   <data name="PriceWatchDrmFree" xml:space="preserve"><value>DRM-frei</value></data>
   <data name="PriceWatchAboutGame" xml:space="preserve"><value>Über das Spiel</value></data>
+  <data name="PriceWatchRefreshInfo" xml:space="preserve"><value>Spielinfos aktualisieren</value></data>
+  <data name="PriceWatchReleased" xml:space="preserve"><value>Veröffentlicht</value></data>
+  <data name="PriceWatchDevelopers" xml:space="preserve"><value>Entwickler</value></data>
+  <data name="PriceWatchPublishers" xml:space="preserve"><value>Publisher</value></data>
+  <data name="PriceWatchGameNotFound" xml:space="preserve"><value>Spielinformationen sind nicht verfügbar.</value></data>
 </root>
