@@ -12,8 +12,9 @@ namespace WallpaperControl
         internal const int Width = 340;
         internal const int HeaderHeight = 54;
         internal const int FooterHeight = 25;
-        private readonly int layoutWidth;
-        internal CalendarViewport(int width = Width) { layoutWidth = Math.Max(80, width); }
+        private readonly int defaultWidth;
+        private float layoutWidth;
+        internal CalendarViewport(int width = Width) { defaultWidth = Math.Max(80, width); layoutWidth = defaultWidth; }
         private int wheelRemainder;
         internal float Scale { get; private set; } = 1;
         internal int PhysicalHeight { get; private set; }
@@ -37,8 +38,9 @@ namespace WallpaperControl
 
         internal static int NormalizeMaximum(int value) => Math.Clamp(value, MinimumMaximumHeight, MaximumMaximumHeight);
 
-        internal void Update(float contentHeight, int configuredMaximum, int workAreaHeight, int dpi)
+        internal void Update(float contentHeight, int configuredMaximum, int workAreaHeight, int dpi, float? responsiveWidth = null)
         {
+            layoutWidth = responsiveWidth ?? defaultWidth;
             Scale = Math.Clamp(dpi, 48, 768) / 96f;
             TotalContentHeight = Math.Max(0, contentHeight);
             // The preference is always logical. Work area and the existing hard bitmap budget

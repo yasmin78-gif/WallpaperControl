@@ -1878,4 +1878,49 @@
   <data name="VisitorCopyImage" xml:space="preserve"><value>来客用フォルダーにコピー</value></data>
   <data name="VisitorCopySuccess" xml:space="preserve"><value>画像を来客用フォルダーで利用できます。</value></data>
   <data name="VisitorCopyError" xml:space="preserve"><value>画像を来客用フォルダーにコピーできませんでした。元のファイルと書き込み権限を確認してください。</value></data>
+  <data name="PriceWatchTitle" xml:space="preserve"><value>PriceWatch</value></data>
+  <data name="PriceWatchEnabled" xml:space="preserve"><value>PriceWatch ウィジェットを表示</value></data>
+  <data name="PriceWatchOptIn" xml:space="preserve"><value>プライベートのライブ照会を許可</value></data>
+  <data name="PriceWatchModeHint" xml:space="preserve"><value>既定ではローカルのテストデータを使用します。ライブ照会は「検索」または「価格を更新」を選んだときにだけ実行されます。</value></data>
+  <data name="PriceWatchEditCredentials" xml:space="preserve"><value>パイロット用の認証情報を入力</value></data>
+  <data name="PriceWatchDeleteCredentials" xml:space="preserve"><value>パイロット用の認証情報を削除</value></data>
+  <data name="PriceWatchSaveCredentials" xml:space="preserve"><value>安全に保存</value></data>
+  <data name="PriceWatchDeleted" xml:space="preserve"><value>パイロット用の認証情報を削除しました。</value></data>
+  <data name="PriceWatchStoreError" xml:space="preserve"><value>認証情報を保存または削除できませんでした。入力内容を確認して、もう一度お試しください。</value></data>
+  <data name="PriceWatchUsername" xml:space="preserve"><value>ユーザー名</value></data>
+  <data name="PriceWatchPassword" xml:space="preserve"><value>パスワード</value></data>
+  <data name="PriceWatchSearch" xml:space="preserve"><value>検索</value></data>
+  <data name="PriceWatchSelect" xml:space="preserve"><value>エディションを選択</value></data>
+  <data name="PriceWatchTest" xml:space="preserve"><value>テストデータ</value></data>
+  <data name="PriceWatchLive" xml:space="preserve"><value>ライブ · IsThereAnyDeal</value></data>
+  <data name="PriceWatchLoading" xml:space="preserve"><value>照会中…</value></data>
+  <data name="PriceWatchNoResults" xml:space="preserve"><value>ゲームが見つかりませんでした。</value></data>
+  <data name="PriceWatchGame" xml:space="preserve"><value>基本ゲーム</value></data>
+  <data name="PriceWatchPackage" xml:space="preserve"><value>パッケージ／エディション</value></data>
+  <data name="PriceWatchDlc" xml:space="preserve"><value>DLC</value></data>
+  <data name="PriceWatchUnknown" xml:space="preserve"><value>種類不明</value></data>
+  <data name="PriceWatchWait" xml:space="preserve"><value>{0} 秒後に再試行してください。</value></data>
+  <data name="PriceWatchNoSelection" xml:space="preserve"><value>ゲームが選択されていません</value></data>
+  <data name="PriceWatchUpdated" xml:space="preserve"><value>最終更新：</value></data>
+  <data name="PriceWatchPreview" xml:space="preserve"><value>プレビュー · 照会を一時停止</value></data>
+  <data name="PriceWatchRefresh" xml:space="preserve"><value>価格を更新</value></data>
+  <data name="PriceWatchNoOffer" xml:space="preserve"><value>オファーなし</value></data>
+  <data name="PriceWatchCredentials" xml:space="preserve"><value>パイロット用の認証情報を確認してください。</value></data>
+  <data name="PriceWatchBusy" xml:space="preserve"><value>サービスが一時的に混み合っています。</value></data>
+  <data name="PriceWatchInvalidRequest" xml:space="preserve"><value>入力内容を確認して、もう一度お試しください。</value></data>
+  <data name="PriceWatchTimeout" xml:space="preserve"><value>照会がタイムアウトしました。</value></data>
+  <data name="PriceWatchConnection" xml:space="preserve"><value>PriceWatch に接続できませんでした。</value></data>
+  <data name="PriceWatchInvalidResponse" xml:space="preserve"><value>PriceWatch から無効なデータが返されました。</value></data>
+  <data name="PriceWatchCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="PriceWatchWatchlistEmpty" xml:space="preserve"><value>ウォッチリストにゲームがありません</value></data>
+  <data name="PriceWatchNotChecked" xml:space="preserve"><value>価格は未確認です</value></data>
+  <data name="PriceWatchStorageError" xml:space="preserve"><value>ウォッチリストを読み込めないか、保存できませんでした。</value></data>
+  <data name="PriceWatchDetails" xml:space="preserve"><value>ゲームの詳細</value></data>
+  <data name="PriceWatchRemove" xml:space="preserve"><value>削除</value></data>
+  <data name="PriceWatchConfirmRemove" xml:space="preserve"><value>このゲームをウォッチリストから削除しますか？</value></data>
+  <data name="PriceWatchMerchant" xml:space="preserve"><value>ストア</value></data>
+  <data name="PriceWatchPrice" xml:space="preserve"><value>価格</value></data>
+  <data name="PriceWatchDiscount" xml:space="preserve"><value>割引</value></data>
+  <data name="PriceWatchDrmFree" xml:space="preserve"><value>DRM なし</value></data>
+  <data name="PriceWatchAboutGame" xml:space="preserve"><value>ゲームについて</value></data>
 </root>

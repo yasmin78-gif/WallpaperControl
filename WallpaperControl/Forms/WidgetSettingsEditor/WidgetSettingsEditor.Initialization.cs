@@ -30,6 +30,7 @@
             InitializeWebPage(AddPage("WebTitle", "⊕"));
             InitializePackagePage(AddPage("PackageTitle", "◇"));
             InitializeFeedPage(AddPage("FeedTitle", "≋"));
+            InitializePriceWatchPage(AddPage("PriceWatchTitle", "€"));
             InitializeNowPlayingPage(AddPage("NowPlayingTitle", "♫"));
             InitializeClipboardPage(AddPage("ClipboardTitle", "⧉"));
             InitializeLauncherPage(AddPage("LauncherTitle", "↗"));

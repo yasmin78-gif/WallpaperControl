@@ -43,6 +43,7 @@
         <EmbeddedResource Include="Assets/NotificationChime.wav" LogicalName="WallpaperControl.NotificationChime.wav" />
 		<PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
 		<PackageReference Include="Ical.Net" Version="5.2.3" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
         <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4022.49" />
 	</ItemGroup>
 
