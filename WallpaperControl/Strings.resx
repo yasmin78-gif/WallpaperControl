@@ -1956,4 +1956,7 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PriceWatchDevelopers" xml:space="preserve"><value>Entwickler</value></data>
   <data name="PriceWatchPublishers" xml:space="preserve"><value>Publisher</value></data>
   <data name="PriceWatchGameNotFound" xml:space="preserve"><value>Spielinformationen sind nicht verfügbar.</value></data>
+  <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Quelle: {0}</value></data>
+  <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Beschreibung des Hauptspiels</value></data>
+  <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Größe des Detailfensters fixieren</value></data>
 </root>

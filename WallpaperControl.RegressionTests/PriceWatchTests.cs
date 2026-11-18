@@ -16,11 +16,88 @@ internal static class PriceWatchTests
     internal static void Run(Action<bool, string> check)
     {
         RunClient(check).GetAwaiter().GetResult();
+        CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
 #if DEBUG
         App.Localization.Initialize();
         check(true, "startup localization audit passes for all supported languages");
 #endif
         CheckStorageAndLayout(check);
+    }
+
+    private static async Task CheckOfflineCoverAndDescriptions(Action<bool, string> check)
+    {
+        var fixtures = new App.PriceWatchTestData();
+        var games = (await fixtures.SearchAsync("Cyberpunk", default)).Data;
+        var examples = (await fixtures.SearchAsync("PriceWatch Demo", default)).Data;
+        var german = App.PriceWatchTestData.Details(games[0]);
+        var edition = App.PriceWatchTestData.Details(games[1]);
+        var english = App.PriceWatchTestData.Details(examples[0]);
+        var longText = App.PriceWatchTestData.Details(examples[1]);
+        check(german.Description?.Language == "de" && english.Description?.Language == "en"
+            && longText.Description?.Text.Length > 2000, "local description fixtures cover German, English and long text");
+        check(edition.Description is { IsBaseGameFallback: true } fallback
+            && fallback.ItadId == games[1].Id && fallback.BaseGameId == games[0].Id
+            && App.PriceWatchTestData.Details(examples[2]).Description == null,
+            "only a confirmed parent supplies an edition fallback");
+        var now = DateTimeOffset.UtcNow;
+        var candidate = german.Description!;
+        var en = candidate with { Language = "en-GB" };
+        var de = candidate with { Language = "de-DE" };
+        check(App.PriceWatchDescription.Select(games[0], [en, de], now) == de
+            && App.PriceWatchDescription.Select(games[0], [de with { ExpiresAt = now }, en], now) == en
+            && App.PriceWatchDescription.Select(games[0], [candidate with { Language = "fr" }], now) == null,
+            "selection uses declared language and ignores expired and unsupported texts");
+        check(App.PriceWatchDescription.Select(games[1], [edition.Description!, en with { ItadId = games[1].Id }], now)?.Language == "en-GB"
+            && App.PriceWatchDescription.Select(games[1], [edition.Description! with { BaseGameId = null }], now) == null
+            && App.PriceWatchDescription.Select(games[2], [edition.Description! with { ItadId = games[2].Id }], now) == null
+            && App.PriceWatchTestData.Details(games[2]).Description == null,
+            "an edition's own text wins and a DLC cannot inherit base-game text");
+
+        using var png = await german.Cover!.LoadAsync(default);
+        using var broken = await english.Cover!.LoadAsync(default);
+        check(png?.Size == new Size(120, 168) && broken == null && edition.Cover == null,
+            "local PNG loads and missing or corrupt cover keeps the placeholder");
+
+        using var original = new Bitmap(32, 64);
+        using var encoded = new MemoryStream();
+        original.Save(encoded, System.Drawing.Imaging.ImageFormat.Jpeg);
+        byte[] bytes = encoded.ToArray();
+        var opened = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int reads = 0;
+        var shared = new App.PriceWatchCoverSource(async token =>
+        {
+            Interlocked.Increment(ref reads);
+            opened.TrySetResult();
+            try { await release.Task.WaitAsync(token); }
+            finally { finished.TrySetResult(); }
+            return new MemoryStream(bytes);
+        });
+        using var cancel = new CancellationTokenSource();
+        var first = shared.LoadAsync(cancel.Token);
+        await opened.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second = shared.LoadAsync(default);
+        cancel.Cancel();
+        bool cancelled = false;
+        try { using var discarded = await first; }
+        catch (OperationCanceledException) { cancelled = true; }
+        bool stillReading = !finished.Task.IsCompleted;
+        release.SetResult();
+        using var jpeg = await second.WaitAsync(TimeSpan.FromSeconds(5));
+        check(cancelled && stillReading && reads == 1 && jpeg?.Size == new Size(32, 64),
+            "parallel JPEG loads share one read and cancellation preserves the remaining reader");
+
+        var oversize = new App.PriceWatchCoverSource(_ =>
+            Task.FromResult<Stream>(new MemoryStream(new byte[2 * 1024 * 1024 + 1])));
+        using var oversized = await oversize.LoadAsync(default);
+        using var wide = new Bitmap(2049, 1);
+        using var wideEncoded = new MemoryStream();
+        wide.Save(wideEncoded, System.Drawing.Imaging.ImageFormat.Png);
+        var dimensions = new App.PriceWatchCoverSource(_ =>
+            Task.FromResult<Stream>(new MemoryStream(wideEncoded.ToArray())));
+        using var tooWide = await dimensions.LoadAsync(default);
+        check(oversized == null && tooWide == null, "cover loader enforces byte and dimension limits");
     }
 
     private static async Task RunClient(Action<bool, string> check)
@@ -201,6 +278,8 @@ internal static class PriceWatchTests
                 CheckDesign(check, widget, defaults);
                 CheckSettingsDesign(check);
                 CheckGameInfoStorageAndPresentation(check);
+                CheckOfflineDetailLayout(check);
+                CheckDetailSizing(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);
                 CheckDesktopTrayLifecycle(check);
@@ -212,6 +291,205 @@ internal static class PriceWatchTests
         thread.Start();
         thread.Join();
         if (failure != null) throw new InvalidOperationException("PriceWatch UI checks failed.", failure);
+    }
+
+    private static void CheckOfflineDetailLayout(Action<bool, string> check)
+    {
+        var fixtures = new App.PriceWatchTestData();
+        var examples = fixtures.SearchAsync("PriceWatch Demo", default).GetAwaiter().GetResult().Data;
+        var cyberpunk = fixtures.SearchAsync("Cyberpunk", default).GetAwaiter().GetResult().Data;
+        var edition = cyberpunk[1];
+        foreach (var style in new[] { App.SystemWidgetStyle.Minimal, App.SystemWidgetStyle.Clean, App.SystemWidgetStyle.Glow })
+        {
+            var game = cyberpunk[0];
+            var fixture = App.PriceWatchTestData.Details(game);
+            var prices = fixtures.PricesAsync(game.Id, default).GetAwaiter().GetResult();
+            var info = fixtures.InfoAsync(game.Id, default).GetAwaiter().GetResult();
+            using (var standard = new App.PriceWatchDetailForm(new(game, prices), "Testdaten", "de", style,
+                () => Task.CompletedTask, () => false, info: info.Data, refreshInfo: () => Task.CompletedTask,
+                description: fixture.Description) { Opacity = 0 })
+            {
+                standard.Show();
+                Application.DoEvents();
+                var cover = standard.Controls.Find("PriceWatchCover", true).Single();
+                var title = cover.Parent!.Controls.OfType<TableLayoutPanel>().Single().Controls.OfType<Label>().First();
+                var actions = standard.Controls.Find("PriceWatchRefreshInfo", true).Single().Parent!;
+                var buttons = actions.Controls.OfType<Button>().ToArray();
+                var work = Screen.FromControl(standard).WorkingArea;
+                int Logical(int value) => (int)Math.Round(value * 96d / standard.DeviceDpi);
+                check(work.Contains(standard.Bounds) && Logical(cover.Width) == 120 && Logical(cover.Height) == 170
+                    && title.Font.SizeInPoints == 16.5f && standard.Font.SizeInPoints == 11.25f
+                    && (Logical(work.Width) < 710 || (Logical(standard.ClientSize.Width) >= 695
+                        && buttons.Select(button => button.Top).Distinct().Count() == 1))
+                    && (Logical(work.Height) < 590 || Logical(standard.ClientSize.Height) >= 575)
+                    && buttons.Length == 4 && buttons.All(button => actions.ClientRectangle.Contains(button.Bounds)
+                        && button.Size.Width >= button.GetPreferredSize(Size.Empty).Width),
+                    $"expanded detail sizes and uncut actions in {style}");
+                var viewport = standard.Controls.OfType<Panel>().Single();
+                if (Logical(work.Width) >= 710 && Logical(work.Height) >= 590)
+                    check(!viewport.VerticalScroll.Visible && !viewport.HorizontalScroll.Visible,
+                        $"standard Cyberpunk details need no scrollbar in {style} DPI {standard.DeviceDpi} viewport {viewport.ClientSize} content {viewport.Controls[0].Size} scroll V{viewport.VerticalScroll.Visible} H{viewport.HorizontalScroll.Visible} rows {string.Join(",", ((TableLayoutPanel)viewport.Controls[0]).GetRowHeights())}");
+            }
+            var longText = App.PriceWatchTestData.Details(examples[1]).Description;
+            using var dialog = new App.PriceWatchDetailForm(new(examples[1], null), "Testdaten", "de", style,
+                () => Task.CompletedTask, () => false, description: longText) { Opacity = 0 };
+            dialog.Show();
+            dialog.Size = dialog.MinimumSize;
+            Application.DoEvents();
+            var description = dialog.Controls.Find("PriceWatchDescription", true).Single();
+            var source = dialog.Controls.Find("PriceWatchDescriptionSource", true).Single();
+            var scroll = dialog.Controls.OfType<Panel>().Single();
+            var offers = dialog.Controls.Find("PriceWatchOffers", true).Single();
+            scroll.ScrollControlIntoView(offers);
+            check(description.Visible && description.Height > description.Font.Height * 4
+                && description.Width <= description.MaximumSize.Width
+                && source.Text == "Quelle: PriceWatch Offline" && scroll.VerticalScroll.Visible
+                && scroll.VerticalScroll.Value > 0 && !scroll.HorizontalScroll.Visible,
+                $"long description wraps and the price table remains reachable in {style}");
+        }
+
+        using var fallback = new App.PriceWatchDetailForm(new(edition, null), "Testdaten", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, description: App.PriceWatchTestData.Details(edition).Description)
+            { Opacity = 0 };
+        fallback.Show();
+        var about = fallback.Controls.Find("PriceWatchAbout", true).Single();
+        check(about.Visible && about.Controls.Cast<Control>().Any(control => control.Text.Contains("Beschreibung des Hauptspiels")),
+            "edition fallback text is explicitly labeled");
+
+        var readStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var readStopped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pendingCover = new App.PriceWatchCoverSource(async token =>
+        {
+            readStarted.TrySetResult();
+            try { await Task.Delay(Timeout.Infinite, token); }
+            finally { readStopped.TrySetResult(); }
+            return Stream.Null;
+        });
+        using var empty = new App.PriceWatchDetailForm(new(examples[2], null), "Testdaten", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, coverSource: pendingCover) { Opacity = 0 };
+        empty.Show();
+        Application.DoEvents();
+        check(!empty.Controls.Find("PriceWatchAbout", true).Single().Visible, "missing description hides the entire section");
+        bool started = readStarted.Task.Wait(TimeSpan.FromSeconds(5));
+        empty.Close();
+        check(started && readStopped.Task.Wait(TimeSpan.FromSeconds(5)), "closing the detail cancels its cover read");
+        Application.DoEvents();
+    }
+
+    private static void CheckDetailSizing(Action<bool, string> check)
+    {
+        static bool Proportional(Size size) => Math.Abs(size.Height - size.Width * 580d / 700) <= 0.5;
+        var area = new Rectangle(-1800, 70, 1700, 1200);
+        foreach (int dpi in new[] { 96, 144, 192 })
+        {
+            var standard = App.PriceWatchDetailSize.Constrain(700 * dpi / 96d, dpi, new(2000, 1500));
+            var small = App.PriceWatchDetailSize.Constrain(1200 * dpi / 96d, dpi, new(670, 420));
+            check(standard == new Size(700 * dpi / 96, 580 * dpi / 96)
+                && App.PriceWatchDetailSize.ToLogical(standard.Width, dpi) == 700
+                && Proportional(small) && small.Width <= 670 && small.Height <= 420,
+                $"logical detail size restores and clamps proportionally at {dpi} DPI");
+            var proposed = new Rectangle(-1550, 170, 1000, 775);
+            for (int edge = 1; edge <= 8; edge++)
+            {
+                var result = App.PriceWatchDetailSize.Resize(proposed, edge, dpi, area);
+                check(Proportional(result.Size) && area.Contains(result)
+                    && (edge is 1 or 4 or 7 ? result.Right == proposed.Right : result.Left == proposed.Left)
+                    && (edge is 3 or 4 or 5 ? result.Bottom == proposed.Bottom : result.Top == proposed.Top)
+                    && (edge is not (1 or 2) || result.Width == proposed.Width)
+                    && (edge is not (3 or 6) || result.Height == proposed.Height),
+                    $"detail sizing anchors native edge {edge} at {dpi} DPI");
+            }
+        }
+
+        string registryPath = $@"Software\WallpaperControl.PriceWatchSizingTests\{Guid.NewGuid():N}";
+        try
+        {
+            var fixtures = new App.PriceWatchTestData();
+            var game = fixtures.SearchAsync("Ultimate Edition", default).GetAwaiter().GetResult().Data.Single();
+            var fixture = App.PriceWatchTestData.Details(game);
+            var settings = new App.AppSettingsStore(registryPath);
+            settings.SavePriceWatchDetailWidth(-1);
+            App.PriceWatchDetailForm Open(App.AppSettingsStore store, bool locked = false)
+            {
+                var dialog = new App.PriceWatchDetailForm(new(game, null), "Testdaten", "de", App.SystemWidgetStyle.Clean,
+                    () => Task.CompletedTask, () => false, refreshInfo: () => Task.CompletedTask,
+                    description: fixture.Description, sizeSettings: store, sizeLocked: locked) { Opacity = 0 };
+                dialog.Show();
+                Application.DoEvents();
+                return dialog;
+            }
+            using var first = Open(settings);
+            var work = Screen.FromControl(first).WorkingArea;
+            Size standardSize = App.PriceWatchDetailSize.Constrain(700 * first.DeviceDpi / 96d, first.DeviceDpi, work.Size);
+            check(first.Size == standardSize && settings.LoadPriceWatchDetailWidth() == -1,
+                "invalid saved width falls back without overwriting the stored setting");
+            var cover = first.Controls.Find("PriceWatchCover", true).Single();
+            int originalWidth = cover.Width;
+            float originalFont = first.Font.SizeInPoints;
+            SendMessage(first.Handle, 0x0231, 0, 0);
+            var rect = Marshal.AllocHGlobal(sizeof(int) * 4);
+            try
+            {
+                Marshal.Copy(new[] { first.Left, first.Top, first.Left + 500 * first.DeviceDpi / 96, first.Bottom }, 0, rect, 4);
+                nint handled = SendMessage(first.Handle, 0x0214, 2, rect);
+                var values = new int[4];
+                Marshal.Copy(rect, values, 0, values.Length);
+                first.Bounds = Rectangle.FromLTRB(values[0], values[1], values[2], values[3]);
+                SendMessage(first.Handle, 0x0232, 0, 0);
+                int actualWidth = App.PriceWatchDetailSize.ToLogical(first.Width, first.DeviceDpi);
+                check(handled == 1 && Proportional(first.Size) && settings.LoadPriceWatchDetailWidth() == actualWidth
+                    && cover.Width < originalWidth && first.Font.SizeInPoints < originalFont && first.Font.SizeInPoints >= 9,
+                    "native resizing scales cover and fonts and saves logical width");
+                using var reopened = Open(new App.AppSettingsStore(registryPath));
+                check(reopened.Size == first.Size && reopened.Font.SizeInPoints == first.Font.SizeInPoints,
+                    "a new detail window restores size from the registry");
+                reopened.Width += 10;
+                reopened.Close();
+                check(settings.LoadPriceWatchDetailWidth() == actualWidth, "programmatic resizing does not save a preference");
+
+                var preferences = App.WidgetSettings.Load(registryPath);
+                check(!preferences.PriceWatch.DetailSizeLocked && !preferences.PriceWatch.Locked,
+                    "existing settings default to allowing detail resizing");
+                preferences.PriceWatch.DetailSizeLocked = true;
+                preferences.Save(registryPath);
+                var restored = App.WidgetSettings.Load(registryPath);
+                check(restored.PriceWatch.DetailSizeLocked && !restored.PriceWatch.Locked
+                    && settings.LoadPriceWatchDetailWidth() == actualWidth,
+                    "detail size lock persists separately from widget position and preferred width");
+
+                using var locked = Open(settings, restored.PriceWatch.DetailSizeLocked);
+                int Hit(Point point)
+                {
+                    var screen = locked.PointToScreen(point);
+                    nint coordinates = (screen.X & 0xffff) | ((screen.Y & 0xffff) << 16);
+                    return (int)SendMessage(locked.Handle, 0x0084, 0, coordinates);
+                }
+                var close = locked.Controls.Find("PriceWatchChromeClose", true).Single();
+                check(locked.Size == first.Size && Hit(Point.Empty) == 2
+                    && Hit(new(locked.ClientSize.Width - 1, locked.ClientSize.Height - 1)) == 1
+                    && Hit(new(close.Left + 2, close.Top + 2)) == 1,
+                    "locked detail suppresses edge and corner hits while retaining caption dragging and close");
+                Rectangle before = locked.Bounds;
+                SendMessage(locked.Handle, 0x0231, 0, 0);
+                Marshal.Copy(new[] { before.Left, before.Top, before.Right + 100, before.Bottom + 100 }, 0, rect, 4);
+                handled = SendMessage(locked.Handle, 0x0214, 8, rect);
+                Marshal.Copy(rect, values, 0, values.Length);
+                SendMessage(locked.Handle, 0x0232, 0, 0);
+                check(handled == 1 && Rectangle.FromLTRB(values[0], values[1], values[2], values[3]) == before
+                    && locked.Bounds == before && settings.LoadPriceWatchDetailWidth() == actualWidth,
+                    "locked detail rejects native sizing and preserves the stored width");
+
+                var lockedWorkArea = Screen.FromControl(locked).WorkingArea;
+                SendMessage(locked.Handle, 0x0231, 0, 0);
+                locked.Width = lockedWorkArea.Width + 100;
+                SendMessage(locked.Handle, 0x0232, 0, 0);
+                check(lockedWorkArea.Contains(locked.Bounds) && Proportional(locked.Size)
+                    && settings.LoadPriceWatchDetailWidth() == actualWidth,
+                    "locked detail still fits the work area without replacing the preferred width");
+            }
+            finally { Marshal.FreeHGlobal(rect); }
+        }
+        finally { Registry.CurrentUser.DeleteSubKeyTree(registryPath, throwOnMissingSubKey: false); }
     }
 
     private static bool ValidLayout(Bitmap image, Size area, App.PriceWatchWidgetLayout layout)
@@ -376,6 +654,15 @@ internal static class PriceWatchTests
             var page = editor.Controls.Cast<Control>().OfType<TabControl>().Single().SelectedTab!;
             var layout = page.Controls.Cast<Control>().OfType<FlowLayoutPanel>().Single();
             layout.PerformLayout();
+            var detailLock = (CheckBox)layout.Controls.Find("PriceWatchDetailSizeLocked", false).Single();
+            var positionLock = (CheckBox)layout.Controls[layout.Controls.GetChildIndex(detailLock) - 1];
+            check(!detailLock.Checked && positionLock.Text == "Position fixieren"
+                && detailLock.Text == "Größe des Detailfensters fixieren"
+                && detailLock.Top >= positionLock.Bottom && detailLock.Width >= detailLock.PreferredSize.Width,
+                $"detail size lock appears below widget position lock at {scale * 100:0}%");
+            detailLock.Checked = true;
+            var edited = editor.ReadWidgetSettings(applySaveDefaults: true).PriceWatch;
+            check(edited.DetailSizeLocked && !edited.Locked, "settings editor reads the independent detail size lock");
             var actions = layout.Controls.Cast<Control>().OfType<Button>().ToArray();
             check(page.AutoScroll && actions.Length == 2
                 && actions.All(button => button.GetPreferredSize(Size.Empty).Width <= button.Width

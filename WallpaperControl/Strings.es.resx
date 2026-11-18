@@ -1956,4 +1956,7 @@ Versión instalada: {0}
   <data name="PriceWatchDevelopers" xml:space="preserve"><value>Desarrolladores</value></data>
   <data name="PriceWatchPublishers" xml:space="preserve"><value>Editores</value></data>
   <data name="PriceWatchGameNotFound" xml:space="preserve"><value>Los datos del juego no están disponibles.</value></data>
+  <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Fuente: {0}</value></data>
+  <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Descripción del juego base</value></data>
+  <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Bloquear el tamaño de la ventana de detalles</value></data>
 </root>

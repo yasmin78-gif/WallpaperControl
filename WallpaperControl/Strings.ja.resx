@@ -1928,4 +1928,7 @@
   <data name="PriceWatchDevelopers" xml:space="preserve"><value>開発元</value></data>
   <data name="PriceWatchPublishers" xml:space="preserve"><value>発売元</value></data>
   <data name="PriceWatchGameNotFound" xml:space="preserve"><value>ゲーム情報を取得できません。</value></data>
+  <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>出典: {0}</value></data>
+  <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>本編の説明</value></data>
+  <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>詳細ウィンドウのサイズを固定</value></data>
 </root>
