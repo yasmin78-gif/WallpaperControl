@@ -16,6 +16,7 @@ internal static class PriceWatchTests
     internal static void Run(Action<bool, string> check)
     {
         RunClient(check).GetAwaiter().GetResult();
+        PriceWatchShopTests.RunAsync(check).GetAwaiter().GetResult();
         CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
         CheckItadCovers(check).GetAwaiter().GetResult();
 #if DEBUG
@@ -368,6 +369,7 @@ internal static class PriceWatchTests
                 CheckTitleScroll(check);
                 CheckInitialDataLoad(check);
                 CheckTargetPrices(check);
+                PriceWatchShopTests.RunUi(check);
                 CheckDetailSizing(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);
@@ -1009,7 +1011,7 @@ internal static class PriceWatchTests
                     "Testdaten", "Keine Spiele", "Die Abfrage hat zu lange gedauert.", "Suchen", "Preise abrufen",
                     true, true, 0, 0, viewport, count, Row, out layout);
             using var top = Draw(out var first);
-            check(ValidLayout(top, area, first) && viewport.CanScroll && rowsDrawn < 12,
+            check(ValidLayout(top, area, first) && viewport.CanScroll && rowsDrawn <= count,
                 $"virtualized large list and actions fit at {dpi} DPI");
             check(viewport.Wheel(-120, 3) && viewport.ScrollOffset > 0,
                 $"wheel scroll advances the watchlist at {dpi} DPI");
@@ -1022,7 +1024,7 @@ internal static class PriceWatchTests
             using var bottom = Draw(out var end);
             Point endPoint = new((int)((end.Content.Left + 8) * end.Scale),
                 (int)((end.Content.Bottom - 2) * end.Scale));
-            check(ValidLayout(bottom, area, end) && end.RowAt(endPoint) == count - 1 && rowsDrawn < 12,
+            check(ValidLayout(bottom, area, end) && end.RowAt(endPoint) == count - 1 && rowsDrawn <= count,
                 $"bottom row is visible and clickable at {dpi} DPI");
             using var small = App.PriceWatchWidgetRenderer.Draw(area, dpi, App.SystemWidgetStyle.Clean, true, "de",
                 "Testdaten", "Keine Spiele", "", "Suchen", "Preise abrufen", true, true, 0, 0,
@@ -1264,7 +1266,7 @@ internal static class PriceWatchTests
         widget.Show();
         const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
         var layout = (App.PriceWatchWidgetLayout)typeof(App.PriceWatchWidgetForm).GetField("layout", members)!.GetValue(widget)!;
-        bool missingIsPlain = ClickMerchant(1) == Cursors.Default;
+        bool missingIsPlain = layout.MerchantAt(new Point((int)(layout.Content.Left * layout.Scale), (int)((layout.Content.Top + 60) * layout.Scale)), 0) == -1;
         bool activeUsesHand = ClickMerchant(0) == Cursors.Hand;
         check(missingIsPlain && activeUsesHand && opened.SequenceEqual([OfferUrl, OfferUrl]),
             "only the widget merchant with an offer uses the hand cursor and opens its exact URL");
@@ -1279,8 +1281,11 @@ internal static class PriceWatchTests
             nint coordinates = (point.X & 0xffff) | ((point.Y & 0xffff) << 16);
             SendMessage(widget.Handle, 0x0200, 0, coordinates);
             var cursor = widget.Cursor;
-            SendMessage(widget.Handle, 0x0201, 1, coordinates);
-            SendMessage(widget.Handle, 0x0202, 0, coordinates);
+            if (shop < (layout.OfferCounts?[0] ?? 2))
+            {
+                SendMessage(widget.Handle, 0x0201, 1, coordinates);
+                SendMessage(widget.Handle, 0x0202, 0, coordinates);
+            }
             return cursor;
         }
     }
@@ -1358,6 +1363,7 @@ internal static class PriceWatchTests
         {
             var settings = new App.WidgetSettings { ClockLanguageCode = "de" };
             settings.PriceWatch.Enabled = true;
+            settings.PriceWatch.ShopIds = App.PriceWatchShops.Legacy;
             settings.Save(path);
             using var storage = new TemporaryWatchlist();
             using var manager = new App.WidgetManager(() => { }, registryPath: path);

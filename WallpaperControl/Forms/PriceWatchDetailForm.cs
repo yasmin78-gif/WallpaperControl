@@ -30,6 +30,7 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly Button targetSave = new() { Name = "PriceWatchTargetSave", AutoSize = true,
         Margin = new(3, 0, 3, 0) };
     private PriceWatchEntry currentEntry;
+    private readonly int[] selectedShops;
     private readonly TableLayoutPanel offers = new() { Name = "PriceWatchOffers", Dock = DockStyle.Top,
         AutoSize = true, ColumnCount = 3, Margin = new(0, 12, 0, 0) };
     private readonly Panel scroll = new() { Dock = DockStyle.Fill, AutoScroll = true };
@@ -61,8 +62,9 @@ internal sealed class PriceWatchDetailForm : Form
         Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false,
         PriceWatchDescription? description = null, PriceWatchCoverSource? coverSource = null,
         AppSettingsStore? sizeSettings = null, bool sizeLocked = false, PriceWatchItadCovers? itadCovers = null,
-        Func<int?, bool>? saveTarget = null)
+        Func<int?, bool>? saveTarget = null, IReadOnlyList<int>? shops = null)
     {
+        selectedShops = PriceWatchShops.Validate(shops ?? PriceWatchShops.Legacy);
         currentEntry = entry;
         this.sizeSettings = sizeSettings;
         this.sizeLocked = sizeLocked;
@@ -275,9 +277,12 @@ internal sealed class PriceWatchDetailForm : Form
             offers.RowCount = 0;
             AddRow(T("PriceWatchMerchant"), T("PriceWatchPrice"), T("PriceWatchDiscount"), stripe);
             int offerIndex = 0;
-            foreach (var shop in PriceWatchOfferDisplay.Shops)
+            foreach (int shopId in selectedShops)
             {
-                var available = PriceWatchOfferDisplay.ForShop(entry, shop.Id).OrderBy(offer => offer.Price.AmountInt).ToArray();
+                var shop = PriceWatchShops.Supported.Single(shop => shop.Id == shopId);
+                var available = PriceWatchOfferDisplay.ForShop(entry, shop.Id)
+                    .Where(offer => PriceWatchShops.ValidOffer(offer, DateTimeOffset.UtcNow))
+                    .OrderBy(offer => offer.Price.AmountInt).ToArray();
                 if (available.Length == 0)
                     AddRow(shop.Name, T("PriceWatchNoOffer"), "—", (offerIndex++ % 2 == 0) ? BackColor : stripe);
                 foreach (var offer in available)
@@ -285,7 +290,7 @@ internal sealed class PriceWatchDetailForm : Form
                     Color background = offerIndex++ % 2 == 0 ? BackColor : stripe;
                     AddRow(shop.Name, PriceWatchOfferDisplay.Price(offer, culture),
                         PriceWatchOfferDisplay.Discount(offer, culture), background, offer.Url);
-                    if (PriceWatchTargetPrice.IsReached(entry, offer, DateTimeOffset.UtcNow))
+                    if (PriceWatchTargetPrice.IsReached(entry, offer, DateTimeOffset.UtcNow, selectedShops))
                         offers.GetControlFromPosition(1, offers.RowCount - 1)!.ForeColor =
                             foreground.GetBrightness() > .5 ? Color.LightGreen : Color.FromArgb(0, 100, 40);
                     AddOfferInfo(offer, background);

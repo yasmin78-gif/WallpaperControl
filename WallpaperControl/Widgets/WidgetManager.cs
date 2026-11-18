@@ -56,6 +56,7 @@ namespace WallpaperControl
             packages = packageTrackingService;
             packageCredentialStore = packageCredentials ?? new TrackingCredentialStore();
             settings = WidgetSettings.Load(registryPath);
+            previousPriceWatchShops = settings.PriceWatch.ShopIds.ToArray();
             snapping=new(()=>desktopWidgets,new AppSettingsStore(registryPath).LoadWidgetSnapping());
             NotificationSound = settings.NotificationSound;
             desktopShowMonitor = new DesktopShowMonitor(RestoreDesktopWidgetBand);
@@ -103,6 +104,7 @@ namespace WallpaperControl
             settings.PriceWatch.Enabled = previewSettings.PriceWatch.Enabled;
             settings.PriceWatch.Locked = previewSettings.PriceWatch.Locked;
             settings.PriceWatch.DetailSizeLocked = previewSettings.PriceWatch.DetailSizeLocked;
+            settings.PriceWatch.ShopIds = previewSettings.PriceWatch.ShopIds.ToArray();
             settings.PriceWatch.Live = previewSettings.PriceWatch.Live;
             settings.PriceWatch.Style = previewSettings.PriceWatch.Style;
             settings.Feed.Enabled = previewSettings.Feed.Enabled; settings.Feed.Locked = previewSettings.Feed.Locked; settings.Feed.Style = previewSettings.Feed.Style; settings.Feed.MaximumHeight = previewSettings.Feed.MaximumHeight;

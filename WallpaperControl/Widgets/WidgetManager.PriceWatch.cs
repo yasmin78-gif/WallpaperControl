@@ -7,6 +7,7 @@ internal sealed partial class WidgetManager
     private HttpClient? priceWatchHttp;
     private PriceWatchClient? priceWatchClient;
     private PriceWatchStore? priceWatchStore;
+    private int[]? previousPriceWatchShops;
 
     private IPriceWatchSource GetPriceWatchSource(bool live)
     {
@@ -19,6 +20,7 @@ internal sealed partial class WidgetManager
     {
         if (!target.PriceWatch.Enabled)
         {
+            if (priceWatchWidget != null) previousPriceWatchShops = priceWatchWidget.SelectedShops;
             DisposePriceWatch();
             return;
         }
@@ -35,6 +37,8 @@ internal sealed partial class WidgetManager
             priceWatchWidget.FitToScreen(target.PriceWatch.Location);
             RegisterDesktopWidget(priceWatchWidget);
             priceWatchWidget.Show();
+            if (previousPriceWatchShops != null)
+                priceWatchWidget.RestoreShopRefreshBaseline(previousPriceWatchShops);
             if (!DesktopWidgetNative.AttachToDesktop(priceWatchWidget, priceWatchWidget.Location))
                 priceWatchWidget.Hide();
         }

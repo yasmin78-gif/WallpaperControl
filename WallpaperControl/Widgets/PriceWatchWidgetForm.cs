@@ -38,6 +38,11 @@ internal sealed class PriceWatchWidgetForm : Form
     private bool storageError;
     private readonly Dictionary<(bool Live, Guid Id), CancellationTokenSource> initialLoads = new();
     private readonly SemaphoreSlim initialLoadQueue = new(1, 1);
+    private readonly CancellationTokenSource lifetimeCancellation = new();
+    private readonly CancellationToken lifetimeToken;
+    private int selectionVersion;
+    private bool selectionRefreshPending, selectionRefreshing;
+    private int[] lastRequestedShops;
     private readonly System.Windows.Forms.Timer titleTimer = new() { Interval = 33 };
     private readonly System.Diagnostics.Stopwatch titleClock = new();
     private int scrollingTitle = -1;
@@ -48,9 +53,11 @@ internal sealed class PriceWatchWidgetForm : Form
         string language, Action<Point> moved, PriceWatchStore store, Action<Uri>? openLink = null)
     {
         this.source = source;
+        lifetimeToken = lifetimeCancellation.Token;
         this.store = store;
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
         settings = value.Clone();
+        lastRequestedShops = settings.ShopIds.ToArray();
         this.language = language;
         titleTimer.Tick += (_, _) =>
         {
@@ -111,6 +118,7 @@ internal sealed class PriceWatchWidgetForm : Form
     {
         base.OnShown(e);
         Render();
+        ScheduleSelectionRefresh();
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -120,11 +128,15 @@ internal sealed class PriceWatchWidgetForm : Form
         FitToScreen(Location);
     }
 
-    private static PriceWatchOffer? CheapestOffer(PriceWatchEntry entry, int shop) =>
-        PriceWatchOfferDisplay.ForShop(entry, PriceWatchOfferDisplay.Shops[shop].Id).MinBy(offer => offer.Price.AmountInt);
+    private PriceWatchOffer[] DisplayOffers(PriceWatchEntry entry) =>
+        PriceWatchShops.WidgetOffers(entry, settings.ShopIds, DateTimeOffset.UtcNow);
 
-    private Uri? MerchantLink(int row, int shop) => CanSearch && settings.Live && row >= 0 && shop >= 0
-        ? PriceWatchShopLinks.Validate(CheapestOffer(entries[row], shop)?.Url) : null;
+    private Uri? MerchantLink(int row, int shop)
+    {
+        if (!CanSearch || !settings.Live || row < 0 || shop < 0) return null;
+        var offers = DisplayOffers(entries[row]);
+        return shop < offers.Length ? PriceWatchShopLinks.Validate(offers[shop].Url) : null;
+    }
 
     internal Bitmap RenderBitmap(Size area, int dpi, out PriceWatchWidgetLayout result)
     {
@@ -134,16 +146,15 @@ internal sealed class PriceWatchWidgetForm : Form
             CanSearch, CanRefresh, hovered, pressed, viewport, entries.Length, index =>
             {
                 var entry = entries[index];
-                var prices = PriceWatchOfferDisplay.Shops.Select((shop, shopIndex) =>
-                    PriceWatchOfferDisplay.Columns(shop, CheapestOffer(entry, shopIndex),
-                        culture, T("PriceWatchNoOffer"))).ToArray();
-                var reached = PriceWatchOfferDisplay.Shops.Select(shop =>
-                    PriceWatchOfferDisplay.ForShop(entry, shop.Id).Any(offer =>
-                        PriceWatchTargetPrice.IsReached(entry, offer, DateTimeOffset.UtcNow))).ToArray();
+                var offers = DisplayOffers(entry);
+                var prices = offers.Select(offer => PriceWatchOfferDisplay.Columns(
+                    PriceWatchShops.Supported.Single(shop => shop.Id == offer.Shop.Id), offer, culture, T("PriceWatchNoOffer"))).ToArray();
+                var reached = offers.Select(offer =>
+                    PriceWatchTargetPrice.IsReached(entry, offer, DateTimeOffset.UtcNow, settings.ShopIds)).ToArray();
                 return new(entry.Game.Title, T(PriceWatchSearchForm.EditionKey(entry.Game.Type)), prices,
                     rowCovers.GetValueOrDefault((settings.Live, entry.Game.Id)),
                     entry.TargetCents is int target ? string.Format(T("PriceWatchTargetCaption"), PriceWatchTargetPrice.Format(target)) : null,
-                    reached);
+                    reached, T("PriceWatchNoOffer"));
             }, out result, CanSearch && settings.Live ? hoveredMerchant : null, Focused && ShowFocusCues,
                 scrollingTitle, titleClock.Elapsed.TotalSeconds);
     }
@@ -155,7 +166,15 @@ internal sealed class PriceWatchWidgetForm : Form
     {
         StopTitleScroll();
         bool modeChanged = value.Live != settings.Live;
-        if (modeChanged || editing && !preview)
+        bool shopsChanged = !PriceWatchShops.Normalize(value.ShopIds).SequenceEqual(settings.ShopIds);
+        if (shopsChanged || modeChanged)
+        {
+            selectionVersion++;
+            active?.Cancel();
+            foreach (var load in initialLoads.Values.ToArray()) load.Cancel();
+            if (shopsChanged) selectionRefreshPending = true;
+        }
+        if (shopsChanged || modeChanged || editing && !preview)
         {
             active?.Cancel();
             searchDialog?.Close();
@@ -173,6 +192,7 @@ internal sealed class PriceWatchWidgetForm : Form
             ReadEntries();
         }
         Render();
+        ScheduleSelectionRefresh();
     }
 
     private bool UseStore(Action work)
@@ -220,6 +240,51 @@ internal sealed class PriceWatchWidgetForm : Form
             detailDialog?.Close();
         }
         Render();
+        if (!value) ScheduleSelectionRefresh();
+    }
+
+    private async void ScheduleSelectionRefresh()
+    {
+        if (selectionRefreshing || !selectionRefreshPending || preview || suspended || active != null
+            || initialLoads.Count != 0 || IsDisposed || !IsHandleCreated) return;
+        if (lastRequestedShops.SequenceEqual(settings.ShopIds))
+        {
+            selectionRefreshPending = false;
+            return;
+        }
+        selectionRefreshing = true;
+        selectionRefreshPending = false;
+        lastRequestedShops = settings.ShopIds.ToArray();
+        int version = selectionVersion;
+        bool live = settings.Live;
+        try
+        {
+            var snapshot = entries.ToArray();
+            foreach (var entry in snapshot)
+            {
+                bool proceed = false;
+                await OnUiAsync(() => proceed = !preview && !suspended && version == selectionVersion);
+                if (!proceed) break;
+                await LoadNewEntryAsync(live, entry.Game.Id, includeInfo: false);
+            }
+        }
+        finally
+        {
+            await OnUiAsync(() =>
+            {
+                selectionRefreshing = false;
+                ScheduleSelectionRefresh();
+            });
+        }
+    }
+
+    internal int[] SelectedShops => settings.ShopIds.ToArray();
+
+    internal void RestoreShopRefreshBaseline(int[] previous)
+    {
+        lastRequestedShops = previous.ToArray();
+        selectionRefreshPending = !lastRequestedShops.SequenceEqual(settings.ShopIds);
+        ScheduleSelectionRefresh();
     }
 
     private string T(string key) => Localization.Get(key, language);
@@ -263,9 +328,8 @@ internal sealed class PriceWatchWidgetForm : Form
     private void UpdateVisibleCovers()
     {
         bool clearedImage = false;
-        int first = (int)(layout.ScrollOffset / PriceWatchWidgetRenderer.RowHeight);
-        int count = (int)Math.Ceiling(layout.Content.Height / PriceWatchWidgetRenderer.RowHeight);
-        var visible = entries.Skip(first).Take(count).Select(entry => (Live: settings.Live, Id: entry.Game.Id)).ToHashSet();
+        var visibleEntries = layout.VisibleRows().Select(index => entries[index]).ToArray();
+        var visible = visibleEntries.Select(entry => (Live: settings.Live, Id: entry.Game.Id)).ToHashSet();
         foreach (var key in coverLoads.Keys.Where(key => !visible.Contains(key) || preview || suspended).ToArray())
             coverLoads[key].Cancel();
         foreach (var key in rowCovers.Keys.Where(key => !visible.Contains(key)).ToArray())
@@ -275,7 +339,7 @@ internal sealed class PriceWatchWidgetForm : Form
             rowCoverUrls.Remove(key);
         }
         if (preview || suspended) return;
-        foreach (var entry in entries.Skip(first).Take(count))
+        foreach (var entry in visibleEntries)
         {
             var key = (Live: settings.Live, Id: entry.Game.Id);
             if (key.Live && rowCovers.ContainsKey(key))
@@ -395,7 +459,7 @@ internal sealed class PriceWatchWidgetForm : Form
         int row = layout.Scale > 0 && CanSearch ? layout.RowAt(mouse) : -1;
         if (row >= 0)
         {
-            float top = layout.Content.Top + row * PriceWatchWidgetRenderer.RowHeight - layout.ScrollOffset;
+            float top = layout.RowTop(row);
             var bounds = PriceWatchWidgetRenderer.TitleBounds(layout.Content, top);
             if (!bounds.Contains(layout.ToLogical(mouse))) row = -1;
         }
@@ -578,7 +642,7 @@ internal sealed class PriceWatchWidgetForm : Form
                 if (inserted) added = choice;
                 ReadEntries(choice.Id);
                 Render();
-                if (selectedIndex >= 0) viewport.SetOffset(selectedIndex * (float)PriceWatchWidgetRenderer.RowHeight);
+                if (selectedIndex >= 0) viewport.SetOffset(layout.RowOffset(selectedIndex));
             }
         }
         catch (PriceWatchLimitException)
@@ -595,40 +659,71 @@ internal sealed class PriceWatchWidgetForm : Form
         if (added != null && !IsDisposed) await LoadNewEntryAsync(live, added.Id);
     }
 
-    internal async Task LoadNewEntryAsync(bool live, Guid id)
+    private async Task OnUiAsync(Action action)
+    {
+        if (IsDisposed || Disposing || !IsHandleCreated || lifetimeToken.IsCancellationRequested) return;
+        if (!InvokeRequired)
+        {
+            action();
+            return;
+        }
+        try
+        {
+            await this.InvokeAsync(() =>
+            {
+                if (!IsDisposed && !Disposing) action();
+            }, lifetimeToken);
+        }
+        catch (OperationCanceledException) when (lifetimeToken.IsCancellationRequested) { }
+        catch (InvalidOperationException) when (IsDisposed || Disposing || !IsHandleCreated) { }
+    }
+
+    internal async Task LoadNewEntryAsync(bool live, Guid id, bool includeInfo = true)
+    {
+        Task? load = null;
+        await OnUiAsync(() => load = LoadEntryCoreAsync(live, id, includeInfo));
+        if (load != null) await load;
+    }
+
+    private async Task LoadEntryCoreAsync(bool live, Guid id, bool includeInfo)
     {
         var key = (live, id);
         if (initialLoads.ContainsKey(key) || IsDisposed) return;
         using var operation = new CancellationTokenSource();
         initialLoads.Add(key, operation);
+        int version = selectionVersion;
+        int[] shops = settings.ShopIds.ToArray();
         autoInfoAttempted.Add(key);
         failure = null;
         Render();
         bool acquired = false;
+        PriceWatchException? requestFailure = null;
         try
         {
             await initialLoadQueue.WaitAsync(operation.Token);
             acquired = true;
             var provider = source(live);
-            try
+            if (includeInfo) try
             {
                 var info = await provider.InfoAsync(id, operation.Token);
-                if (!operation.IsCancellationRequested && !IsDisposed)
+                await OnUiAsync(() =>
                 {
+                    if (operation.IsCancellationRequested) return;
                     UseStore(() => store.SaveInfo(live, id, info));
                     if (settings.Live == live && SelectedEntry?.Game.Id == id
                         && detailDialog is { IsDisposed: false } dialog)
                         UseStore(() => dialog.PresentInfo(store.ReadInfo(live, id)?.Data));
                     Render();
-                }
+                });
             }
-            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { failure = error; }
+            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { requestFailure = error; }
             operation.Token.ThrowIfCancellationRequested();
             try
             {
-                var prices = await provider.PricesAsync(id, operation.Token);
-                if (!operation.IsCancellationRequested && !IsDisposed)
+                var prices = await provider.PricesAsync(id, shops, operation.Token);
+                await OnUiAsync(() =>
                 {
+                    if (operation.IsCancellationRequested || version != selectionVersion) return;
                     UseStore(() => store.SaveSnapshot(live, id, prices));
                     if (settings.Live == live)
                     {
@@ -636,17 +731,23 @@ internal sealed class PriceWatchWidgetForm : Form
                         if (SelectedEntry?.Game.Id == id && detailDialog is { IsDisposed: false } dialog)
                             dialog.Present(SelectedEntry, "");
                     }
-                }
+                });
             }
-            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { failure = error; }
+            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { requestFailure = error; }
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
-        catch (PriceWatchException error) { failure = error; }
+        catch (PriceWatchException error) { requestFailure = error; }
         finally
         {
             if (acquired) initialLoadQueue.Release();
-            initialLoads.Remove(key);
-            Render();
+            await OnUiAsync(() =>
+            {
+                if (!operation.IsCancellationRequested && version == selectionVersion && requestFailure != null)
+                    failure = requestFailure;
+                initialLoads.Remove(key);
+                Render();
+                ScheduleSelectionRefresh();
+            });
         }
     }
 
@@ -689,7 +790,7 @@ internal sealed class PriceWatchWidgetForm : Form
                     ReadEntries(entry.Game.Id);
                     Render();
                     return true;
-                });
+                }, shops: settings.ShopIds);
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }
@@ -720,26 +821,40 @@ internal sealed class PriceWatchWidgetForm : Form
         if (!CanOperate || initialLoads.ContainsKey((live, id)) || detailDialog is not { } dialog) return;
         using var operation = new CancellationTokenSource();
         active = operation;
+        bool acquired = false;
         try
         {
+            await initialLoadQueue.WaitAsync(operation.Token);
+            acquired = true;
             var info = await source(live).InfoAsync(id, operation.Token);
-            if (operation.IsCancellationRequested || dialog.IsDisposed) return;
-            if (!TryInfoStore(() =>
+            await OnUiAsync(() =>
             {
-                store.SaveInfo(live, id, info);
-                dialog.PresentInfo(store.ReadInfo(live, id)?.Data);
-            })) dialog.PresentInfo(null, T("PriceWatchStorageError"));
+                if (operation.IsCancellationRequested || dialog.IsDisposed) return;
+                if (!TryInfoStore(() =>
+                {
+                    store.SaveInfo(live, id, info);
+                    dialog.PresentInfo(store.ReadInfo(live, id)?.Data);
+                })) dialog.PresentInfo(null, T("PriceWatchStorageError"));
+            });
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
         catch (PriceWatchException error)
         {
-            if (!operation.IsCancellationRequested && !dialog.IsDisposed)
-                dialog.PresentInfo(null, PriceWatchSearchForm.ErrorText(error, language));
+            await OnUiAsync(() =>
+            {
+                if (!operation.IsCancellationRequested && !dialog.IsDisposed)
+                    dialog.PresentInfo(null, PriceWatchSearchForm.ErrorText(error, language));
+            });
         }
         finally
         {
-            active = null;
-            Render();
+            if (acquired) initialLoadQueue.Release();
+            await OnUiAsync(() =>
+            {
+                active = null;
+                Render();
+                ScheduleSelectionRefresh();
+            });
         }
     }
 
@@ -751,30 +866,50 @@ internal sealed class PriceWatchWidgetForm : Form
         active = operation;
         failure = null;
         bool live = settings.Live;
+        int version = selectionVersion;
+        int[] shops = settings.ShopIds.ToArray();
+        bool acquired = false;
         Render();
         try
         {
-            var reply = await source(live).PricesAsync(entry.Game.Id, operation.Token);
-            if (!operation.IsCancellationRequested && !IsDisposed
-                && UseStore(() => store.SaveSnapshot(live, entry.Game.Id, reply)))
-                ReadEntries();
+            await initialLoadQueue.WaitAsync(operation.Token);
+            acquired = true;
+            var reply = await source(live).PricesAsync(entry.Game.Id, shops, operation.Token);
+            await OnUiAsync(() =>
+            {
+                if (!operation.IsCancellationRequested && version == selectionVersion
+                    && UseStore(() => store.SaveSnapshot(live, entry.Game.Id, reply)))
+                    ReadEntries();
+            });
         }
         catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
-        catch (PriceWatchException error) when (!operation.IsCancellationRequested && !IsDisposed) { failure = error; }
-        catch (PriceWatchException) { }
+        catch (PriceWatchException error)
+        {
+            await OnUiAsync(() =>
+            {
+                if (!operation.IsCancellationRequested) failure = error;
+            });
+        }
         finally
         {
-            active = null;
-            if (detailDialog is { IsDisposed: false } dialog && SelectedEntry is { } updated)
-                dialog.Present(updated, StatusCaption);
-            Render();
+            if (acquired) initialLoadQueue.Release();
+            await OnUiAsync(() =>
+            {
+                active = null;
+                if (detailDialog is { IsDisposed: false } dialog && SelectedEntry is { } updated)
+                    dialog.Present(updated, StatusCaption);
+                Render();
+                ScheduleSelectionRefresh();
+            });
         }
     }
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && !lifetimeToken.IsCancellationRequested)
         {
+            lifetimeCancellation.Cancel();
+            lifetimeCancellation.Dispose();
             active?.Cancel();
             foreach (var load in initialLoads.Values.ToArray()) load.Cancel();
             searchDialog?.Close();

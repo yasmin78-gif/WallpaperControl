@@ -1937,4 +1937,5 @@
   <data name="PriceWatchTargetSave" xml:space="preserve"><value>保存</value></data>
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>小数点以下2桁までの有効なユーロ金額を入力してください。</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>希望: {0} €</value></data>
+  <data name="PriceWatchShops" xml:space="preserve"><value>ストア</value></data>
 </root>

@@ -22,8 +22,10 @@ internal static class PriceWatchTargetPrice
 
     internal static string Format(int cents) => (cents / 100m).ToString("F2", German);
 
-    internal static bool IsReached(PriceWatchEntry entry, PriceWatchOffer offer, DateTimeOffset now) =>
-        entry.TargetCents is >= 0 && offer.Shop.Id is 35 or 61
+    internal static bool IsReached(PriceWatchEntry entry, PriceWatchOffer offer, DateTimeOffset now,
+        IReadOnlyList<int>? selected = null) =>
+        entry.TargetCents is >= 0 && (selected ?? PriceWatchShops.Legacy).Contains(offer.Shop.Id)
+        && PriceWatchShops.ValidOffer(offer, now)
         && entry.Snapshot?.Data.Any(item => item.Id == entry.Game.Id && item.Deals.Contains(offer)) == true
         && offer.Price.Currency == "EUR" && offer.Price.AmountInt >= 0
         && offer.Price.Amount == offer.Price.AmountInt / 100m
