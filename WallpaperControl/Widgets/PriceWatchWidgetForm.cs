@@ -456,6 +456,7 @@ internal sealed class PriceWatchWidgetForm : Form
         Render();
         try
         {
+            var presentation = live ? default : PriceWatchTestData.Details(entry.Game);
             using var dialog = new PriceWatchDetailForm(entry, ModeCaption, language, settings.Style,
                 () => RefreshPricesAsync(fromDetails: true), () =>
                 {
@@ -464,7 +465,9 @@ internal sealed class PriceWatchWidgetForm : Form
                     ReadEntries();
                     return true;
                 }, shopLinksEnabled: live, openLink: openLink, info: cachedInfo?.Data,
-                refreshInfo: () => RefreshInfoAsync(live, entry.Game.Id), fetchInfoOnOpen: fetchOnOpen);
+                refreshInfo: () => RefreshInfoAsync(live, entry.Game.Id), fetchInfoOnOpen: fetchOnOpen,
+                description: presentation.Description, coverSource: presentation.Cover, sizeSettings: new AppSettingsStore(),
+                sizeLocked: settings.DetailSizeLocked);
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }

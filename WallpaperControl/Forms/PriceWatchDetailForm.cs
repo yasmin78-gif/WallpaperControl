@@ -1,28 +1,32 @@
 using System.Globalization;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 
 namespace WallpaperControl;
 
 internal sealed class PriceWatchDetailForm : Form
 {
     private readonly Label heading = new() { AutoSize = true, UseMnemonic = false, Margin = new(0, 0, 0, 3) };
-    private readonly Label edition = new() { AutoSize = true, Margin = new(0, 0, 0, 8) };
-    private readonly Label updated = new() { AutoSize = true, Margin = new(0, 6, 0, 0) };
+    private readonly Label edition = new() { AutoSize = true, Margin = Padding.Empty };
+    private readonly Label updated = new() { AutoSize = true, Margin = new(0, 10, 0, 0) };
     private readonly Label status = new() { AutoSize = true, Margin = new(0, 4, 0, 0) };
     private readonly Label gameInfo = new() { Name = "PriceWatchGameInfo", AutoSize = true, UseMnemonic = false,
         Margin = new(0, 8, 0, 0) };
     private PriceWatchGameInfo? currentInfo;
-    private readonly Label descriptionText = new() { AutoSize = true, UseMnemonic = false, Margin = Padding.Empty };
+    private readonly Label descriptionText = new() { Name = "PriceWatchDescription", AutoSize = true, UseMnemonic = false,
+        Margin = Padding.Empty };
+    private readonly Label descriptionSource = new() { Name = "PriceWatchDescriptionSource", AutoSize = true,
+        UseMnemonic = false, Margin = new(0, 3, 0, 0) };
     private readonly TableLayoutPanel header = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2,
-        Padding = new(10), Margin = Padding.Empty };
+        Padding = new(16, 12, 16, 12), Margin = Padding.Empty };
     private readonly TableLayoutPanel about = new() { Name = "PriceWatchAbout", Dock = DockStyle.Top, AutoSize = true,
-        ColumnCount = 1, Margin = new(0, 8, 0, 0) };
-    private readonly Panel cover = new() { Size = new(48, 66), Margin = new(0, 0, 10, 0) };
+        ColumnCount = 1, Margin = new(0, 12, 0, 0) };
+    private readonly PriceWatchCover cover = new() { Name = "PriceWatchCover", Size = new(120, 170), Margin = new(0, 0, 18, 0) };
     private readonly TableLayoutPanel offers = new() { Name = "PriceWatchOffers", Dock = DockStyle.Top,
-        AutoSize = true, ColumnCount = 3, Margin = new(0, 8, 0, 0) };
+        AutoSize = true, ColumnCount = 3, Margin = new(0, 12, 0, 0) };
     private readonly Panel scroll = new() { Dock = DockStyle.Fill, AutoScroll = true };
     private readonly TableLayoutPanel content = new() { Dock = DockStyle.Top, AutoSize = true,
-        ColumnCount = 1, Padding = new(14) };
+        ColumnCount = 1, Padding = new(20, 16, 20, 4) };
     private readonly FlowLayoutPanel actions = new() { Dock = DockStyle.Top, AutoSize = true, Margin = new(0, 10, 0, 0) };
     private readonly Button chromeClose = new() { Name = "PriceWatchChromeClose", Text = "×", UseMnemonic = false };
     private readonly bool shopLinksEnabled;
@@ -30,16 +34,25 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly string language;
     private readonly CultureInfo culture;
     private readonly Color accent, muted, stripe, foreground;
-    private readonly Font titleFont, columnFont, offerInfoFont;
+    private Font bodyFont, titleFont, columnFont, offerInfoFont;
     private readonly Color chromeBackground, chromeBorder;
+    private readonly AppSettingsStore? sizeSettings;
+    private readonly bool sizeLocked;
+    private bool scaleContents;
+    private bool sizing;
     private Size resizeStart;
-    private bool userSized;
+    private double layoutScale = 1;
+    private (int Width, int Dpi) lastLayout;
 
     internal PriceWatchDetailForm(PriceWatchEntry entry, string mode, string language, SystemWidgetStyle style,
-        Func<Task> refresh, Func<bool> remove, string? description = null,
+        Func<Task> refresh, Func<bool> remove,
         bool shopLinksEnabled = false, Action<Uri>? openLink = null, PriceWatchGameInfo? info = null,
-        Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false)
+        Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false,
+        PriceWatchDescription? description = null, PriceWatchCoverSource? coverSource = null,
+        AppSettingsStore? sizeSettings = null, bool sizeLocked = false)
     {
+        this.sizeSettings = sizeSettings;
+        this.sizeLocked = sizeLocked;
         this.language = language;
         this.shopLinksEnabled = shopLinksEnabled;
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
@@ -52,7 +65,7 @@ internal sealed class PriceWatchDetailForm : Form
         SetStyle(ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
         AutoScaleDimensions = new(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
-        ClientSize = new(440, 245);
+        ClientSize = new(PriceWatchDetailSize.StandardWidth, PriceWatchDetailSize.StandardHeight);
         MinimumSize = new(300, 150);
         var dark = NotesDialogStyle.ResolveDarkMode();
         var palette = PriceWatchWidgetRenderer.ContentColors(dark, style);
@@ -62,35 +75,52 @@ internal sealed class PriceWatchDetailForm : Form
         foreground = palette.Text;
         chromeBackground = AppTheme.PanelBackground(dark);
         chromeBorder = style == SystemWidgetStyle.Minimal ? AppTheme.Border(dark) : accent;
-        titleFont = new Font("Segoe UI Semibold", 13f, FontStyle.Bold);
-        columnFont = new Font("Segoe UI", 9f, FontStyle.Bold);
-        offerInfoFont = new Font("Segoe UI", 8.5f);
+        bodyFont = new Font("Segoe UI", 11.25f);
+        titleFont = new Font("Segoe UI Semibold", 16.5f);
+        columnFont = new Font("Segoe UI", 11.25f, FontStyle.Bold);
+        offerInfoFont = new Font("Segoe UI", 10.5f);
         content.ColumnStyles.Add(new(SizeType.Percent, 100));
         header.ColumnStyles.Add(new(SizeType.AutoSize));
         header.ColumnStyles.Add(new(SizeType.Percent, 100));
         header.Controls.Add(cover, 0, 0);
-        header.SetRowSpan(cover, 2);
-        header.Controls.Add(heading, 1, 0);
-        header.Controls.Add(edition, 1, 1);
+        var gameHeader = new TableLayoutPanel { AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            ColumnCount = 1, Margin = Padding.Empty };
+        gameHeader.ColumnStyles.Add(new(SizeType.Percent, 100));
+        gameHeader.Controls.Add(heading, 0, 0);
+        gameHeader.Controls.Add(edition, 0, 1);
+        gameHeader.Controls.Add(gameInfo, 0, 2);
+        header.Controls.Add(gameHeader, 1, 0);
         header.Paint += (_, e) => DrawHeader(e.Graphics, dark, style);
-        cover.Paint += (_, e) => PriceWatchWidgetRenderer.DrawCoverPlaceholder(e.Graphics,
-            new RectangleF(1, 1, Math.Max(1, cover.Width - 2), Math.Max(1, cover.Height - 2)), dark, muted);
+        cover.Paint += (_, e) =>
+        {
+            if (!cover.HasImage)
+                PriceWatchWidgetRenderer.DrawCoverPlaceholder(e.Graphics,
+                    new RectangleF(1, 1, Math.Max(1, cover.Width - 2), Math.Max(1, cover.Height - 2)), dark, muted);
+        };
+        if (coverSource != null) Shown += async (_, _) => await cover.LoadAsync(coverSource);
+        FormClosed += (_, _) => cover.CancelLoad();
         content.Controls.Add(header, 0, 0);
-        content.Controls.Add(gameInfo, 0, 1);
         about.ColumnStyles.Add(new(SizeType.Percent, 100));
-        var aboutHeading = new Label { AutoSize = true, Text = T("PriceWatchAboutGame"), Margin = new(0, 0, 0, 3) };
+        var aboutHeading = new Label { AutoSize = true, Text = T("PriceWatchAboutGame"), Margin = new(0, 0, 0, 6) };
         about.Controls.Add(aboutHeading, 0, 0);
         about.Controls.Add(descriptionText, 0, 1);
-        descriptionText.Text = description ?? "";
-        about.Visible = !string.IsNullOrWhiteSpace(description);
-        content.Controls.Add(about, 0, 2);
+        about.Controls.Add(descriptionSource, 0, 2);
+        if (description != null)
+        {
+            descriptionText.Text = description.Text;
+            descriptionSource.Text = string.Format(culture, T("PriceWatchDescriptionSource"), description.Source);
+            if (description.IsBaseGameFallback)
+                aboutHeading.Text += $" · {T("PriceWatchBaseGameDescription")}";
+        }
+        about.Visible = description != null;
+        content.Controls.Add(about, 0, 1);
         offers.ColumnStyles.Add(new(SizeType.Percent, 38));
         offers.ColumnStyles.Add(new(SizeType.Percent, 35));
         offers.ColumnStyles.Add(new(SizeType.Percent, 27));
-        content.Controls.Add(offers, 0, 3);
+        content.Controls.Add(offers, 0, 2);
         // A history section can be placed after the offers when a chart is available.
-        content.Controls.Add(updated, 0, 4);
-        content.Controls.Add(status, 0, 5);
+        content.Controls.Add(updated, 0, 3);
+        content.Controls.Add(status, 0, 4);
         var fetch = new Button { Text = T("PriceWatchRefresh"), AutoSize = true };
         var delete = new Button { Text = T("PriceWatchRemove"), AutoSize = true };
         var close = new Button { Text = T("AboutClose"), AutoSize = true, DialogResult = DialogResult.Cancel };
@@ -102,10 +132,10 @@ internal sealed class PriceWatchDetailForm : Form
         foreach (Button button in actions.Controls)
         {
             button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            button.Margin = new Padding(0, 0, 4, 4);
-            button.Padding = new Padding(5, 0, 5, 0);
+            button.Margin = new Padding(0, 0, 8, 6);
+            button.Padding = new Padding(10, 4, 10, 4);
         }
-        content.Controls.Add(actions, 0, 6);
+        content.Controls.Add(actions, 0, 5);
         scroll.Controls.Add(content);
         Controls.Add(scroll);
         scroll.TabIndex = 1;
@@ -115,12 +145,16 @@ internal sealed class PriceWatchDetailForm : Form
         CancelButton = close;
         ConfigureChrome();
         NotesDialogStyle.Apply(this, style, dark);
+        Font = bodyFont;
         heading.Font = titleFont;
-        heading.BackColor = edition.BackColor = cover.BackColor = Color.Transparent;
+        gameHeader.BackColor = gameInfo.BackColor = heading.BackColor = edition.BackColor = cover.BackColor = Color.Transparent;
         heading.ForeColor = foreground;
         edition.ForeColor = accent;
         aboutHeading.Font = columnFont;
         aboutHeading.ForeColor = accent;
+        descriptionText.ForeColor = foreground;
+        descriptionSource.ForeColor = muted;
+        descriptionSource.Font = updated.Font = offerInfoFont;
         updated.ForeColor = muted;
         delete.Click += (_, _) =>
         {
@@ -161,7 +195,7 @@ internal sealed class PriceWatchDetailForm : Form
     {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
         using var shape = WidgetDrawing.RoundedRectangle(new(2, 2,
-            Math.Max(1, header.Width - 4), Math.Max(1, header.Height - 4)), 8 * DeviceDpi / 96f);
+            Math.Max(1, header.Width - 4), Math.Max(1, header.Height - 4)), LayoutPixels(8));
         using var fill = new SolidBrush(AppTheme.PanelBackground(dark));
         using var border = new Pen(style == SystemWidgetStyle.Minimal ? AppTheme.Border(dark) : accent);
         if (style == SystemWidgetStyle.Glow)
@@ -235,7 +269,6 @@ internal sealed class PriceWatchDetailForm : Form
     {
         status.Text = message;
         status.Visible = message.Length != 0;
-        if (Visible) FitToMonitor(fitContents: !userSized);
     }
 
     private void AddRow(string shop, string price, string discount, Color background, Uri? offerUrl = null)
@@ -262,7 +295,7 @@ internal sealed class PriceWatchDetailForm : Form
             cell.AutoSize = true;
             cell.Dock = DockStyle.Fill;
             cell.Margin = Padding.Empty;
-            cell.Padding = new(5, 4, 5, 4);
+            cell.Padding = OfferPadding(false);
             cell.Font = row == 0 ? columnFont : Font;
             cell.ForeColor = row == 0 ? accent : foreground;
             cell.BackColor = background;
@@ -286,7 +319,7 @@ internal sealed class PriceWatchDetailForm : Form
         var info = new Label
         {
             Name = "PriceWatchOfferInfo", AutoSize = true, UseMnemonic = false, Dock = DockStyle.Fill,
-            Text = text, Margin = Padding.Empty, Padding = new(13, 0, 5, 6),
+            Text = text, Margin = Padding.Empty, Padding = OfferPadding(true),
             Font = offerInfoFont, ForeColor = muted, BackColor = background,
             MaximumSize = new(AvailableContentWidth, 0)
         };
@@ -299,20 +332,106 @@ internal sealed class PriceWatchDetailForm : Form
     private void FitText()
     {
         int width = AvailableContentWidth;
-        heading.MaximumSize = edition.MaximumSize = new(Math.Max(1, width - header.Padding.Horizontal
+        heading.MaximumSize = edition.MaximumSize = gameInfo.MaximumSize = new(Math.Max(1, width - header.Padding.Horizontal
             - cover.Width - cover.Margin.Horizontal), 0);
-        gameInfo.MaximumSize = descriptionText.MaximumSize = status.MaximumSize = updated.MaximumSize = new(width, 0);
+        descriptionText.MaximumSize = status.MaximumSize = updated.MaximumSize = new(width, 0);
+        descriptionSource.MaximumSize = new(width, 0);
+        about.Controls[0].MaximumSize = new(width, 0);
         foreach (Control cell in offers.Controls)
             if (cell.Name == "PriceWatchOfferInfo") cell.MaximumSize = new(width, 0);
         actions.MaximumSize = new(width, 0);
     }
 
     private int ChromePixels(int logical) => Math.Max(1, logical * DeviceDpi / 96);
+    private int LayoutPixels(int logical) => Math.Max(1, (int)Math.Round(logical * layoutScale * DeviceDpi / 96));
+
+    private Padding OfferPadding(bool metadata) => metadata
+        ? new(LayoutPixels(16), 0, LayoutPixels(8), LayoutPixels(8))
+        : new(LayoutPixels(8), LayoutPixels(5), LayoutPixels(8), LayoutPixels(5));
+
+    protected override void OnClientSizeChanged(EventArgs e)
+    {
+        base.OnClientSizeChanged(e);
+        if (scaleContents) ApplyContentScale();
+    }
+
+    private void ApplyContentScale()
+    {
+        if (lastLayout == (ClientSize.Width, DeviceDpi)) return;
+        lastLayout = (ClientSize.Width, DeviceDpi);
+        layoutScale = Math.Clamp(PriceWatchDetailSize.ToLogical(ClientSize.Width, DeviceDpi)
+            / (double)PriceWatchDetailSize.StandardWidth, 0.65, 1.65);
+        SuspendLayout();
+        scroll.SuspendLayout();
+        content.SuspendLayout();
+        header.SuspendLayout();
+        about.SuspendLayout();
+        offers.SuspendLayout();
+        actions.SuspendLayout();
+        try
+        {
+            ApplyFonts();
+            content.Padding = new(LayoutPixels(20), LayoutPixels(16), LayoutPixels(20), LayoutPixels(4));
+            header.Padding = new(LayoutPixels(16), LayoutPixels(12), LayoutPixels(16), LayoutPixels(12));
+            cover.Size = new(LayoutPixels(120), LayoutPixels(170));
+            cover.Margin = new(0, 0, LayoutPixels(18), 0);
+            heading.Margin = new(0, 0, 0, LayoutPixels(3));
+            descriptionSource.Margin = new(0, LayoutPixels(3), 0, 0);
+            gameInfo.Margin = new(0, LayoutPixels(8), 0, 0);
+            about.Margin = new(0, LayoutPixels(12), 0, 0);
+            about.Controls[0].Margin = new(0, 0, 0, LayoutPixels(6));
+            offers.Margin = new(0, LayoutPixels(12), 0, 0);
+            updated.Margin = new(0, LayoutPixels(10), 0, 0);
+            status.Margin = new(0, LayoutPixels(4), 0, 0);
+            actions.Margin = new(0, LayoutPixels(10), 0, 0);
+            foreach (Button button in actions.Controls)
+            {
+                button.Margin = new(0, 0, LayoutPixels(8), LayoutPixels(6));
+                button.Padding = new(LayoutPixels(10), LayoutPixels(4), LayoutPixels(10), LayoutPixels(4));
+            }
+            foreach (Control cell in offers.Controls)
+                cell.Padding = OfferPadding(cell.Name == "PriceWatchOfferInfo");
+            ConfigureChrome();
+        }
+        finally
+        {
+            actions.ResumeLayout();
+            offers.ResumeLayout();
+            about.ResumeLayout();
+            header.ResumeLayout();
+            content.ResumeLayout();
+            scroll.ResumeLayout();
+            ResumeLayout();
+        }
+        FitText();
+    }
+
+    private void ApplyFonts()
+    {
+        float Points(double baseline, double minimum, double maximum) =>
+            (float)(Math.Round(Math.Clamp(baseline * layoutScale, minimum, maximum) * 4) / 4);
+        float body = Points(11.25, 9, 17), title = Points(16.5, 13, 25), small = Points(10.5, 8.5, 16);
+        if (bodyFont.SizeInPoints == body && titleFont.SizeInPoints == title && offerInfoFont.SizeInPoints == small)
+            return;
+        Font[] previous = [bodyFont, titleFont, columnFont, offerInfoFont];
+        bodyFont = new("Segoe UI", body);
+        titleFont = new("Segoe UI Semibold", title, FontStyle.Bold);
+        columnFont = new("Segoe UI", body, FontStyle.Bold);
+        offerInfoFont = new("Segoe UI", small);
+        Font = bodyFont;
+        heading.Font = titleFont;
+        about.Controls[0].Font = columnFont;
+        descriptionSource.Font = updated.Font = offerInfoFont;
+        foreach (Control cell in offers.Controls)
+            cell.Font = cell.Name == "PriceWatchOfferInfo" ? offerInfoFont
+                : offers.GetRow(cell) == 0 ? columnFont : bodyFont;
+        foreach (Font font in previous) font.Dispose();
+    }
 
     private void ConfigureChrome()
     {
         int edge = ChromePixels(6);
-        Padding = new(edge, ChromePixels(35), edge, edge);
+        Padding = new(edge, Math.Max(ChromePixels(29), LayoutPixels(35)), edge, edge);
         PerformLayout();
         Invalidate();
     }
@@ -322,8 +441,8 @@ internal sealed class PriceWatchDetailForm : Form
         base.OnLayout(e);
         if (chromeClose == null) return;
         int edge = ChromePixels(6);
-        int width = ChromePixels(30);
-        var bounds = new Rectangle(Math.Max(edge, ClientSize.Width - edge - width), edge, width, ChromePixels(23));
+        int width = Math.Max(ChromePixels(27), LayoutPixels(30));
+        var bounds = new Rectangle(Math.Max(edge, ClientSize.Width - edge - width), edge, width, Padding.Top - 2 * edge);
         if (chromeClose.Bounds != bounds) chromeClose.Bounds = bounds;
     }
 
@@ -333,7 +452,7 @@ internal sealed class PriceWatchDetailForm : Form
         {
             const int thickFrame = 0x00040000;
             var parameters = base.CreateParams;
-            parameters.Style |= thickFrame;
+            parameters.Style = sizeLocked ? parameters.Style & ~thickFrame : parameters.Style | thickFrame;
             return parameters;
         }
     }
@@ -344,6 +463,22 @@ internal sealed class PriceWatchDetailForm : Form
         const int hitTest = 0x0084;
         const int paintNonClient = 0x0085;
         const int activateNonClient = 0x0086;
+        const int sizeWindow = 0x0214;
+        if (message.Msg == sizeWindow && message.WParam.ToInt64() is >= 1 and <= 8 && message.LParam != IntPtr.Zero)
+        {
+            int edge = message.WParam.ToInt32();
+            var native = Marshal.PtrToStructure<NativeRectangle>(message.LParam);
+            var proposed = Rectangle.FromLTRB(native.Left, native.Top, native.Right, native.Bottom);
+            var resized = sizeLocked ? Bounds
+                : PriceWatchDetailSize.Resize(proposed, edge, DeviceDpi, Screen.FromRectangle(Bounds).WorkingArea);
+            Marshal.StructureToPtr(new NativeRectangle
+            {
+                Left = resized.Left, Top = resized.Top, Right = resized.Right, Bottom = resized.Bottom
+            }, message.LParam, false);
+            sizing = !sizeLocked;
+            message.Result = new IntPtr(1);
+            return;
+        }
         if (message.Msg is calculateClientArea or paintNonClient)
         {
             // The entire frame is painted by the client while Windows handles sizing.
@@ -354,7 +489,7 @@ internal sealed class PriceWatchDetailForm : Form
         {
             long coordinates = message.LParam.ToInt64();
             Point local = PointToClient(new Point((short)coordinates, (short)(coordinates >> 16)));
-            message.Result = HitZone(ClientSize, local, ChromePixels(6), Padding.Top, chromeClose.Bounds);
+            message.Result = HitZone(ClientSize, local, sizeLocked ? 0 : ChromePixels(6), Padding.Top, chromeClose.Bounds);
             return;
         }
         if (message.Msg == activateNonClient)
@@ -363,6 +498,12 @@ internal sealed class PriceWatchDetailForm : Form
             message.LParam = new IntPtr(-1);
         }
         base.WndProc(ref message);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRectangle
+    {
+        internal int Left, Top, Right, Bottom;
     }
 
     internal static int HitZone(Size area, Point point, int edge, int captionHeight, Rectangle closeButton)
@@ -397,47 +538,46 @@ internal sealed class PriceWatchDetailForm : Form
 
     protected override void OnShown(EventArgs e)
     {
+        int logicalWidth = sizeSettings?.LoadPriceWatchDetailWidth() is int saved && PriceWatchDetailSize.IsValidWidth(saved)
+            ? saved : PriceWatchDetailSize.StandardWidth;
+        FitToMonitor(logicalWidth * DeviceDpi / 96d, center: true);
+        scaleContents = true;
+        ApplyContentScale();
         base.OnShown(e);
-        FitToMonitor(fitContents: true, fitActions: true);
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
         base.OnDpiChanged(e);
-        ConfigureChrome();
-        FitToMonitor(fitContents: false);
+        FitToMonitor(e.SuggestedRectangle.Width);
+        ApplyContentScale();
     }
 
     protected override void OnResizeBegin(EventArgs e)
     {
         resizeStart = Size;
+        sizing = false;
         base.OnResizeBegin(e);
     }
 
     protected override void OnResizeEnd(EventArgs e)
     {
-        userSized |= Size != resizeStart;
-        FitToMonitor(fitContents: false);
+        FitToMonitor(Width);
+        int logicalWidth = PriceWatchDetailSize.ToLogical(Width, DeviceDpi);
+        if (sizing && Size != resizeStart && PriceWatchDetailSize.IsValidWidth(logicalWidth))
+            sizeSettings?.SavePriceWatchDetailWidth(logicalWidth);
+        sizing = false;
         base.OnResizeEnd(e);
     }
 
-    private void FitToMonitor(bool fitContents, bool fitActions = false)
+    private void FitToMonitor(double width, bool center = false)
     {
         var area = Screen.FromRectangle(Bounds).WorkingArea;
-        MinimumSize = new(Math.Min(ChromePixels(300), area.Width), Math.Min(ChromePixels(150), area.Height));
-        int width = Width;
-        if (fitActions)
-        {
-            int buttonRow = actions.Controls.Cast<Button>().Sum(button => button.GetPreferredSize(Size.Empty).Width
-                + button.Margin.Horizontal);
-            width = Math.Max(width, buttonRow + Padding.Horizontal + content.Padding.Horizontal
-                + SystemInformation.VerticalScrollBarWidth + Width - ClientSize.Width);
-        }
-        Width = Math.Min(width, area.Width);
-        FitText();
-        content.PerformLayout();
-        if (fitContents) Height = content.Height + Padding.Vertical + Height - ClientSize.Height;
-        Bounds = FitBounds(Bounds, area);
+        MinimumSize = PriceWatchDetailSize.Constrain(0, DeviceDpi, area.Size);
+        Size size = PriceWatchDetailSize.Constrain(width, DeviceDpi, area.Size);
+        Point location = center ? new(Left + (Width - size.Width) / 2, Top + (Height - size.Height) / 2) : Location;
+        var bounds = FitBounds(new(location, size), area);
+        if (Bounds != bounds) Bounds = bounds;
     }
 
     internal static Rectangle FitBounds(Rectangle bounds, Rectangle area)
@@ -455,6 +595,7 @@ internal sealed class PriceWatchDetailForm : Form
             titleFont.Dispose();
             columnFont.Dispose();
             offerInfoFont.Dispose();
+            bodyFont.Dispose();
         }
     }
 

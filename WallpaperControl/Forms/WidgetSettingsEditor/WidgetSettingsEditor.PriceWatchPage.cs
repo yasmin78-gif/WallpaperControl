@@ -3,6 +3,7 @@ namespace WallpaperControl;
 internal sealed partial class WidgetSettingsEditor
 {
     private readonly CheckBox priceWatchEnabled = new(), priceWatchLocked = new(), priceWatchLive = new();
+    private readonly CheckBox priceWatchDetailSizeLocked = new() { Name = "PriceWatchDetailSizeLocked" };
     private readonly ComboBox priceWatchStyle = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 280 };
 
     private void InitializePriceWatchPage(TabPage page)
@@ -17,6 +18,7 @@ internal sealed partial class WidgetSettingsEditor
         AddWallpaperInfoControl(layout, new Label { Font = CreateOwnedFont("Segoe UI", 12, FontStyle.Bold) }, "PriceWatchTitle");
         AddWallpaperInfoControl(layout, priceWatchEnabled, "PriceWatchEnabled");
         AddWallpaperInfoControl(layout, priceWatchLocked, "SettingsWidgetLocked");
+        AddWallpaperInfoControl(layout, priceWatchDetailSizeLocked, "PriceWatchDetailSizeLocked");
         AddWallpaperInfoControl(layout, new Label(), "SettingsSystemStyle");
         layout.Controls.Add(priceWatchStyle);
         AddWallpaperInfoControl(layout, priceWatchLive, "PriceWatchOptIn");
@@ -37,6 +39,7 @@ internal sealed partial class WidgetSettingsEditor
         LoadPriceWatchControls(initialWidgetSettings);
         priceWatchEnabled.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
         priceWatchLocked.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+        priceWatchDetailSizeLocked.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
         priceWatchStyle.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
         priceWatchLive.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
     }
@@ -45,6 +48,7 @@ internal sealed partial class WidgetSettingsEditor
     {
         priceWatchEnabled.Checked = value.PriceWatch.Enabled;
         priceWatchLocked.Checked = value.PriceWatch.Locked;
+        priceWatchDetailSizeLocked.Checked = value.PriceWatch.DetailSizeLocked;
         priceWatchLive.Checked = value.PriceWatch.Live;
         RefreshWidgetStyleChoices(priceWatchStyle, value.PriceWatch.Style);
     }

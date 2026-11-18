@@ -6,6 +6,7 @@ internal sealed class PriceWatchWidgetSettings
 {
     public bool Enabled { get; set; }
     public bool Locked { get; set; }
+    public bool DetailSizeLocked { get; set; }
     public bool Live { get; set; }
     public SystemWidgetStyle Style { get; set; }
     public Point Location { get; set; } = new(35, 330);
