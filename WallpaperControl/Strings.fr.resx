@@ -1960,4 +1960,9 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Description du jeu de base</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Verrouiller la taille de la fenêtre de détails</value></data>
   <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Image de couverture : IsThereAnyDeal</value></data>
+  <data name="PriceWatchLimitReached" xml:space="preserve"><value>La liste peut contenir au maximum {0} jeux. Retirez d’abord un jeu.</value></data>
+  <data name="PriceWatchTarget" xml:space="preserve"><value>Prix souhaité (€)</value></data>
+  <data name="PriceWatchTargetSave" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Saisissez un montant en euros valide avec deux décimales au maximum.</value></data>
+  <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Souhait : {0} €</value></data>
 </root>

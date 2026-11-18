@@ -1960,4 +1960,9 @@ Would you like to open the release page?</value>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Base game description</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Lock detail window size</value></data>
   <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Cover: IsThereAnyDeal</value></data>
+  <data name="PriceWatchLimitReached" xml:space="preserve"><value>The watchlist can contain at most {0} games. Remove a game first.</value></data>
+  <data name="PriceWatchTarget" xml:space="preserve"><value>Target price (€)</value></data>
+  <data name="PriceWatchTargetSave" xml:space="preserve"><value>Save</value></data>
+  <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Enter a valid euro amount with at most two decimal places.</value></data>
+  <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Target: {0} €</value></data>
 </root>

@@ -2,8 +2,8 @@ namespace WallpaperControl;
 
 internal sealed class PriceWatchItadCovers : IDisposable
 {
-    private const int MaxEntries = 8;
-    private const long MaxCacheBytes = 16 * 1024 * 1024;
+    private const int MaxEntries = 24;
+    private const long MaxCacheBytes = 48 * 1024 * 1024;
     private readonly object gate = new();
     private readonly HttpClient http;
     private readonly CancellationTokenSource shutdown = new();

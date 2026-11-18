@@ -14,7 +14,9 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
     [
         new(new("10000000-0000-4000-8000-000000000004"), "PriceWatch Demo – English", "game"),
         new(new("10000000-0000-4000-8000-000000000005"), "PriceWatch Demo – Langer Text", "game"),
-        new(new("10000000-0000-4000-8000-000000000006"), "PriceWatch Demo – Edition ohne Zuordnung", "package")
+        new(new("10000000-0000-4000-8000-000000000006"), "PriceWatch Demo – Edition ohne Zuordnung", "package"),
+        new(new("10000000-0000-4000-8000-000000000007"), "Duke Nukem 3D: 20th Anniversary World Tour", "game"),
+        new(new("10000000-0000-4000-8000-000000000008"), "Baldur's Gate 3", "game")
     ];
 
     private static readonly PriceWatchCoverSource LocalCover = new(token =>
@@ -81,7 +83,7 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
     {
         token.ThrowIfCancellationRequested();
         var now = DateTimeOffset.UtcNow;
-        if (!Games.Any(game => game.Id == id))
+        if (!Games.Concat(DetailExamples).Any(game => game.Id == id))
             return Task.FromResult(new PriceWatchReply<PriceWatchPrices[]>(now, []));
         decimal regular = id == Games[1].Id ? 80m : 40m;
         return Task.FromResult(new PriceWatchReply<PriceWatchPrices[]>(now, [new(id,

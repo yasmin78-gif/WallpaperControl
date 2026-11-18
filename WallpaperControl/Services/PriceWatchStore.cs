@@ -3,10 +3,12 @@ using Microsoft.Data.Sqlite;
 
 namespace WallpaperControl;
 
-internal sealed record PriceWatchEntry(PriceWatchGame Game, PriceWatchReply<PriceWatchPrices[]>? Snapshot);
+internal sealed record PriceWatchEntry(PriceWatchGame Game, PriceWatchReply<PriceWatchPrices[]>? Snapshot, int? TargetCents = null);
+internal sealed class PriceWatchLimitException : Exception;
 
 internal sealed class PriceWatchStore(string path)
 {
+    internal const int MaximumGames = 20;
     internal static string DefaultPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "WallpaperControl", "PriceWatch", "watchlist.sqlite");
@@ -34,7 +36,11 @@ internal sealed class PriceWatchStore(string path)
     {
         using var connection = Open();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT id, title, kind, snapshot FROM watched WHERE live = $mode ORDER BY rowid";
+        command.CommandText = """
+            SELECT w.id, w.title, w.kind, w.snapshot, t.cents FROM watched w
+            LEFT JOIN target_prices t ON t.live = w.live AND t.id = w.id
+            WHERE w.live = $mode ORDER BY w.rowid
+            """;
         command.Parameters.AddWithValue("$mode", live);
         using var reader = command.ExecuteReader();
         var entries = new List<PriceWatchEntry>();
@@ -44,7 +50,7 @@ internal sealed class PriceWatchStore(string path)
                 reader.IsDBNull(2) ? null : reader.GetString(2));
             var snapshot = reader.IsDBNull(3) ? null :
                 JsonSerializer.Deserialize<PriceWatchReply<PriceWatchPrices[]>>(reader.GetString(3));
-            entries.Add(new(game, snapshot));
+            entries.Add(new(game, snapshot, reader.IsDBNull(4) ? null : reader.GetInt32(4)));
         }
         return entries.ToArray();
     }
@@ -52,7 +58,24 @@ internal sealed class PriceWatchStore(string path)
     internal bool Add(bool live, PriceWatchGame game)
     {
         using var connection = Open();
-        return Insert(connection, null, live, game);
+        using var transaction = connection.BeginTransaction();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SELECT COUNT(*), COALESCE(SUM(id = $id), 0) FROM watched WHERE live = $mode";
+        BindKey(command, live, game.Id);
+        bool duplicate;
+        long count;
+        using (var reader = command.ExecuteReader())
+        {
+            reader.Read();
+            count = reader.GetInt64(0);
+            duplicate = reader.GetInt64(1) != 0;
+        }
+        if (duplicate) return false;
+        if (count >= MaximumGames) throw new PriceWatchLimitException();
+        bool inserted = Insert(connection, transaction, live, game);
+        transaction.Commit();
+        return inserted;
     }
 
     private static bool Insert(SqliteConnection connection, SqliteTransaction? transaction, bool live, PriceWatchGame game)
@@ -76,6 +99,23 @@ internal sealed class PriceWatchStore(string path)
         command.CommandText = "DELETE FROM watched WHERE live = $mode AND id = $id";
         BindKey(command, live, id);
         command.ExecuteNonQuery();
+    }
+
+    internal bool SaveTarget(bool live, Guid id, int? cents)
+    {
+        if (cents < 0) throw new ArgumentOutOfRangeException(nameof(cents));
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        BindKey(command, live, id);
+        command.CommandText = cents == null
+            ? "DELETE FROM target_prices WHERE live = $mode AND id = $id"
+            : """
+                INSERT INTO target_prices (live, id, cents)
+                SELECT live, id, $cents FROM watched WHERE live = $mode AND id = $id
+                ON CONFLICT (live, id) DO UPDATE SET cents = excluded.cents
+                """;
+        if (cents != null) command.Parameters.AddWithValue("$cents", cents.Value);
+        return command.ExecuteNonQuery() != 0;
     }
 
     internal bool SaveSnapshot(bool live, Guid id, PriceWatchReply<PriceWatchPrices[]> snapshot)
@@ -153,6 +193,10 @@ internal sealed class PriceWatchStore(string path)
                         PRIMARY KEY (live, id), FOREIGN KEY (live, id) REFERENCES watched (live, id) ON DELETE CASCADE
                     );
                     CREATE TABLE IF NOT EXISTS migration (name TEXT PRIMARY KEY);
+                    CREATE TABLE IF NOT EXISTS target_prices (
+                        live INTEGER NOT NULL, id TEXT NOT NULL, cents INTEGER NOT NULL CHECK (cents >= 0),
+                        PRIMARY KEY (live, id), FOREIGN KEY (live, id) REFERENCES watched (live, id) ON DELETE CASCADE
+                    );
                     """;
                 command.ExecuteNonQuery();
                 initialized = true;
