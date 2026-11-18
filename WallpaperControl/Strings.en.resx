@@ -1959,4 +1959,5 @@ Would you like to open the release page?</value>
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Source: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Base game description</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Lock detail window size</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Cover: IsThereAnyDeal</value></data>
 </root>

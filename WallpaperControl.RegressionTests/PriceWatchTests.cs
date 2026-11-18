@@ -17,11 +17,95 @@ internal static class PriceWatchTests
     {
         RunClient(check).GetAwaiter().GetResult();
         CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
+        CheckItadCovers(check).GetAwaiter().GetResult();
 #if DEBUG
         App.Localization.Initialize();
         check(true, "startup localization audit passes for all supported languages");
 #endif
         CheckStorageAndLayout(check);
+    }
+
+    private static async Task CheckItadCovers(Action<bool, string> check)
+    {
+        Uri Url(int id) => new($"https://assets.isthereanydeal.com/fixture/boxart.png?t={id}");
+        using var native = App.PriceWatchItadCovers.CreateHandler();
+        check(!native.AllowAutoRedirect && !native.UseCookies && !native.UseDefaultCredentials
+            && native.Credentials == null, "CDN transport disables redirects, cookies and credentials");
+        check(App.PriceWatchItadCovers.IsAllowed(Url(1))
+            && new[] { "http://assets.isthereanydeal.com/a", "https://assets.isthereanydeal.com.evil.test/a",
+                "https://assets.isthereanydeal.com:444/a", "https://user@assets.isthereanydeal.com/a",
+                "https://example.invalid/a", "file:///C:/cover.png", "https://assets.isthereanydeal.com/a#fragment" }
+                .All(value => !App.PriceWatchItadCovers.IsAllowed(new(value))),
+            "CDN validation permits only the exact HTTPS host without credentials or custom port");
+        using var handler = new CoverHandler();
+        using var covers = new App.PriceWatchItadCovers(handler);
+        using var first = await covers.LoadAsync(Url(1), default);
+        using var second = await covers.LoadAsync(Url(1), default);
+        check(first != null && second != null && handler.Calls == 1 && handler.Safe,
+            "successful covers reopen from RAM without authorization headers");
+        for (int id = 2; id <= 9; id++)
+        {
+            using var image = await covers.LoadAsync(Url(id), default);
+        }
+        using var evicted = await covers.LoadAsync(Url(1), default);
+        check(handler.Calls == 10, "cover RAM cache evicts the least recently used entry at eight images");
+        using var invalid = await covers.LoadAsync(new("https://example.invalid/a"), default);
+        check(handler.Calls == 10 && invalid == null, "invalid cover URLs never reach HTTP");
+        handler.Status = HttpStatusCode.Redirect;
+        using var redirect = await covers.LoadAsync(Url(10), default);
+        handler.Status = HttpStatusCode.OK;
+        handler.Bytes = [1, 2, 3];
+        using var corrupt = await covers.LoadAsync(Url(10), default);
+        handler.Bytes = CoverHandler.Png();
+        using var recovered = await covers.LoadAsync(Url(10), default);
+        check(redirect == null && corrupt == null && recovered != null && handler.Calls == 13,
+            "redirects and corrupt images retain the placeholder and are not cached");
+
+        using var delayed = new CoverHandler { Wait = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        using var shared = new App.PriceWatchItadCovers(delayed);
+        using var cancel = new CancellationTokenSource();
+        var cancelled = shared.LoadAsync(Url(1), cancel.Token);
+        var remaining = shared.LoadAsync(Url(1), default);
+        await Task.Delay(100);
+        cancel.Cancel();
+        bool stopped = false;
+        try { using var discarded = await cancelled; }
+        catch (OperationCanceledException) { stopped = true; }
+        delayed.Wait.SetResult();
+        using var result = await remaining;
+        check(stopped && result != null && delayed.Calls == 1,
+            "simultaneous CDN readers share one request and cancel independently");
+        using var pendingHandler = new CoverHandler { Wait = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        var shutdown = new App.PriceWatchItadCovers(pendingHandler);
+        var request = shutdown.LoadAsync(Url(1), default);
+        await Task.Delay(100);
+        shutdown.Dispose();
+        using var ended = await request.WaitAsync(TimeSpan.FromSeconds(5));
+        check(ended == null, "disposing the cover cache cancels active downloads");
+    }
+
+    private sealed class CoverHandler : HttpMessageHandler
+    {
+        internal int Calls;
+        internal bool Safe = true;
+        internal byte[] Bytes = Png();
+        internal HttpStatusCode Status = HttpStatusCode.OK;
+        internal TaskCompletionSource? Wait;
+        internal static byte[] Png()
+        {
+            using var image = new Bitmap(12, 17);
+            using var stream = new MemoryStream();
+            image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            return stream.ToArray();
+        }
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Interlocked.Increment(ref Calls);
+            Safe &= request.Method == HttpMethod.Get && request.Headers.Authorization == null
+                && !request.Headers.Contains("Cookie") && !request.Headers.Contains("ITAD-API-Key");
+            if (Wait != null) await Wait.Task.WaitAsync(token);
+            return new(Status) { Content = new ByteArrayContent(Bytes) };
+        }
     }
 
     private static async Task CheckOfflineCoverAndDescriptions(Action<bool, string> check)
@@ -279,6 +363,7 @@ internal static class PriceWatchTests
                 CheckSettingsDesign(check);
                 CheckGameInfoStorageAndPresentation(check);
                 CheckOfflineDetailLayout(check);
+                CheckCoverCredit(check);
                 CheckDetailSizing(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);
@@ -312,7 +397,8 @@ internal static class PriceWatchTests
                 standard.Show();
                 Application.DoEvents();
                 var cover = standard.Controls.Find("PriceWatchCover", true).Single();
-                var title = cover.Parent!.Controls.OfType<TableLayoutPanel>().Single().Controls.OfType<Label>().First();
+                var title = cover.Parent!.Parent!.Controls.OfType<TableLayoutPanel>()
+                    .Single(panel => panel != cover.Parent).Controls.OfType<Label>().First();
                 var actions = standard.Controls.Find("PriceWatchRefreshInfo", true).Single().Parent!;
                 var buttons = actions.Controls.OfType<Button>().ToArray();
                 var work = Screen.FromControl(standard).WorkingArea;
@@ -374,6 +460,49 @@ internal static class PriceWatchTests
         empty.Close();
         check(started && readStopped.Task.Wait(TimeSpan.FromSeconds(5)), "closing the detail cancels its cover read");
         Application.DoEvents();
+    }
+
+    private static void CheckCoverCredit(Action<bool, string> check)
+    {
+        using var handler = new CoverHandler();
+        using var covers = new App.PriceWatchItadCovers(handler);
+        var game = new App.PriceWatchGame(Id, "Cover fixture", "package");
+        var info = new App.PriceWatchGameInfo(Id, game.Title, null, [], [],
+            new("https://assets.isthereanydeal.com/fixture/cover.png?t=1"));
+        using var dialog = new App.PriceWatchDetailForm(new(game, null), "Live", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, info: info, itadCovers: covers) { Opacity = 0 };
+        var credit = dialog.Controls.Find("PriceWatchCoverCredit", true).Single();
+        var image = (App.PriceWatchCover)dialog.Controls.Find("PriceWatchCover", true).Single();
+        bool Pump(Func<bool> done)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            while (!done() && timer.Elapsed < TimeSpan.FromSeconds(5))
+            {
+                Application.DoEvents();
+                Thread.Sleep(5);
+            }
+            return done();
+        }
+        dialog.Show();
+        check(Pump(() => credit.Visible) && image.HasImage && credit.Text == "Cover: IsThereAnyDeal",
+            "external cover alone enables its visible source credit");
+        dialog.PresentInfo(info with { Boxart = new("https://example.invalid/cover.png") });
+        check(!credit.Visible && !image.HasImage && handler.Calls == 1,
+            "replacing a cover with an invalid URL immediately clears image and attribution");
+        handler.Status = HttpStatusCode.NotFound;
+        dialog.PresentInfo(info with { Boxart = new("https://assets.isthereanydeal.com/fixture/missing.png") });
+        check(Pump(() => handler.Calls == 2) && !credit.Visible && !image.HasImage,
+            "missing external cover keeps the local placeholder without attribution");
+        dialog.Close();
+        var offline = new App.PriceWatchGame(new("10000000-0000-4000-8000-000000000001"), "Cyberpunk 2077", "game");
+        var fixture = App.PriceWatchTestData.Details(offline);
+        using var local = new App.PriceWatchDetailForm(new(offline, null), "Testdaten", "de", App.SystemWidgetStyle.Glow,
+            () => Task.CompletedTask, () => false, info: info, coverSource: fixture.Cover) { Opacity = 0 };
+        local.Show();
+        var localCover = (App.PriceWatchCover)local.Controls.Find("PriceWatchCover", true).Single();
+        check(Pump(() => localCover.HasImage)
+            && !local.Controls.Find("PriceWatchCoverCredit", true).Single().Visible && handler.Calls == 2,
+            "offline demo cover stays local even when metadata contains an external URL");
     }
 
     private static void CheckDetailSizing(Action<bool, string> check)

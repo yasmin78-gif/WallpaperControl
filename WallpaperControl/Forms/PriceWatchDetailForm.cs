@@ -22,6 +22,8 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly TableLayoutPanel about = new() { Name = "PriceWatchAbout", Dock = DockStyle.Top, AutoSize = true,
         ColumnCount = 1, Margin = new(0, 12, 0, 0) };
     private readonly PriceWatchCover cover = new() { Name = "PriceWatchCover", Size = new(120, 170), Margin = new(0, 0, 18, 0) };
+    private readonly Label coverCredit = new() { Name = "PriceWatchCoverCredit", AutoSize = true, Visible = false,
+        UseMnemonic = false, Margin = new(0, 4, 18, 0) };
     private readonly TableLayoutPanel offers = new() { Name = "PriceWatchOffers", Dock = DockStyle.Top,
         AutoSize = true, ColumnCount = 3, Margin = new(0, 12, 0, 0) };
     private readonly Panel scroll = new() { Dock = DockStyle.Fill, AutoScroll = true };
@@ -38,6 +40,9 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly Color chromeBackground, chromeBorder;
     private readonly AppSettingsStore? sizeSettings;
     private readonly bool sizeLocked;
+    private readonly PriceWatchItadCovers? itadCovers;
+    private bool coverReady;
+    private string? displayedCoverUrl;
     private bool scaleContents;
     private bool sizing;
     private Size resizeStart;
@@ -49,10 +54,11 @@ internal sealed class PriceWatchDetailForm : Form
         bool shopLinksEnabled = false, Action<Uri>? openLink = null, PriceWatchGameInfo? info = null,
         Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false,
         PriceWatchDescription? description = null, PriceWatchCoverSource? coverSource = null,
-        AppSettingsStore? sizeSettings = null, bool sizeLocked = false)
+        AppSettingsStore? sizeSettings = null, bool sizeLocked = false, PriceWatchItadCovers? itadCovers = null)
     {
         this.sizeSettings = sizeSettings;
         this.sizeLocked = sizeLocked;
+        this.itadCovers = itadCovers;
         this.language = language;
         this.shopLinksEnabled = shopLinksEnabled;
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
@@ -82,7 +88,10 @@ internal sealed class PriceWatchDetailForm : Form
         content.ColumnStyles.Add(new(SizeType.Percent, 100));
         header.ColumnStyles.Add(new(SizeType.AutoSize));
         header.ColumnStyles.Add(new(SizeType.Percent, 100));
-        header.Controls.Add(cover, 0, 0);
+        var coverColumn = new TableLayoutPanel { AutoSize = true, ColumnCount = 1, Margin = Padding.Empty };
+        coverColumn.Controls.Add(cover, 0, 0);
+        coverColumn.Controls.Add(coverCredit, 0, 1);
+        header.Controls.Add(coverColumn, 0, 0);
         var gameHeader = new TableLayoutPanel { AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Right,
             ColumnCount = 1, Margin = Padding.Empty };
         gameHeader.ColumnStyles.Add(new(SizeType.Percent, 100));
@@ -98,7 +107,16 @@ internal sealed class PriceWatchDetailForm : Form
                     new RectangleF(1, 1, Math.Max(1, cover.Width - 2), Math.Max(1, cover.Height - 2)), dark, muted);
         };
         if (coverSource != null) Shown += async (_, _) => await cover.LoadAsync(coverSource);
-        FormClosed += (_, _) => cover.CancelLoad();
+        if (itadCovers != null) Shown += (_, _) =>
+        {
+            coverReady = true;
+            UpdateItadCover();
+        };
+        FormClosed += (_, _) =>
+        {
+            coverReady = false;
+            cover.CancelLoad();
+        };
         content.Controls.Add(header, 0, 0);
         about.ColumnStyles.Add(new(SizeType.Percent, 100));
         var aboutHeading = new Label { AutoSize = true, Text = T("PriceWatchAboutGame"), Margin = new(0, 0, 0, 6) };
@@ -148,13 +166,16 @@ internal sealed class PriceWatchDetailForm : Form
         Font = bodyFont;
         heading.Font = titleFont;
         gameHeader.BackColor = gameInfo.BackColor = heading.BackColor = edition.BackColor = cover.BackColor = Color.Transparent;
+        coverColumn.BackColor = coverCredit.BackColor = Color.Transparent;
+        coverCredit.Text = T("PriceWatchItadCoverCredit");
+        coverCredit.ForeColor = muted;
         heading.ForeColor = foreground;
         edition.ForeColor = accent;
         aboutHeading.Font = columnFont;
         aboutHeading.ForeColor = accent;
         descriptionText.ForeColor = foreground;
         descriptionSource.ForeColor = muted;
-        descriptionSource.Font = updated.Font = offerInfoFont;
+        descriptionSource.Font = updated.Font = coverCredit.Font = offerInfoFont;
         updated.ForeColor = muted;
         delete.Click += (_, _) =>
         {
@@ -256,6 +277,24 @@ internal sealed class PriceWatchDetailForm : Form
         }
         gameInfo.Visible = gameInfo.Text.Length > 0;
         SetStatus(message);
+        if (info != null && coverReady) UpdateItadCover();
+    }
+
+    private async void UpdateItadCover()
+    {
+        var url = currentInfo?.Boxart;
+        string? key = PriceWatchItadCovers.IsAllowed(url) ? url!.AbsoluteUri : null;
+        if (displayedCoverUrl == key) return;
+        displayedCoverUrl = key;
+        coverCredit.Visible = false;
+        if (key == null)
+        {
+            cover.ClearImage();
+            return;
+        }
+        if (await cover.LoadAsync(token => itadCovers!.LoadAsync(url, token))
+            && coverReady && displayedCoverUrl == key)
+            coverCredit.Visible = true;
     }
 
     private static string FormatCompanies(IEnumerable<string> names)
@@ -375,6 +414,8 @@ internal sealed class PriceWatchDetailForm : Form
             header.Padding = new(LayoutPixels(16), LayoutPixels(12), LayoutPixels(16), LayoutPixels(12));
             cover.Size = new(LayoutPixels(120), LayoutPixels(170));
             cover.Margin = new(0, 0, LayoutPixels(18), 0);
+            coverCredit.Margin = new(0, LayoutPixels(4), LayoutPixels(18), 0);
+            coverCredit.MaximumSize = new(cover.Width, 0);
             heading.Margin = new(0, 0, 0, LayoutPixels(3));
             descriptionSource.Margin = new(0, LayoutPixels(3), 0, 0);
             gameInfo.Margin = new(0, LayoutPixels(8), 0, 0);
@@ -421,7 +462,7 @@ internal sealed class PriceWatchDetailForm : Form
         Font = bodyFont;
         heading.Font = titleFont;
         about.Controls[0].Font = columnFont;
-        descriptionSource.Font = updated.Font = offerInfoFont;
+        descriptionSource.Font = updated.Font = coverCredit.Font = offerInfoFont;
         foreach (Control cell in offers.Controls)
             cell.Font = cell.Name == "PriceWatchOfferInfo" ? offerInfoFont
                 : offers.GetRow(cell) == 0 ? columnFont : bodyFont;

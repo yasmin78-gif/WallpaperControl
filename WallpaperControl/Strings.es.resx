@@ -1959,4 +1959,5 @@ Versión instalada: {0}
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Fuente: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Descripción del juego base</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Bloquear el tamaño de la ventana de detalles</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Portada: IsThereAnyDeal</value></data>
 </root>

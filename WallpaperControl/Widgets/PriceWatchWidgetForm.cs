@@ -29,6 +29,7 @@ internal sealed class PriceWatchWidgetForm : Form
     private CancellationTokenSource? active;
     private PriceWatchSearchForm? searchDialog;
     private PriceWatchDetailForm? detailDialog;
+    private PriceWatchItadCovers? itadCovers;
     private readonly HashSet<(bool Live, Guid Id)> autoInfoAttempted = [];
     private bool storageError;
     private PriceWatchException? failure;
@@ -467,7 +468,7 @@ internal sealed class PriceWatchWidgetForm : Form
                 }, shopLinksEnabled: live, openLink: openLink, info: cachedInfo?.Data,
                 refreshInfo: () => RefreshInfoAsync(live, entry.Game.Id), fetchInfoOnOpen: fetchOnOpen,
                 description: presentation.Description, coverSource: presentation.Cover, sizeSettings: new AppSettingsStore(),
-                sizeLocked: settings.DetailSizeLocked);
+                sizeLocked: settings.DetailSizeLocked, itadCovers: live ? itadCovers ??= new() : null);
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }
@@ -557,6 +558,7 @@ internal sealed class PriceWatchWidgetForm : Form
             detailDialog?.Close();
             drag.Dispose();
             tips.Dispose();
+            itadCovers?.Dispose();
         }
         base.Dispose(disposing);
     }

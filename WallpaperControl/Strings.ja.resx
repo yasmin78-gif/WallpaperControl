@@ -1931,4 +1931,5 @@
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>出典: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>本編の説明</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>詳細ウィンドウのサイズを固定</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>カバー画像: IsThereAnyDeal</value></data>
 </root>

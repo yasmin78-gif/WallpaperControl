@@ -1959,4 +1959,5 @@ Voulez-vous ouvrir la page de la version ?</value>
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Source : {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Description du jeu de base</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Verrouiller la taille de la fenêtre de détails</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Image de couverture : IsThereAnyDeal</value></data>
 </root>
