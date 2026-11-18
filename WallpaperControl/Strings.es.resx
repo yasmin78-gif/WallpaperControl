@@ -1959,4 +1959,10 @@ Versión instalada: {0}
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Fuente: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Descripción del juego base</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Bloquear el tamaño de la ventana de detalles</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Portada: IsThereAnyDeal</value></data>
+  <data name="PriceWatchLimitReached" xml:space="preserve"><value>La lista admite un máximo de {0} juegos. Elimina primero un juego.</value></data>
+  <data name="PriceWatchTarget" xml:space="preserve"><value>Precio deseado (€)</value></data>
+  <data name="PriceWatchTargetSave" xml:space="preserve"><value>Guardar</value></data>
+  <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Introduce un importe válido en euros con un máximo de dos decimales.</value></data>
+  <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Objetivo: {0} €</value></data>
 </root>

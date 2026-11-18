@@ -1931,4 +1931,10 @@
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>出典: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>本編の説明</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>詳細ウィンドウのサイズを固定</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>カバー画像: IsThereAnyDeal</value></data>
+  <data name="PriceWatchLimitReached" xml:space="preserve"><value>ウォッチリストには最大{0}件のゲームを登録できます。先にゲームを削除してください。</value></data>
+  <data name="PriceWatchTarget" xml:space="preserve"><value>希望価格 (€)</value></data>
+  <data name="PriceWatchTargetSave" xml:space="preserve"><value>保存</value></data>
+  <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>小数点以下2桁までの有効なユーロ金額を入力してください。</value></data>
+  <data name="PriceWatchTargetCaption" xml:space="preserve"><value>希望: {0} €</value></data>
 </root>

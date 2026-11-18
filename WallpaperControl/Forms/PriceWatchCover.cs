@@ -5,12 +5,18 @@ using System.Runtime.InteropServices;
 namespace WallpaperControl;
 
 // Share one instance per image source. Only overlapping reads share data.
-internal sealed class PriceWatchCoverSource(Func<CancellationToken, Task<Stream>> open)
+internal sealed class PriceWatchCoverSource(Func<CancellationToken, Task<byte[]>> read)
 {
-    private const int MaxBytes = 2 * 1024 * 1024;
+    internal const int MaxBytes = 2 * 1024 * 1024;
     private const int MaxSide = 2048;
     private readonly object gate = new();
     private ReadOperation? pending;
+
+    internal PriceWatchCoverSource(Func<CancellationToken, Task<Stream>> open) : this(async token =>
+    {
+        await using var stream = await open(token).ConfigureAwait(false);
+        return await ReadBytesAsync(stream, token).ConfigureAwait(false);
+    }) { }
 
     private sealed class ReadOperation
     {
@@ -28,7 +34,7 @@ internal sealed class PriceWatchCoverSource(Func<CancellationToken, Task<Stream>
             if (pending == null)
             {
                 var created = new ReadOperation();
-                created.Bytes = Task.Run(() => ReadAsync(created.Cancellation.Token));
+                created.Bytes = Task.Run(() => read(created.Cancellation.Token));
                 pending = created;
             }
             operation = pending;
@@ -69,9 +75,8 @@ internal sealed class PriceWatchCoverSource(Func<CancellationToken, Task<Stream>
         finally { operation.Cancellation.Dispose(); }
     }
 
-    private async Task<byte[]> ReadAsync(CancellationToken token)
+    internal static async Task<byte[]> ReadBytesAsync(Stream stream, CancellationToken token)
     {
-        await using var stream = await open(token).ConfigureAwait(false);
         using var output = new MemoryStream();
         var buffer = new byte[8192];
         int count;
@@ -127,26 +132,35 @@ internal sealed class PriceWatchCover : Panel
 
     internal bool HasImage => image != null;
 
-    internal async Task LoadAsync(PriceWatchCoverSource source)
+    internal Task<bool> LoadAsync(PriceWatchCoverSource source) => LoadAsync(source.LoadAsync);
+
+    internal async Task<bool> LoadAsync(Func<CancellationToken, Task<Bitmap?>> load)
+    {
+        ClearImage();
+        using var operation = new CancellationTokenSource();
+        loading = operation;
+        try
+        {
+            var loaded = await load(operation.Token);
+            if (operation.IsCancellationRequested || IsDisposed)
+            {
+                loaded?.Dispose();
+                return false;
+            }
+            image = loaded;
+            Invalidate();
+            return image != null;
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested) { return false; }
+        finally { if (loading == operation) loading = null; }
+    }
+
+    internal void ClearImage()
     {
         CancelLoad();
         image?.Dispose();
         image = null;
         Invalidate();
-        using var operation = new CancellationTokenSource();
-        loading = operation;
-        try
-        {
-            var loaded = await source.LoadAsync(operation.Token);
-            if (operation.IsCancellationRequested || IsDisposed) loaded?.Dispose();
-            else
-            {
-                image = loaded;
-                Invalidate();
-            }
-        }
-        catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
-        finally { if (loading == operation) loading = null; }
     }
 
     internal void CancelLoad() => loading?.Cancel();

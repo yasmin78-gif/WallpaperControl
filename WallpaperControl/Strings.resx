@@ -1959,4 +1959,10 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PriceWatchDescriptionSource" xml:space="preserve"><value>Quelle: {0}</value></data>
   <data name="PriceWatchBaseGameDescription" xml:space="preserve"><value>Beschreibung des Hauptspiels</value></data>
   <data name="PriceWatchDetailSizeLocked" xml:space="preserve"><value>Größe des Detailfensters fixieren</value></data>
+  <data name="PriceWatchItadCoverCredit" xml:space="preserve"><value>Cover: IsThereAnyDeal</value></data>
+  <data name="PriceWatchLimitReached" xml:space="preserve"><value>Die Beobachtungsliste kann maximal {0} Spiele enthalten. Entferne zuerst ein Spiel.</value></data>
+  <data name="PriceWatchTarget" xml:space="preserve"><value>Wunschpreis (€)</value></data>
+  <data name="PriceWatchTargetSave" xml:space="preserve"><value>Speichern</value></data>
+  <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Bitte einen gültigen Eurobetrag mit höchstens zwei Nachkommastellen eingeben.</value></data>
+  <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Wunsch: {0} €</value></data>
 </root>

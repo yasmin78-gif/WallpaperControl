@@ -17,11 +17,95 @@ internal static class PriceWatchTests
     {
         RunClient(check).GetAwaiter().GetResult();
         CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
+        CheckItadCovers(check).GetAwaiter().GetResult();
 #if DEBUG
         App.Localization.Initialize();
         check(true, "startup localization audit passes for all supported languages");
 #endif
         CheckStorageAndLayout(check);
+    }
+
+    private static async Task CheckItadCovers(Action<bool, string> check)
+    {
+        Uri Url(int id) => new($"https://assets.isthereanydeal.com/fixture/boxart.png?t={id}");
+        using var native = App.PriceWatchItadCovers.CreateHandler();
+        check(!native.AllowAutoRedirect && !native.UseCookies && !native.UseDefaultCredentials
+            && native.Credentials == null, "CDN transport disables redirects, cookies and credentials");
+        check(App.PriceWatchItadCovers.IsAllowed(Url(1))
+            && new[] { "http://assets.isthereanydeal.com/a", "https://assets.isthereanydeal.com.evil.test/a",
+                "https://assets.isthereanydeal.com:444/a", "https://user@assets.isthereanydeal.com/a",
+                "https://example.invalid/a", "file:///C:/cover.png", "https://assets.isthereanydeal.com/a#fragment" }
+                .All(value => !App.PriceWatchItadCovers.IsAllowed(new(value))),
+            "CDN validation permits only the exact HTTPS host without credentials or custom port");
+        using var handler = new CoverHandler();
+        using var covers = new App.PriceWatchItadCovers(handler);
+        using var first = await covers.LoadAsync(Url(1), default);
+        using var second = await covers.LoadAsync(Url(1), default);
+        check(first != null && second != null && handler.Calls == 1 && handler.Safe,
+            "successful covers reopen from RAM without authorization headers");
+        for (int id = 2; id <= 25; id++)
+        {
+            using var image = await covers.LoadAsync(Url(id), default);
+        }
+        using var evicted = await covers.LoadAsync(Url(1), default);
+        check(handler.Calls == 26, "cover RAM cache evicts the least recently used entry at 24 images");
+        using var invalid = await covers.LoadAsync(new("https://example.invalid/a"), default);
+        check(handler.Calls == 26 && invalid == null, "invalid cover URLs never reach HTTP");
+        handler.Status = HttpStatusCode.Redirect;
+        using var redirect = await covers.LoadAsync(Url(26), default);
+        handler.Status = HttpStatusCode.OK;
+        handler.Bytes = [1, 2, 3];
+        using var corrupt = await covers.LoadAsync(Url(26), default);
+        handler.Bytes = CoverHandler.Png();
+        using var recovered = await covers.LoadAsync(Url(26), default);
+        check(redirect == null && corrupt == null && recovered != null && handler.Calls == 29,
+            "redirects and corrupt images retain the placeholder and are not cached");
+
+        using var delayed = new CoverHandler { Wait = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        using var shared = new App.PriceWatchItadCovers(delayed);
+        using var cancel = new CancellationTokenSource();
+        var cancelled = shared.LoadAsync(Url(1), cancel.Token);
+        var remaining = shared.LoadAsync(Url(1), default);
+        await Task.Delay(100);
+        cancel.Cancel();
+        bool stopped = false;
+        try { using var discarded = await cancelled; }
+        catch (OperationCanceledException) { stopped = true; }
+        delayed.Wait.SetResult();
+        using var result = await remaining;
+        check(stopped && result != null && delayed.Calls == 1,
+            "simultaneous CDN readers share one request and cancel independently");
+        using var pendingHandler = new CoverHandler { Wait = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        var shutdown = new App.PriceWatchItadCovers(pendingHandler);
+        var request = shutdown.LoadAsync(Url(1), default);
+        await Task.Delay(100);
+        shutdown.Dispose();
+        using var ended = await request.WaitAsync(TimeSpan.FromSeconds(5));
+        check(ended == null, "disposing the cover cache cancels active downloads");
+    }
+
+    private sealed class CoverHandler : HttpMessageHandler
+    {
+        internal int Calls;
+        internal bool Safe = true;
+        internal byte[] Bytes = Png();
+        internal HttpStatusCode Status = HttpStatusCode.OK;
+        internal TaskCompletionSource? Wait;
+        internal static byte[] Png()
+        {
+            using var image = new Bitmap(12, 17);
+            using var stream = new MemoryStream();
+            image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            return stream.ToArray();
+        }
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Interlocked.Increment(ref Calls);
+            Safe &= request.Method == HttpMethod.Get && request.Headers.Authorization == null
+                && !request.Headers.Contains("Cookie") && !request.Headers.Contains("ITAD-API-Key");
+            if (Wait != null) await Wait.Task.WaitAsync(token);
+            return new(Status) { Content = new ByteArrayContent(Bytes) };
+        }
     }
 
     private static async Task CheckOfflineCoverAndDescriptions(Action<bool, string> check)
@@ -232,7 +316,7 @@ internal static class PriceWatchTests
                     "settings editor exposes an opt-in PriceWatch page");
                 int sourceCalls = 0;
                 using var storage = new TemporaryWatchlist();
-                CheckWatchlist(check, storage.Store);
+                CheckWatchlist(check, storage.Store, storage.FilePath);
                 var reopened = storage.Store;
                 reopened.Migrate(new App.PriceWatchGame(Id, "Legacy", "package"), null);
                 check(reopened.Read(false).Length == 1102 && reopened.Read(false).All(entry => entry.Game.Id != Id),
@@ -279,6 +363,11 @@ internal static class PriceWatchTests
                 CheckSettingsDesign(check);
                 CheckGameInfoStorageAndPresentation(check);
                 CheckOfflineDetailLayout(check);
+                CheckCoverCredit(check);
+                CheckWidgetCovers(check);
+                CheckTitleScroll(check);
+                CheckInitialDataLoad(check);
+                CheckTargetPrices(check);
                 CheckDetailSizing(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);
@@ -307,12 +396,13 @@ internal static class PriceWatchTests
             var info = fixtures.InfoAsync(game.Id, default).GetAwaiter().GetResult();
             using (var standard = new App.PriceWatchDetailForm(new(game, prices), "Testdaten", "de", style,
                 () => Task.CompletedTask, () => false, info: info.Data, refreshInfo: () => Task.CompletedTask,
-                description: fixture.Description) { Opacity = 0 })
+                description: fixture.Description, saveTarget: _ => true) { Opacity = 0 })
             {
                 standard.Show();
                 Application.DoEvents();
                 var cover = standard.Controls.Find("PriceWatchCover", true).Single();
-                var title = cover.Parent!.Controls.OfType<TableLayoutPanel>().Single().Controls.OfType<Label>().First();
+                var title = cover.Parent!.Parent!.Controls.OfType<TableLayoutPanel>()
+                    .Single(panel => panel != cover.Parent).Controls.OfType<Label>().First();
                 var actions = standard.Controls.Find("PriceWatchRefreshInfo", true).Single().Parent!;
                 var buttons = actions.Controls.OfType<Button>().ToArray();
                 var work = Screen.FromControl(standard).WorkingArea;
@@ -374,6 +464,341 @@ internal static class PriceWatchTests
         empty.Close();
         check(started && readStopped.Task.Wait(TimeSpan.FromSeconds(5)), "closing the detail cancels its cover read");
         Application.DoEvents();
+    }
+
+    private static void CheckCoverCredit(Action<bool, string> check)
+    {
+        using var handler = new CoverHandler();
+        using var covers = new App.PriceWatchItadCovers(handler);
+        var game = new App.PriceWatchGame(Id, "Cover fixture", "package");
+        var info = new App.PriceWatchGameInfo(Id, game.Title, null, [], [],
+            new("https://assets.isthereanydeal.com/fixture/cover.png?t=1"));
+        using var dialog = new App.PriceWatchDetailForm(new(game, null), "Live", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, info: info, itadCovers: covers) { Opacity = 0 };
+        var credit = dialog.Controls.Find("PriceWatchCoverCredit", true).Single();
+        var image = (App.PriceWatchCover)dialog.Controls.Find("PriceWatchCover", true).Single();
+        bool Pump(Func<bool> done)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            while (!done() && timer.Elapsed < TimeSpan.FromSeconds(5))
+            {
+                Application.DoEvents();
+                Thread.Sleep(5);
+            }
+            return done();
+        }
+        dialog.Show();
+        check(Pump(() => credit.Visible) && image.HasImage && credit.Text == "Cover: IsThereAnyDeal",
+            "external cover alone enables its visible source credit");
+        check(credit.Width >= TextRenderer.MeasureText(credit.Text, credit.Font).Width,
+            "cover attribution fits on one line at standard detail size");
+        dialog.PresentInfo(info with { Boxart = new("https://example.invalid/cover.png") });
+        check(!credit.Visible && !image.HasImage && handler.Calls == 1,
+            "replacing a cover with an invalid URL immediately clears image and attribution");
+        handler.Status = HttpStatusCode.NotFound;
+        dialog.PresentInfo(info with { Boxart = new("https://assets.isthereanydeal.com/fixture/missing.png") });
+        check(Pump(() => handler.Calls == 2) && !credit.Visible && !image.HasImage,
+            "missing external cover keeps the local placeholder without attribution");
+        dialog.Close();
+        var offline = new App.PriceWatchGame(new("10000000-0000-4000-8000-000000000001"), "Cyberpunk 2077", "game");
+        var fixture = App.PriceWatchTestData.Details(offline);
+        using var local = new App.PriceWatchDetailForm(new(offline, null), "Testdaten", "de", App.SystemWidgetStyle.Glow,
+            () => Task.CompletedTask, () => false, info: info, coverSource: fixture.Cover) { Opacity = 0 };
+        local.Show();
+        var localCover = (App.PriceWatchCover)local.Controls.Find("PriceWatchCover", true).Single();
+        check(Pump(() => localCover.HasImage)
+            && !local.Controls.Find("PriceWatchCoverCredit", true).Single().Visible && handler.Calls == 2,
+            "offline demo cover stays local even when metadata contains an external URL");
+    }
+
+    private static void CheckWidgetCovers(Action<bool, string> check)
+    {
+        using var storage = new TemporaryWatchlist();
+        var store = storage.Store;
+        var data = new App.PriceWatchTestData();
+        var games = data.SearchAsync("Cyberpunk", default).Result.Data
+            .Concat(data.SearchAsync("PriceWatch Demo", default).Result.Data).Concat(Enumerable.Range(0, 14).Select(i => new App.PriceWatchGame(Guid.NewGuid(), $"Cover fixture {i}", "game"))).ToArray();
+        foreach (var game in games)
+        {
+            store.Add(false, game);
+            store.Add(true, game);
+            store.SaveInfo(true, game.Id, new(DateTimeOffset.UtcNow,
+                new(game.Id, game.Title, null, [], [], new($"https://assets.isthereanydeal.com/{game.Id}/boxart.png"))));
+        }
+        int sourceCalls = 0;
+        using var widget = new App.PriceWatchWidgetForm(_ => { sourceCalls++; return data; },
+            new() { Enabled = true }, "de", _ => { }, store);
+        using var handler = new CoverHandler();
+        var covers = new App.PriceWatchItadCovers(handler);
+        const BindingFlags members = BindingFlags.Instance | BindingFlags.NonPublic;
+        typeof(App.PriceWatchWidgetForm).GetField("itadCovers", members)!.SetValue(widget, covers);
+        var images = (Dictionary<(bool Live, Guid Id), Bitmap>)typeof(App.PriceWatchWidgetForm)
+            .GetField("rowCovers", members)!.GetValue(widget)!;
+        bool Pump(Func<bool> done)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            while (!done() && timer.Elapsed < TimeSpan.FromSeconds(5))
+            {
+                Application.DoEvents();
+                Thread.Sleep(5);
+            }
+            return done();
+        }
+        widget.Show();
+        check(Pump(() => images.ContainsKey((false, games[0].Id))) && handler.Calls == 0 && sourceCalls == 0,
+            "visible widget demo covers load offline without requesting metadata or prices");
+        widget.Apply(new() { Enabled = true, Live = true }, "de", false);
+        check(Pump(() => images.Keys.Count(key => key.Live) >= 3) && handler.Calls < games.Length,
+            "live widget only downloads visible stored cover URLs");
+        int downloaded = handler.Calls;
+        using var detailImage = covers.LoadAsync(store.ReadInfo(true, games[0].Id)!.Data.Boxart, default).GetAwaiter().GetResult();
+        check(detailImage != null && handler.Calls == downloaded,
+            "detail and widget reuse the same cover cache");
+        var viewport = (App.CalendarViewport)typeof(App.PriceWatchWidgetForm).GetField("viewport", members)!.GetValue(widget)!;
+        viewport.SetOffset(float.MaxValue);
+        typeof(App.PriceWatchWidgetForm).GetMethod("Render", members)!.Invoke(widget, null);
+        check(Pump(() => images.ContainsKey((true, games[^1].Id))),  "scrolling loads newly visible cover rows");
+        viewport.SetOffset(0);
+        typeof(App.PriceWatchWidgetForm).GetMethod("Render", members)!.Invoke(widget, null);
+        check(Pump(() => images.ContainsKey((true, games[0].Id))) && handler.Calls <= games.Length,
+            "scrolling back reuses cached cover data without another download");
+    }
+
+    private static void CheckTitleScroll(Action<bool, string> check)
+    {
+        foreach (float scale in new[] { 1f, 1.5f, 2f })
+        {
+            float Offset(double time) => App.PriceWatchTitleScroll.Offset(time, 48, scale);
+            check(Offset(.49) == 0 && Offset(.5) == 0 && Offset(1.5) == 24 && Offset(2.6) == 48
+                && Offset(3.4) == 48 && Offset(4.5) == 24 && Offset(5.5) == 0
+                && App.PriceWatchTitleScroll.Offset(20, 0, scale) == 0,
+                $"title marquee delays, holds, returns and repeats at {scale * 100}%");
+        }
+        const string title = "Duke Nukem 3D: 20th Anniversary World Tour";
+        check(App.PriceWatchWidgetRenderer.TitleOverflows(title, 260)
+            && !App.PriceWatchWidgetRenderer.TitleOverflows("Doom", 260),
+            "title measurement uses the widget font to distinguish overflowing titles");
+        using var storage = new TemporaryWatchlist();
+        var game = new App.PriceWatchGame(Guid.NewGuid(), title, "game");
+        storage.Store.Add(false, game);
+        storage.Store.Add(false, new(Guid.NewGuid(), "Doom", "game"));
+        using var widget = new App.PriceWatchWidgetForm(_ => throw new Exception("Unexpected network source"),
+            new() { Enabled = true }, "de", _ => { }, storage.Store);
+        widget.Show();
+        Application.DoEvents();
+        const BindingFlags members = BindingFlags.NonPublic | BindingFlags.Instance;
+        var layout = (App.PriceWatchWidgetLayout)typeof(App.PriceWatchWidgetForm).GetField("layout", members)!.GetValue(widget)!;
+        var bounds = App.PriceWatchWidgetRenderer.TitleBounds(layout.Content, layout.Content.Top);
+        Point mouse = new((int)((bounds.Left + 5) * layout.Scale), (int)((bounds.Top + 5) * layout.Scale));
+        var update = typeof(App.PriceWatchWidgetForm).GetMethod("UpdateTitleHover", members)!;
+        var timer = (System.Windows.Forms.Timer)typeof(App.PriceWatchWidgetForm).GetField("titleTimer", members)!.GetValue(widget)!;
+        int Active() => (int)typeof(App.PriceWatchWidgetForm).GetField("scrollingTitle", members)!.GetValue(widget)!;
+        update.Invoke(widget, [mouse]);
+        check(Active() == 0 && timer.Enabled, "hovering the long title starts the shared animation timer");
+        typeof(App.PriceWatchWidgetForm).GetMethod("OnMouseLeave", members)!.Invoke(widget, [EventArgs.Empty]);
+        check(Active() == -1 && !timer.Enabled, "leaving the title immediately stops the idle timer");
+        update.Invoke(widget, [mouse]);
+        SendMessage(widget.Handle, 0x020A, 120 << 16, 0);
+        check(Active() == -1 && !timer.Enabled, "scrolling resets an active title animation");
+        update.Invoke(widget, [new Point(mouse.X, mouse.Y + (int)(App.PriceWatchWidgetRenderer.RowHeight * layout.Scale))]);
+        check(Active() == -1 && !timer.Enabled, "short titles never start the animation timer");
+    }
+
+    private static void CheckInitialDataLoad(Action<bool, string> check)
+    {
+        using var storage = new TemporaryWatchlist();
+        var provider = new InitialSource();
+        var game = provider.Game;
+        storage.Store.Add(false, game);
+        using var widget = new App.PriceWatchWidgetForm(_ => provider, new() { Enabled = true },
+            "de", _ => { }, storage.Store);
+        widget.Show();
+        Application.DoEvents();
+        void Finish(Task task)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            while (!task.IsCompleted && timer.Elapsed < TimeSpan.FromSeconds(5))
+            {
+                Application.DoEvents();
+                Thread.Sleep(5);
+            }
+            if (!task.IsCompleted) throw new Exception("Initial data load did not finish.");
+            task.GetAwaiter().GetResult();
+        }
+        provider.Gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task first = widget.LoadNewEntryAsync(false, game.Id);
+        Finish(widget.LoadNewEntryAsync(false, game.Id));
+        check(provider.InfoCalls == 1 && provider.PriceCalls == 0
+            && storage.Store.Read(false).Length == 1, "new entry remains present and duplicate initial load is suppressed");
+        provider.Gate.SetResult();
+        Finish(first);
+        var snapshot = storage.Store.Read(false).Single().Snapshot;
+        var info = storage.Store.ReadInfo(false, game.Id);
+        check(snapshot?.Data.Single().Deals.Length == 2 && info?.Data.Title == game.Title
+            && provider.InfoCalls == 1 && provider.PriceCalls == 1,
+            "initial load saves offline metadata and prices without an open detail dialog");
+        provider.Gate = null;
+        provider.FailInfo = provider.FailPrices = true;
+        Finish(widget.LoadNewEntryAsync(false, game.Id));
+        check(storage.Store.ReadInfo(false, game.Id)?.FetchedAt == info!.FetchedAt
+            && storage.Store.Read(false).Single().Snapshot?.FetchedAt == snapshot!.FetchedAt,
+            "failed initial responses preserve the last stored metadata and price");
+        provider.FailPrices = false;
+        Finish(widget.LoadNewEntryAsync(false, game.Id));
+        check(provider.PriceCalls == 3, "info failure still permits the independent price request");
+        provider.FailInfo = false;
+        storage.Store.Add(true, game);
+        Finish(widget.LoadNewEntryAsync(true, game.Id));
+        check(storage.Store.Read(true).Single().Snapshot?.Data.Single().Id == game.Id
+            && storage.Store.ReadInfo(true, game.Id)?.Data.Id == game.Id,
+            "simulated live initial data remains scoped to the original UUID and live mode");
+        provider.Gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        var removed = widget.LoadNewEntryAsync(false, game.Id);
+        typeof(App.PriceWatchWidgetForm).GetMethod("CancelInitialLoad", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(widget, [false, game.Id]);
+        storage.Store.Remove(false, game.Id);
+        provider.Gate.SetResult();
+        Finish(removed);
+        check(storage.Store.Read(false).Length == 0 && storage.Store.ReadInfo(false, game.Id) == null,
+            "removal cancels initial load and a late response cannot restore the entry");
+        storage.Store.Add(false, game);
+        provider.Gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        var closing = widget.LoadNewEntryAsync(false, game.Id);
+        widget.Dispose();
+        provider.Gate.SetResult();
+        Finish(closing);
+        check(storage.Store.Read(false).Single().Snapshot == null, "widget disposal cancels an outstanding initial load");
+    }
+
+    private sealed class InitialSource : App.IPriceWatchSource
+    {
+        private readonly App.PriceWatchTestData data = new();
+        internal readonly App.PriceWatchGame Game =
+            new(new("10000000-0000-4000-8000-000000000002"), "Cyberpunk 2077: Ultimate Edition", "package");
+        internal TaskCompletionSource? Gate;
+        internal int InfoCalls, PriceCalls;
+        internal bool FailInfo, FailPrices;
+        public Task<App.PriceWatchReply<App.PriceWatchGame[]>> SearchAsync(string title, CancellationToken token) =>
+            data.SearchAsync(title, token);
+        public async Task<App.PriceWatchReply<App.PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token)
+        {
+            InfoCalls++;
+            if (Gate != null) await Gate.Task;
+            if (FailInfo) throw new App.PriceWatchException(App.PriceWatchFailure.Connection);
+            // Deliberately ignore cancellation to exercise a provider returning a late response.
+            return await data.InfoAsync(id, default);
+        }
+        public Task<App.PriceWatchReply<App.PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token)
+        {
+            PriceCalls++;
+            if (FailPrices) throw new App.PriceWatchException(App.PriceWatchFailure.Timeout);
+            return data.PricesAsync(id, token);
+        }
+    }
+
+    private static void CheckTargetPrices(Action<bool, string> check)
+    {
+        check(App.PriceWatchTargetPrice.TryParse("29,99", out var cents) && cents == 2999
+            && App.PriceWatchTargetPrice.TryParse(" 0 ", out cents) && cents == 0
+            && App.PriceWatchTargetPrice.TryParse("2,5", out cents) && cents == 250
+            && App.PriceWatchTargetPrice.TryParse("", out cents) && cents == null
+            && App.PriceWatchTargetPrice.Format(2999) == "29,99"
+            && new[] { "-1", "1.25", "1,999", "1,", "EUR 2", "NaN", "99999999999999", "+2", ",5" }
+                .All(value => !App.PriceWatchTargetPrice.TryParse(value, out _)),
+            "target input accepts German cents and blank removal while rejecting invalid or negative amounts");
+        using var storage = new TemporaryWatchlist();
+        var fixtures = new App.PriceWatchTestData();
+        var game = fixtures.SearchAsync("Cyberpunk", default).Result.Data[0];
+        // Start with a database created by the previous application version.
+        Directory.CreateDirectory(storage.DirectoryPath);
+        using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={storage.FilePath};Pooling=False"))
+        {
+            connection.Open();
+            using var create = connection.CreateCommand();
+            create.CommandText = """
+                CREATE TABLE watched (live INTEGER NOT NULL, id TEXT NOT NULL, title TEXT NOT NULL,
+                    kind TEXT, snapshot TEXT, fetched_ticks INTEGER, PRIMARY KEY(live,id));
+                INSERT INTO watched (live,id,title,kind) VALUES (0,$id,$title,'game');
+                """;
+            create.Parameters.AddWithValue("$id", game.Id.ToString());
+            create.Parameters.AddWithValue("$title", game.Title);
+            create.ExecuteNonQuery();
+        }
+        var store = storage.Store;
+        check(store.Read(false).Single().Game == game && store.Read(false).Single().TargetCents == null,
+            "target price migration preserves an old watchlist and defaults to no target");
+        store.Add(true, game);
+        store.SaveTarget(false, game.Id, 2999);
+        store.SaveTarget(true, game.Id, 999);
+        check(storage.Store.Read(false).Single().TargetCents == 2999 && storage.Store.Read(true).Single().TargetCents == 999,
+            "target cents persist after reopening and remain scoped by game and data mode");
+        var prices = fixtures.PricesAsync(game.Id, default).Result;
+        store.SaveSnapshot(false, game.Id, prices);
+        var entry = store.Read(false).Single();
+        var gog = prices.Data.Single().Deals[0];
+        var steam = prices.Data.Single().Deals[1];
+        var now = DateTimeOffset.UtcNow;
+        check(App.PriceWatchTargetPrice.IsReached(entry, gog, now)
+            && !App.PriceWatchTargetPrice.IsReached(entry, steam, now)
+            && App.PriceWatchTargetPrice.IsReached(entry with { TargetCents = 2000 }, gog, now)
+            && !App.PriceWatchTargetPrice.IsReached(entry with { TargetCents = null }, gog, now),
+            "one shared target highlights each matching shop and includes equality");
+        bool Match(App.PriceWatchOffer offer)
+        {
+            var candidate = entry with { Snapshot = new(now, [new(game.Id, [offer])]) };
+            return App.PriceWatchTargetPrice.IsReached(candidate, offer, now);
+        }
+        check(!Match(gog with { Price = gog.Price with { Currency = "USD" } })
+            && !Match(gog with { Price = gog.Price with { AmountInt = -1 } })
+            && !Match(gog with { Price = gog.Price with { Amount = 0 } })
+            && !Match(gog with { Expiry = now.AddMinutes(-1) })
+            && !Match(gog with { Shop = new(999, "Other") })
+            && !App.PriceWatchTargetPrice.IsReached(entry with { Snapshot = null }, gog, now),
+            "missing, expired, foreign-currency and inconsistent offers cannot reach a target");
+        using (var widget = new App.PriceWatchWidgetForm(_ => throw new Exception("Unexpected network source"),
+            new() { Enabled = true }, "de", _ => { }, store))
+        {
+            widget.ApplyTheme(true);
+            foreach (int dpi in new[] { 96, 144, 192 })
+            {
+                using var bitmap = widget.RenderBitmap(new(1200, 1000), dpi, out var layout);
+                var priceBounds = App.PriceWatchWidgetRenderer.RowOfferBounds(layout.Content, layout.Content.Top, 0).Price;
+                var physical = Rectangle.Round(new RectangleF(priceBounds.X * layout.Scale, priceBounds.Y * layout.Scale,
+                    priceBounds.Width * layout.Scale, priceBounds.Height * layout.Scale));
+                bool green = false;
+                for (int y = physical.Top; y < physical.Bottom; y++)
+                for (int x = physical.Left; x < physical.Right; x++)
+                {
+                    Color pixel = bitmap.GetPixel(x, y);
+                    green |= pixel.G > pixel.R + 30 && pixel.G > pixel.B + 30;
+                }
+                check(green, $"reached target highlights the widget merchant price at {dpi} DPI");
+            }
+        }
+
+        using var detail = new App.PriceWatchDetailForm(entry, "Testdaten", "de", App.SystemWidgetStyle.Clean,
+            () => Task.CompletedTask, () => false, saveTarget: value => { store.SaveTarget(false, game.Id, value); return true; })
+            { Opacity = 0 };
+        detail.Show();
+        Application.DoEvents();
+        var input = (TextBox)detail.Controls.Find("PriceWatchTargetInput", true).Single();
+        var save = (Button)detail.Controls.Find("PriceWatchTargetSave", true).Single();
+        check(input.Text == "29,99", "detail opens with its saved target");
+        input.Text = "19,99";
+        save.PerformClick();
+        check(store.Read(false).Single().TargetCents == 1999 && input.Text == "19,99",
+            "detail saves a changed target as integer cents");
+        input.Text = "-3";
+        save.PerformClick();
+        check(store.Read(false).Single().TargetCents == 1999, "invalid detail input does not overwrite the target");
+        input.Clear();
+        save.PerformClick();
+        check(store.Read(false).Single().TargetCents == null && store.Read(true).Single().TargetCents == 999,
+            "empty target removes only the current mode's setting");
+        store.SaveTarget(false, game.Id, 1000);
+        store.Remove(false, game.Id);
+        store.Add(false, game);
+        check(store.Read(false).Single().TargetCents == null, "removing a game cascades to its target price");
     }
 
     private static void CheckDetailSizing(Action<bool, string> check)
@@ -618,7 +1043,7 @@ internal static class PriceWatchTests
         }
     }
 
-    private static void CheckWatchlist(Action<bool, string> check, App.PriceWatchStore store)
+    private static void CheckWatchlist(Action<bool, string> check, App.PriceWatchStore store, string filePath)
     {
         var variants = new App.PriceWatchTestData().SearchAsync("Cyberpunk", default).Result.Data;
         var edition = variants[1];
@@ -637,9 +1062,32 @@ internal static class PriceWatchTests
         store.Remove(false, edition.Id);
         check(!store.SaveSnapshot(false, edition.Id, offers) && store.Read(true).Single().Game.Id == edition.Id,
             "deleting one mode cannot recreate or remove the corresponding entry in the other mode");
-        for (int i = 0; i < 1100; i++)
+        for (int i = 0; i < 18; i++)
             store.Add(false, new(Guid.NewGuid(), $"Test game {i}", "game"));
-        check(store.Read(false).Length == 1102, "watchlist stores more than a thousand games without an application cap");
+        bool refused = false;
+        try { store.Add(false, new(Guid.NewGuid(), "Over limit", "game")); }
+        catch (App.PriceWatchLimitException) { refused = true; }
+        check(refused && store.Read(false).Length == 20 && !store.Add(false, variants[0]),
+            "watchlist rejects the twenty-first entry while retaining duplicate semantics");
+        store.Remove(false, store.Read(false).Last().Game.Id);
+        check(store.Add(false, new(Guid.NewGuid(), "Replacement", "game")) && store.Read(false).Length == 20,
+            "removing an entry below the limit permits a replacement");
+        store.Add(true, new(Guid.NewGuid(), "Separate live slot", "game"));
+        using var legacy = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={filePath};Pooling=False");
+        legacy.Open();
+        using var command = legacy.CreateCommand();
+        command.CommandText = "INSERT INTO watched (live,id,title,kind) VALUES (0,$id,'Legacy game','game')";
+        command.Parameters.AddWithValue("$id", "");
+        for (int i = 0; i < 1082; i++)
+        {
+            command.Parameters["$id"].Value = Guid.NewGuid().ToString();
+            command.ExecuteNonQuery();
+        }
+        refused = false;
+        try { store.Add(false, new(Guid.NewGuid(), "Over legacy limit", "game")); }
+        catch (App.PriceWatchLimitException) { refused = true; }
+        check(refused && store.Read(false).Length == 1102 && store.Read(true).Length == 2,
+            "legacy oversized watchlists remain intact and cannot grow");
     }
 
     private static void CheckSettingsDesign(Action<bool, string> check)

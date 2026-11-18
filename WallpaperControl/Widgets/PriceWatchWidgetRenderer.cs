@@ -36,14 +36,15 @@ internal readonly record struct PriceWatchWidgetLayout(float Scale, RectangleF S
 }
 
 internal readonly record struct PriceWatchRowDisplay(string Title, string Edition,
-    IReadOnlyList<PriceWatchOfferColumns> Prices);
+    IReadOnlyList<PriceWatchOfferColumns> Prices, Bitmap? Cover = null, string? Target = null,
+    IReadOnlyList<bool>? TargetReached = null);
 
 internal static class PriceWatchWidgetRenderer
 {
     internal const int Width = 390;
     private const int PriceLineHeight = 17;
     private const int PriceTop = 36;
-    internal const int RowHeight = PriceTop + PriceWatchOfferDisplay.ShopCount * PriceLineHeight + 5;
+    internal const int RowHeight = 94;
     private const int Inset = 16;
     private const int Gap = 6;
     private const int ActionHeight = 21;
@@ -70,7 +71,8 @@ internal static class PriceWatchWidgetRenderer
     internal static Bitmap Draw(Size workArea, int dpi, SystemWidgetStyle style, bool dark, string language,
         string mode, string empty, string status, string search, string refresh, bool canSearch, bool canRefresh,
         int hovered, int pressed, CalendarViewport viewport, int count, Func<int, PriceWatchRowDisplay> rowAt,
-        out PriceWatchWidgetLayout layout, (int Row, int Shop)? hoveredMerchant = null, bool keyboardFocus = false)
+        out PriceWatchWidgetLayout layout, (int Row, int Shop)? hoveredMerchant = null, bool keyboardFocus = false,
+        int scrollingTitle = -1, double titleElapsed = 0)
     {
         var area = new Size(Math.Max(1, workArea.Width), Math.Max(1, workArea.Height));
         const int chromeHeight = CalendarViewport.HeaderHeight + CalendarViewport.FooterHeight;
@@ -141,6 +143,7 @@ internal static class PriceWatchWidgetRenderer
             using var text = new SolidBrush(colors.Text);
             using var muted = new SolidBrush(colors.Muted);
             using var accent = new SolidBrush(colors.Accent);
+            using var targetHit = new SolidBrush(dark ? Color.LightGreen : Color.FromArgb(0, 100, 40));
             using var line = new StringFormat { FormatFlags = StringFormatFlags.NoWrap,
                 Trimming = StringTrimming.EllipsisCharacter, LineAlignment = StringAlignment.Center };
             using var centered = new StringFormat(line) { Alignment = StringAlignment.Center };
@@ -157,11 +160,30 @@ internal static class PriceWatchWidgetRenderer
             for (int index = first; index < count && y < content.Bottom; index++, y += RowHeight)
             {
                 var row = rowAt(index);
-                var cover = new RectangleF(content.X + 5, y + (RowHeight - 46) / 2f, 33, 46);
-                DrawCoverPlaceholder(graphics, cover, dark, colors.Muted);
+                var cover = new RectangleF(content.X + 5, y + (RowHeight - 75) / 2f, 55, 75);
+                if (row.Cover is { } image)
+                {
+                    float fit = Math.Min(cover.Width / image.Width, cover.Height / image.Height);
+                    var target = new RectangleF(cover.X + (cover.Width - image.Width * fit) / 2,
+                        cover.Y + (cover.Height - image.Height * fit) / 2, image.Width * fit, image.Height * fit);
+                    graphics.DrawImage(image, target);
+                }
+                else DrawCoverPlaceholder(graphics, cover, dark, colors.Muted);
                 float left = cover.Right + 8;
                 float rowWidth = content.Right - left - 4;
-                graphics.DrawString(row.Title, titleFont, text, new RectangleF(left, y + 3, rowWidth, 18), line);
+                var titleBounds = TitleBounds(content, y);
+                float titleWidth = measure.MeasureString(row.Title, titleFont, int.MaxValue, line).Width;
+                if (index == scrollingTitle && titleElapsed >= .5 && titleWidth > titleBounds.Width)
+                {
+                    var titleClip = graphics.Save();
+                    graphics.SetClip(titleBounds, CombineMode.Intersect);
+                    using var untrimmed = new StringFormat(line) { Trimming = StringTrimming.None };
+                    float shift = PriceWatchTitleScroll.Offset(titleElapsed, titleWidth - titleBounds.Width, scale);
+                    graphics.DrawString(row.Title, titleFont, text,
+                        new RectangleF(titleBounds.X - shift, titleBounds.Y, titleWidth + 1, titleBounds.Height), untrimmed);
+                    graphics.Restore(titleClip);
+                }
+                else graphics.DrawString(row.Title, titleFont, text, titleBounds, line);
                 graphics.DrawString(row.Edition, small, muted, new RectangleF(left, y + 20, rowWidth, 15), line);
                 for (int shop = 0; shop < row.Prices.Count; shop++)
                 {
@@ -174,10 +196,12 @@ internal static class PriceWatchWidgetRenderer
                         graphics.DrawString(offer.Price, small, muted, RectangleF.Union(price, discount), right);
                     else
                     {
-                        graphics.DrawString(offer.Price, figures, text, price, right);
+                        graphics.DrawString(offer.Price, figures, row.TargetReached?[shop] == true ? targetHit : text, price, right);
                         graphics.DrawString(offer.Discount, figures, muted, discount, right);
                     }
                 }
+                if (row.Target != null)
+                    graphics.DrawString(row.Target, small, muted, new RectangleF(left, y + 72, rowWidth, 17), line);
                 graphics.DrawLine(border, content.Left, y + RowHeight - 1, content.Right, y + RowHeight - 1);
             }
             graphics.Restore(clip);
@@ -208,9 +232,23 @@ internal static class PriceWatchWidgetRenderer
     internal static (RectangleF Merchant, RectangleF Price, RectangleF Discount) RowOfferBounds(
         RectangleF content, float rowTop, int shop)
     {
-        const float textInset = 5 + 33 + 8;
+        const float textInset = 5 + 55 + 8;
         return OfferBounds(content.Left + textInset, rowTop + PriceTop + shop * PriceLineHeight,
             content.Width - textInset - 4);
+    }
+
+    internal static RectangleF TitleBounds(RectangleF content, float top) =>
+        new(content.Left + 68, top + 3, Math.Max(1, content.Width - 72), 18);
+
+    internal static bool TitleOverflows(string title, float width)
+    {
+        using var bitmap = new Bitmap(1, 1);
+        bitmap.SetResolution(96, 96);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        using var font = new Font("Segoe UI", 13, FontStyle.Bold, GraphicsUnit.Pixel);
+        using var format = new StringFormat { FormatFlags = StringFormatFlags.NoWrap };
+        return graphics.MeasureString(title, font, int.MaxValue, format).Width > width;
     }
 
     internal static (RectangleF Merchant, RectangleF Price, RectangleF Discount) OfferBounds(float left, float top, float width)

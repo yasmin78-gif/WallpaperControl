@@ -29,8 +29,19 @@ internal sealed class PriceWatchWidgetForm : Form
     private CancellationTokenSource? active;
     private PriceWatchSearchForm? searchDialog;
     private PriceWatchDetailForm? detailDialog;
+    private PriceWatchItadCovers? itadCovers;
+    private readonly Dictionary<(bool Live, Guid Id), Bitmap> rowCovers = new();
+    private readonly Dictionary<(bool Live, Guid Id), string> rowCoverUrls = new();
+    private readonly Dictionary<(bool Live, Guid Id), CancellationTokenSource> coverLoads = new();
+    private readonly HashSet<(bool Live, Guid Id, string Url)> failedCovers = new();
     private readonly HashSet<(bool Live, Guid Id)> autoInfoAttempted = [];
     private bool storageError;
+    private readonly Dictionary<(bool Live, Guid Id), CancellationTokenSource> initialLoads = new();
+    private readonly SemaphoreSlim initialLoadQueue = new(1, 1);
+    private readonly System.Windows.Forms.Timer titleTimer = new() { Interval = 33 };
+    private readonly System.Diagnostics.Stopwatch titleClock = new();
+    private int scrollingTitle = -1;
+    private bool titleFrame;
     private PriceWatchException? failure;
 
     internal PriceWatchWidgetForm(Func<bool, IPriceWatchSource> source, PriceWatchWidgetSettings value,
@@ -41,6 +52,12 @@ internal sealed class PriceWatchWidgetForm : Form
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
         settings = value.Clone();
         this.language = language;
+        titleTimer.Tick += (_, _) =>
+        {
+            titleFrame = true;
+            try { Render(); }
+            finally { titleFrame = false; }
+        };
         FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.Manual;
         ShowInTaskbar = false;
@@ -61,6 +78,7 @@ internal sealed class PriceWatchWidgetForm : Form
         if (DesktopWidgetNative.HandleMouseActivation(ref message)) return;
         if (message.Msg == 0x020A)
         {
+            StopTitleScroll();
             if (viewport.Wheel((short)((message.WParam.ToInt64() >> 16) & 0xffff), SystemInformation.MouseWheelScrollLines))
                 Render();
             message.Result = 0;
@@ -71,14 +89,15 @@ internal sealed class PriceWatchWidgetForm : Form
 
     private bool CanOperate => !preview && !suspended && active == null;
     private bool CanSearch => CanOperate && !dialogOpen && !storageError;
-    private bool CanRefresh => CanSearch && SelectedEntry != null;
+    private bool CanRefresh => CanSearch && SelectedEntry != null
+        && !initialLoads.ContainsKey((settings.Live, SelectedEntry.Game.Id));
     private PriceWatchEntry? SelectedEntry => selectedIndex >= 0 ? entries[selectedIndex] : null;
     internal string ModeCaption => T(settings.Live ? "PriceWatchLive" : "PriceWatchTest");
     private string StatusCaption => preview ? T("PriceWatchPreview")
         : active is { IsCancellationRequested: false } ? T("PriceWatchLoading")
         : storageError ? T("PriceWatchStorageError")
         : failure != null ? PriceWatchSearchForm.ErrorText(failure, language)
-        : "";
+        : initialLoads.Keys.Any(key => key.Live == settings.Live) ? T("PriceWatchLoading") : "";
 
     internal void FitToScreen(Point point)
     {
@@ -96,6 +115,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
     {
+        StopTitleScroll();
         base.OnDpiChanged(e);
         FitToScreen(Location);
     }
@@ -117,8 +137,15 @@ internal sealed class PriceWatchWidgetForm : Form
                 var prices = PriceWatchOfferDisplay.Shops.Select((shop, shopIndex) =>
                     PriceWatchOfferDisplay.Columns(shop, CheapestOffer(entry, shopIndex),
                         culture, T("PriceWatchNoOffer"))).ToArray();
-                return new(entry.Game.Title, T(PriceWatchSearchForm.EditionKey(entry.Game.Type)), prices);
-            }, out result, CanSearch && settings.Live ? hoveredMerchant : null, Focused && ShowFocusCues);
+                var reached = PriceWatchOfferDisplay.Shops.Select(shop =>
+                    PriceWatchOfferDisplay.ForShop(entry, shop.Id).Any(offer =>
+                        PriceWatchTargetPrice.IsReached(entry, offer, DateTimeOffset.UtcNow))).ToArray();
+                return new(entry.Game.Title, T(PriceWatchSearchForm.EditionKey(entry.Game.Type)), prices,
+                    rowCovers.GetValueOrDefault((settings.Live, entry.Game.Id)),
+                    entry.TargetCents is int target ? string.Format(T("PriceWatchTargetCaption"), PriceWatchTargetPrice.Format(target)) : null,
+                    reached);
+            }, out result, CanSearch && settings.Live ? hoveredMerchant : null, Focused && ShowFocusCues,
+                scrollingTitle, titleClock.Elapsed.TotalSeconds);
     }
 
     private string GameCaption(PriceWatchGame game) =>
@@ -126,6 +153,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     internal void Apply(PriceWatchWidgetSettings value, string lang, bool editing)
     {
+        StopTitleScroll();
         bool modeChanged = value.Live != settings.Live;
         if (modeChanged || editing && !preview)
         {
@@ -164,6 +192,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     private void ReadEntries(Guid? preferred = null)
     {
+        StopTitleScroll();
         Guid? id = preferred ?? SelectedEntry?.Game.Id;
         UseStore(() =>
         {
@@ -182,6 +211,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     internal void SetSuspended(bool value)
     {
+        StopTitleScroll();
         suspended = value;
         if (value)
         {
@@ -225,8 +255,90 @@ internal sealed class PriceWatchWidgetForm : Form
                 Location = WidgetSettings.EnsureVisible(Location, bitmap.Size);
             }
             LayeredWidgetBitmap.Update(Handle, Location, bitmap);
+            if (!titleFrame) UpdateVisibleCovers();
         }
         finally { rendering = false; }
+    }
+
+    private void UpdateVisibleCovers()
+    {
+        bool clearedImage = false;
+        int first = (int)(layout.ScrollOffset / PriceWatchWidgetRenderer.RowHeight);
+        int count = (int)Math.Ceiling(layout.Content.Height / PriceWatchWidgetRenderer.RowHeight);
+        var visible = entries.Skip(first).Take(count).Select(entry => (Live: settings.Live, Id: entry.Game.Id)).ToHashSet();
+        foreach (var key in coverLoads.Keys.Where(key => !visible.Contains(key) || preview || suspended).ToArray())
+            coverLoads[key].Cancel();
+        foreach (var key in rowCovers.Keys.Where(key => !visible.Contains(key)).ToArray())
+        {
+            rowCovers[key].Dispose();
+            rowCovers.Remove(key);
+            rowCoverUrls.Remove(key);
+        }
+        if (preview || suspended) return;
+        foreach (var entry in entries.Skip(first).Take(count))
+        {
+            var key = (Live: settings.Live, Id: entry.Game.Id);
+            if (key.Live && rowCovers.ContainsKey(key))
+            {
+                string? current = null;
+                TryInfoStore(() => current = store.ReadInfo(true, key.Id)?.Data.Boxart?.AbsoluteUri);
+                if (rowCoverUrls.GetValueOrDefault(key) != current)
+                {
+                    rowCovers[key].Dispose();
+                    rowCovers.Remove(key);
+                    rowCoverUrls.Remove(key);
+                    clearedImage = true;
+                }
+            }
+            if (!rowCovers.ContainsKey(key) && !coverLoads.ContainsKey(key)) LoadRowCover(entry, key);
+        }
+        if (clearedImage) BeginInvoke(new Action(Render));
+    }
+
+    private async void LoadRowCover(PriceWatchEntry entry, (bool Live, Guid Id) key)
+    {
+        Uri? url = null;
+        PriceWatchCoverSource? local = null;
+        if (key.Live)
+        {
+            if (!TryInfoStore(() => url = store.ReadInfo(true, key.Id)?.Data.Boxart)
+                || !PriceWatchItadCovers.IsAllowed(url)) return;
+        }
+        else local = PriceWatchTestData.Details(entry.Game).Cover;
+        if (local == null && url == null) return;
+        string identity = url?.AbsoluteUri ?? "local";
+        if (failedCovers.Contains((key.Live, key.Id, identity))) return;
+        using var cancellation = new CancellationTokenSource();
+        coverLoads.Add(key, cancellation);
+        Bitmap? image = null;
+        try
+        {
+            image = key.Live
+                ? await (itadCovers ??= new()).LoadAsync(url, cancellation.Token)
+                : await local!.LoadAsync(cancellation.Token);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        if (IsDisposed || Disposing || !IsHandleCreated)
+        {
+            image?.Dispose();
+            return;
+        }
+        try
+        {
+            await this.InvokeAsync(() =>
+            {
+                coverLoads.Remove(key);
+                if (cancellation.IsCancellationRequested || IsDisposed || Disposing) image?.Dispose();
+                else if (image != null)
+                {
+                    rowCovers[key] = image;
+                    rowCoverUrls[key] = identity;
+                }
+                else failedCovers.Add((key.Live, key.Id, identity));
+                Render();
+            });
+        }
+        catch (InvalidOperationException) when (IsDisposed || Disposing || !IsHandleCreated) { image?.Dispose(); }
     }
 
     protected override AccessibleObject CreateAccessibilityInstance() => new SurfaceAccessibility(this);
@@ -269,8 +381,36 @@ internal sealed class PriceWatchWidgetForm : Form
 
     private bool ActionEnabled(int action) => action == 1 ? CanSearch : action == 2 && CanRefresh;
 
+    private void StopTitleScroll()
+    {
+        bool changed = scrollingTitle >= 0;
+        titleTimer.Stop();
+        titleClock.Reset();
+        scrollingTitle = -1;
+        if (changed) Render();
+    }
+
+    private void UpdateTitleHover(Point mouse)
+    {
+        int row = layout.Scale > 0 && CanSearch ? layout.RowAt(mouse) : -1;
+        if (row >= 0)
+        {
+            float top = layout.Content.Top + row * PriceWatchWidgetRenderer.RowHeight - layout.ScrollOffset;
+            var bounds = PriceWatchWidgetRenderer.TitleBounds(layout.Content, top);
+            if (!bounds.Contains(layout.ToLogical(mouse))) row = -1;
+        }
+        if (row == scrollingTitle) return;
+        StopTitleScroll();
+        if (row < 0 || !PriceWatchWidgetRenderer.TitleOverflows(entries[row].Game.Title,
+            PriceWatchWidgetRenderer.TitleBounds(layout.Content, 0).Width)) return;
+        scrollingTitle = row;
+        titleClock.Restart();
+        titleTimer.Start();
+    }
+
     protected override void OnMouseDown(MouseEventArgs e)
     {
+        StopTitleScroll();
         if (e.Button == MouseButtons.Left)
         {
             int action = layout.ActionAt(e.Location);
@@ -327,6 +467,7 @@ internal sealed class PriceWatchWidgetForm : Form
             if (viewport.DragThumb(layout.ToLogical(e.Location).Y, grab)) Render();
             return;
         }
+        UpdateTitleHover(e.Location);
         int action = layout.ActionAt(e.Location);
         int row = layout.RowAt(e.Location);
         int shop = layout.MerchantAt(e.Location, row);
@@ -392,6 +533,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     protected override void OnMouseLeave(EventArgs e)
     {
+        StopTitleScroll();
         hovered = 0;
         hoveredMerchant = null;
         Cursor = Cursors.Default;
@@ -418,22 +560,31 @@ internal sealed class PriceWatchWidgetForm : Form
         pressedUrl = null;
     }
 
-    private void ShowSearch()
+    private async void ShowSearch()
     {
         if (!CanSearch) return;
+        PriceWatchGame? added = null;
+        bool live = settings.Live;
         dialogOpen = true;
         Render();
         try
         {
             using var dialog = new PriceWatchSearchForm(source(settings.Live), settings.Live, language, settings.Style);
             searchDialog = dialog;
+            bool inserted = false;
             if (dialog.ShowDialog(this) == DialogResult.OK && dialog.SelectedGame is { } choice && !IsDisposed
-                && UseStore(() => store.Add(settings.Live, choice)))
+                && UseStore(() => inserted = store.Add(live, choice)))
             {
+                if (inserted) added = choice;
                 ReadEntries(choice.Id);
                 Render();
                 if (selectedIndex >= 0) viewport.SetOffset(selectedIndex * (float)PriceWatchWidgetRenderer.RowHeight);
             }
+        }
+        catch (PriceWatchLimitException)
+        {
+            MessageBox.Show(this, string.Format(T("PriceWatchLimitReached"), PriceWatchStore.MaximumGames),
+                T("PriceWatchTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         finally
         {
@@ -441,15 +592,78 @@ internal sealed class PriceWatchWidgetForm : Form
             dialogOpen = false;
             Render();
         }
+        if (added != null && !IsDisposed) await LoadNewEntryAsync(live, added.Id);
+    }
+
+    internal async Task LoadNewEntryAsync(bool live, Guid id)
+    {
+        var key = (live, id);
+        if (initialLoads.ContainsKey(key) || IsDisposed) return;
+        using var operation = new CancellationTokenSource();
+        initialLoads.Add(key, operation);
+        autoInfoAttempted.Add(key);
+        failure = null;
+        Render();
+        bool acquired = false;
+        try
+        {
+            await initialLoadQueue.WaitAsync(operation.Token);
+            acquired = true;
+            var provider = source(live);
+            try
+            {
+                var info = await provider.InfoAsync(id, operation.Token);
+                if (!operation.IsCancellationRequested && !IsDisposed)
+                {
+                    UseStore(() => store.SaveInfo(live, id, info));
+                    if (settings.Live == live && SelectedEntry?.Game.Id == id
+                        && detailDialog is { IsDisposed: false } dialog)
+                        UseStore(() => dialog.PresentInfo(store.ReadInfo(live, id)?.Data));
+                    Render();
+                }
+            }
+            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { failure = error; }
+            operation.Token.ThrowIfCancellationRequested();
+            try
+            {
+                var prices = await provider.PricesAsync(id, operation.Token);
+                if (!operation.IsCancellationRequested && !IsDisposed)
+                {
+                    UseStore(() => store.SaveSnapshot(live, id, prices));
+                    if (settings.Live == live)
+                    {
+                        ReadEntries();
+                        if (SelectedEntry?.Game.Id == id && detailDialog is { IsDisposed: false } dialog)
+                            dialog.Present(SelectedEntry, "");
+                    }
+                }
+            }
+            catch (PriceWatchException error) when (!operation.IsCancellationRequested) { failure = error; }
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+        catch (PriceWatchException error) { failure = error; }
+        finally
+        {
+            if (acquired) initialLoadQueue.Release();
+            initialLoads.Remove(key);
+            Render();
+        }
+    }
+
+    private void CancelInitialLoad(bool live, Guid id)
+    {
+        if (initialLoads.TryGetValue((live, id), out var load)) load.Cancel();
     }
 
     private void ShowDetails(int index)
     {
+        StopTitleScroll();
         var entry = entries[index];
         bool live = settings.Live;
         PriceWatchReply<PriceWatchGameInfo>? cachedInfo = null;
         bool cacheRead = TryInfoStore(() => cachedInfo = store.ReadInfo(live, entry.Game.Id));
-        bool fetchOnOpen = cacheRead && cachedInfo == null && autoInfoAttempted.Add((live, entry.Game.Id));
+        bool fetchOnOpen = cacheRead && cachedInfo == null && !initialLoads.ContainsKey((live, entry.Game.Id))
+            && autoInfoAttempted.Add((live, entry.Game.Id));
         selectedIndex = index;
         dialogOpen = true;
         failure = null;
@@ -461,13 +675,21 @@ internal sealed class PriceWatchWidgetForm : Form
                 () => RefreshPricesAsync(fromDetails: true), () =>
                 {
                     if (!CanOperate || !UseStore(() => store.Remove(settings.Live, entry.Game.Id))) return false;
+                    CancelInitialLoad(live, entry.Game.Id);
                     autoInfoAttempted.Remove((live, entry.Game.Id));
                     ReadEntries();
                     return true;
                 }, shopLinksEnabled: live, openLink: openLink, info: cachedInfo?.Data,
                 refreshInfo: () => RefreshInfoAsync(live, entry.Game.Id), fetchInfoOnOpen: fetchOnOpen,
                 description: presentation.Description, coverSource: presentation.Cover, sizeSettings: new AppSettingsStore(),
-                sizeLocked: settings.DetailSizeLocked);
+                sizeLocked: settings.DetailSizeLocked, itadCovers: live ? itadCovers ??= new() : null,
+                saveTarget: value =>
+                {
+                    if (!UseStore(() => store.SaveTarget(live, entry.Game.Id, value))) return false;
+                    ReadEntries(entry.Game.Id);
+                    Render();
+                    return true;
+                });
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }
@@ -495,7 +717,7 @@ internal sealed class PriceWatchWidgetForm : Form
 
     private async Task RefreshInfoAsync(bool live, Guid id)
     {
-        if (!CanOperate || detailDialog is not { } dialog) return;
+        if (!CanOperate || initialLoads.ContainsKey((live, id)) || detailDialog is not { } dialog) return;
         using var operation = new CancellationTokenSource();
         active = operation;
         try
@@ -523,7 +745,8 @@ internal sealed class PriceWatchWidgetForm : Form
 
     private async Task RefreshPricesAsync(bool fromDetails = false)
     {
-        if (!CanOperate || (dialogOpen != fromDetails) || SelectedEntry is not { } entry || storageError) return;
+        if (!CanOperate || (dialogOpen != fromDetails) || SelectedEntry is not { } entry || storageError
+            || initialLoads.ContainsKey((settings.Live, entry.Game.Id))) return;
         using var operation = new CancellationTokenSource();
         active = operation;
         failure = null;
@@ -553,10 +776,16 @@ internal sealed class PriceWatchWidgetForm : Form
         if (disposing)
         {
             active?.Cancel();
+            foreach (var load in initialLoads.Values.ToArray()) load.Cancel();
             searchDialog?.Close();
             detailDialog?.Close();
             drag.Dispose();
+            titleTimer.Dispose();
             tips.Dispose();
+            itadCovers?.Dispose();
+            foreach (var load in coverLoads.Values) load.Cancel();
+            foreach (var image in rowCovers.Values) image.Dispose();
+            rowCovers.Clear();
         }
         base.Dispose(disposing);
     }
