@@ -6,11 +6,13 @@ internal readonly record struct PriceWatchOfferColumns(string Merchant, string P
 
 internal static class PriceWatchOfferDisplay
 {
-    internal const int ShopCount = 2;
-    internal static readonly IReadOnlyList<PriceWatchShop> Shops = [new(35, "GOG"), new(61, "Steam")];
+    internal static int ShopCount => Shops.Count;
+    internal static IReadOnlyList<PriceWatchShop> Shops =>
+        PriceWatchShops.Legacy.Select(id => PriceWatchShops.Supported.Single(shop => shop.Id == id)).ToArray();
 
     internal static IEnumerable<PriceWatchOffer> ForShop(PriceWatchEntry entry, int shopId) =>
-        entry.Snapshot?.Data.SelectMany(item => item.Deals).Where(offer => offer.Shop.Id == shopId) ?? [];
+        entry.Snapshot?.Data.Where(item => item.Id == entry.Game.Id).SelectMany(item => item.Deals)
+            .Where(offer => offer.Shop.Id == shopId) ?? [];
 
     internal static string Price(PriceWatchOffer offer, CultureInfo culture) =>
         $"{offer.Price.Amount.ToString("N2", culture)} €";

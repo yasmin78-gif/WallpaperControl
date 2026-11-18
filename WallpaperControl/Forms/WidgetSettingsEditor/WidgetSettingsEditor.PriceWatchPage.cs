@@ -5,6 +5,7 @@ internal sealed partial class WidgetSettingsEditor
     private readonly CheckBox priceWatchEnabled = new(), priceWatchLocked = new(), priceWatchLive = new();
     private readonly CheckBox priceWatchDetailSizeLocked = new() { Name = "PriceWatchDetailSizeLocked" };
     private readonly ComboBox priceWatchStyle = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 280 };
+    private readonly Dictionary<int, CheckBox> priceWatchShops = new();
 
     private void InitializePriceWatchPage(TabPage page)
     {
@@ -21,6 +22,14 @@ internal sealed partial class WidgetSettingsEditor
         AddWallpaperInfoControl(layout, priceWatchDetailSizeLocked, "PriceWatchDetailSizeLocked");
         AddWallpaperInfoControl(layout, new Label(), "SettingsSystemStyle");
         layout.Controls.Add(priceWatchStyle);
+        AddWallpaperInfoControl(layout, new Label(), "PriceWatchShops");
+        foreach (var shop in PriceWatchShops.Supported)
+        {
+            var check = new CheckBox { Name = $"PriceWatchShop{shop.Id}", Text = shop.Name, AutoSize = true,
+                Margin = new(0, 0, 0, 4) };
+            priceWatchShops.Add(shop.Id, check);
+            layout.Controls.Add(check);
+        }
         AddWallpaperInfoControl(layout, priceWatchLive, "PriceWatchOptIn");
         var hint = new Label { MaximumSize = new(400, 0) };
         AddWallpaperInfoControl(layout, hint, "PriceWatchModeHint");
@@ -42,6 +51,13 @@ internal sealed partial class WidgetSettingsEditor
         priceWatchDetailSizeLocked.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
         priceWatchStyle.SelectedIndexChanged += (_, _) => NotifyWidgetPreviewChanged();
         priceWatchLive.CheckedChanged += (_, _) => NotifyWidgetPreviewChanged();
+        foreach (var check in priceWatchShops.Values)
+            check.CheckedChanged += (_, _) =>
+            {
+                if (loadingControls) return;
+                if (!priceWatchShops.Values.Any(item => item.Checked)) check.Checked = true;
+                NotifyWidgetPreviewChanged();
+            };
     }
 
     private void LoadPriceWatchControls(WidgetSettings value)
@@ -50,6 +66,7 @@ internal sealed partial class WidgetSettingsEditor
         priceWatchLocked.Checked = value.PriceWatch.Locked;
         priceWatchDetailSizeLocked.Checked = value.PriceWatch.DetailSizeLocked;
         priceWatchLive.Checked = value.PriceWatch.Live;
+        foreach (var (id, check) in priceWatchShops) check.Checked = value.PriceWatch.ShopIds.Contains(id);
         RefreshWidgetStyleChoices(priceWatchStyle, value.PriceWatch.Style);
     }
 

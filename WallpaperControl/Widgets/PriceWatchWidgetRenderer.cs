@@ -5,7 +5,8 @@ using System.Drawing.Text;
 namespace WallpaperControl;
 
 internal readonly record struct PriceWatchWidgetLayout(float Scale, RectangleF Search, RectangleF Refresh,
-    RectangleF Mode, RectangleF Content, RectangleF Status, float ScrollOffset, int Count, bool CaptionsFit)
+    RectangleF Mode, RectangleF Content, RectangleF Status, float ScrollOffset, int Count, bool CaptionsFit,
+    float[]? RowStarts = null, int[]? OfferCounts = null)
 {
     internal PointF ToLogical(Point physicalPoint) => new(physicalPoint.X / Scale, physicalPoint.Y / Scale);
 
@@ -19,16 +20,31 @@ internal readonly record struct PriceWatchWidgetLayout(float Scale, RectangleF S
     {
         var point = ToLogical(physicalPoint);
         if (!Content.Contains(point)) return -1;
-        int index = (int)((point.Y - Content.Top + ScrollOffset) / PriceWatchWidgetRenderer.RowHeight);
+        int index = IndexAt(point.Y - Content.Top + ScrollOffset);
         return index < Count ? index : -1;
+    }
+
+    internal int IndexAt(float offset)
+    {
+        if (RowStarts == null) return Math.Max(0, (int)(offset / PriceWatchWidgetRenderer.RowHeight));
+        int index = Array.BinarySearch(RowStarts, offset);
+        return Math.Clamp(index >= 0 ? index : ~index - 1, 0, Math.Max(0, Count - 1));
+    }
+
+    internal float RowOffset(int row) => RowStarts?[row] ?? row * PriceWatchWidgetRenderer.RowHeight;
+    internal float RowTop(int row) => Content.Top + RowOffset(row) - ScrollOffset;
+    internal IEnumerable<int> VisibleRows()
+    {
+        if (Count == 0) yield break;
+        for (int row = IndexAt(ScrollOffset); row < Count && RowTop(row) < Content.Bottom; row++) yield return row;
     }
 
     internal int MerchantAt(Point physicalPoint, int row)
     {
         if (row < 0) return -1;
         var point = ToLogical(physicalPoint);
-        float top = Content.Top + row * PriceWatchWidgetRenderer.RowHeight - ScrollOffset;
-        for (int shop = 0; shop < PriceWatchOfferDisplay.ShopCount; shop++)
+        float top = RowTop(row);
+        for (int shop = 0; shop < (OfferCounts?[row] ?? PriceWatchOfferDisplay.ShopCount); shop++)
             if (PriceWatchWidgetRenderer.RowOfferBounds(Content, top, shop).Merchant.Contains(point)) return shop;
         return -1;
     }
@@ -37,7 +53,7 @@ internal readonly record struct PriceWatchWidgetLayout(float Scale, RectangleF S
 
 internal readonly record struct PriceWatchRowDisplay(string Title, string Edition,
     IReadOnlyList<PriceWatchOfferColumns> Prices, Bitmap? Cover = null, string? Target = null,
-    IReadOnlyList<bool>? TargetReached = null);
+    IReadOnlyList<bool>? TargetReached = null, string NoOffer = "");
 
 internal static class PriceWatchWidgetRenderer
 {
@@ -76,16 +92,26 @@ internal static class PriceWatchWidgetRenderer
     {
         var area = new Size(Math.Max(1, workArea.Width), Math.Max(1, workArea.Height));
         const int chromeHeight = CalendarViewport.HeaderHeight + CalendarViewport.FooterHeight;
+        var rows = Enumerable.Range(0, count).Select(rowAt).ToArray();
+        var heights = rows.Select(row => Math.Max(85, 60 + Math.Min(3, row.Prices.Count) * PriceLineHeight)).ToArray();
         float scale = Math.Min(Math.Clamp(dpi, 48, 768) / 96f,
-            Math.Min(area.Width / 255f, area.Height / (float)(chromeHeight + RowHeight)));
+            Math.Min(area.Width / 255f, area.Height / (float)(chromeHeight + heights.DefaultIfEmpty(85).Max())));
         float width = Math.Min(Width, area.Width / scale);
-        // Use a whole number of rows so both shop lines stay visible while scrolling.
+        var starts = new float[count];
+        for (int row = 1; row < count; row++) starts[row] = starts[row - 1] + heights[row - 1];
         int heightLimit = Math.Min(CalendarViewport.DefaultMaximumHeight, (int)Math.Floor(area.Height / scale));
-        int visibleRows = Math.Max(1, (heightLimit - chromeHeight) / RowHeight);
-        viewport.Update(Math.Max(RowHeight, (float)count * RowHeight), CalendarViewport.DefaultMaximumHeight,
-            chromeHeight + visibleRows * RowHeight, 96, width);
-        float offset = Math.Clamp(MathF.Round(viewport.ScrollOffset / RowHeight, MidpointRounding.AwayFromZero) * RowHeight,
-            0, viewport.MaxScrollOffset);
+        int visibleHeight = 0;
+        int firstCandidate = count == 0 ? 0 : Math.Max(0, Array.FindLastIndex(starts, start => start <= viewport.ScrollOffset));
+        foreach (int rowHeight in heights.Skip(firstCandidate))
+        {
+            if (visibleHeight > 0 && visibleHeight + rowHeight > heightLimit - chromeHeight) break;
+            visibleHeight += rowHeight;
+        }
+        viewport.Update(count == 0 ? 85 : heights.Sum(), CalendarViewport.DefaultMaximumHeight,
+            Math.Min(heightLimit, chromeHeight + Math.Max(85, visibleHeight)), 96, width);
+        float offset = viewport.ScrollOffset;
+        if (offset < viewport.MaxScrollOffset && count > 0)
+            offset = starts[Math.Max(0, Array.FindLastIndex(starts, start => start <= offset))];
         float height = viewport.LogicalHeight;
         float available = width - 2 * Inset;
 
@@ -108,7 +134,8 @@ internal static class PriceWatchWidgetRenderer
         var refreshBounds = new RectangleF(searchBounds.Right + Gap, searchBounds.Y,
             available - searchSize - Gap, ActionHeight);
         layout = new(scale, searchBounds, refreshBounds, modeBounds, viewport.ContentBounds, statusBounds,
-            offset, count, searchWidth <= searchBounds.Width + .01f && refreshWidth <= refreshBounds.Width + .01f);
+            offset, count, searchWidth <= searchBounds.Width + .01f && refreshWidth <= refreshBounds.Width + .01f,
+            starts, rows.Select(row => row.Prices.Count).ToArray());
 
         var bitmap = new Bitmap(Math.Min(area.Width, (int)Math.Ceiling(width * scale)),
             Math.Min(area.Height, (int)Math.Ceiling(height * scale)), PixelFormat.Format32bppPArgb);
@@ -155,12 +182,12 @@ internal static class PriceWatchWidgetRenderer
             var clip = graphics.Save();
             graphics.SetClip(content);
             if (count == 0) graphics.DrawString(empty, font, muted, content, centered);
-            int first = (int)(offset / RowHeight);
-            float y = content.Top + first * (float)RowHeight - offset;
-            for (int index = first; index < count && y < content.Bottom; index++, y += RowHeight)
+            int first = count == 0 ? 0 : Math.Max(0, Array.FindLastIndex(starts, start => start <= offset));
+            float y = content.Top + (count == 0 ? 0 : starts[first]) - offset;
+            for (int index = first; index < count && y < content.Bottom; y += heights[index], index++)
             {
-                var row = rowAt(index);
-                var cover = new RectangleF(content.X + 5, y + (RowHeight - 75) / 2f, 55, 75);
+                var row = rows[index];
+                var cover = new RectangleF(content.X + 5, y + (heights[index] - 75) / 2f, 55, 75);
                 if (row.Cover is { } image)
                 {
                     float fit = Math.Min(cover.Width / image.Width, cover.Height / image.Height);
@@ -200,9 +227,12 @@ internal static class PriceWatchWidgetRenderer
                         graphics.DrawString(offer.Discount, figures, muted, discount, right);
                     }
                 }
+                if (row.Prices.Count == 0)
+                    graphics.DrawString(row.NoOffer, small, muted, new RectangleF(left, y + PriceTop, rowWidth, 17), line);
                 if (row.Target != null)
-                    graphics.DrawString(row.Target, small, muted, new RectangleF(left, y + 72, rowWidth, 17), line);
-                graphics.DrawLine(border, content.Left, y + RowHeight - 1, content.Right, y + RowHeight - 1);
+                    graphics.DrawString(row.Target, small, muted,
+                        new RectangleF(left, y + PriceTop + Math.Max(1, row.Prices.Count) * PriceLineHeight + 2, rowWidth, 17), line);
+                graphics.DrawLine(border, content.Left, y + heights[index] - 1, content.Right, y + heights[index] - 1);
             }
             graphics.Restore(clip);
             WidgetScrollbar.Draw(graphics, viewport, dark);
@@ -253,8 +283,8 @@ internal static class PriceWatchWidgetRenderer
 
     internal static (RectangleF Merchant, RectangleF Price, RectangleF Discount) OfferBounds(float left, float top, float width)
     {
-        float merchant = width * .31f;
-        float price = width * .43f;
+        float merchant = width * .40f;
+        float price = width * .36f;
         return (new(left, top, merchant - 3, PriceLineHeight),
             new(left + merchant, top, price - 3, PriceLineHeight),
             new(left + merchant + price, top, width - merchant - price, PriceLineHeight));

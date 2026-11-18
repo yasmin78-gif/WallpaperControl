@@ -107,7 +107,8 @@ namespace WallpaperControl
                 result.Launcher = LauncherSettings.Parse(key.GetValue("LauncherWidgetConfiguration") as string ?? "{}");
                 result.Clipboard = ClipboardWidgetSettings.Parse(key.GetValue("ClipboardWidgetConfiguration") as string ?? "{}");
                 result.NowPlaying = NowPlayingSettings.Parse(key.GetValue("NowPlayingConfiguration") as string ?? "{}");
-                result.PriceWatch = PriceWatchWidgetSettings.Parse(key.GetValue("PriceWatchWidgetConfiguration") as string ?? "{}");
+                result.PriceWatch = key.GetValue("PriceWatchWidgetConfiguration") is string priceWatch
+                    ? PriceWatchWidgetSettings.Parse(priceWatch) : new();
                 result.Feed = FeedWidgetSettings.Parse(key.GetValue("FeedWidgetConfiguration") as string ?? "{}");
                 result.Web = WebWidgetSettings.Parse(key.GetValue("WebWidgetConfiguration") as string ?? "{}");
                 result.NotificationSound = NotificationSounds.Normalize(ReadInt(key, "NotificationSound", (int)NotificationSoundKind.Chime));

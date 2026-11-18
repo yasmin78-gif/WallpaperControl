@@ -1965,4 +1965,5 @@ Versión instalada: {0}
   <data name="PriceWatchTargetSave" xml:space="preserve"><value>Guardar</value></data>
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Introduce un importe válido en euros con un máximo de dos decimales.</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Objetivo: {0} €</value></data>
+  <data name="PriceWatchShops" xml:space="preserve"><value>Tiendas</value></data>
 </root>

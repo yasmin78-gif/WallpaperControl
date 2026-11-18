@@ -79,7 +79,10 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
             new(id, game.Title, new DateOnly(2020, 12, 10), ["Example developer"], ["Example publisher"], null)));
     }
 
-    public Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token)
+    public Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token) =>
+        PricesAsync(id, PriceWatchShops.Legacy, token);
+
+    public Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, IReadOnlyList<int> shops, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var now = DateTimeOffset.UtcNow;
@@ -87,10 +90,12 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
             return Task.FromResult(new PriceWatchReply<PriceWatchPrices[]>(now, []));
         decimal regular = id == Games[1].Id ? 80m : 40m;
         return Task.FromResult(new PriceWatchReply<PriceWatchPrices[]>(now, [new(id,
-        [
-            Offer(35, "GOG", regular, 50, now),
-            Offer(61, "Steam", regular, 0, now)
-        ])]));
+            PriceWatchShops.Validate(shops).Select(shopId =>
+            {
+                var shop = PriceWatchShops.Supported.Single(shop => shop.Id == shopId);
+                decimal cut = shopId switch { 35 => 50, 16 => 60, 27 => 50, 62 => 25, 48 => 10, 52 => 30, _ => 0 };
+                return Offer(shop.Id, shop.Name, regular, cut, now);
+            }).ToArray())]));
     }
 
     private static PriceWatchOffer Offer(int id, string name, decimal regular, decimal cut, DateTimeOffset now)

@@ -33,6 +33,8 @@ internal interface IPriceWatchSource
     Task<PriceWatchReply<PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token);
     Task<PriceWatchReply<PriceWatchGame[]>> SearchAsync(string title, CancellationToken token);
     Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token);
+    Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, IReadOnlyList<int> shops, CancellationToken token) =>
+        PricesAsync(id, token);
 }
 
 internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?> credentials,
@@ -66,11 +68,15 @@ internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?
         return reply;
     }
 
-    public async Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token)
+    public Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token) =>
+        PricesAsync(id, PriceWatchShops.Legacy, token);
+
+    public async Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, IReadOnlyList<int> shops, CancellationToken token)
     {
-        var reply = await PostAsync<PriceWatchPrices[]>("prices", new { id, shops = new[] { 35, 61 } }, token);
+        int[] selected = PriceWatchShops.Validate(shops);
+        var reply = await PostAsync<PriceWatchPrices[]>("prices", new { id, shops = selected }, token);
         if (reply.Data.Length > 1 || reply.Data.Any(item => item is null || item.Id != id || item.Deals is null
-            || item.Deals.Any(deal => deal is null || !ValidShop(deal.Shop) || !ValidMoney(deal.Price)
+            || item.Deals.Any(deal => deal is null || !ValidShop(deal.Shop) || !selected.Contains(deal.Shop.Id) || !ValidMoney(deal.Price)
                 || !ValidMoney(deal.Regular) || deal.Cut is < 0 or > 100 || deal.Timestamp == default
                 || deal.Url is not { IsAbsoluteUri: true, Scheme: "https", UserInfo.Length: 0 })))
             throw new PriceWatchException(PriceWatchFailure.InvalidResponse);
@@ -91,16 +97,22 @@ internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?
         return reply;
     }
 
-    internal async Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, CancellationToken token)
+    internal Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, CancellationToken token) =>
+        HistoryAsync(id, days, PriceWatchShops.Legacy, token);
+
+    internal async Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, IReadOnlyList<int> shops,
+        CancellationToken token)
     {
-        var reply = await PostAsync<PriceWatchHistory[]>("history", new { id, shops = new[] { 35, 61 }, days }, token);
-        if (reply.Data.Any(point => point is null || !ValidShop(point.Shop) || point.Timestamp == default
+        int[] selected = PriceWatchShops.Validate(shops);
+        var reply = await PostAsync<PriceWatchHistory[]>("history", new { id, shops = selected, days }, token);
+        if (reply.Data.Any(point => point is null || !ValidShop(point.Shop) || !selected.Contains(point.Shop.Id) || point.Timestamp == default
             || point.Deal is { } deal && (!ValidMoney(deal.Price) || !ValidMoney(deal.Regular) || deal.Cut is < 0 or > 100)))
             throw new PriceWatchException(PriceWatchFailure.InvalidResponse);
         return reply;
     }
 
-    private static bool ValidShop(PriceWatchShop? shop) => shop is { Id: 35 or 61 } && !string.IsNullOrWhiteSpace(shop.Name);
+    private static bool ValidShop(PriceWatchShop? shop) => shop != null && PriceWatchShops.IsSupported(shop.Id)
+        && !string.IsNullOrWhiteSpace(shop.Name);
     private static bool ValidMoney(PriceWatchMoney? value) => value is { Currency: "EUR", AmountInt: >= 0 }
         && value.Amount == value.AmountInt / 100m;
 

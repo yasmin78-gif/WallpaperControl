@@ -1965,4 +1965,5 @@ Would you like to open the release page?</value>
   <data name="PriceWatchTargetSave" xml:space="preserve"><value>Save</value></data>
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Enter a valid euro amount with at most two decimal places.</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Target: {0} €</value></data>
+  <data name="PriceWatchShops" xml:space="preserve"><value>Shops</value></data>
 </root>

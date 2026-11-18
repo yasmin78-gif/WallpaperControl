@@ -40,6 +40,9 @@ namespace WallpaperControl
             preview.PriceWatch.Enabled = priceWatchEnabled.Checked;
             preview.PriceWatch.Locked = priceWatchLocked.Checked;
             preview.PriceWatch.DetailSizeLocked = priceWatchDetailSizeLocked.Checked;
+            preview.PriceWatch.ShopIds = PriceWatchShops.Normalize(initialWidgetSettings.PriceWatch.ShopIds
+                .Concat(PriceWatchShops.Supported.Select(shop => shop.Id))
+                .Where(id => priceWatchShops.TryGetValue(id, out var check) && check.Checked));
             preview.PriceWatch.Live = priceWatchLive.Checked;
             preview.PriceWatch.Style = (SystemWidgetStyle)Math.Max(0, priceWatchStyle.SelectedIndex);
             preview.Feed.Enabled = feedEnabled.Checked; preview.Feed.Locked = feedLocked.Checked; preview.Feed.Style = (SystemWidgetStyle)Math.Max(0, feedStyle.SelectedIndex); preview.Feed.MaximumHeight = (int)feedHeight.Value;
