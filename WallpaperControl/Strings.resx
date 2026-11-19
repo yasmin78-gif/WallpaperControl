@@ -1970,4 +1970,19 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PriceWatchNotifications" xml:space="preserve"><value>Windows-Benachrichtigungen anzeigen</value></data>
   <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – Wunschpreis erreicht!</value></data>
   <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;Dein Wunschpreis: {3} €</value></data>
+  <data name="PriceWatchHistory" xml:space="preserve"><value>Preisverlauf</value></data>
+  <data name="PriceWatchHistory7" xml:space="preserve"><value>7 Tage</value></data>
+  <data name="PriceWatchHistory30" xml:space="preserve"><value>30 Tage</value></data>
+  <data name="PriceWatchHistory90" xml:space="preserve"><value>90 Tage</value></data>
+  <data name="PriceWatchHistoryPeriodLabel" xml:space="preserve"><value>Zeitraum</value></data>
+  <data name="PriceWatchHistoryNoData" xml:space="preserve"><value>Keine historischen Preispunkte</value></data>
+  <data name="PriceWatchHistoryMinimum" xml:space="preserve"><value>ITAD-Tiefstpreis (verfügbare Historie, Zeitraum, sichtbare Händler)</value></data>
+  <data name="PriceWatchHistorySource" xml:space="preserve"><value>ITAD-Änderungsprotokoll · Lücken sind keine 0-€-Preise · Datenstand</value></data>
+  <data name="PriceWatchHistoryRegular" xml:space="preserve"><value>Regulärer Preis</value></data>
+  <data name="PriceWatchHistoryLoading" xml:space="preserve"><value>Preisverlauf wird geladen …</value></data>
+  <data name="PriceWatchHistoryITAD" xml:space="preserve"><value>ITAD-Historie</value></data>
+  <data name="PriceWatchHistoryLocal" xml:space="preserve"><value>Lokal erfasst</value></data>
+  <data name="PriceWatchHistoryLast" xml:space="preserve"><value>Letzter erfasster Preis</value></data>
+  <data name="PriceWatchHistoryLocalSource" xml:space="preserve"><value>Lokale Beobachtung (ITAD-Proxy)</value></data>
+  <data name="PriceWatchHistoryConnection" xml:space="preserve"><value>Verbindung zwischen bekannten Preisständen – Zwischenverlauf unbekannt</value></data>
 </root>

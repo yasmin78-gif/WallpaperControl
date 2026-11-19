@@ -6,7 +6,7 @@ namespace WallpaperControl;
 internal sealed record PriceWatchEntry(PriceWatchGame Game, PriceWatchReply<PriceWatchPrices[]>? Snapshot, int? TargetCents = null);
 internal sealed class PriceWatchLimitException : Exception;
 
-internal sealed partial class PriceWatchStore(string path)
+internal sealed partial class PriceWatchStore(string path, Func<DateTimeOffset>? clock = null)
 {
     internal const int MaximumGames = 20;
     internal static string DefaultPath => Path.Combine(
@@ -121,7 +121,9 @@ internal sealed partial class PriceWatchStore(string path)
     internal bool SaveSnapshot(bool live, Guid id, PriceWatchReply<PriceWatchPrices[]> snapshot)
     {
         using var connection = Open();
+        using var transaction = connection.BeginTransaction();
         using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
             UPDATE watched SET snapshot = $snapshot, fetched_ticks = $fetched
             WHERE live = $mode AND id = $id AND (fetched_ticks IS NULL OR fetched_ticks <= $fetched)
@@ -129,7 +131,10 @@ internal sealed partial class PriceWatchStore(string path)
         BindKey(command, live, id);
         command.Parameters.AddWithValue("$snapshot", JsonSerializer.Serialize(snapshot));
         command.Parameters.AddWithValue("$fetched", snapshot.FetchedAt.UtcTicks);
-        return command.ExecuteNonQuery() != 0;
+        bool saved = command.ExecuteNonQuery() != 0;
+        if (saved) SaveObservations(connection, transaction, live, id, snapshot, (clock ?? (() => DateTimeOffset.UtcNow))());
+        transaction.Commit();
+        return saved;
     }
 
     internal PriceWatchReply<PriceWatchGameInfo>? ReadInfo(bool live, Guid id)
@@ -204,10 +209,23 @@ internal sealed partial class PriceWatchStore(string path)
                     CREATE TABLE IF NOT EXISTS price_monitor_state (
                         live INTEGER PRIMARY KEY CHECK (live IN (0,1)), last_attempt INTEGER, last_success INTEGER
                     );
+                    CREATE TABLE IF NOT EXISTS price_observations (
+                        live INTEGER NOT NULL, id TEXT NOT NULL, shop INTEGER NOT NULL,
+                        captured_ticks INTEGER NOT NULL, cents INTEGER NOT NULL CHECK(cents >= 0),
+                        regular_cents INTEGER CHECK(regular_cents >= 0), currency TEXT NOT NULL CHECK(currency='EUR'),
+                        source TEXT NOT NULL CHECK(source='local'), expiry_ticks INTEGER,
+                        PRIMARY KEY(live,id,shop,captured_ticks),
+                        FOREIGN KEY(live,id) REFERENCES watched(live,id) ON DELETE CASCADE
+                    );
+                    CREATE INDEX IF NOT EXISTS price_observations_age ON price_observations(captured_ticks);
                     """;
                 command.ExecuteNonQuery();
                 initialized = true;
             }
+            using var prune = connection.CreateCommand();
+            prune.CommandText = "DELETE FROM price_observations WHERE captured_ticks < $cutoff";
+            prune.Parameters.AddWithValue("$cutoff", (clock ?? (() => DateTimeOffset.UtcNow))().AddDays(-90).UtcTicks);
+            prune.ExecuteNonQuery();
             return connection;
         }
         catch

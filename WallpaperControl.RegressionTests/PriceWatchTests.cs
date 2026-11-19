@@ -18,6 +18,8 @@ internal static class PriceWatchTests
         RunClient(check).GetAwaiter().GetResult();
         PriceWatchShopTests.RunAsync(check).GetAwaiter().GetResult();
         PriceWatchMonitorTests.RunAsync(check).GetAwaiter().GetResult();
+        PriceWatchHistoryTests.RunAsync(check).GetAwaiter().GetResult();
+        PriceWatchCurveTests.Run(check);
         CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
         CheckItadCovers(check).GetAwaiter().GetResult();
 #if DEBUG
@@ -25,6 +27,8 @@ internal static class PriceWatchTests
         check(true, "startup localization audit passes for all supported languages");
 #endif
         CheckStorageAndLayout(check);
+        PriceWatchObservationTests.Run(check);
+        PriceWatchHistoryTests.RunUi(check);
     }
 
     private static async Task CheckItadCovers(Action<bool, string> check)

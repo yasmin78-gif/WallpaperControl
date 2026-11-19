@@ -48,6 +48,8 @@ internal sealed class PriceWatchDetailForm : Form
     private readonly AppSettingsStore? sizeSettings;
     private readonly bool sizeLocked;
     private readonly PriceWatchItadCovers? itadCovers;
+    private readonly PriceWatchHistoryView? history;
+    private readonly Func<PriceWatchObservation[]>? readObservations;
     private bool coverReady;
     private string? displayedCoverUrl;
     private bool scaleContents;
@@ -62,10 +64,13 @@ internal sealed class PriceWatchDetailForm : Form
         Func<Task>? refreshInfo = null, bool fetchInfoOnOpen = false,
         PriceWatchDescription? description = null, PriceWatchCoverSource? coverSource = null,
         AppSettingsStore? sizeSettings = null, bool sizeLocked = false, PriceWatchItadCovers? itadCovers = null,
-        Func<int?, bool>? saveTarget = null, IReadOnlyList<int>? shops = null)
+        Func<int?, bool>? saveTarget = null, IReadOnlyList<int>? shops = null,
+        Func<int, CancellationToken, Task<PriceWatchReply<PriceWatchHistory[]>>>? loadHistory = null,
+        Func<PriceWatchObservation[]>? readObservations = null)
     {
         selectedShops = PriceWatchShops.Validate(shops ?? PriceWatchShops.Legacy);
         currentEntry = entry;
+        this.readObservations = readObservations;
         this.sizeSettings = sizeSettings;
         this.sizeLocked = sizeLocked;
         this.itadCovers = itadCovers;
@@ -146,7 +151,6 @@ internal sealed class PriceWatchDetailForm : Form
         offers.ColumnStyles.Add(new(SizeType.Percent, 35));
         offers.ColumnStyles.Add(new(SizeType.Percent, 27));
         content.Controls.Add(offers, 0, 2);
-        // A history section can be placed after the offers when a chart is available.
         if (saveTarget != null)
         {
             var targetLabel = new Label { Text = T("PriceWatchTarget"), AutoSize = true, Margin = new(0, 6, 6, 0) };
@@ -174,7 +178,13 @@ internal sealed class PriceWatchDetailForm : Form
             };
         }
         else content.Controls.Add(updated, 0, 3);
-        content.Controls.Add(status, 0, 4);
+        if (loadHistory != null)
+        {
+            history = new(language, selectedShops, loadHistory, testData: !shopLinksEnabled, style: style);
+            content.Controls.Add(history, 0, 4);
+            FormClosed += (_, _) => history.CancelLoad();
+        }
+        content.Controls.Add(status, 0, 5);
         var fetch = new Button { Text = T("PriceWatchRefresh"), AutoSize = true };
         var delete = new Button { Text = T("PriceWatchRemove"), AutoSize = true };
         var close = new Button { Text = T("AboutClose"), AutoSize = true, DialogResult = DialogResult.Cancel };
@@ -189,7 +199,7 @@ internal sealed class PriceWatchDetailForm : Form
             button.Margin = new Padding(0, 0, 8, 6);
             button.Padding = new Padding(10, 4, 10, 4);
         }
-        content.Controls.Add(actions, 0, 5);
+        content.Controls.Add(actions, 0, 6);
         scroll.Controls.Add(content);
         Controls.Add(scroll);
         scroll.TabIndex = 1;
@@ -267,6 +277,8 @@ internal sealed class PriceWatchDetailForm : Form
     internal void Present(PriceWatchEntry entry, string message)
     {
         currentEntry = entry;
+        history?.SetTarget(entry.TargetCents);
+        history?.SetPrices(entry, readObservations?.Invoke() ?? []);
         heading.Text = currentInfo?.Title ?? entry.Game.Title;
         edition.Text = T(PriceWatchSearchForm.EditionKey(entry.Game.Type));
         offers.SuspendLayout();
@@ -454,6 +466,7 @@ internal sealed class PriceWatchDetailForm : Form
         try
         {
             ApplyFonts();
+            history?.ApplyScale(LayoutPixels(220));
             content.Padding = new(LayoutPixels(20), LayoutPixels(16), LayoutPixels(20), LayoutPixels(4));
             header.Padding = new(LayoutPixels(16), LayoutPixels(12), LayoutPixels(16), LayoutPixels(12));
             cover.Size = new(LayoutPixels(120), LayoutPixels(170));

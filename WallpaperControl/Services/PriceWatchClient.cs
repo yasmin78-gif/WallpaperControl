@@ -30,6 +30,8 @@ internal sealed class PriceWatchException(PriceWatchFailure failure, TimeSpan? r
 
 internal interface IPriceWatchSource
 {
+    Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, IReadOnlyList<int> shops, CancellationToken token) =>
+        throw new PriceWatchException(PriceWatchFailure.InvalidRequest);
     Task<PriceWatchReply<PriceWatchGameInfo>> InfoAsync(Guid id, CancellationToken token);
     Task<PriceWatchReply<PriceWatchGame[]>> SearchAsync(string title, CancellationToken token);
     Task<PriceWatchReply<PriceWatchPrices[]>> PricesAsync(Guid id, CancellationToken token);
@@ -100,9 +102,10 @@ internal sealed class PriceWatchClient(HttpClient http, Func<TrackingCredential?
     internal Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, CancellationToken token) =>
         HistoryAsync(id, days, PriceWatchShops.Legacy, token);
 
-    internal async Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, IReadOnlyList<int> shops,
+    public async Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, IReadOnlyList<int> shops,
         CancellationToken token)
     {
+        if (id == Guid.Empty || days is not (7 or 30 or 90)) throw new PriceWatchException(PriceWatchFailure.InvalidRequest);
         int[] selected = PriceWatchShops.Validate(shops);
         var reply = await PostAsync<PriceWatchHistory[]>("history", new { id, shops = selected, days }, token);
         if (reply.Data.Any(point => point is null || !ValidShop(point.Shop) || !selected.Contains(point.Shop.Id) || point.Timestamp == default
