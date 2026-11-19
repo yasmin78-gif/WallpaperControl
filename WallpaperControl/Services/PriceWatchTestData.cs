@@ -3,6 +3,15 @@ namespace WallpaperControl;
 // The widget test mode never creates or calls an HTTP client.
 internal sealed class PriceWatchTestData : IPriceWatchSource
 {
+    private readonly Func<DateTimeOffset> historyClock;
+    private readonly DateTimeOffset historyAnchor;
+
+    internal PriceWatchTestData(Func<DateTimeOffset>? historyClock = null)
+    {
+        this.historyClock = historyClock ?? (() => DateTimeOffset.UtcNow);
+        // One calendar basis per offline source, independent of selected window and request time.
+        historyAnchor = new DateTimeOffset(this.historyClock().UtcDateTime.Date, TimeSpan.Zero);
+    }
     private static readonly PriceWatchGame[] Games =
     [
         new(new("10000000-0000-4000-8000-000000000001"), "Cyberpunk 2077", "game"),
@@ -103,5 +112,52 @@ internal sealed class PriceWatchTestData : IPriceWatchSource
         decimal amount = regular * (1 - cut / 100);
         return new(new(id, name), new(amount, (int)(amount * 100), "EUR"),
             new(regular, (int)(regular * 100), "EUR"), cut, new("https://fixture.invalid/"), now, null);
+    }
+
+    public Task<PriceWatchReply<PriceWatchHistory[]>> HistoryAsync(Guid id, int days, IReadOnlyList<int> shops, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (days is not (7 or 30 or 90) || !Games.Concat(DetailExamples).Any(g => g.Id == id))
+            throw new PriceWatchException(PriceWatchFailure.InvalidRequest);
+        var now = historyClock();
+        var points = new List<PriceWatchHistory>();
+        foreach (int shop in PriceWatchShops.Validate(shops).Where(s => s != 52))
+        {
+            var merchant = PriceWatchShops.Supported.Single(s => s.Id == shop);
+            int regular = (id == Games[1].Id ? 8000 : 4000)
+                + Array.FindIndex(PriceWatchShops.Supported.ToArray(), s => s.Id == shop) * 200;
+            (int Day, int Hour, decimal? Factor)[] events = shop switch
+            {
+                35 => [(-88, 16, 1m), (-64, 10, .75m), (-24, 9, .5m), (-6, 12, .75m),
+                    (-5, 8, null), (-3, 10, .75m), (-1, 9, .5m), (-1, 16, .6m)],
+                61 => [(-89, 10, 1m), (-65, 14, .8m), (-29, 10, 1m), (-12, 16, .6m),
+                    (-6, 11, 1m), (-2, 8, .75m), (-1, 20, .5m)],
+                16 => [(-80, 8, 1m), (-48, 12, .6m), (-22, 17, 1m), (-8, 14, .5m),
+                    (-4, 18, .7m), (-2, 13, .4m)],
+                27 => [(-85, 14, .9m), (-51, 9, .75m), (-20, 16, .8m), (-6, 15, .65m),
+                    (-3, 12, .8m), (-1, 11, .55m)],
+                62 => [(-82, 18, 1m), (-60, 10, .7m), (-43, 8, null), (-34, 11, 1m),
+                    (-15, 15, .6m), (-5, 14, .8m), (-1, 18, 1m)],
+                _ => [(-87, 12, 1m), (-55, 15, .8m), (-25, 10, .6m), (-7, 18, 1m),
+                    (-4, 9, .9m), (-1, 14, .7m)]
+            };
+            foreach (var (day, hour, factor) in events)
+            {
+                int amount = (int)(regular * (factor ?? 1));
+                points.Add(new(new(shop, merchant.Name), historyAnchor.AddDays(day).AddHours(hour), factor == null ? null :
+                    new(new(amount / 100m, amount, "EUR"), new(regular / 100m, regular, "EUR"), (1 - factor.Value) * 100)));
+            }
+        }
+        return Task.FromResult(new PriceWatchReply<PriceWatchHistory[]>(now, points
+            .Where(p => p.Timestamp >= now.AddDays(-days) && p.Timestamp <= now)
+            .OrderByDescending(p => p.Timestamp).ToArray()));
+    }
+
+    // Explicit offline presentation fixtures, never written to the user's observation table.
+    internal static PriceWatchObservation[] ObservationExamples(Guid id, int[] shops)
+    {
+        var anchor = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
+        return shops.SelectMany(shop => new[] { 4, 2 }.Select(day => new PriceWatchObservation(id, false, shop,
+            anchor.AddDays(-day).AddHours(12), 1800 + shop * 10 + day * 100, 4000))).ToArray();
     }
 }

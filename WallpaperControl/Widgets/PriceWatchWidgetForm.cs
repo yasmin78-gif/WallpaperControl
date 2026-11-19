@@ -8,6 +8,7 @@ internal sealed class PriceWatchWidgetForm : Form
 {
     private readonly Func<bool, IPriceWatchSource> source;
     private readonly PriceWatchStore store;
+    private readonly PriceWatchHistoryCache historyCache;
     private readonly Action<Uri> openLink;
     private (int Row, int Shop)? hoveredMerchant;
     private int pressedMerchant = -1;
@@ -59,6 +60,7 @@ internal sealed class PriceWatchWidgetForm : Form
         this.clearPriceAlerts = clearPriceAlerts;
         lifetimeToken = lifetimeCancellation.Token;
         this.store = store;
+        historyCache = new(FetchHistoryAsync);
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
         settings = value.Clone();
         lastRequestedShops = settings.ShopIds.ToArray();
@@ -76,7 +78,12 @@ internal sealed class PriceWatchWidgetForm : Form
         drag = new(this, () => settings.Locked, Render, moved);
         if (monitorPrices)
             monitor = new(store, AutomaticPricesAsync, (notice, live) => alert?.Invoke(notice, live),
-                () => OnUiAsync(() => { ReadEntries(); Render(); }), ui: OnUiAsync);
+                () => OnUiAsync(() =>
+                {
+                    ReadEntries(); Render();
+                    if (detailDialog is { IsDisposed: false } dialog && SelectedEntry is { } entry)
+                        dialog.Present(entry, StatusCaption);
+                }), ui: OnUiAsync);
         ReadEntries();
         Apply(value, language, false);
     }
@@ -257,6 +264,15 @@ internal sealed class PriceWatchWidgetForm : Form
     private void ConfigureMonitor() => monitor?.Configure(IsHandleCreated && settings.Enabled
         && settings.AutomaticMonitoring && !preview,
         settings.PriceNotifications, settings.Live, settings.ShopIds);
+
+    private async Task<PriceWatchReply<PriceWatchHistory[]>> FetchHistoryAsync(bool live, Guid id, int days,
+        int[] shops, CancellationToken token)
+    {
+        using var operation = CancellationTokenSource.CreateLinkedTokenSource(token, lifetimeToken);
+        await initialLoadQueue.WaitAsync(operation.Token);
+        try { return await source(live).HistoryAsync(id, days, shops, operation.Token); }
+        finally { initialLoadQueue.Release(); }
+    }
 
     private async Task<PriceWatchReply<PriceWatchPrices[]>?> AutomaticPricesAsync(bool live, Guid id, int[] shops,
         CancellationToken token)
@@ -814,6 +830,7 @@ internal sealed class PriceWatchWidgetForm : Form
         StopTitleScroll();
         var entry = entries[index];
         bool live = settings.Live;
+        int[] selectedHistoryShops = settings.ShopIds.ToArray();
         PriceWatchReply<PriceWatchGameInfo>? cachedInfo = null;
         bool cacheRead = TryInfoStore(() => cachedInfo = store.ReadInfo(live, entry.Game.Id));
         bool fetchOnOpen = cacheRead && cachedInfo == null && !initialLoads.ContainsKey((live, entry.Game.Id))
@@ -847,7 +864,14 @@ internal sealed class PriceWatchWidgetForm : Form
                     ReadEntries(entry.Game.Id);
                     Render();
                     return true;
-                }, shops: settings.ShopIds);
+                }, shops: settings.ShopIds, loadHistory: (days, token) =>
+                    historyCache.LoadAsync(live, entry.Game.Id, days, selectedHistoryShops, token),
+                readObservations: () =>
+                {
+                    PriceWatchObservation[] local = [];
+                    UseStore(() => local = store.ReadObservations(live, entry.Game.Id));
+                    return live ? local : local.Concat(PriceWatchTestData.ObservationExamples(entry.Game.Id, selectedHistoryShops)).ToArray();
+                });
             detailDialog = dialog;
             dialog.ShowDialog(this);
         }
@@ -970,6 +994,7 @@ internal sealed class PriceWatchWidgetForm : Form
         if (disposing && !lifetimeToken.IsCancellationRequested)
         {
             monitor?.Dispose();
+            historyCache.Dispose();
             lifetimeCancellation.Cancel();
             lifetimeCancellation.Dispose();
             var pending = initialLoads.Values.Concat(coverLoads.Values).Append(active).OfType<CancellationTokenSource>().ToArray();

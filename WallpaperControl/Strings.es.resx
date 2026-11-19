@@ -1970,4 +1970,19 @@ Versión instalada: {0}
   <data name="PriceWatchNotifications" xml:space="preserve"><value>Mostrar notificaciones de Windows</value></data>
   <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – ¡Precio deseado alcanzado!</value></data>
   <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;Tu precio deseado: {3} €</value></data>
+  <data name="PriceWatchHistory" xml:space="preserve"><value>Historial de precios</value></data>
+  <data name="PriceWatchHistory7" xml:space="preserve"><value>7 días</value></data>
+  <data name="PriceWatchHistory30" xml:space="preserve"><value>30 días</value></data>
+  <data name="PriceWatchHistory90" xml:space="preserve"><value>90 días</value></data>
+  <data name="PriceWatchHistoryPeriodLabel" xml:space="preserve"><value>Período</value></data>
+  <data name="PriceWatchHistoryNoData" xml:space="preserve"><value>Sin puntos históricos de precio</value></data>
+  <data name="PriceWatchHistoryMinimum" xml:space="preserve"><value>Mínimo ITAD (historial disponible, período, tiendas visibles)</value></data>
+  <data name="PriceWatchHistorySource" xml:space="preserve"><value>Registro ITAD · Los huecos no son precios cero · Datos del</value></data>
+  <data name="PriceWatchHistoryRegular" xml:space="preserve"><value>Precio habitual</value></data>
+  <data name="PriceWatchHistoryLoading" xml:space="preserve"><value>Cargando el historial de precios …</value></data>
+  <data name="PriceWatchHistoryITAD" xml:space="preserve"><value>Historial ITAD</value></data>
+  <data name="PriceWatchHistoryLocal" xml:space="preserve"><value>Registro local</value></data>
+  <data name="PriceWatchHistoryLast" xml:space="preserve"><value>Último precio registrado</value></data>
+  <data name="PriceWatchHistoryLocalSource" xml:space="preserve"><value>Observación local (proxy ITAD)</value></data>
+  <data name="PriceWatchHistoryConnection" xml:space="preserve"><value>Conexión entre precios conocidos – evolución intermedia desconocida</value></data>
 </root>

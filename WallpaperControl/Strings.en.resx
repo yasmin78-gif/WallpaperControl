@@ -1970,4 +1970,19 @@ Would you like to open the release page?</value>
   <data name="PriceWatchNotifications" xml:space="preserve"><value>Show Windows notifications</value></data>
   <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – Target price reached!</value></data>
   <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;Your target price: €{3}</value></data>
+  <data name="PriceWatchHistory" xml:space="preserve"><value>Price history</value></data>
+  <data name="PriceWatchHistory7" xml:space="preserve"><value>7 days</value></data>
+  <data name="PriceWatchHistory30" xml:space="preserve"><value>30 days</value></data>
+  <data name="PriceWatchHistory90" xml:space="preserve"><value>90 days</value></data>
+  <data name="PriceWatchHistoryPeriodLabel" xml:space="preserve"><value>Period</value></data>
+  <data name="PriceWatchHistoryNoData" xml:space="preserve"><value>No historical price points</value></data>
+  <data name="PriceWatchHistoryMinimum" xml:space="preserve"><value>ITAD low (available history, period, visible stores)</value></data>
+  <data name="PriceWatchHistorySource" xml:space="preserve"><value>ITAD change log · Gaps are not zero prices · Data fetched</value></data>
+  <data name="PriceWatchHistoryRegular" xml:space="preserve"><value>Regular price</value></data>
+  <data name="PriceWatchHistoryLoading" xml:space="preserve"><value>Loading price history …</value></data>
+  <data name="PriceWatchHistoryITAD" xml:space="preserve"><value>ITAD history</value></data>
+  <data name="PriceWatchHistoryLocal" xml:space="preserve"><value>Locally recorded</value></data>
+  <data name="PriceWatchHistoryLast" xml:space="preserve"><value>Last recorded price</value></data>
+  <data name="PriceWatchHistoryLocalSource" xml:space="preserve"><value>Local observation (ITAD proxy)</value></data>
+  <data name="PriceWatchHistoryConnection" xml:space="preserve"><value>Connection between known prices – intermediate history unknown</value></data>
 </root>
