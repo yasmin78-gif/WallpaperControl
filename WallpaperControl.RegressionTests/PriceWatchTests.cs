@@ -17,6 +17,7 @@ internal static class PriceWatchTests
     {
         RunClient(check).GetAwaiter().GetResult();
         PriceWatchShopTests.RunAsync(check).GetAwaiter().GetResult();
+        PriceWatchMonitorTests.RunAsync(check).GetAwaiter().GetResult();
         CheckOfflineCoverAndDescriptions(check).GetAwaiter().GetResult();
         CheckItadCovers(check).GetAwaiter().GetResult();
 #if DEBUG
@@ -370,6 +371,7 @@ internal static class PriceWatchTests
                 CheckInitialDataLoad(check);
                 CheckTargetPrices(check);
                 PriceWatchShopTests.RunUi(check);
+                PriceWatchMonitorTests.RunUi(check);
                 CheckDetailSizing(check);
                 CheckOfferPresentation(check);
                 CheckShopLinksAndChrome(check);

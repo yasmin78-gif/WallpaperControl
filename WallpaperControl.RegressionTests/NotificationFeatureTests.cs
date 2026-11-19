@@ -98,6 +98,15 @@ internal static class NotificationFeatureTests
     private static void Ui(Action<bool, string> check, string directory)
     {
         string registry = @"Software\WallpaperControl.NotificationFeatureTests\" + Guid.NewGuid().ToString("N");
+        const string languageRegistry = @"Software\WallpaperControl";
+        string originalLanguage = App.Localization.CurrentLanguage;
+        object? savedLanguage;
+        RegistryValueKind savedLanguageKind;
+        using (var key = Registry.CurrentUser.OpenSubKey(languageRegistry))
+        {
+            savedLanguage = key?.GetValue("Language", null, RegistryValueOptions.DoNotExpandEnvironmentNames);
+            savedLanguageKind = savedLanguage == null ? RegistryValueKind.String : key!.GetValueKind("Language");
+        }
         try
         {
             check(new App.WidgetSettings().NotificationSound == App.NotificationSoundKind.Chime && !new App.WidgetSettings().PackageStatusNotifications,
@@ -189,7 +198,27 @@ internal static class NotificationFeatureTests
             QueueScenarios(check, icon);
             editor.Dispose(); editor.Dispose(); check(editor.IsDisposed, "Repeated settings editor disposal safely releases sound and Twitch resources");
         }
-        finally { Registry.CurrentUser.DeleteSubKeyTree(registry, false); }
+        finally
+        {
+            // SaveAndClose persists its last preview language. Never leave that test choice in user settings.
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(languageRegistry);
+                if (savedLanguage == null) key.DeleteValue("Language", false);
+                else key.SetValue("Language", savedLanguage, savedLanguageKind);
+            }
+            finally
+            {
+                typeof(App.Localization).GetMethod("ApplyLanguage", BindingFlags.Static | BindingFlags.NonPublic)!
+                    .Invoke(null, new object[] { originalLanguage, false });
+                Registry.CurrentUser.DeleteSubKeyTree(registry, false);
+            }
+        }
+        using var restored = Registry.CurrentUser.OpenSubKey(languageRegistry);
+        check(Equals(restored?.GetValue("Language", null, RegistryValueOptions.DoNotExpandEnvironmentNames), savedLanguage)
+            && (savedLanguage == null || restored!.GetValueKind("Language") == savedLanguageKind)
+            && App.Localization.CurrentLanguage == originalLanguage,
+            "Notification UI checks preserve the saved and active application language");
     }
     private static void QueueScenarios(Action<bool, string> check, NotifyIcon icon)
     {

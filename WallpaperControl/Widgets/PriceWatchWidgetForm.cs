@@ -40,6 +40,8 @@ internal sealed class PriceWatchWidgetForm : Form
     private readonly SemaphoreSlim initialLoadQueue = new(1, 1);
     private readonly CancellationTokenSource lifetimeCancellation = new();
     private readonly CancellationToken lifetimeToken;
+    private readonly PriceWatchMonitor? monitor;
+    private readonly Action? clearPriceAlerts;
     private int selectionVersion;
     private bool selectionRefreshPending, selectionRefreshing;
     private int[] lastRequestedShops;
@@ -50,9 +52,11 @@ internal sealed class PriceWatchWidgetForm : Form
     private PriceWatchException? failure;
 
     internal PriceWatchWidgetForm(Func<bool, IPriceWatchSource> source, PriceWatchWidgetSettings value,
-        string language, Action<Point> moved, PriceWatchStore store, Action<Uri>? openLink = null)
+        string language, Action<Point> moved, PriceWatchStore store, Action<Uri>? openLink = null,
+        bool monitorPrices = false, Action<PriceWatchAlert, bool>? alert = null, Action? clearPriceAlerts = null)
     {
         this.source = source;
+        this.clearPriceAlerts = clearPriceAlerts;
         lifetimeToken = lifetimeCancellation.Token;
         this.store = store;
         this.openLink = openLink ?? PriceWatchShopLinks.Open;
@@ -70,6 +74,9 @@ internal sealed class PriceWatchWidgetForm : Form
         ShowInTaskbar = false;
         AutoScaleMode = AutoScaleMode.None;
         drag = new(this, () => settings.Locked, Render, moved);
+        if (monitorPrices)
+            monitor = new(store, AutomaticPricesAsync, (notice, live) => alert?.Invoke(notice, live),
+                () => OnUiAsync(() => { ReadEntries(); Render(); }), ui: OnUiAsync);
         ReadEntries();
         Apply(value, language, false);
     }
@@ -104,6 +111,7 @@ internal sealed class PriceWatchWidgetForm : Form
         : active is { IsCancellationRequested: false } ? T("PriceWatchLoading")
         : storageError ? T("PriceWatchStorageError")
         : failure != null ? PriceWatchSearchForm.ErrorText(failure, language)
+        : monitor?.LastFailure is { } automaticFailure ? PriceWatchSearchForm.ErrorText(automaticFailure, language)
         : initialLoads.Keys.Any(key => key.Live == settings.Live) ? T("PriceWatchLoading") : "";
 
     internal void FitToScreen(Point point)
@@ -118,6 +126,7 @@ internal sealed class PriceWatchWidgetForm : Form
     {
         base.OnShown(e);
         Render();
+        ConfigureMonitor();
         ScheduleSelectionRefresh();
     }
 
@@ -192,6 +201,7 @@ internal sealed class PriceWatchWidgetForm : Form
             ReadEntries();
         }
         Render();
+        ConfigureMonitor();
         ScheduleSelectionRefresh();
     }
 
@@ -241,6 +251,43 @@ internal sealed class PriceWatchWidgetForm : Form
         }
         Render();
         if (!value) ScheduleSelectionRefresh();
+        ConfigureMonitor();
+    }
+
+    private void ConfigureMonitor() => monitor?.Configure(IsHandleCreated && settings.Enabled
+        && settings.AutomaticMonitoring && !preview,
+        settings.PriceNotifications, settings.Live, settings.ShopIds);
+
+    private async Task<PriceWatchReply<PriceWatchPrices[]>?> AutomaticPricesAsync(bool live, Guid id, int[] shops,
+        CancellationToken token)
+    {
+        using var operation = CancellationTokenSource.CreateLinkedTokenSource(token, lifetimeToken);
+        var key = (live, id);
+        bool registered = false, acquired = false;
+        await OnUiAsync(() =>
+        {
+            if (initialLoads.ContainsKey(key)) return;
+            initialLoads.Add(key, operation);
+            registered = true;
+            Render();
+        });
+        if (!registered) return null;
+        try
+        {
+            await initialLoadQueue.WaitAsync(operation.Token);
+            acquired = true;
+            return await source(live).PricesAsync(id, shops, operation.Token);
+        }
+        finally
+        {
+            if (acquired) initialLoadQueue.Release();
+            await OnUiAsync(() =>
+            {
+                initialLoads.Remove(key);
+                Render();
+                ScheduleSelectionRefresh();
+            });
+        }
     }
 
     private async void ScheduleSelectionRefresh()
@@ -693,6 +740,8 @@ internal sealed class PriceWatchWidgetForm : Form
         initialLoads.Add(key, operation);
         int version = selectionVersion;
         int[] shops = settings.ShopIds.ToArray();
+        PriceWatchEntry? alertEntry = null;
+        UseStore(() => alertEntry = store.Read(live).FirstOrDefault(entry => entry.Game.Id == id));
         autoInfoAttempted.Add(key);
         failure = null;
         Render();
@@ -724,7 +773,11 @@ internal sealed class PriceWatchWidgetForm : Form
                 await OnUiAsync(() =>
                 {
                     if (operation.IsCancellationRequested || version != selectionVersion) return;
-                    UseStore(() => store.SaveSnapshot(live, id, prices));
+                    UseStore(() =>
+                    {
+                        if (store.SaveSnapshot(live, id, prices) && alertEntry != null)
+                            monitor?.Observe(live, alertEntry, shops, prices);
+                    });
                     if (settings.Live == live)
                     {
                         ReadEntries();
@@ -777,6 +830,8 @@ internal sealed class PriceWatchWidgetForm : Form
                 {
                     if (!CanOperate || !UseStore(() => store.Remove(settings.Live, entry.Game.Id))) return false;
                     CancelInitialLoad(live, entry.Game.Id);
+                    monitor?.Invalidate();
+                    clearPriceAlerts?.Invoke();
                     autoInfoAttempted.Remove((live, entry.Game.Id));
                     ReadEntries();
                     return true;
@@ -787,6 +842,8 @@ internal sealed class PriceWatchWidgetForm : Form
                 saveTarget: value =>
                 {
                     if (!UseStore(() => store.SaveTarget(live, entry.Game.Id, value))) return false;
+                    monitor?.Invalidate();
+                    clearPriceAlerts?.Invoke();
                     ReadEntries(entry.Game.Id);
                     Render();
                     return true;
@@ -878,7 +935,11 @@ internal sealed class PriceWatchWidgetForm : Form
             await OnUiAsync(() =>
             {
                 if (!operation.IsCancellationRequested && version == selectionVersion
-                    && UseStore(() => store.SaveSnapshot(live, entry.Game.Id, reply)))
+                    && UseStore(() =>
+                    {
+                        if (store.SaveSnapshot(live, entry.Game.Id, reply))
+                            monitor?.Observe(live, entry, shops, reply);
+                    }))
                     ReadEntries();
             });
         }
@@ -908,17 +969,21 @@ internal sealed class PriceWatchWidgetForm : Form
     {
         if (disposing && !lifetimeToken.IsCancellationRequested)
         {
+            monitor?.Dispose();
             lifetimeCancellation.Cancel();
             lifetimeCancellation.Dispose();
-            active?.Cancel();
-            foreach (var load in initialLoads.Values.ToArray()) load.Cancel();
+            var pending = initialLoads.Values.Concat(coverLoads.Values).Append(active).OfType<CancellationTokenSource>().ToArray();
+            foreach (var load in pending)
+            {
+                try { load.Cancel(); }
+                catch (ObjectDisposedException) { /* A completed request already released its cancellation source. */ }
+            }
             searchDialog?.Close();
             detailDialog?.Close();
             drag.Dispose();
             titleTimer.Dispose();
             tips.Dispose();
             itadCovers?.Dispose();
-            foreach (var load in coverLoads.Values) load.Cancel();
             foreach (var image in rowCovers.Values) image.Dispose();
             rowCovers.Clear();
         }

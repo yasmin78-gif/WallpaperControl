@@ -8,6 +8,8 @@ internal sealed class PriceWatchWidgetSettings
     public bool Locked { get; set; }
     public bool DetailSizeLocked { get; set; }
     public bool Live { get; set; }
+    public bool AutomaticMonitoring { get; set; } = true;
+    public bool PriceNotifications { get; set; } = true;
     public int[] ShopIds { get; set; } = PriceWatchShops.Defaults;
     public SystemWidgetStyle Style { get; set; }
     public Point Location { get; set; } = new(35, 330);

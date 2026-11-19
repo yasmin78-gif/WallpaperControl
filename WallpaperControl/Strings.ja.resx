@@ -1938,4 +1938,8 @@
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>小数点以下2桁までの有効なユーロ金額を入力してください。</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>希望: {0} €</value></data>
   <data name="PriceWatchShops" xml:space="preserve"><value>ストア</value></data>
+  <data name="PriceWatchAutomatic" xml:space="preserve"><value>自動価格監視を有効にする</value></data>
+  <data name="PriceWatchNotifications" xml:space="preserve"><value>Windows 通知を表示する</value></data>
+  <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – 希望価格に到達しました！</value></data>
+  <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;希望価格: {3} €</value></data>
 </root>
