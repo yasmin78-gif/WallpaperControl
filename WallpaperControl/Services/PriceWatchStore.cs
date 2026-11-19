@@ -6,7 +6,7 @@ namespace WallpaperControl;
 internal sealed record PriceWatchEntry(PriceWatchGame Game, PriceWatchReply<PriceWatchPrices[]>? Snapshot, int? TargetCents = null);
 internal sealed class PriceWatchLimitException : Exception;
 
-internal sealed class PriceWatchStore(string path)
+internal sealed partial class PriceWatchStore(string path)
 {
     internal const int MaximumGames = 20;
     internal static string DefaultPath => Path.Combine(
@@ -196,6 +196,13 @@ internal sealed class PriceWatchStore(string path)
                     CREATE TABLE IF NOT EXISTS target_prices (
                         live INTEGER NOT NULL, id TEXT NOT NULL, cents INTEGER NOT NULL CHECK (cents >= 0),
                         PRIMARY KEY (live, id), FOREIGN KEY (live, id) REFERENCES watched (live, id) ON DELETE CASCADE
+                    );
+                    CREATE TABLE IF NOT EXISTS price_alerts (
+                        live INTEGER NOT NULL, id TEXT NOT NULL, reached INTEGER NOT NULL CHECK (reached IN (0,1)),
+                        PRIMARY KEY (live,id), FOREIGN KEY (live,id) REFERENCES target_prices(live,id) ON DELETE CASCADE
+                    );
+                    CREATE TABLE IF NOT EXISTS price_monitor_state (
+                        live INTEGER PRIMARY KEY CHECK (live IN (0,1)), last_attempt INTEGER, last_success INTEGER
                     );
                     """;
                 command.ExecuteNonQuery();

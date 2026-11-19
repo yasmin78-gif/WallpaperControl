@@ -106,6 +106,8 @@ namespace WallpaperControl
             settings.PriceWatch.DetailSizeLocked = previewSettings.PriceWatch.DetailSizeLocked;
             settings.PriceWatch.ShopIds = previewSettings.PriceWatch.ShopIds.ToArray();
             settings.PriceWatch.Live = previewSettings.PriceWatch.Live;
+            settings.PriceWatch.AutomaticMonitoring = previewSettings.PriceWatch.AutomaticMonitoring;
+            settings.PriceWatch.PriceNotifications = previewSettings.PriceWatch.PriceNotifications;
             settings.PriceWatch.Style = previewSettings.PriceWatch.Style;
             settings.Feed.Enabled = previewSettings.Feed.Enabled; settings.Feed.Locked = previewSettings.Feed.Locked; settings.Feed.Style = previewSettings.Feed.Style; settings.Feed.MaximumHeight = previewSettings.Feed.MaximumHeight;
             settings.NotificationSound = previewSettings.NotificationSound; settings.PackageStatusNotifications = previewSettings.PackageStatusNotifications;

@@ -1966,4 +1966,8 @@ Möchtest du die Release-Seite öffnen?</value>
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Bitte einen gültigen Eurobetrag mit höchstens zwei Nachkommastellen eingeben.</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Wunsch: {0} €</value></data>
   <data name="PriceWatchShops" xml:space="preserve"><value>Händler</value></data>
+  <data name="PriceWatchAutomatic" xml:space="preserve"><value>Automatische Preisüberwachung aktivieren</value></data>
+  <data name="PriceWatchNotifications" xml:space="preserve"><value>Windows-Benachrichtigungen anzeigen</value></data>
+  <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – Wunschpreis erreicht!</value></data>
+  <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;Dein Wunschpreis: {3} €</value></data>
 </root>

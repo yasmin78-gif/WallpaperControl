@@ -557,6 +557,9 @@ namespace WallpaperControl
             desktopNotifications = new(trayIcon, sound: () => widgetManager.NotificationSound, playSound: widgetManager.PlayNotificationSound, soundForGroup: widgetManager.GetNotificationSound);
             widgetManager.ShowTwitchNotification = desktopNotifications.Show;
             widgetManager.ClearTwitchNotifications = () => desktopNotifications.Clear("twitch");
+            widgetManager.ShowPriceWatchNotification = (alert, language) =>
+                PriceWatchNotifications.Show(desktopNotifications, alert, language);
+            widgetManager.ClearPriceWatchNotifications = () => desktopNotifications.Clear("pricewatch");
             widgetManager.ShowPackageNotification = (shipment, language) => desktopNotifications.Show(
                 Localization.Get("PackageStatusNotificationTitle", language),
                 string.Format(Localization.Get("PackageStatusNotificationBody", language), PackagePresentation.Name(shipment, language), PackagePresentation.ShipmentStatus(shipment, language)),

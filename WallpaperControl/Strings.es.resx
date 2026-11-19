@@ -1966,4 +1966,8 @@ Versión instalada: {0}
   <data name="PriceWatchTargetInvalid" xml:space="preserve"><value>Introduce un importe válido en euros con un máximo de dos decimales.</value></data>
   <data name="PriceWatchTargetCaption" xml:space="preserve"><value>Objetivo: {0} €</value></data>
   <data name="PriceWatchShops" xml:space="preserve"><value>Tiendas</value></data>
+  <data name="PriceWatchAutomatic" xml:space="preserve"><value>Activar la supervisión automática de precios</value></data>
+  <data name="PriceWatchNotifications" xml:space="preserve"><value>Mostrar notificaciones de Windows</value></data>
+  <data name="PriceWatchAlertTitle" xml:space="preserve"><value>PriceWatch – ¡Precio deseado alcanzado!</value></data>
+  <data name="PriceWatchAlertBody" xml:space="preserve"><value>{0}&#10;{1}: {2}&#10;Tu precio deseado: {3} €</value></data>
 </root>
