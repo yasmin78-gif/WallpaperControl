@@ -25,7 +25,12 @@ namespace WallpaperControl
         private bool completedExpanded;
         private RectangleF completedBounds;
         internal static RectangleF AddBounds => new(LogicalWidth - 40, 12, 26, 28);
-        internal int OpenCount => store.Entries.Count(e => !e.IsCompletedOn(clock()));
+        private static bool IsVisibleInWidget(NoteEntry entry, DateTime now) => !entry.IsRecurring
+            || entry.EffectiveDueDate(now) is DateOnly due && due <= DateOnly.FromDateTime(now);
+        internal int OpenCount
+        {
+            get { DateTime now = clock(); return store.Entries.Count(e => IsVisibleInWidget(e, now) && !e.IsCompletedOn(now)); }
+        }
 
         internal NotesWidgetForm(NotesStore store, WidgetSettings settings, Action<Point> moved,
             Action<NoteEntry?> edit, Func<DateTime>? clock = null)
@@ -94,7 +99,7 @@ namespace WallpaperControl
         internal Bitmap RenderBitmap(int heightLimit = 2000, int dpi = 96)
         {
             DateTime now = clock();
-            IReadOnlyList<NoteGroup> groups = NoteGrouping.Build(store.Entries, now);
+            IReadOnlyList<NoteGroup> groups = NoteGrouping.Build(store.Entries.Where(e => IsVisibleInWidget(e, now)), now);
             NoteEntry[] done = store.Entries.Where(e => e.IsCompletedOn(now) && e.CompletedAt?.Date == now.Date)
                 .OrderBy(e => e.CompletedAt).ThenBy(e => e.Id).ToArray();
             using Font font = new("Segoe UI", 13, FontStyle.Regular, GraphicsUnit.Pixel);
@@ -196,7 +201,7 @@ namespace WallpaperControl
 
         private static string DisplayTitle(NoteEntry entry, DateTime now, CultureInfo culture)
         {
-            string prefix = entry.ExtendedRepeat ? NoteRecurrence.Summary(entry, culture.Name) + "  " : entry.RepeatsDaily ? "↻ " : entry.IsOverdue(now) ? entry.DueDate?.ToString("d", culture) + "  " : "";
+            string prefix = !entry.IsRecurring && entry.IsOverdue(now) ? entry.DueDate?.ToString("d", culture) + "  " : "";
             if (entry.DueTime is TimeOnly time) prefix += time.ToString("t", culture) + "  ";
             return prefix + entry.Title;
         }

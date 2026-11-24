@@ -134,5 +134,32 @@ internal static class ExtendedRecurrenceTests
         }
         using var editing = new App.NoteEditorForm(store, saved, "de", darkMode: false);
         check(Field<ComboBox>(editing, "repeat").SelectedIndex == 4 && Field<TextBox>(editing, "interval").Text == "2", "Editor restores custom values");
+        DateTime widgetNow = new(2026, 11, 24, 12, 0, 0);
+        var widgetStore = new App.NotesStore(Path.Combine(Path.GetDirectoryName(path)!, "visibility.json"), () => widgetNow);
+        widgetStore.SaveEntry(new App.NoteEntry { Title = "Undated" });
+        widgetStore.SaveEntry(new App.NoteEntry { Title = "Future one-off", HasReminder = true, DueDate = new(2027, 3, 19) });
+        foreach (var kind in new[] { App.NoteRepeat.Daily, App.NoteRepeat.Monthly, App.NoteRepeat.Yearly, App.NoteRepeat.Custom })
+            widgetStore.SaveEntry(new App.NoteEntry { Title = "Serie", HasReminder = true, DueDate = new(2026, 11, 25), DueTime = new(23, 0), Repeat = kind, RepeatsDaily = kind == App.NoteRepeat.Daily });
+        using var widget = new App.NotesWidgetForm(widgetStore, new() { ClockLanguageCode = "de" }, _ => { }, _ => { }, () => widgetNow);
+        using (var image = widget.RenderBitmap())
+        {
+            check(widget.OpenCount == 2 && Field<System.Collections.IList>(widget, "rows").Count == 2,
+                "Widget hides future recurring rows and excludes them from count; one-offs remain visible");
+        }
+        widgetNow = widgetNow.Date.AddDays(1);
+        using (var image = widget.RenderBitmap())
+            check(widget.OpenCount == 6 && Field<System.Collections.IList>(widget, "rows").Count == 6,
+                "All recurrence kinds appear on their due day before the configured time");
+        var monthly = widgetStore.Entries.Single(e => e.Repeat == App.NoteRepeat.Monthly);
+        string title = (string)typeof(App.NotesWidgetForm).GetMethod("DisplayTitle", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, new object[] { monthly, widgetNow, System.Globalization.CultureInfo.GetCultureInfo("de") })!;
+        check(title == "23:00  Serie", "Recurring widget title retains time without recurrence label");
+        widgetStore.Complete(monthly.Id, true);
+        using (var image = widget.RenderBitmap())
+            check(widget.OpenCount == 5 && Field<System.Collections.IList>(widget, "rows").Count == 5,
+                "Completing a series hides its next future occurrence immediately");
+        widgetNow = widgetNow.AddDays(1);
+        using (var image = widget.RenderBitmap())
+            check(widget.OpenCount == 5, "Overdue recurring entries remain visible until completion");
     }
 }

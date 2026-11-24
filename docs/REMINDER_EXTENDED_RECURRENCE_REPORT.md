@@ -10,7 +10,7 @@ Stand: 24. November 2026. Entwicklungsbranch: `codex/reminder-extended-recurrenc
 - Monatliche, jährliche und individuelle Serien behalten ihren offenen Termin bis zur Erledigung. Danach wird der nächste zukünftige Termin im ursprünglichen Rhythmus ermittelt. Ein am selben Tag noch bevorstehender Termin bleibt dabei erhalten. Die bestehende tägliche Wiederholung öffnet sich weiterhin am nächsten lokalen Kalendertag automatisch.
 - Ein gesonderter Abschlussbezug identifiziert auch vorzeitig über ein Popup erledigte Termine. Übersprungene Termine erzeugen keine Popup-Serie. Die vorhandenen Vorlaufzeiten, Snooze-Funktion und persistierte Duplikatunterdrückung bleiben erhalten.
 - Datum und Uhrzeit bleiben lokale Kalenderwerte ohne UTC-Addition. Dadurch bleibt die eingestellte lokale Uhrzeit über Sommer-/Winterzeitwechsel erhalten. Die bestehende Popup-Sperre gegen doppelte Zustellung gilt auch während der zurückgestellten Stunde.
-- Widget und Verwaltung zeigen die neuen Wiederholungen verständlich an. Checkboxen verwenden explizit die Dialogpalette. Neue Texte sind für Deutsch, Englisch, Französisch, Spanisch und Japanisch vorhanden. Die Tab-Reihenfolge folgt den sichtbaren Eingabezeilen.
+- Die Verwaltung zeigt die neuen Wiederholungen verständlich an. Im Widget erscheinen Serien nach der unten beschriebenen Folgeanpassung ohne Wiederholungszusatz. Checkboxen verwenden explizit die Dialogpalette. Neue Texte sind für Deutsch, Englisch, Französisch, Spanisch und Japanisch vorhanden. Die Tab-Reihenfolge folgt den sichtbaren Eingabezeilen.
 
 ## Datenkompatibilität
 
@@ -40,5 +40,13 @@ Stand: 24. November 2026. Entwicklungsbranch: `codex/reminder-extended-recurrenc
 - Die fachliche manuelle Abnahme durch die Nutzerin steht aus. Keine bekannten offenen Implementierungsfehler; die beschriebene Einschränkung betrifft die UI-Automation der Abnahmevorbereitung.
 
 ## Auslieferung
+
+### Folgeanpassung: Sichtbarkeit im Widget
+
+Auf Wunsch vom 24. November 2026 werden wiederkehrende Einträge erst ab dem Tag ihres effektiven Fälligkeitstermins im Widget angezeigt und gezählt. Die Uhrzeit verzögert diese Anzeige nicht. Überfällige Einträge bleiben bis zur Erledigung sichtbar; der danach errechnete zukünftige Serientermin wird wieder ausgeblendet. Einmalige Termine und undatierte Notizen behalten ihre bisherige Sichtbarkeit. Wiederholungszusätze einschließlich des täglichen Wiederholungssymbols entfallen in den Widget-Zeilen; Titel und optionale Uhrzeit bleiben erhalten. Die Verwaltung, gespeicherte Daten und Popup-Zeitpläne bleiben unverändert.
+
+Die ergänzten Widget-Tests prüfen alle Wiederholungsarten, tatsächliche gerenderte Zeilen und den Zähler, Sichtbarkeit ab Mitternacht vor der eingestellten Uhrzeit, Ausblenden nach Erledigung, überfällige Serien sowie die Titelzeile ohne Wiederholungszusatz.
+
+Validierung der Folgeanpassung: **871 gezielte Prüfungen erfolgreich**, einschließlich der bestehenden Notiz-, täglichen Wiederholungs- und Popup-Tests (`artifacts/recurrence-widget-visibility.log`). Release-Build: **0 Warnungen, 0 Fehler** (`artifacts/recurrence-widget-release.log`).
 
 Kein Merge in `master`, kein Push und keine Löschung des Entwicklungsbranches. Die Änderungen einschließlich dieses Berichts werden gemeinsam committed. Der Commit wird in der Abschlussnachricht genannt.
