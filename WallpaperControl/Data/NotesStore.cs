@@ -35,7 +35,7 @@ namespace WallpaperControl
             if (new FileInfo(candidate).Length > 16 * 1024 * 1024) throw new JsonException("Notes document exceeds the size limit.");
             NotesDocument document = JsonSerializer.Deserialize<NotesDocument>(File.ReadAllText(candidate), JsonOptions)
                 ?? throw new JsonException("Missing notes document.");
-            if (document.Version is not (1 or 2 or 3)) throw new NotSupportedException("Unsupported notes version.");
+            if (document.Version is not (1 or 2 or 3 or 4)) throw new NotSupportedException("Unsupported notes version.");
             if (document.Entries == null || document.Entries.Count > 10000 || document.Entries.Any(e => e == null || !e.IsValid)
                 || document.Entries.Select(e => e.Id).Distinct().Count() != document.Entries.Count)
                 throw new JsonException("Invalid notes document.");
@@ -64,11 +64,16 @@ namespace WallpaperControl
             if (!entry.IsValid) return false;
             NoteEntry? existing = entries.FirstOrDefault(e => e.Id == entry.Id);
             if (existing != null && existing.CreatedAt != entry.CreatedAt) return false;
+            if (entry.ExtendedRepeat && entry.IsCompleted && existing?.CompletedAt != entry.CompletedAt
+                && entry.RepeatCompletedThrough == existing?.RepeatCompletedThrough)
+                entry = entry with { RepeatCompletedThrough = existing?.EffectiveDueDate(Now) ?? entry.DueDate };
             // An editor can stay open while a reminder is delivered or snoozed.
             // Preserve the latest delivery state unless the schedule was changed.
             bool sameSchedule = existing != null && existing.PopupReminder == entry.PopupReminder
                 && existing.PopupLeadMinutes == entry.PopupLeadMinutes && existing.DueDate == entry.DueDate
-                && existing.DueTime == entry.DueTime && existing.RepeatsDaily == entry.RepeatsDaily;
+                && existing.DueTime == entry.DueTime && existing.RepeatsDaily == entry.RepeatsDaily
+                && existing.Repeat == entry.Repeat && existing.RepeatInterval == entry.RepeatInterval
+                && existing.RepeatUnit == entry.RepeatUnit && existing.RepeatAnchor == entry.RepeatAnchor;
             entry = entry with { PopupOccurrence = sameSchedule ? existing!.PopupOccurrence : null,
                 PopupSnoozedUntil = sameSchedule ? existing!.PopupSnoozedUntil : null };
             return Commit(entries.Where(e => e.Id != entry.Id).Append(entry with { Title = entry.Title.Trim() }).ToArray());
@@ -85,6 +90,7 @@ namespace WallpaperControl
         {
             NoteEntry? entry = entries.FirstOrDefault(e => e.Id == id);
             return entry != null && SaveEntry(entry with { IsCompleted = completed,
+                RepeatCompletedThrough = completed && entry.ExtendedRepeat ? entry.EffectiveDueDate(Now) : null,
                 CompletedAt = completed ? entry.IsCompletedOn(Now) ? entry.CompletedAt : Now : null });
         }
 
@@ -100,7 +106,7 @@ namespace WallpaperControl
                 using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     // Older releases must not silently turn recurring tasks into one-off notes.
-                    JsonSerializer.Serialize(stream, new NotesDocument { Version = next.Any(e => e.PopupReminder || e.PopupOccurrence.HasValue) ? 3 : next.Any(e => e.RepeatsDaily) ? 2 : 1, Entries = next.ToList() }, JsonOptions);
+                    JsonSerializer.Serialize(stream, new NotesDocument { Version = next.Any(e => e.ExtendedRepeat) ? 4 : next.Any(e => e.PopupReminder || e.PopupOccurrence.HasValue) ? 3 : next.Any(e => e.RepeatsDaily) ? 2 : 1, Entries = next.ToList() }, JsonOptions);
                     if (stream.Length > 16 * 1024 * 1024) throw new IOException("Notes document exceeds the size limit.");
                     stream.Flush(true);
                 }

@@ -10,9 +10,16 @@ internal static class NoteReminderSchedule
         if (!entry.PopupReminder || !entry.HasReminder || entry.DueDate is not DateOnly start
             || entry.DueTime is not TimeOnly time) return null;
         if (entry.PopupSnoozedUntil is DateTime snooze && entry.PopupOccurrence is DateTime snoozedDue
-            && (!entry.RepeatsDaily || now.Date <= snooze.Date) && !Completed(entry, snoozedDue)) return snoozedDue;
+            && (entry.EffectiveRepeat != NoteRepeat.Daily || now.Date <= snooze.Date) && !Completed(entry, snoozedDue)) return snoozedDue;
+        if (entry.ExtendedRepeat)
+        {
+            DateOnly? currentDate = entry.EffectiveDueDate(now);
+            if (currentDate == null) return null;
+            DateTime occurrence = currentDate.Value.ToDateTime(time);
+            return now >= occurrence.AddMinutes(-entry.PopupLeadMinutes) ? occurrence : null;
+        }
         DateTime due = start.ToDateTime(time);
-        if (entry.RepeatsDaily && now.Date >= due.Date)
+        if (entry.EffectiveRepeat == NoteRepeat.Daily && now.Date >= due.Date)
         {
             due = now.Date.Add(time.ToTimeSpan());
             bool tomorrowInLeadWindow = due.Date < DateTime.MaxValue.Date
@@ -32,7 +39,8 @@ internal static class NoteReminderSchedule
         entry.PopupOccurrence != due || (entry.PopupSnoozedUntil is DateTime snooze && now >= snooze);
 
     internal static bool Completed(NoteEntry entry, DateTime due) =>
-        entry.IsCompleted && (!entry.RepeatsDaily || entry.CompletedAt?.Date == due.Date);
+        entry.ExtendedRepeat ? entry.IsCompleted && (entry.EffectiveDueDate(due) is not DateOnly next || next > DateOnly.FromDateTime(due)) :
+        entry.IsCompleted && (entry.EffectiveRepeat != NoteRepeat.Daily || entry.CompletedAt?.Date == due.Date);
 
     internal static bool IsCurrent(NoteEntry entry, DateTime due) =>
         entry.PopupReminder && entry.PopupOccurrence == due && !Completed(entry, due);
@@ -129,7 +137,8 @@ internal sealed class NoteReminderService : IDisposable
         if (entry == null) return true;
         if (!NoteReminderSchedule.IsCurrent(entry, reminder.Due)) return true;
         return store.SaveEntry(entry with { IsCompleted = true,
-            CompletedAt = entry.RepeatsDaily ? reminder.Due.Date.Add(store.Now.TimeOfDay) : store.Now });
+            RepeatCompletedThrough = entry.ExtendedRepeat ? DateOnly.FromDateTime(reminder.Due) : entry.RepeatCompletedThrough,
+            CompletedAt = entry.EffectiveRepeat == NoteRepeat.Daily ? reminder.Due.Date.Add(store.Now.TimeOfDay) : store.Now });
     }
 
     private void ClosePopup()

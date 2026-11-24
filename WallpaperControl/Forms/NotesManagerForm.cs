@@ -74,7 +74,7 @@ namespace WallpaperControl
                     ? string.Format(culture, Localization.Get("NotesDoneAt", language), entry.CompletedAt.Value.ToString("t", culture))
                     : Localization.Get(entry.IsCompletedOn(now) ? "NotesCompleted" : "NotesOpen", language);
                 ListViewItem item = new(new[] { state, entry.Title,
-                    entry.RepeatsDaily ? Localization.Get("NotesRepeatDaily", language) : entry.DueDate?.ToString("d", culture) ?? "",
+                    entry.IsRecurring ? NoteRecurrence.Summary(entry, language) : entry.DueDate?.ToString("d", culture) ?? "",
                     entry.DueTime?.ToString("t", culture) ?? "" }) { Tag = entry, ToolTipText = state };
                 list.Items.Add(item); item.Selected = entry.Id == selected;
             }

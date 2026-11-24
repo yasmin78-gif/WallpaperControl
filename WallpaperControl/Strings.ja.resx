@@ -1957,4 +1957,19 @@
   <data name="PriceWatchHistoryLast" xml:space="preserve"><value>最後に記録した価格</value></data>
   <data name="PriceWatchHistoryLocalSource" xml:space="preserve"><value>ローカル観測（ITADプロキシ）</value></data>
   <data name="PriceWatchHistoryConnection" xml:space="preserve"><value>既知の価格間の接続線 — その間の価格推移は不明</value></data>
+  <data name="NotesRepeatMonthly" xml:space="preserve"><value>毎月</value></data>
+  <data name="NotesRepeatYearly" xml:space="preserve"><value>毎年</value></data>
+  <data name="NotesRepeatCustom" xml:space="preserve"><value>カスタム</value></data>
+  <data name="NotesRepeatEvery" xml:space="preserve"><value>繰り返し間隔</value></data>
+  <data name="NotesUnitDays" xml:space="preserve"><value>日</value></data>
+  <data name="NotesUnitWeeks" xml:space="preserve"><value>週</value></data>
+  <data name="NotesUnitMonths" xml:space="preserve"><value>か月</value></data>
+  <data name="NotesUnitYears" xml:space="preserve"><value>年</value></data>
+  <data name="NotesEveryDay" xml:space="preserve"><value>毎日</value></data>
+  <data name="NotesEveryWeek" xml:space="preserve"><value>毎週</value></data>
+  <data name="NotesEveryMonth" xml:space="preserve"><value>毎月</value></data>
+  <data name="NotesEveryYear" xml:space="preserve"><value>毎年</value></data>
+  <data name="NotesEveryFormat" xml:space="preserve"><value>{0} {1}ごと</value></data>
+  <data name="NotesIntervalInvalid" xml:space="preserve"><value>正の整数を入力してください。</value></data>
+  <data name="NotesIntervalTooLarge" xml:space="preserve"><value>日付の範囲を超えています。</value></data>
 </root>

@@ -89,6 +89,9 @@ try
 
     string instanceName = @"Local\WallpaperControl.Tests." + Guid.NewGuid().ToString("N");
     int passed = 0;
+    if (args.Contains("--recurrence-preview")) { ExtendedRecurrenceTests.Preview(); return 0; }
+    if (args.Contains("--recurrence-core")) { ExtendedRecurrenceTests.Run(Check); Console.WriteLine($"All {passed} recurrence core checks passed."); return 0; }
+    if (args.Contains("--extended-recurrence")) { ExtendedRecurrenceTests.Run(Check); NotesTests.Run(Check); DailyNotesTests.Run(Check); NoteReminderTests.Run(Check); Console.WriteLine($"All {passed} extended recurrence checks passed."); return 0; }
     if(args.Length==3&&args[0]=="--visitor-handoff-native-checks") { VisitorHandoffTests.Native(args[1], args[2], Check); Console.WriteLine($"All {passed} native visitor handoff checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-flash-checks") { VisitorFlashTests.Run(Check); Console.WriteLine($"All {passed} visitor flash checks passed."); return 0; }
     if(args.Length==1&&args[0]=="--visitor-playback-checks") { VisitorPlaybackTests.Run(Check); Console.WriteLine($"All {passed} visitor playback checks passed."); return 0; }
@@ -193,6 +196,7 @@ try
     PackageRefreshTests.Run(Check);
     AmazonLogisticsTests.Run(Check);
     PackageTrackingTests.Run(Check);
+    ExtendedRecurrenceTests.Run(Check);
     NoteReminderTests.Run(Check);
     TrackingTests.Run(Check);
     Ship24Tests.Run(Check);

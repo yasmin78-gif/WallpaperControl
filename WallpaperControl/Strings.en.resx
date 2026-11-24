@@ -1985,4 +1985,19 @@ Would you like to open the release page?</value>
   <data name="PriceWatchHistoryLast" xml:space="preserve"><value>Last recorded price</value></data>
   <data name="PriceWatchHistoryLocalSource" xml:space="preserve"><value>Local observation (ITAD proxy)</value></data>
   <data name="PriceWatchHistoryConnection" xml:space="preserve"><value>Connection between known prices – intermediate history unknown</value></data>
+  <data name="NotesRepeatMonthly" xml:space="preserve"><value>Monthly</value></data>
+  <data name="NotesRepeatYearly" xml:space="preserve"><value>Yearly</value></data>
+  <data name="NotesRepeatCustom" xml:space="preserve"><value>Custom</value></data>
+  <data name="NotesRepeatEvery" xml:space="preserve"><value>Repeat every</value></data>
+  <data name="NotesUnitDays" xml:space="preserve"><value>days</value></data>
+  <data name="NotesUnitWeeks" xml:space="preserve"><value>weeks</value></data>
+  <data name="NotesUnitMonths" xml:space="preserve"><value>months</value></data>
+  <data name="NotesUnitYears" xml:space="preserve"><value>years</value></data>
+  <data name="NotesEveryDay" xml:space="preserve"><value>Every day</value></data>
+  <data name="NotesEveryWeek" xml:space="preserve"><value>Every week</value></data>
+  <data name="NotesEveryMonth" xml:space="preserve"><value>Every month</value></data>
+  <data name="NotesEveryYear" xml:space="preserve"><value>Every year</value></data>
+  <data name="NotesEveryFormat" xml:space="preserve"><value>Every {0} {1}</value></data>
+  <data name="NotesIntervalInvalid" xml:space="preserve"><value>Enter a positive whole number.</value></data>
+  <data name="NotesIntervalTooLarge" xml:space="preserve"><value>The interval is too large to represent the next date.</value></data>
 </root>

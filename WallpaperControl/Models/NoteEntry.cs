@@ -11,6 +11,14 @@ namespace WallpaperControl
         public TimeOnly? DueTime { get; init; }
         public bool IsCompleted { get; init; }
         public bool RepeatsDaily { get; init; }
+        public NoteRepeat Repeat { get; init; }
+        public int RepeatInterval { get; init; } = 1;
+        public NoteRepeatUnit RepeatUnit { get; init; }
+        public DateOnly? RepeatAnchor { get; init; }
+        public DateOnly? RepeatCompletedThrough { get; init; }
+        internal NoteRepeat EffectiveRepeat => Repeat == NoteRepeat.None && RepeatsDaily ? NoteRepeat.Daily : Repeat;
+        internal bool ExtendedRepeat => EffectiveRepeat is NoteRepeat.Monthly or NoteRepeat.Yearly or NoteRepeat.Custom;
+        internal bool IsRecurring => EffectiveRepeat != NoteRepeat.None;
         public bool PopupReminder { get; init; }
         public int PopupLeadMinutes { get; init; }
         public DateTime? PopupOccurrence { get; init; }
@@ -22,14 +30,16 @@ namespace WallpaperControl
             && Description != null && Description.Length <= 8000 && CreatedAt != default
             && HasReminder == DueDate.HasValue && (HasReminder || !DueTime.HasValue)
             && IsCompleted == CompletedAt.HasValue
-            && (!RepeatsDaily || HasReminder)
+            && (!IsRecurring || HasReminder)
+            && Enum.IsDefined(Repeat) && Enum.IsDefined(RepeatUnit)
+            && (!ExtendedRepeat || (RepeatInterval > 0 && NoteRecurrence.Next(this, DueDate!.Value) != null))
             && PopupLeadMinutes is 0 or 5 or 10
             && (!PopupReminder || (HasReminder && DueTime.HasValue))
             && (!PopupSnoozedUntil.HasValue || PopupOccurrence.HasValue)
             && (!DueDate.HasValue || (DueDate.Value >= new DateOnly(1753, 1, 1) && DueDate.Value <= new DateOnly(9998, 12, 31)));
 
-        internal bool IsCompletedOn(DateTime now) => IsCompleted && (!RepeatsDaily || CompletedAt?.Date == now.Date);
-        internal DateOnly? EffectiveDueDate(DateTime now) => RepeatsDaily && DueDate <= DateOnly.FromDateTime(now)
+        internal bool IsCompletedOn(DateTime now) => ExtendedRepeat ? IsCompleted && NoteRecurrence.Current(this, now) == null : IsCompleted && (!IsRecurring || CompletedAt?.Date == now.Date);
+        internal DateOnly? EffectiveDueDate(DateTime now) => ExtendedRepeat ? NoteRecurrence.Current(this, now) : IsRecurring && DueDate <= DateOnly.FromDateTime(now)
             ? DateOnly.FromDateTime(now) : DueDate;
 
         internal bool IsOverdue(DateTime now) => HasReminder && !IsCompletedOn(now) && EffectiveDueDate(now) is DateOnly date
@@ -48,7 +58,7 @@ namespace WallpaperControl
             DateOnly today = DateOnly.FromDateTime(now);
             // Undated first, overdue next, then ascending days. Date-only precedes timed items.
             return entries.Where(e => !e.IsCompletedOn(now))
-                .GroupBy(e => !e.HasReminder ? (0, (DateOnly?)null) : !e.RepeatsDaily && e.IsOverdue(now) ? (1, (DateOnly?)null) : (2, e.EffectiveDueDate(now)))
+                .GroupBy(e => !e.HasReminder ? (0, (DateOnly?)null) : e.EffectiveRepeat != NoteRepeat.Daily && e.IsOverdue(now) ? (1, (DateOnly?)null) : (2, e.EffectiveDueDate(now)))
                 .OrderBy(g => g.Key.Item1).ThenBy(g => g.Key.Item2)
                 .Select(g => new NoteGroup(g.Key.Item1 == 0 ? "NotesUndated" : g.Key.Item1 == 1 ? "NotesOverdue"
                     : g.Key.Item2 == today ? "NotesToday" : g.Key.Item2 == today.AddDays(1) ? "NotesTomorrow" : "",

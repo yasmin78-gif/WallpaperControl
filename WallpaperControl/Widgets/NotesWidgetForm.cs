@@ -196,7 +196,7 @@ namespace WallpaperControl
 
         private static string DisplayTitle(NoteEntry entry, DateTime now, CultureInfo culture)
         {
-            string prefix = entry.RepeatsDaily ? "↻ " : entry.IsOverdue(now) ? entry.DueDate?.ToString("d", culture) + "  " : "";
+            string prefix = entry.ExtendedRepeat ? NoteRecurrence.Summary(entry, culture.Name) + "  " : entry.RepeatsDaily ? "↻ " : entry.IsOverdue(now) ? entry.DueDate?.ToString("d", culture) + "  " : "";
             if (entry.DueTime is TimeOnly time) prefix += time.ToString("t", culture) + "  ";
             return prefix + entry.Title;
         }

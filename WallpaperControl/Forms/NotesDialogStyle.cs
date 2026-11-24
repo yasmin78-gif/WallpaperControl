@@ -38,7 +38,26 @@ namespace WallpaperControl
                         button.FlatAppearance.MouseOverBackColor = dark ? Color.FromArgb(36, 54, 66) : AppTheme.ControlHover(false);
                         button.FlatAppearance.MouseDownBackColor = dark ? Color.FromArgb(48, 70, 85) : AppTheme.ControlPressed(false);
                     }
-                    if (control is CheckBox check) check.FlatStyle = FlatStyle.Standard;
+                    if (control is CheckBox check)
+                    {
+                        check.FlatStyle = FlatStyle.Standard;
+                        check.UseVisualStyleBackColor = false;
+                        check.ForeColor = foreground;
+                        // The native disabled text ignores ForeColor and can become black
+                        // on dark surfaces. Keep the native disabled glyph, repaint its label.
+                        if (dark) check.Paint += (_, e) =>
+                        {
+                            if (check.Enabled) return;
+                            int glyph = CheckBoxRenderer.GetGlyphSize(e.Graphics,
+                                System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedDisabled).Width;
+                            Rectangle text = new(glyph + 3 * check.DeviceDpi / 96, 0,
+                                Math.Max(0, check.ClientSize.Width - glyph - 3 * check.DeviceDpi / 96), check.ClientSize.Height);
+                            using SolidBrush fill = new(check.BackColor);
+                            e.Graphics.FillRectangle(fill, text);
+                            TextRenderer.DrawText(e.Graphics, check.Text, check.Font, text, foreground,
+                                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+                        };
+                    }
                     if (control is TextBox textBox) textBox.BorderStyle = BorderStyle.FixedSingle;
                     if (control is DateTimePicker picker)
                     {
