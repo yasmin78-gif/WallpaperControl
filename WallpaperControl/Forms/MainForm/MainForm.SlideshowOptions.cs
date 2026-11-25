@@ -266,7 +266,12 @@ namespace WallpaperControl
                 return;
             }
 
-            DesktopWallpaperPosition position = selected.Value;
+            ApplyWallpaperPosition(selected.Value);
+        }
+
+        private bool ApplyWallpaperPosition(DesktopWallpaperPosition position, bool showError = true)
+        {
+            if (!wallpaperOwnership.AllowsImages && !VisitorFolderActive) return false;
 
             IDesktopWallpaper? wallpaper = null;
 
@@ -302,10 +307,11 @@ namespace WallpaperControl
                     }
                 }
                 TryStartCustomSlideshowAfterLayoutChange(actual, Screen.AllScreens.Length, StartCustomSlideshowEngine);
+                return actual == position;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                if (showError) MessageBox.Show(
                     Localization.Get("MsgPositionFailed") +
                     ex.Message,
                     "Wallpaper Control",
@@ -315,6 +321,7 @@ namespace WallpaperControl
                 loading = true;
                 LoadWallpaperPosition();
                 loading = false;
+                return false;
             }
             finally
             {
@@ -369,13 +376,13 @@ namespace WallpaperControl
         /// Persists interval and shuffle preferences and refreshes the application schedule.
         /// </summary>
         /// <param name="showError">True to show an error; background resume only records diagnostics.</param>
-        private void ApplySlideshowOptions(bool showError = true)
+        private bool ApplySlideshowOptions(bool showError = true)
         {
-            if (!wallpaperOwnership.AllowsImages) return;
+            if (!wallpaperOwnership.AllowsImages) return false;
             if (intervalComboBox.SelectedItem
                 is not DisplayOption<uint> selected)
             {
-                return;
+                return false;
             }
 
             uint milliseconds = selected.Value;
@@ -417,6 +424,7 @@ namespace WallpaperControl
                     "Shuffle",
                     shuffleCheckBox.Checked ? 1 : 0,
                     RegistryValueKind.DWord);
+                return actualInterval == milliseconds;
             }
             catch (Exception ex)
             {
@@ -427,6 +435,7 @@ namespace WallpaperControl
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+                return false;
             }
             finally
             {

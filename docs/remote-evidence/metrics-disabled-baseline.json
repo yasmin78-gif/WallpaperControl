@@ -1,0 +1,14 @@
+{
+  "Scenario": "disabled-baseline",
+  "Seconds": 30.3623386,
+  "CpuOneCorePercent": 0.8233882090176106,
+  "PrivateBytes": 12943360,
+  "WorkingSetBytes": 45162496,
+  "Threads": 14,
+  "Handles": 324,
+  "PeakPrivateBytes": 12943360,
+  "PeakThreads": 14,
+  "PeakHandles": 324,
+  "Runtime": "10.0.15",
+  "Notes": "Isolated loopback server and real native profile monitor. No real wallpaper engine, no LAN listener and no Android clients."
+}

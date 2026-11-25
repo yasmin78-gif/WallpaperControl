@@ -190,6 +190,10 @@ namespace WallpaperControl
 
         // Native hotkey ownership and window constants
         private readonly GlobalHotkeyManager hotkeyManager = new();
+        private RemoteDesktopManager? remoteManager;
+        private System.Windows.Forms.Timer? remoteStateTimer;
+        private bool remoteClosing;
+        private bool remoteCommandExecuting;
         private const int
             SW_RESTORE = 9;
         private const int

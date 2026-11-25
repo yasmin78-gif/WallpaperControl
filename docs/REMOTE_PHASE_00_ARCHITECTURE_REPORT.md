@@ -1,6 +1,8 @@
 # WallpaperControl Remote – Phase 0: Bestandsanalyse und Architekturplanung
 
 Stand: 25.11.2026. Status: vom Benutzer für den isolierten Machbarkeitsnachweis (Phase 01) freigegeben; keine Freigabe der produktiven Integration.
+
+Späterer Freigabestand: Der Benutzer hat anschließend ausdrücklich die produktive Desktopintegration und Erstellung der produktiven Android-App freigegeben. Die Umsetzung wird unter `codex/remote-production` geführt; aktueller Stand siehe `REMOTE_PRODUCTION_REPORT.md`. Die folgende Planung bleibt als historische Grundlage erhalten.
 Untersuchter Commit: `230bfb308ba6be716e1cae6a94d4bb537bba8a4e` (Desktop 2.5.0).
 Branch: `codex/remote-phase-00-architecture`. Vor Beginn war der Git-Arbeitsstand sauber; Ausgangsbranch war `codex/reminder-extended-recurrence`. Im Repository wurde keine `AGENTS.md` gefunden.
 

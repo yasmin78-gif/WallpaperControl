@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0-android</TargetFramework><OutputType>Exe</OutputType><UseMaui>true</UseMaui><SingleProject>true</SingleProject>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationTitle>WallpaperControl Remote</ApplicationTitle><ApplicationId>de.wallpapercontrol.remote</ApplicationId>
+    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion><ApplicationVersion>1</ApplicationVersion>
+    <SupportedOSPlatformVersion>31.0</SupportedOSPlatformVersion><MauiVersion>11.0.10</MauiVersion>
+    <AndroidPackageFormats>apk</AndroidPackageFormats><RuntimeIdentifier>android-arm64</RuntimeIdentifier>
+    <UseNativeHttpHandler>false</UseNativeHttpHandler><PublishReadyToRun>false</PublishReadyToRun>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="11.0.10"/>
+    <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.10.4"/>
+    <ProjectReference Include="../WallpaperControl.Remote.Client/WallpaperControl.Remote.Client.csproj"/>
+    <MauiIcon Include="Resources/AppIcon/appicon.svg" Color="#10141C"/>
+    <MauiSplashScreen Include="Resources/AppIcon/appicon.svg" Color="#10141C" BaseSize="128,128"/>
+    <MauiAsset Include="Resources/Raw/**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+  </ItemGroup>
+</Project>

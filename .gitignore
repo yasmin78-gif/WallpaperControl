@@ -366,6 +366,12 @@ FodyWeavers.xsd
 # Generated publish payloads, installers, and checksums
 /artifacts/
 
+# Private Android release identities and Windows-protected secrets are never source artifacts.
+*.keystore
+*.jks
+*.p12
+*.dpapi
+
 # Accepted Standard video engine and its exact corresponding source
 !WallpaperControl/video-runtime/package/*.dll
 !WallpaperControl/video-runtime/corresponding-source.zip

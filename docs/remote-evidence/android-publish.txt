@@ -1,0 +1,10 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Contracts\WallpaperControl.Remote.Contracts.csproj" wiederhergestellt (in 20 ms.).
+  2 von 3 Projekten sind für die Wiederherstellung auf dem neuesten Stand.
+  WallpaperControl.Remote.Contracts -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Contracts\bin\Release\net10.0\WallpaperControl.Remote.Contracts.dll
+  WallpaperControl.Remote.Client -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Client\bin\Release\net10.0\WallpaperControl.Remote.Client.dll
+  WallpaperControl.Remote.Android -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Android\bin\Release\net11.0-android\android-arm64\WallpaperControl.Remote.Android.dll
+  WallpaperControl.Remote.Contracts -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Contracts\bin\Release\net10.0\WallpaperControl.Remote.Contracts.dll
+  WallpaperControl.Remote.Client -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Client\bin\Release\net10.0\WallpaperControl.Remote.Client.dll
+  Das Optimieren der Assembly für die Größe kann das Verhalten der App ändern. Stellen Sie sicher, dass nach der Veröffentlichung Tests durchgeführt werden. Informationen finden Sie unter https://aka.ms/dotnet-illink.
+  Assemblys werden für die Größe optimiert. Dieser Vorgang kann eine Weile dauern.

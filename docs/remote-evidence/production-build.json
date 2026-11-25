@@ -1,0 +1,27 @@
+{
+  "Date": "2026-11-25",
+  "Branch": "codex/remote-production",
+  "RegressionChecks": 6302,
+  "RegressionResult": "All 6302 checks passed. Test data: C:\\Users\\yasmi\\source\\repos\\WallpaperControl\\WallpaperControl.RegressionTests\\bin\\Release\\net10.0-windows10.0.17763.0\\test-data\\92660fb8721d41b3b77312dae7dd744a",
+  "RegressionLogSHA256": "AE17425F6D393A528D03E5D5C2642EFBB2A766DF8BB761B626C3B37B52D6223B",
+  "RemoteChecks": 61,
+  "RemoteResult": "All 61 remote production checks passed.",
+  "FieldAcceptance": "New production APK and desktop integration require manual device acceptance",
+  "Artifacts": [
+    {
+      "File": "WallpaperControl.exe",
+      "Bytes": 183539269,
+      "SHA256": "6BF28DFC7B1DC6C66FC210FBBA33C0800695A4E597D8DEBD3DBBA19A67C921DA"
+    },
+    {
+      "File": "WallpaperControl.Remote.apk",
+      "Bytes": 18079725,
+      "SHA256": "8398A60457C298B1C8E9F9520C513E13E7A9CB8051BFF2F023CC9689F095E826"
+    },
+    {
+      "File": "WallpaperControl-2.6.0-win-x64.zip",
+      "Bytes": 169239661,
+      "SHA256": "BDB2E25DCD20832B750AC0B7BE645A91CB549C13B35913ADA04F21BCB712F8B5"
+    }
+  ]
+}

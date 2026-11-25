@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -26,7 +26,9 @@ namespace WallpaperControl
         /// <summary>
         /// Pauses the slideshow while retaining the current image and updating the controls.
         /// </summary>
-        private void PauseSlideshow()
+        private void PauseSlideshow() => PauseSlideshowCore(showError: true);
+
+        private void PauseSlideshowCore(bool showError)
         {
             if (!wallpaperOwnership.AllowsImages) return;
             if (customSlideshowEngineActive)
@@ -46,7 +48,7 @@ namespace WallpaperControl
             if (string.IsNullOrWhiteSpace(
                 wallpaperPath))
             {
-                MessageBox.Show(
+                if (showError) MessageBox.Show(
                     Localization.Get("MsgCurrentWallpaperUnknown"),
                     "Wallpaper Control",
                     MessageBoxButtons.OK,
@@ -75,7 +77,7 @@ namespace WallpaperControl
             {
                 slideshowPaused = false;
 
-                MessageBox.Show(
+                if (showError) MessageBox.Show(
                     Localization.Get("MsgPauseFailed") +
                     ex.Message,
                     "Wallpaper Control",

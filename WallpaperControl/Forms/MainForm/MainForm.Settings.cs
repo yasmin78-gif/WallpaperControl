@@ -153,6 +153,7 @@ namespace WallpaperControl
                     widgetManager.Settings.NotificationSound, widgetManager.Settings.NotificationTones,widgetManager.SnappingEnabled);
 
             dialog.ReservedHotkey = VisitorHotkeyBinding();
+            dialog.RemoteSettingsRequested = ShowRemoteSettings;
 
             string languageBefore =
                 Localization.CurrentLanguage;

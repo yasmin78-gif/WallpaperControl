@@ -30,6 +30,7 @@ namespace WallpaperControl
                 await UpdateFullscreenPauseAsync();
                 await visitorMode.SetActiveAsync(true, startup: true);
                 if (!IsDisposed) widgetManager.Start();
+                InitializeRemote();
                 await CheckForUpdatesAutomaticallyAsync();
                 if (!IsDisposed) automaticUpdateCheckTimer.Start();
                 return;
@@ -97,6 +98,7 @@ namespace WallpaperControl
                 }
             }
 
+            InitializeRemote();
             await CheckForUpdatesAutomaticallyAsync();
 
             if (!IsDisposed)
@@ -116,6 +118,7 @@ namespace WallpaperControl
         {
             if (disposing)
             {
+                DisposeRemote();
                 visitorClosing = true; visitorTimer.Stop(); visitorTimer.Dispose(); visitorMode?.Close();
                 visitorCheckpointCancellation?.Cancel();
                 if (!visitorTransitionCancellation.IsCancellationRequested) visitorTransitionCancellation.Cancel();
@@ -290,11 +293,13 @@ namespace WallpaperControl
 
             if (visitorMode?.Active == true && !videoShutdownFinished)
             {
+                StopRemoteAccepting();
                 e.Cancel = true;
                 if (!visitorClosing) { visitorClosing = true; _ = StopVisitorAndCloseAsync(); }
                 base.OnFormClosing(e); return;
             }
 
+            StopRemoteAccepting();
             if (visitorMode?.Active != true && slideshowPaused &&
                 !closingAfterPauseResume)
             {

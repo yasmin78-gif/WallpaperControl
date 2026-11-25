@@ -1,0 +1,14 @@
+{
+  "Scenario": "kestrel-private-profile-monitor-idle",
+  "Seconds": 600.8065395,
+  "CpuOneCorePercent": 0.9102347064861677,
+  "PrivateBytes": 29388800,
+  "WorkingSetBytes": 34881536,
+  "Threads": 22,
+  "Handles": 708,
+  "PeakPrivateBytes": 29343744,
+  "PeakThreads": 24,
+  "PeakHandles": 708,
+  "Runtime": "10.0.15",
+  "Notes": "Isolated loopback server and real native profile monitor (events \u002B 15-second fallback); state capture only for connected clients. No real wallpaper engine, LAN listener or Android clients."
+}

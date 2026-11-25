@@ -1,0 +1,64 @@
+PASS default disabled without persistence writes
+PASS server identity valid with matching SPKI
+PASS wrong pin rejected
+PASS per-device disable permission defaults off
+PASS device credential and server identity survive reload
+PASS persisted credential data contains no plaintext token
+PASS corrupt encrypted credential store fails closed
+PASS corrupt store is never silently reset or overwritten
+PASS permission change invalidates old grant
+PASS pairing comparison code is identical locally and remotely
+PASS QR token single use
+PASS no permanent credential before local confirmation
+PASS claim retry issues one device with default permission off
+PASS completed pairing destroys temporary credential delivery
+PASS QR expires at five minutes monotonic deadline
+PASS on-link subnet boundary enforced
+PASS IPv6 subnet boundary enforced
+PASS native Windows private-profile query returns only explicit local adapters
+PRIVATE_ADAPTER_COUNT 1
+PASS native private-profile change notifications can be subscribed and released
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS production REST/WSS authenticated full synchronization
+PASS repeated snapshots and custom PC name do not create spurious revisions
+PASS remote visitor activation accepted
+PASS unauthorized visitor deactivation denied server-side
+PASS repeated production navigation command has one effect
+PASS command ID payload conflict rejected
+PASS five production clients connected simultaneously
+PASS forty serialized mutations each receive completion confirmation
+PASS five clients converge to authoritative state after burst
+PASS unchanged state does not generate redundant live messages
+PASS query-string token route rejected
+PASS rights changes terminate active WSS session immediately
+PASS reconnection receives current per-device permission
+PASS granted visitor deactivation accepted
+PASS revocation closes WSS and rejects existing REST credentials
+PASS wrong pin rejected on production WSS
+PASS wrong pin rejected on production REST
+PASS foreign production certificate rejected
+PASS REST rejects foreign
+PASS independent WSS probe rejects foreign
+PASS expired test identity retains exact SPKI
+PASS REST rejects expired with matching SPKI
+PASS independent WSS probe rejects expired with matching SPKI
+PASS certificate renewal preserves trusted SPKI and restores valid dates
+PASS wire state contains no local test path
+PASS occupied production port fails closed
+PASS production native DNS-SD registration and callback on loopback
+PASS real MainForm single visitor blocks normal playback capabilities
+PASS real MainForm independently rejects visitor deactivation without device permission
+PASS real MainForm protects visitor against normal video switch
+PASS real visitor folder remote pause uses existing service
+PASS real visitor interval uses existing clock and persistence path
+PASS real visitor shuffle shares existing configuration
+PASS remote visitor options preserve normal restore snapshot
+PASS remote resume preserves independent fullscreen pause
+PASS fullscreen suppression remains enforced for remote navigation
+PASS real MainForm snapshot never exports media or resume paths
+PASS remote settings preview stays disabled without applying
+UI_RENDER C:\Users\yasmi\AppData\Local\Temp\WallpaperControl.Remote.Tests\80d085d8d3a24dcc99fc398a3fc39e90\remote-settings.png
+All 61 remote production checks passed.

@@ -11,6 +11,8 @@ namespace WallpaperControl
     internal sealed partial class SettingsForm : Form
     {
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        internal Action? RemoteSettingsRequested { get; set; }
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
         internal HotkeyBinding? ReservedHotkey { get; set; }
         /// <summary>
         /// Restores the dialog&apos;s default values and refreshes appearance preview.

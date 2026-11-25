@@ -562,6 +562,13 @@ namespace WallpaperControl
 
             generalPage.Controls.Add(
                 checkForUpdatesButton);
+            var remoteSettingsButton = new Button
+            {
+                Text = previewLanguageCode == "de" ? "WallpaperControl Remote einrichten …" : "Configure WallpaperControl Remote …",
+                Location = new Point(38, 565), Size = new Size(390, 38)
+            };
+            remoteSettingsButton.Click += (_, _) => RemoteSettingsRequested?.Invoke();
+            generalPage.Controls.Add(remoteSettingsButton);
 
             #endregion
 
