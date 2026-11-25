@@ -13,6 +13,8 @@ public sealed class MainPage : ContentPage
     private readonly Entry manual = new() { Placeholder = "Manuelle lokale HTTPS-Adresse (Pin bleibt gespeichert)" };
     private readonly List<Button> commands = new();
     private readonly SemaphoreSlim gate = new(1, 1);
+    private readonly SemaphoreSlim reconnectSignal = new(0, 1);
+    private bool networkAvailable = true;
     private RemoteClient? client;
     private SavedConnection? saved;
     private NsdDiscovery? discovery;
@@ -59,40 +61,55 @@ public sealed class MainPage : ContentPage
     public void Resume()
     {
         if (loop != null) return; loop = new(); var cancellation = loop.Token;
+        Connectivity.Current.ConnectivityChanged += NetworkChanged;
+        networkAvailable = Connectivity.Current.NetworkAccess != NetworkAccess.None;
         if (saved != null) StartDiscovery();
         _ = RunAsync(cancellation);
     }
-    public void Suspend() { loop?.Cancel(); loop?.Dispose(); loop = null; discovery?.Stop(); _ = DisconnectAsync(); }
+    public void Suspend() { Connectivity.Current.ConnectivityChanged -= NetworkChanged; loop?.Cancel(); loop?.Dispose(); loop = null; discovery?.Stop(); _ = DisconnectAsync(); }
+    private void WakeReconnect() { try { reconnectSignal.Release(); } catch (SemaphoreFullException) { } }
+    private void NetworkChanged(object? sender, ConnectivityChangedEventArgs e) => MainThread.BeginInvokeOnMainThread(() =>
+    {
+        networkAvailable = e.NetworkAccess != NetworkAccess.None;
+        if (networkAvailable) StartDiscovery(); else _ = DisconnectAsync();
+        WakeReconnect(); Render();
+    });
     private async Task DisconnectAsync() { await gate.WaitAsync(); try { if (client != null) { await client.DisposeAsync(); client = null; } } finally { gate.Release(); MainThread.BeginInvokeOnMainThread(Render); } }
     private async Task RunAsync(CancellationToken cancellation)
     {
         int delay = 1;
         while (!cancellation.IsCancellationRequested)
         {
-            try { if (saved != null && client?.Connected != true) { await ConnectAsync(); delay = 1; } }
-            catch { MainThread.BeginInvokeOnMainThread(() => { connection.Text = "Verbindung unterbrochen – Wiederverbindung"; Render(); }); delay = Math.Min(delay * 2, 30); }
-            try { await Task.Delay(TimeSpan.FromSeconds(delay), cancellation); } catch (OperationCanceledException) { break; }
+            try { if (networkAvailable && saved != null && client?.Connected != true) { await ConnectAsync(cancellation); delay = 1; } }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { break; }
+            catch { MainThread.BeginInvokeOnMainThread(() => { connection.Text = "Verbindung unterbrochen – Wiederverbindung"; Render(); }); delay = Math.Min(delay * 2, 5); }
+            try { if (await reconnectSignal.WaitAsync(TimeSpan.FromSeconds(delay), cancellation)) delay = 1; } catch (OperationCanceledException) { break; }
         }
     }
     private void StartDiscovery()
     {
         discovery?.Stop(); if (saved == null) return;
         discovery = new(saved.Server.ServerId);
-        discovery.Found += address => discovered = address;
+        discovery.Found += address => { if (discovered != address) { discovered = address; WakeReconnect(); } };
         discovery.Status += text => MainThread.BeginInvokeOnMainThread(() => discoveryStatus.Text = text);
         try { discovery.Start(); } catch { discoveryStatus.Text = "NSD nicht verfügbar; gespeicherte/manuelle Adresse verwenden"; }
     }
-    private async Task ConnectAsync()
+    private async Task ConnectAsync(CancellationToken cancellation = default)
     {
-        if (saved == null) return; await gate.WaitAsync();
+        if (saved == null) return; await gate.WaitAsync(cancellation);
         try
         {
             if (client != null) await client.DisposeAsync();
+            // One retry owner on Android. Prefer last authenticated endpoint; NSD is only a fallback.
             var attempt = saved;
-            if (discovered != null) attempt = saved with { Server = saved.Server with { Address = discovered } };
-            client = new(attempt); client.Changed += () => MainThread.BeginInvokeOnMainThread(Render);
-            try { await client.StartAsync(); }
-            catch when (discovered != null) { discovered = null; throw; }
+            client = new(attempt, automaticReconnect: false); client.Changed += () => MainThread.BeginInvokeOnMainThread(Render);
+            try { await client.StartAsync(cancellation); }
+            catch when (!cancellation.IsCancellationRequested && discovered != null && discovered != saved.Server.Address)
+            {
+                await client.DisposeAsync(); attempt = saved with { Server = saved.Server with { Address = discovered } }; discovered = null;
+                client = new(attempt, automaticReconnect: false); client.Changed += () => MainThread.BeginInvokeOnMainThread(Render);
+                await client.StartAsync(cancellation);
+            }
             saved = attempt; await SaveAsync();
         }
         finally { gate.Release(); MainThread.BeginInvokeOnMainThread(Render); }
@@ -100,7 +117,7 @@ public sealed class MainPage : ContentPage
     private async Task SaveAsync() { if (saved != null) await SecureStorage.Default.SetAsync(StorageKey, JsonSerializer.Serialize(saved, WireJson.Type<SavedConnection>())); }
     private void Render()
     {
-        bool connected = client?.Connected == true;
+        bool connected = networkAvailable && client?.Connected == true;
         connection.Text = connected ? "Verbunden (TLS + Auth + WSS + Vollsnapshot)" : "Offline / Synchronisierung";
         if (client?.State is { } s) state.Text = $"Epoche {s.Epoch}\nRevision {s.Revision}\n{s.Mode}; Besucher {s.Visitor}; Pause {s.Paused}\nShuffle {s.Shuffle}; Intervall {s.Interval} ms; {s.Layout}" + (connected ? "" : "\nVERALTETER ZUSTAND");
         foreach (var button in commands)

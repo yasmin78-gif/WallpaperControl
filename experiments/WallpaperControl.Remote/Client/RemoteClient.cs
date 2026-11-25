@@ -12,11 +12,15 @@ public sealed class RemoteClient : IAsyncDisposable
     private readonly HttpClient http;
     private readonly HttpMessageInvoker websocketHttp;
     private HubConnection? hub;
+    private readonly bool automaticReconnect;
+    private readonly TimeSpan connectTimeout;
     public Snapshot? State { get; private set; }
     public bool Connected { get; private set; }
     public event Action? Changed;
-    public RemoteClient(SavedConnection connection)
+    public RemoteClient(SavedConnection connection, bool automaticReconnect = true, TimeSpan? connectTimeout = null)
     {
+        this.automaticReconnect = automaticReconnect;
+        this.connectTimeout = connectTimeout ?? TimeSpan.FromSeconds(5);
         saved = connection;
         http = new(Trust.Handler(connection.Server.Pin)) { BaseAddress = Trust.Endpoint(connection.Server.Address), Timeout = TimeSpan.FromSeconds(10) };
         websocketHttp = new HttpMessageInvoker(Trust.Handler(connection.Server.Pin));
@@ -27,16 +31,18 @@ public sealed class RemoteClient : IAsyncDisposable
         if (state.ServerId != saved.Server.ServerId) throw new InvalidOperationException("serverIdentity");
         if (State == null || state.Epoch != State.Epoch || state.Revision >= State.Revision) { State = state; Changed?.Invoke(); }
     }
-    public async Task StartAsync()
+    public async Task StartAsync(CancellationToken cancellation = default)
     {
-        await ProbeWssAsync(); await RefreshAsync(); Connected = true; Changed?.Invoke();
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        deadline.CancelAfter(connectTimeout);
+        await ProbeWssAsync(deadline.Token); await RefreshAsync(deadline.Token); Connected = true; Changed?.Invoke();
     }
     // Separate transport probe deliberately does not touch REST. Used by device TLS acceptance.
-    public async Task ProbeWssAsync()
+    public async Task ProbeWssAsync(CancellationToken cancellation = default)
     {
         Connected = false; Changed?.Invoke();
         if (hub != null) await hub.DisposeAsync();
-        hub = new HubConnectionBuilder().WithUrl(new Uri(http.BaseAddress!, "/api/v1/events"), options =>
+        var builder = new HubConnectionBuilder().WithUrl(new Uri(http.BaseAddress!, "/api/v1/events"), options =>
         {
             options.Transports = HttpTransportType.WebSockets; options.SkipNegotiation = true;
             options.Headers["Authorization"] = "Bearer " + saved.Credential.Token;
@@ -48,15 +54,21 @@ public sealed class RemoteClient : IAsyncDisposable
                 try { await socket.ConnectAsync(context.Uri, websocketHttp, cancellation); return socket; }
                 catch { socket.Dispose(); throw; }
             };
-        }).WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) }).Build();
+        });
+        if (automaticReconnect) builder.WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) });
+        hub = builder.Build();
+        hub.HandshakeTimeout = connectTimeout;
         hub.ServerTimeout = TimeSpan.FromSeconds(15);
+        hub.KeepAliveInterval = TimeSpan.FromSeconds(5);
         hub.On<Snapshot>("StateChanged", Accept);
         hub.Reconnecting += _ => { Connected = false; Changed?.Invoke(); return Task.CompletedTask; };
         hub.Closed += _ => { Connected = false; Changed?.Invoke(); return Task.CompletedTask; };
         hub.Reconnected += async _ => { try { await RefreshAsync(); Connected = true; Changed?.Invoke(); } catch { Connected = false; Changed?.Invoke(); } };
-        await hub.StartAsync();
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        deadline.CancelAfter(connectTimeout);
+        await hub.StartAsync(deadline.Token);
     }
-    public async Task<Snapshot> RefreshAsync() { var state = await http.GetFromJsonAsync("/api/v1/state", WireJson.Type<Snapshot>()) ?? throw new InvalidOperationException("emptyState"); Accept(state); return state; }
+    public async Task<Snapshot> RefreshAsync(CancellationToken cancellation = default) { var state = await http.GetFromJsonAsync("/api/v1/state", WireJson.Type<Snapshot>(), cancellation) ?? throw new InvalidOperationException("emptyState"); Accept(state); return state; }
     public async Task<Result> SendAsync(string type, string value)
     {
         if (!Connected || State == null) throw new InvalidOperationException("offline");

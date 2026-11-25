@@ -90,6 +90,15 @@ internal static class Program
         await CheckTls(form, cert, Trust.Pin(foreign), "wrong pin");
         await CheckTls(form, foreign, Trust.Pin(cert), "foreign certificate");
         await CheckTls(form, expired, Trust.Pin(expired), "expired certificate");
+        using (var silent = new TcpListener(IPAddress.Loopback, 0))
+        {
+            silent.Start(); int port = ((IPEndPoint)silent.LocalEndpoint).Port;
+            var target = new SavedConnection(new(1, $"https://127.0.0.1:{port}/", "silent", Trust.Pin(cert), "", ""), token);
+            await using var bounded = new RemoteClient(target, automaticReconnect: false, connectTimeout: TimeSpan.FromMilliseconds(300));
+            var timeoutWatch = Stopwatch.StartNew();
+            await Reject(() => bounded.StartAsync(), "silent TCP peer cannot hang WSS initial connection");
+            Check(timeoutWatch.Elapsed < TimeSpan.FromSeconds(3) && !bounded.Connected, "WSS handshake respects explicit connection deadline");
+        }
         await CheckPairing(host, cert);
         CheckPairingClock();
         await CheckSlowReader(form, host, cert, token);
@@ -97,10 +106,21 @@ internal static class Program
         int restartPort;
         var oldModel = new StateModel("restart-server"); var live = new RemoteHost(oldModel, op => Dispatch(form, op)); await live.StartAsync(IPAddress.Loopback, 0, cert); restartPort = live.Port; live.Pairing.AddTestDevice(token);
         await using var reconnect = new RemoteClient(Saved(live, cert, token)); await reconnect.StartAsync(); string epoch = reconnect.State!.Epoch;
-        await live.DisposeAsync(); await Until(() => !reconnect.Connected); Check(!reconnect.Connected, "disconnect disables controls state");
+        await live.DisposeAsync(); await Until(() => !reconnect.Connected, 17000); Check(!reconnect.Connected, "disconnect disables controls within configured heartbeat timeout plus scheduling tolerance");
         await using var restarted = new RemoteHost(new("restart-server"), op => Dispatch(form, op)); restarted.Pairing.AddTestDevice(token); await restarted.StartAsync(IPAddress.Loopback, restartPort, cert);
         await Until(() => reconnect.Connected && reconnect.State?.Epoch != epoch, 12000); Check(reconnect.Connected && reconnect.State?.Epoch != epoch, "automatic WSS reconnect and REST full resync new epoch");
         await Sample("interrupted-and-reconnected");
+        var androidFirst = new RemoteHost(new("android-retry-server"), op => Dispatch(form, op));
+        await androidFirst.StartAsync(IPAddress.Loopback, 0, cert); androidFirst.Pairing.AddTestDevice(token); int androidPort = androidFirst.Port;
+        var androidTarget = Saved(androidFirst, cert, token);
+        await using var androidStyle = new RemoteClient(androidTarget, automaticReconnect: false);
+        await androidStyle.StartAsync(); Check(androidStyle.Connected, "Android single retry owner starts with authenticated full snapshot");
+        await androidFirst.DisposeAsync();
+        await Until(() => !androidStyle.Connected, 17000); Check(!androidStyle.Connected, "single retry owner marks host shutdown offline within heartbeat deadline");
+        await using var androidRestart = new RemoteHost(new("android-retry-server"), op => Dispatch(form, op)); androidRestart.Pairing.AddTestDevice(token); await androidRestart.StartAsync(IPAddress.Loopback, androidPort, cert);
+        var retryWatch = Stopwatch.StartNew(); await androidStyle.StartAsync();
+        Check(androidStyle.Connected && androidStyle.State?.Epoch == androidRestart.Model.State.Epoch, "single owner retry resynchronizes new host epoch");
+        Check(retryWatch.Elapsed < TimeSpan.FromSeconds(5), "ready loopback host single-owner retry completes within deadline");
         // Binding released after shutdown, including IPv6 loopback.
         await using (var ipv6 = new RemoteHost(new("ipv6"), op => Dispatch(form, op)))
         {

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net11.0-android</TargetFramework><OutputType>Exe</OutputType><UseMaui>true</UseMaui><SingleProject>true</SingleProject>
     <ApplicationTitle>WC Remote Experiment</ApplicationTitle><ApplicationId>de.wallpapercontrol.remote.experiment</ApplicationId>
-    <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion><ApplicationVersion>2</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1.2</ApplicationDisplayVersion><ApplicationVersion>3</ApplicationVersion>
     <SupportedOSPlatformVersion>31.0</SupportedOSPlatformVersion><MauiVersion>11.0.10</MauiVersion>
     <AndroidPackageFormats>apk</AndroidPackageFormats><RuntimeIdentifier>android-arm64</RuntimeIdentifier><EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <UseNativeHttpHandler>false</UseNativeHttpHandler>
