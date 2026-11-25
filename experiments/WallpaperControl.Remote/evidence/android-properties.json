@@ -1,0 +1,11 @@
+{
+  "Properties": {
+    "MauiSdkVersion": "",
+    "MauiVersion": "11.0.10",
+    "TargetFramework": "net11.0-android",
+    "TargetPlatformVersion": "37.0",
+    "UseNativeHttpHandler": "false",
+    "AndroidSdkBuildToolsVersion": "37.0.0",
+    "SupportedOSPlatformVersion": "31.0"
+  }
+}

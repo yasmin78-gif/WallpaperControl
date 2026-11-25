@@ -1,0 +1,61 @@
+PASS certificate SPKI/EKU/time valid
+PASS foreign certificate policy
+PASS expired even with matching pin
+PASS reject unsafe endpoint http://127.0.0.1/
+PASS reject unsafe endpoint https://example.com/
+PASS reject unsafe endpoint https://8.8.8.8/
+PASS reject unsafe endpoint https://user@127.0.0.1/
+PASS reject unsafe endpoint https://127.0.0.1/
+PASS HTTPS startup explicit loopback
+HOST_START_MS 176,9413
+PASS REST + WSS correct pin authenticated
+PASS REST anonymous rejected
+PASS WSS invalid auth rejected
+PASS client -> synthetic visitor
+PASS normal mode blocked during visitor
+PASS disable permission defaults off
+PASS desktop -> WSS full state
+PASS duplicate command exactly one effect in cache
+PASS command ID payload conflict
+PASS stale revision rejected
+PASS old epoch rejected
+PASS concurrent clients revision serialized on UI
+PASS UI timer remains responsive during burst
+PASS five clients receive latest full revision
+PASS occupied port fails cleanly
+PASS no plaintext HTTP fallback
+PASS REST rejects wrong pin
+PASS WSS rejects wrong pin
+PASS credentials never reach HTTP for wrong pin
+PASS REST rejects foreign certificate
+PASS WSS rejects foreign certificate
+PASS credentials never reach HTTP for foreign certificate
+PASS REST rejects expired certificate
+PASS WSS rejects expired certificate
+PASS credentials never reach HTTP for expired certificate
+PASS pairing request comparison code
+PASS QR secret one-time reservation
+PASS no credentials before local approval
+PASS individual credential default disable permission false
+PASS claim retry does not issue second device
+PASS query token rejected
+PASS pairing flood bounded before approval UI
+PASS browser origin denied
+PASS QR valid before five minutes
+PASS QR expired exactly at five minutes
+PASS QR invalid after server restart
+PASS explicit per-device disable permission
+PASS hashed device credentials survive isolated store reload
+PASS claim expires with original QR deadline
+PASS new QR invalidates prior session
+PASS wrong QR secret rejected
+PASS concurrent QR reservation has one winner
+PASS QR generated locally as PNG
+PASS QRCoder -> ZXing local QR roundtrip (not camera)
+PASS nonreading peer does not block UI dispatch
+PASS disconnect disables controls state
+PASS automatic WSS reconnect and REST full resync new epoch
+PASS IPv6 explicit HTTPS listener
+PASS IPv6 REST and WSS authenticated roundtrip
+METRICS C:\Users\yasmi\source\repos\WallpaperControl\experiments\WallpaperControl.Remote\Checks\bin\Release\net10.0-windows\measurements.json
+RESULT 58 passed

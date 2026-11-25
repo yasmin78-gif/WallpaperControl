@@ -1,0 +1,22 @@
+[
+  {
+    "Scenario": "baseline",
+    "Seconds": 30.0101488,
+    "ReadyMillisecondsIncludingOneSecondStabilization": 2476.6748,
+    "PrivateBytes": 16211968,
+    "WorkingSetBytes": 61509632,
+    "Threads": 15,
+    "Handles": 390,
+    "CpuOneCorePercent": 0.36424565696873606
+  },
+  {
+    "Scenario": "kestrel",
+    "Seconds": 30.0139188,
+    "ReadyMillisecondsIncludingOneSecondStabilization": 1434.2929,
+    "PrivateBytes": 21200896,
+    "WorkingSetBytes": 84729856,
+    "Threads": 25,
+    "Handles": 671,
+    "CpuOneCorePercent": 0.8847982192553538
+  }
+]

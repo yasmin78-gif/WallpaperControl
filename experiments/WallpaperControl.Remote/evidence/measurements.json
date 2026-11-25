@@ -1,0 +1,72 @@
+[
+  {
+    "scenario": "baseline-winforms",
+    "seconds": 3.0073687,
+    "privateBytes": 70983680,
+    "workingSet": 86003712,
+    "threads": 27,
+    "handles": 566,
+    "cpuOneCorePercent": 3.6369002576903857
+  },
+  {
+    "scenario": "kestrel-no-client",
+    "seconds": 3.0037004,
+    "privateBytes": 77881344,
+    "workingSet": 109899776,
+    "threads": 33,
+    "handles": 811,
+    "cpuOneCorePercent": 4.6817252479641445
+  },
+  {
+    "scenario": "one-client",
+    "seconds": 3.0145778,
+    "privateBytes": 80003072,
+    "workingSet": 122662912,
+    "threads": 35,
+    "handles": 912,
+    "cpuOneCorePercent": 12.439552895267788
+  },
+  {
+    "scenario": "five-clients",
+    "seconds": 3.0017975,
+    "privateBytes": 87691264,
+    "workingSet": 132440064,
+    "threads": 35,
+    "handles": 944,
+    "cpuOneCorePercent": 15.095122172631564
+  },
+  {
+    "scenario": "five-clients-500-changes",
+    "seconds": 1.0331135,
+    "privateBytes": 92372992,
+    "workingSet": 137953280,
+    "threads": 51,
+    "handles": 1058,
+    "cpuOneCorePercent": 49.909811458276366
+  },
+  {
+    "scenario": "slow-nonreading-peer-3000-changes",
+    "seconds": 1.0873157,
+    "privateBytes": 105795584,
+    "workingSet": 159502336,
+    "threads": 52,
+    "handles": 1082,
+    "cpuOneCorePercent": 86.22150861980565
+  },
+  {
+    "scenario": "interrupted-and-reconnected",
+    "seconds": 3.0044363,
+    "privateBytes": 105021440,
+    "workingSet": 160468992,
+    "threads": 53,
+    "handles": 1103,
+    "cpuOneCorePercent": 7.280899914569665
+  },
+  {
+    "scenario": "application-network-counters-main-host",
+    "AuthenticatedRequests": 23,
+    "PublishedSnapshots": 886,
+    "PublishedJsonBytes": 182136,
+    "note": "Application JSON bytes per publication, not TLS wire bytes or per-client total"
+  }
+]

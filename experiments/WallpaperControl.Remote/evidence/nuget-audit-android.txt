@@ -1,0 +1,10 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "C:\Users\yasmi\source\repos\WallpaperControl\experiments\WallpaperControl.Remote\Core\Core.csproj" wiederhergestellt (in 0,8 ms.).
+  "C:\Users\yasmi\source\repos\WallpaperControl\experiments\WallpaperControl.Remote\Client\Client.csproj" wiederhergestellt (in 11 ms.).
+  1 von 3 Projekten sind für die Wiederherstellung auf dem neuesten Stand.
+
+Die folgenden Quellen wurden verwendet:
+   https://api.nuget.org/v3/index.json
+   C:\Program Files (x86)\Microsoft SDKs\NuGetPackages\
+
+Für das angegebene Projekt "Android" liegen gemäß den aktuellen Quellen keine anfälligen Pakete vor.

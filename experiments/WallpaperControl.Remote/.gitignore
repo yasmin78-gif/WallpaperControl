@@ -1,0 +1,4 @@
+out/
+identity/
+*.keystore
+!evidence/*.log

@@ -1,8 +1,18 @@
 # WallpaperControl Remote – Phase 0: Bestandsanalyse und Architekturplanung
 
-Stand: 25.11.2026. Status: Architekturvorschlag zur manuellen Freigabe, keine Implementierung.
+Stand: 25.11.2026. Status: vom Benutzer für den isolierten Machbarkeitsnachweis (Phase 01) freigegeben; keine Freigabe der produktiven Integration.
 Untersuchter Commit: `230bfb308ba6be716e1cae6a94d4bb537bba8a4e` (Desktop 2.5.0).
 Branch: `codex/remote-phase-00-architecture`. Vor Beginn war der Git-Arbeitsstand sauber; Ausgangsbranch war `codex/reminder-extended-recurrence`. Im Repository wurde keine `AGENTS.md` gefunden.
+
+### Verbindliche Benutzerentscheidungen für Phase 01
+
+Der Folgeauftrag bestätigt Architekturcommit `3bd3342` und gibt Kestrel, REST, SignalR, DNS-SD/mDNS, MAUI, QR-Kopplung, SPKI-Pinning und individuelle Geräteauthentifizierung zur isolierten technischen Erprobung frei. Die folgenden Festlegungen ersetzen entgegenstehende offene Empfehlungen des ursprünglichen Berichts.
+
+- Jedes gekoppelte Gerät darf den Besuchermodus aktivieren. Das Recht zum Deaktivieren wird pro Gerät bei der PC-Kopplung vergeben, standardmäßig **nicht ausgewählt**, später am PC änderbar. Berechtigte Geräte benötigen keine erneute PC-Bestätigung; die Android-App bestätigt vor Deaktivierung verständlich. Besucherordnerfunktionen bleiben verfügbar, normale Quellen/Modi bleiben geschützt.
+- Port 47831/TCP, bewusste Auswahl des privaten Heimnetzadapters, standardmäßig deaktiviert; keine öffentlichen, VPN- oder Tunneladapter. Paralleles Proton VPN ist zu prüfen, ohne dessen Konfiguration oder Router/Portweiterleitungen zu ändern.
+- Android mindestens 12/API 31, MAUI 11 bevorzugt bei technischer Eignung; Desktop bleibt .NET 10. Zielgerät Pixel 9 Pro XL. Später signierte APK mit stabiler Application-ID/Signierschlüssel und Updates ohne Deinstallation, kein Play-Store-/Cloud-/Kontozwang.
+- UI-Referenz bleibt maßgeblich, **kein Bildzähler**, keine Vorschau, Dateinamen oder Medienpfade. Besuchermodus oben, Controls nach tatsächlichen Fähigkeiten. Countdown nur aus vorhandenen verlässlichen Deadlines, andernfalls keine Anzeige; keine weitere Wiedergabezeitplanung.
+- Homescreen-Widget bleibt außerhalb des Umfangs. Phase 01 verwendet ausschließlich synthetische Testzustände und separate Projekte; Phase 02 erfordert eine weitere Freigabe.
 
 ## 1. Ergebnis und Umfang
 
@@ -170,7 +180,7 @@ Nur typisierte Payloads, z. B. 8 KiB Requestlimit, begrenzte Namen/Strings, Time
 | Besucher-Einzelbild/-video | Nur Besuchermoduswechsel und Status; derzeit keine gemeinsame Einzelvideo-Pause implementiert. Keine neuen Wiedergabefunktionen unterstellen. |
 | Besucherbusy / Shutdown | Keine normalen Wiedergabebefehle; beim Shutdown überhaupt keine neuen Mutationen. |
 
-`setVisitorMode(false)` ist ein eigener expliziter Schutz aufhebender Befehl, niemals impliziter Teil von Next/Resume/Moduswechsel. Empfehlung: bei Kopplung gesondert am PC die Berechtigung zum Deaktivieren erklären und freigeben; alternativ PC-Bestätigung pro Deaktivierung. Diese Produktentscheidung bleibt offen. UI zeigt vor Deaktivierung deutlich, dass normale Hintergründe wieder sichtbar werden. Berechtigung und aktueller Besuchermodus werden direkt vor Ausführung und nach relevanten awaits geprüft. Normale API kann weder Quellen umstellen noch Resume-Snapshot verändern.
+`setVisitorMode(false)` ist ein eigener expliziter Schutz aufhebender Befehl, niemals impliziter Teil von Next/Resume/Moduswechsel. Entschieden für Phase 01: gesondertes, standardmäßig nicht gesetztes und später am PC änderbares Deaktivierungsrecht; keine erneute PC-Bestätigung für berechtigte Geräte, aber verständliche Bestätigung in Android. UI zeigt vor Deaktivierung deutlich, dass normale Hintergründe wieder sichtbar werden. Berechtigung und aktueller Besuchermodus werden direkt vor Ausführung und nach relevanten awaits geprüft. Normale API kann weder Quellen umstellen noch Resume-Snapshot verändern.
 
 Beim Exit zuerst Remote-Mutationen sperren/Queues entziehen, dann vorhandenen Besucherdrain, sichere native Übergabe und Video-/Hostabbau unverändert ausführen. Netzwerkstop nur zeitlich begrenzt asynchron; kein Warten auf Android als Bedingung der sicheren Übergabe. Tray-Verbergen ist kein Prozessende und beendet Remote nicht. Absturz-/Killabsicherung darf niemals von einem Disconnecthandler abhängen.
 
@@ -209,7 +219,7 @@ Keine solche Projektanlage in Phase 0. Scanner bevorzugt on-device mit geprüfte
 
 Das am 25.11.2026 nachgereichte Appbild ist die visuelle Referenz: sehr dunkler Hintergrund, abgerundete anthrazitfarbene Karten, blauer Akzent, Kopfzeile mit Monitoricon/Titel und Einstellungen, grüne Verbindungskarte, direkt darunter Besuchermoduskarte mit Schild/Schalter, Wiedergabemodus als Segmentauswahl, große zentrale Pause-/Playtaste mit Zurück/Weiter, anschließend Intervall/Shuffle/Darstellung. Kompakte einseitige Bedienung mit Dark Mode, kein Medienpreview nötig. Die Bilddatei liegt nur als lokale Chatreferenz vor und wird nicht über ihren temporären absoluten Pfad ins Repository eingebunden.
 
-„Bild 42 von 915“, WLAN-Name und Versionsnummer im Bild sind Beispieldaten. Empfehlung: Bildzählung zunächst weglassen oder ausschließlich als optionale anonymisierte Zählwerte aus dem PC abnehmen; kein Dateiname, Thumbnail oder Ordnername. Keine zusätzliche Standort-/SSID-Berechtigung nur für „Heimnetzwerk · WLAN“ verlangen: „Lokales Netzwerk“ bzw. ein lokal vergebener PC-Alias genügt. Verbindung wird nie allein anhand WLAN-Zugehörigkeit grün.
+„Bild 42 von 915“, WLAN-Name und Versionsnummer im Bild sind Beispieldaten. Verbindlich: Bildzählung weglassen; kein Dateiname, Thumbnail oder Ordnername. Keine zusätzliche Standort-/SSID-Berechtigung nur für „Heimnetzwerk · WLAN“ verlangen: „Lokales Netzwerk“ bzw. ein lokal vergebener PC-Alias genügt. Verbindung wird nie allein anhand WLAN-Zugehörigkeit grün.
 
 Besuchermodus oben immer sichtbar; On/Off, Busy und fehlende Quelle klar unterscheiden. Deaktivieren mit verständlicher Warnung/Bestätigung, eingeschränkte Berechtigung kenntlich machen. Bei aktivem Besucherordner Wiedergabekarte ausdrücklich als Besucherwiedergabe kennzeichnen; normale Modusauswahl sperren. Offline sämtliche Mutationen einschließlich Besucherschalter deaktivieren, letzten Zustand als veraltet markieren. Erfolgreiche Änderungen erst nach abgeschlossenem PC-Ergebnis; ausstehende Werte nicht als bestätigt darstellen.
 
@@ -232,15 +242,7 @@ Machbar über nativen `AppWidgetProvider`, XML/RemoteViews und PendingIntent; MA
 | Gerät kompromittiert oder QR abgefangen | Per-device Widerruf, explizite PC-Bestätigung, minimale API; LAN/TLS allein schützt nicht vor autorisiertem bösartigem Client. |
 | Androidhintergrund/Backup/Berechtigungen | Foreground-Resync, Backupausnahme, Permissionmatrix und Gerätetest. |
 
-Notwendige Benutzerentscheidungen vor den jeweils betroffenen Implementierungsphasen:
-
-1. Architekturvorschlag freigeben: Kestrel + REST + SignalR, MAUI Android und native DNS-SD zuerst technisch erproben?
-2. Darf jedes gekoppelte Gerät den Besuchermodus deaktivieren, oder braucht es ein separat am PC vergebenes Recht bzw. jedes Mal PC-Bestätigung? Empfehlung: ausdrücklich vergebenes Recht, Androidbestätigung, standardmäßig keine implizite Freigabe.
-3. Welche privaten Adapter sollen standardmäßig angeboten werden? Empfehlung: bewusste Auswahl des privaten Heimnetzadapters, keine VPNs und keine Public-Netze. Portvorschlag 47831/TCP, bei Konflikt klarer Fehler und lokale Änderung statt breitem Portscan.
-4. Minimale Androidversion, gewünschte APK-Verteilung/Signierung und Updateweg festlegen; Pixel 9 Pro XL allein definiert keine allgemeine Mindestversion. Empfehlung: zunächst signierte lokale Abnahme-APK, kein Store-/Cloudzwang.
-5. Reicht reiner Status ohne Bildzähler? Empfehlung: ja; Zähler nur nach Prüfung korrekter Semantik bei Shuffle/History/Visitor. Themes und Mehr-PC-Auswahl sind keine notwendigen Erweiterungen der ersten Abnahme.
-
-Keine dieser Fragen rechtfertigt in Phase 0 produktive Änderungen. Technische Detailwerte und Bibliotheksauswahl sind Vorschläge und können im freigegebenen Versuch ohne neue Produktfeatures präzisiert werden.
+Die ursprünglichen Produktfragen sind durch den Phase-01-Auftrag entschieden (siehe verbindlicher Nachtrag oben): Architekturversuch freigegeben, individuelles Deaktivierungsrecht, privater Heimnetzadapter/Port 47831, Android 12+, signierte APK ohne Deinstallation und kein Bildzähler. Noch technisch zu klären bleiben die stabile MAUI-11-Toolchain, Android-Pinning in beiden Transporten und reale Discovery mit parallelem Proton VPN. Diese sind Prüfgegenstand von Phase 01, keine erneuten Produktfreigabefragen. Die produktive Integration und Phase 02 bleiben gesondert freizugeben.
 
 ## 10. Test- und Abnahmekonzept
 
