@@ -16,7 +16,7 @@ Basis: freigegebener Architekturcommit `3bd3342`, sauberer Branch `codex/remote-
 
 ## Manueller Nachtrag: Android-Falsch-Pin-Test bestanden
 
-Der Benutzer bestätigt nach gezielter Aufforderung den erfolgreichen Test mit den erwarteten Ergebnissen: `REST abgewiesen=True` und `WSS abgewiesen=True`, während der normale Testhost weiterlief. Damit ist die Ablehnung eines falschen SPKI-Pins auf dem verwendeten Handy für HTTPS REST und separat für WSS manuell bestätigt. Der zuvor bestätigte normale Verbindungsaufbau dient als positiver Kontrollfall. Ein fremdes Zertifikat und ein abgelaufenes Zertifikat mit korrektem SPKI-Pin wurden am Handy noch nicht bestätigt; diese Fälle bleiben trotz bestehender Windows-Nachweise offen. Phase 01 wird dadurch noch nicht vollständig bestanden.
+Der Benutzer bestätigt nach gezielter Aufforderung den erfolgreichen Test mit den erwarteten Ergebnissen: `REST abgewiesen=True` und `WSS abgewiesen=True`, während der normale Testhost weiterlief. Damit ist die Ablehnung eines falschen SPKI-Pins auf dem verwendeten Handy für HTTPS REST und separat für WSS manuell bestätigt. Der zuvor bestätigte normale Verbindungsaufbau dient als positiver Kontrollfall. Der Benutzer bestätigt anschließend auch für den gezielt mit `--tls-foreign` gestarteten Host die erwartete Ablehnung bei REST und WSS mit gespeichertem Pin und ohne erneuten QR-Scan. Damit ist der Fremdzertifikatfall am Handy manuell bestätigt. Ein abgelaufenes Zertifikat mit korrektem SPKI-Pin bleibt am Handy noch offen. Phase 01 wird dadurch noch nicht vollständig bestanden.
 
 ## Manueller Nachtrag: erfolgreiche Kopplung am 25.11.2026
 
