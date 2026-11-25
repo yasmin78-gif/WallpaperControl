@@ -1,0 +1,16 @@
+{
+  "Version": "1.0.1",
+  "VersionCode": 2,
+  "APK_SHA256": "15991C43B4C7989A8E5138E3071E605D9BFF45DC6F298F1758A1EE3F852B2F37",
+  "Bytes": 19087757,
+  "DropboxCopy": "C:/Users/yasmi/Dropbox/WallpaperControl.Remote-1.0.1.apk",
+  "SigningCertificateSHA256": "cdb9a437cd36dd41facc19fe3020d2e3a8972defd2ac730d5bf03676ddb5f93e",
+  "Checks": [
+    "Release build succeeded",
+    "APK signature verified",
+    "Manifest version and ARM64 verified",
+    "Generated launcher icon visually inspected",
+    "Dropbox copy SHA-256 matched"
+  ],
+  "DeviceTest": "Not run for this update"
+}

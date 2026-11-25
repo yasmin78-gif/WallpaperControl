@@ -5,7 +5,7 @@ Die produktive Desktop-Integration wurde am 25.11.2026 ausdrücklich freigegeben
 ## Bereitgestellte Ausgaben
 
 - Desktop: `artifacts/remote-production/desktop/WallpaperControl.exe`, Version **2.6.0**, Windows x64, eigenständige .NET-10-Ausgabe.
-- Android: `artifacts/remote-production/WallpaperControl.Remote.apk`, **WallpaperControl Remote 1.0.0**, Android 12 oder neuer, ARM64 (passend zum Pixel 9 Pro XL).
+- Android: `artifacts/remote-production/WallpaperControl.Remote.apk`, **WallpaperControl Remote 1.0.1**, Android 12 oder neuer, ARM64 (passend zum Pixel 9 Pro XL).
 - Prüfsummen: `artifacts/remote-production/manifest.json`.
 
 Die gesamte Desktopausgabe zusammenlassen, insbesondere `video-runtime` und `licenses`. Die bestehende WallpaperControl-Instanz vor dem Austausch regulär über **Beenden** schließen. Die neue Ausgabe ersetzt keine laufende Installation automatisch. Die produktive Android-App hat eine eigene Application-ID `de.wallpapercontrol.remote` und einen eigenen Release-Signierschlüssel. Sie wird separat neben „WC Remote Experiment“ installiert; andere Apps müssen nicht deinstalliert werden. Spätere Updates derselben produktiven App funktionieren mit identischer Application-ID und identischem Schlüssel ohne Deinstallation.
@@ -24,7 +24,7 @@ Die Fernsteuerung bleibt standardmäßig aus. Aktivierung und Adapterwahl bleibe
 
 ## Bedienung
 
-Die Hauptseite zeigt Verbindung, Besuchermodus, Wiedergabe und die verfügbaren Diashoweinstellungen. Weiter/Zurück, Pause/Fortsetzen, Intervall, Zufallsreihenfolge, Darstellung und Wechsel zu einem **bereits am PC hinterlegten** Video verwenden dieselben internen Steuerungspfade wie die Desktopbedienung.
+Die Hauptseite zeigt Verbindung, Besuchermodus, Wiedergabe und die verfügbaren Diashoweinstellungen. Nächstes Bild, Pause/Fortsetzen, Intervall, Zufallsreihenfolge, Darstellung und Wechsel zu einem **bereits am PC hinterlegten** Video verwenden dieselben internen Steuerungspfade wie die Desktopbedienung.
 
 - Bei Verbindungsverlust sind Eingaben gesperrt. Die App verbindet sich wieder und fragt den vollständigen Zustand neu ab. Alte Offlinebefehle werden nicht später abgespielt.
 - Eine laufende Aktion wird als ausstehend angezeigt; Erfolg wird erst nach PC-Bestätigung angenommen. Bei unklarem Ergebnis wird ein Navigationsbefehl nicht blind wiederholt.

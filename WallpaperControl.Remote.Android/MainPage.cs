@@ -17,7 +17,7 @@ public sealed class MainPage : ContentPage
     private readonly Label countdown = Text("", 12);
     private readonly Switch visitor = new() { OnColor = Accent, ThumbColor = Colors.White };
     private readonly Switch shuffle = new() { OnColor = Accent, ThumbColor = Colors.White };
-    private readonly Button previous, play, next, slideshow, video;
+    private readonly Button play, next, slideshow, video;
     private readonly Picker interval = new() { Title = "Wechselintervall", TextColor = Colors.White, FontSize = 14, MinimumHeightRequest = 48 };
     private readonly Picker layout = new() { Title = "Darstellung", TextColor = Colors.White, FontSize = 14, MinimumHeightRequest = 48 };
     private readonly Border connectionCard;
@@ -45,16 +45,16 @@ public sealed class MainPage : ContentPage
         var modes = new Grid { ColumnDefinitions = [new(GridLength.Star), new(GridLength.Star)], ColumnSpacing = 8 }; modes.Add(slideshow); modes.Add(video, 1); playback.Add(modes);
         playbackTitle.HorizontalTextAlignment = TextAlignment.Center; playbackDetail.HorizontalTextAlignment = TextAlignment.Center; countdown.HorizontalTextAlignment = TextAlignment.Center;
         playback.Add(playbackTitle); playback.Add(playbackDetail); playback.Add(countdown);
-        previous = Button("Ⅰ◁", 24); play = Button("Ⅱ", 26); next = Button("▷Ⅰ", 24);
-        SemanticProperties.SetDescription(previous, "Vorheriges Hintergrundbild"); SemanticProperties.SetDescription(next, "Nächstes Hintergrundbild");
+        play = Button("Ⅱ", 26); next = Button("▷Ⅰ", 24);
+        SemanticProperties.SetDescription(next, "Nächstes Hintergrundbild");
         play.BackgroundColor = Accent; play.TextColor = PageBackground; play.CornerRadius = 36; play.WidthRequest = play.HeightRequest = 72;
-        var transport = new Grid { ColumnDefinitions = [new(GridLength.Star), new(84), new(GridLength.Star)], ColumnSpacing = 12, HorizontalOptions = LayoutOptions.Fill };
-        transport.Add(previous); transport.Add(play, 1); transport.Add(next, 2); playback.Add(transport); content.Add(Panel(playback));
+        var transport = new Grid { ColumnDefinitions = [new(84), new(72)], ColumnSpacing = 24, HorizontalOptions = LayoutOptions.Center };
+        transport.Add(play); transport.Add(next, 1); playback.Add(transport); content.Add(Panel(playback));
         var options = new VerticalStackLayout { Spacing = 12 }; options.Add(Text("DIASHOW-EINSTELLUNGEN", 12));
         options.Add(Row("◷  Wechselintervall", interval)); options.Add(Divider()); options.Add(Row("⤨  Zufallswiedergabe", shuffle)); options.Add(Divider()); options.Add(Row("▣  Darstellung", layout)); content.Add(Panel(options));
         message.TextColor = Muted; content.Add(message); content.Add(Text("WallpaperControl Remote · v" + AppInfo.Current.VersionString, 12));
         session.Changed += () => MainThread.BeginInvokeOnMainThread(Render);
-        previous.Clicked += async (_, _) => await session.SendAsync("previous"); next.Clicked += async (_, _) => await session.SendAsync("next");
+        next.Clicked += async (_, _) => await session.SendAsync("next");
         play.Clicked += async (_, _) => await session.SendAsync(session.State?.ManualPaused == true ? "resume" : "pause");
         slideshow.Clicked += async (_, _) => await session.SendAsync("mode", "slideshow"); video.Clicked += async (_, _) => await session.SendAsync("mode", "video");
         visitor.Toggled += async (_, e) =>
@@ -136,7 +136,7 @@ public sealed class MainPage : ContentPage
             slideshow.BackgroundColor = state?.Mode == "slideshow" ? Color.FromArgb("#303A4B") : Colors.Transparent;
             video.BackgroundColor = state?.Mode == "video" ? Color.FromArgb("#303A4B") : Colors.Transparent;
             slideshow.IsEnabled = Allows("mode") && state?.Mode != "slideshow"; video.IsEnabled = Allows("mode") && state?.Mode != "video";
-            previous.IsEnabled = Allows("previous"); next.IsEnabled = Allows("next");
+            next.IsEnabled = Allows("next");
             play.Text = state?.ManualPaused == true ? "▶" : "Ⅱ"; play.IsEnabled = Allows(state?.ManualPaused == true ? "resume" : "pause");
             SemanticProperties.SetDescription(play, state?.ManualPaused == true ? "Wiedergabe fortsetzen" : "Wiedergabe pausieren");
             shuffle.IsToggled = state?.Shuffle == true; shuffle.IsEnabled = Allows("shuffle");

@@ -281,6 +281,14 @@
   },
   {
     "Package": "Microsoft.NET.ILLink.Tasks",
+    "Version": "10.0.15",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "Authors": "Microsoft",
+    "Copyright": "© Microsoft Corporation. All rights reserved."
+  },
+  {
+    "Package": "Microsoft.NET.ILLink.Tasks",
     "Version": "11.0.0",
     "License": "MIT",
     "LicenseUrl": "https://licenses.nuget.org/MIT",

@@ -91,6 +91,10 @@ Der 30,36-Sekunden-Baseline-Lauf ohne Server ergab 0,82 % eines Kerns, 12,34 MiB
 
 ## Offene Abnahme und Grenzen
 
+### App-Update 1.0.1
+
+Nach erfolgreichem Benutzertest der produktiven Ausgabe wurde der irreführende Button „Vorheriges Bild“ entfernt. Pause/Fortsetzen und Nächstes Bild stehen nebeneinander. Das Launcher- und Startbild verwendet das unveränderte 256-Pixel-PNG aus `WallpaperControl/WallpaperControl.ico`; für Android wird es mit sicherem Abstand in das adaptive Icon eingesetzt. App-ID und Signierschlüssel bleiben gleich, versionCode steigt auf 2. Das Update erhält bei normaler Installation über die vorhandene App deren Kopplung.
+
 - Neue produktive APK/echte Desktopsteuerung auf dem Pixel gemeinsam abnehmen, einschließlich Appupdate, Bedienung von Desktop/Widgets und Besucher-Absturzschutz mit Testmedien.
 - Reale Kombination mit Proton VPN, geänderter IP, blockiertem Multicast, mehreren Adaptern und Link-Local-IPv6 noch nicht durch Benutzer bestätigt. Manuelle lokale Adresshilfe bleibt vorhanden.
 - Kein Homescreen-Widget, keine Medien-/Playlist-/Widgetverwaltung und keine Internetfernsteuerung.
