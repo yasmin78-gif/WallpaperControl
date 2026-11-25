@@ -1,0 +1,42 @@
+{
+  "Release": "v2.6.1",
+  "Android": "1.1.7",
+  "Compiler": "Inno Setup 6.7.3",
+  "CompilerSHA256": "9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732",
+  "CompilerSignature": "Valid Authenticode",
+  "InstallerAssertions": 84,
+  "ReadmeLanguages": [
+    "English",
+    "Deutsch",
+    "Français",
+    "Español",
+    "日本語"
+  ],
+  "Assets": [
+    {
+      "Name": "SHA256SUMS.txt",
+      "Bytes": 203,
+      "SHA256": "7ba6394641364925ee53c4fbf212ccfc45b0a608a191c42a6a7c8d40d5f18bf6"
+    },
+    {
+      "Name": "WallpaperControl-2.6.1-Setup-x64.exe",
+      "Bytes": 144787845,
+      "SHA256": "9b42987693a853f8d8b962af5caddffe009891d8e0f82ae52c95202a3dd41640"
+    },
+    {
+      "Name": "WallpaperControl-2.6.1-Setup-x64.exe.sha256",
+      "Bytes": 103,
+      "SHA256": "a641f21b0ba5c275def766a98290dd99f66520c2af522fe78c7b2a9d6933fc6d"
+    },
+    {
+      "Name": "WallpaperControl.Remote-1.1.7.apk",
+      "Bytes": 19096830,
+      "SHA256": "eea0d69d09c939d55fb5ccecddee2b20a07dd9e30968994514107c02d3b096ee"
+    },
+    {
+      "Name": "WallpaperControl.Remote-1.1.7.apk.sha256",
+      "Bytes": 100,
+      "SHA256": "4bdb5583e6b57181e4c1a3237dad3e7b7a1269decffc19227d7e6bcc4e5b9dd5"
+    }
+  ]
+}

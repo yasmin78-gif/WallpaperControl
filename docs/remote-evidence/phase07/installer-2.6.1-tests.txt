@@ -1,0 +1,85 @@
+PASS: Fresh installation registers an uninstaller.
+PASS: Start menu shortcut is created.
+PASS: Fresh installation leaves autostart disabled.
+PASS: Installed executable has the expected version.
+PASS: Installed payload matches: Microsoft.Web.WebView2.Core.xml
+PASS: Installed payload matches: Microsoft.Web.WebView2.WinForms.xml
+PASS: Installed payload matches: WallpaperControl.exe
+PASS: Installed payload matches: WallpaperControl.Remote.Contracts.pdb
+PASS: Installed payload matches: WallpaperControl.Remote.Server.pdb
+PASS: Installed payload matches: licenses\EmailWatcher\BouncyCastle.txt
+PASS: Installed payload matches: licenses\EmailWatcher\MailKit.txt
+PASS: Installed payload matches: licenses\EmailWatcher\MimeKit.txt
+PASS: Installed payload matches: licenses\Remote\THIRD-PARTY-NOTICES.txt
+PASS: Installed payload matches: video-runtime\build-manifest.json
+PASS: Installed payload matches: video-runtime\BUILDING.md
+PASS: Installed payload matches: video-runtime\compatibility-profile.patch
+PASS: Installed payload matches: video-runtime\compatibility.patch
+PASS: Installed payload matches: video-runtime\corresponding-source.zip
+PASS: Installed payload matches: video-runtime\README.md
+PASS: Installed payload matches: video-runtime\SBOM.json
+PASS: Installed payload matches: video-runtime\SBOM.md
+PASS: Installed payload matches: video-runtime\sources-lock.json
+PASS: Installed payload matches: video-runtime\THIRD_PARTY_NOTICES.md
+PASS: Installed payload matches: video-runtime\build-recipe\audit.py
+PASS: Installed payload matches: video-runtime\build-recipe\build.py
+PASS: Installed payload matches: video-runtime\build-recipe\fetch_locked_sources.py
+PASS: Installed payload matches: video-runtime\build-recipe\investigation-finish_clean.py
+PASS: Installed payload matches: video-runtime\build-recipe\investigation-prepare_clean.py
+PASS: Installed payload matches: video-runtime\build-recipe\investigation-test_final.py
+PASS: Installed payload matches: video-runtime\build-recipe\pe.py
+PASS: Installed payload matches: video-runtime\build-recipe\set_identity.py
+PASS: Installed payload matches: video-runtime\LICENSES\LLVM-LICENSE.TXT
+PASS: Installed payload matches: video-runtime\LICENSES\ffmpeg\COPYING.GPLv3
+PASS: Installed payload matches: video-runtime\LICENSES\ffmpeg\COPYING.LGPLv2.1
+PASS: Installed payload matches: video-runtime\LICENSES\ffmpeg\COPYING.LGPLv3
+PASS: Installed payload matches: video-runtime\LICENSES\ffmpeg\LICENSE.md
+PASS: Installed payload matches: video-runtime\LICENSES\freetype\ft-hb-ft.c
+PASS: Installed payload matches: video-runtime\LICENSES\freetype\FTL.TXT
+PASS: Installed payload matches: video-runtime\LICENSES\freetype\LICENSE.txt
+PASS: Installed payload matches: video-runtime\LICENSES\freetype\README
+PASS: Installed payload matches: video-runtime\LICENSES\fribidi\COPYING
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSE.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\AML-glslang.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\Apache-2.0.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\Bison-exception-2.2.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\BSD-2-Clause.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\BSD-3-Clause.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\GPL-3.0-or-later.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\MIT-Khronos-old.txt
+PASS: Installed payload matches: video-runtime\LICENSES\glslang\LICENSES\MIT.txt
+PASS: Installed payload matches: video-runtime\LICENSES\harfbuzz\COPYING
+PASS: Installed payload matches: video-runtime\LICENSES\libass\COPYING
+PASS: Installed payload matches: video-runtime\LICENSES\libplacebo\LICENSE
+PASS: Installed payload matches: video-runtime\LICENSES\MinGW-w64\COPYING
+PASS: Installed payload matches: video-runtime\LICENSES\MinGW-w64\COPYING.MinGW-w64-runtime.txt
+PASS: Installed payload matches: video-runtime\LICENSES\MinGW-w64\COPYING.MinGW-w64.txt
+PASS: Installed payload matches: video-runtime\LICENSES\MinGW-w64\COPYING.winpthreads.txt
+PASS: Installed payload matches: video-runtime\LICENSES\MinGW-w64\COPYING.winstorecompat.txt
+PASS: Installed payload matches: video-runtime\LICENSES\mpv\Copyright
+PASS: Installed payload matches: video-runtime\LICENSES\mpv\LICENSE.LGPL
+PASS: Installed payload matches: video-runtime\LICENSES\shaderc\LICENSE
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-cross\LICENSE
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-cross\LICENSES\Apache-2.0.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-cross\LICENSES\CC-BY-4.0.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-cross\LICENSES\LicenseRef-KhronosFreeUse.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-cross\LICENSES\MIT.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-headers\LICENSE
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-headers\LICENSES\CC-BY-4.0.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-headers\LICENSES\MIT.txt
+PASS: Installed payload matches: video-runtime\LICENSES\spirv-tools\LICENSE
+PASS: Installed payload matches: video-runtime\LICENSES\vulkan-headers\LICENSE.md
+PASS: Installed payload matches: video-runtime\LICENSES\vulkan-headers\LICENSES\Apache-2.0.txt
+PASS: Installed payload matches: video-runtime\LICENSES\vulkan-headers\LICENSES\MIT.txt
+PASS: Installed payload matches: video-runtime\package\libc++.dll
+PASS: Installed payload matches: video-runtime\package\libmpv-2.dll
+PASS: Installed payload matches: video-runtime\package\libspirv-cross-c-shared.dll
+PASS: Installed payload matches: video-runtime\package\libunwind.dll
+PASS: Installed payload matches: video-runtime\package\runtime-package.json
+PASS: Upgrade redirects enabled autostart to the installed executable.
+PASS: Uninstall removes the installed executable.
+PASS: Uninstall removes its shortcut.
+PASS: Uninstall removes its Windows registration.
+PASS: Uninstall removes its own autostart command.
+PASS: Uninstall preserves autostart redirected to another copy.
+Installer tests passed. Logs: C:\Users\yasmi\source\repos\WallpaperControl\artifacts\installer\test-WCTest.93a9630f33ba49b591626188603f2e22

@@ -13,16 +13,18 @@ Windows
 デスクトップに自然に統合され、アプリケーション終了時には Windows
 標準の壁紙処理を復元します。
 
-**現在のリリース: v2.5.0**
+**現在のリリース: v2.6.1 · Android Remote アプリ: v1.1.7**
 
-## ✨ 2.5.0 の新機能
+## ✨ 2.6.1 の新機能
 
-- 壁紙ページから来客用スライドショーの一時停止・再開、間隔、シャッフル、固定、次の壁紙ウィジェットを操作可能。
-- 元の画像を変更せず、既存ファイルを上書きせずに、通常モードの現在の画像を既存の来客用フォルダーにコピー。
-- 安全な Windows 壁紙を維持しながら、来客用アニメーション前の白いちらつきを修正。
-- 一時的な解像度変更やモニターの再接続後に、カレンダーとメモ＆リマインダーのウィジェット位置を復元。
+- プライベートなローカルネットワーク上の Android 端末から、来客モード、一時停止・再開、次の画像、切り替え間隔、シャッフル、表示方法、設定済み動画の再生を操作できます。
+- PC の QR コードを読み取り、確認コードを照合して安全にペアリングします。リモート操作は初期状態では無効です。端末ごとにアクセス権を取り消すことができ、来客モードの解除には別途権限が必要です。
+- **1×1** と **2×1** のネイティブ Android 来客モードウィジェットを追加できます。アプリを開かずにワンタップで有効化でき、解除には最新の確認済み状態と安全確認が必要です。
+- アプリの更新時もペアリングを保持します。PC 検索終了時のクラッシュを修正し、Android ランチャーにデスクトップ版と同じアイコンを表示します。
 
-[Windows x64 インストーラーをダウンロード](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.5.0/WallpaperControl-2.5.0-Setup-x64.exe) · [リリースノートと SHA-256 チェックサム](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.5.0)
+[Windows x64 インストーラー](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl-2.6.1-Setup-x64.exe) · [Android APK 1.1.7](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl.Remote-1.1.7.apk) · [SHA-256 チェックサム](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/SHA256SUMS.txt) · [リリースノート](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.6.1)
+
+**Android の設定:** Android 12 以降、ARM64 が必要です。アプリの画面は現在ドイツ語です。既存アプリをアンインストールせず、APK を更新としてインストールしてください。PC の **設定 → 全般 → WallpaperControl Remote** でプライベートネットワークのアダプターを有効にし、QR コードでペアリングします。端末のウィジェット一覧から各ウィジェットを追加できます。Android の制限によりバックグラウンド更新が遅れる場合があるため、状態には確認時刻を表示します。状態が不明または古い場合、タップは有効化のみを試み、確認なしで解除することはありません。[設定ガイド（ドイツ語）](docs/REMOTE_PRODUCTION_GUIDE.md)。
 
 ## ✨ 機能
 

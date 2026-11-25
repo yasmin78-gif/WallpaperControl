@@ -15,16 +15,18 @@ optional desktop widgets, while integrating cleanly with the Windows
 desktop and restoring native wallpaper handling when the application
 exits.
 
-**Current release: v2.5.0**
+**Current release: v2.6.1 · Android Remote app: v1.1.7**
 
-## ✨ New in 2.5.0
+## ✨ New in 2.6.1
 
-- Control visitor-folder slideshows from the wallpaper page: pause/resume, interval, shuffle, pinning, and the Next Wallpaper widget.
-- Copy the current normal image into an existing visitor folder without changing the original or overwriting files.
-- Eliminate the white flash before visitor animations while preserving the safe native wallpaper.
-- Restore Calendar and Notes & Reminders widget positions after temporary resolution changes or monitor reconnection.
+- Control WallpaperControl from your Android phone over your private local network: Visitor Mode, pause/resume, next image, interval, shuffle, layout, and configured video playback.
+- Pair securely by scanning the PC's QR code and comparing the confirmation codes. Remote control is disabled by default; devices have individual, revocable permissions. Turning off Visitor Mode requires a separate permission.
+- Add native Android Visitor Mode widgets in **1×1** and **2×1** sizes. Activate with one tap without opening the app; deactivation requires a fresh confirmed state and a safety prompt.
+- Keep the existing pairing when updating the Android app. Fix the discovery shutdown crash and show the desktop icon in the Android launcher.
 
-[Download the Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.5.0/WallpaperControl-2.5.0-Setup-x64.exe) · [Release notes and SHA-256 checksum](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.5.0)
+[Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl-2.6.1-Setup-x64.exe) · [Android APK 1.1.7](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl.Remote-1.1.7.apk) · [SHA-256 checksums](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/SHA256SUMS.txt) · [Release notes](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.6.1)
+
+**Android setup:** Android 12 or newer, ARM64; the app currently uses a German interface. Install the APK as an update without uninstalling. On the PC, open **Settings → General → WallpaperControl Remote**, enable the private network adapter, and pair using the QR code. Add either widget from the phone's widget picker. Background widget status can be delayed by Android and is timestamped; an unknown or stale tap only activates, never blindly toggles off. [Setup guide (German)](docs/REMOTE_PRODUCTION_GUIDE.md).
 
 ## ✨ Features
 
