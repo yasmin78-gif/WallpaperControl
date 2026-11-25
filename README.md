@@ -19,6 +19,8 @@ exits.
 
 ## ✨ New in 2.6.1
 
+- New PriceWatch desktop widget: game watchlist, retailer comparison, target-price alerts and price history.
+- Notes & Reminders: monthly, yearly and custom recurrence; recurring tasks appear only from their due date.
 - Control WallpaperControl from your Android phone over your private local network: Visitor Mode, pause/resume, next image, interval, shuffle, layout, and configured video playback.
 - Pair securely by scanning the PC's QR code and comparing the confirmation codes. Remote control is disabled by default; devices have individual, revocable permissions. Turning off Visitor Mode requires a separate permission.
 - Add native Android Visitor Mode widgets in **1×1** and **2×1** sizes. Activate with one tap without opening the app; deactivation requires a fresh confirmed state and a safety prompt.
@@ -27,6 +29,22 @@ exits.
 [Windows x64 installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl-2.6.1-Setup-x64.exe) · [Android APK 1.1.7](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl.Remote-1.1.7.apk) · [SHA-256 checksums](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/SHA256SUMS.txt) · [Release notes](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.6.1)
 
 **Android setup:** Android 12 or newer, ARM64; the app currently uses a German interface. Install the APK as an update without uninstalling. On the PC, open **Settings → General → WallpaperControl Remote**, enable the private network adapter, and pair using the QR code. Add either widget from the phone's widget picker. Background widget status can be delayed by Android and is timestamped; an unknown or stale tap only activates, never blindly toggles off. [Setup guide (German)](https://github.com/yasmin78-gif/WallpaperControl/blob/v2.6.1/docs/REMOTE_PRODUCTION_GUIDE.md).
+
+## 📱 WallpaperControl Remote for Android
+
+The integrated HTTPS server is disabled by default and requires explicit selection of a private physical network adapter. An optional narrowly scoped Windows firewall rule is available during setup. Pair via QR code, compare codes and confirm on the PC. Rename devices, change permissions or revoke access on the PC; disabling Visitor Mode requires a separate permission.
+
+The dark card interface controls Visitor Mode, pause/resume, next image, interval, shuffle, display layout and configured video. There is no Previous Image button. Live state is synchronized with the PC and connected devices. Pairing survives restarts; automatic reconnection follows host restarts or Wi-Fi interruptions. Local PC discovery and manual address assistance, diagnostics and license information are included.
+
+### Android Visitor Mode widgets
+
+Choose Compact **1×1** or Switch **2×1** independently. One tap explicitly activates Visitor Mode even when the app process is stopped. Deactivation requires a fresh confirmed active state, permission and a safety confirmation in a separate dialog; permission and server state are checked again afterward. All widget instances update together and show loading, error, offline and stale states. Repeated taps cannot execute commands in parallel; failed offline commands are not replayed. Activation feedback says Visitor Mode is active and to tap again to deactivate. Moving the app to the background preserves status without extending its validity. The NSD listener crash on stopping discovery was fixed, and small layouts and timestamps were adapted to actual Pixel widget sizes.
+
+### Security and release validation
+
+HTTPS and WebSocket use TLS SPKI pinning and individual device authentication. Credentials are protected by Windows DPAPI and Android SecureStorage/Keystore. Request limits, timeouts and command deduplication are enforced; commands with uncertain execution are not automatically retried. The signed APK uses a persistent update key. The Windows installer and APK are published with individual and combined SHA-256 checksums.
+
+Release validation: **6,302 desktop regression tests, 102 remote checks, 15 Android packaging checks and 84 installer checks** passed. Physical Pixel tests covered cold start, both widgets' status feedback and the full activation/deactivation flow. All five desktop README languages, setup guides and technical reports were updated.
 
 ## ✨ Features
 
@@ -82,7 +100,8 @@ exits.
     -   Weather widget with optional 3-day forecast
     -   Calendar widget with iCalendar / ICS support
     -   Compact Wallpaper Info widget with current wallpaper statistics
-    -   Notes & Reminders widget with local task/reminder management, including daily recurring tasks
+    -   Notes & Reminders widget with local task management and daily, monthly, yearly and custom recurrence
+    -   PriceWatch widget for game prices, target-price alerts and price history
     -   Package Tracking widget with Ship24 support, automatic refresh, status notifications, and local Amazon Logistics handling
     -   Twitch widget showing currently live followed channels, profile pictures, categories, viewer counts, stream duration, and optional live notifications
     -   Resizable and collapsible Web widget powered by Microsoft WebView2
@@ -542,15 +561,12 @@ description and optional date/time. Entries can be created, edited,
 completed, deleted and reopened through the widget and its dedicated
 manager.
 
-Daily recurring tasks can be configured with a start date and optional
-time. Completing a daily task applies only to the current day; it
-automatically appears open again on the following day without creating
-duplicates. Tasks completed today are collected in a collapsible
-**Completed Today** section with their completion time and can be
-reopened.
+Choose no recurrence, daily, monthly, yearly or a custom interval with a positive number of days, weeks, months or years (for example, every two weeks or three months). Dates are calculated from the original reference date so month ends and leap years do not permanently shift the schedule. Local times are preserved across daylight-saving changes; invalid intervals and date overflows are rejected when saving.
+
+Recurring entries appear and count in the desktop widget only from their due date. Overdue entries remain visible until completed; completion selects the next future occurrence, which stays hidden until due. Tasks completed today are grouped with their completion time in **Completed Today**. Recurrence suffixes and the daily recurrence icon are no longer shown in widget rows. The manager and editor support the new options, with improved disabled-checkbox contrast in dark mode, DPI layout and translations in all five desktop languages.
 
 Popup reminders can be configured for the due time or **5 / 10 minutes
-before**, including for daily recurring tasks. They appear above normal
+before**, including for recurring tasks. They appear above normal
 windows without taking focus. While a fullscreen application is active,
 reminders are held back until fullscreen mode ends. The complete note
 text is displayed and longer content can be scrolled.
@@ -567,6 +583,19 @@ and editor follow the current Light/Dark theme. Data is stored locally
 as JSON using atomic writes, backup and damaged-file protection.
 Existing notes remain compatible. The widget supports **Minimal**,
 **Clean** and **Glow** styles.
+
+### 🎮 PriceWatch
+
+- Search for games and add or remove them from a persistent watchlist; cover art and scrolling long titles.
+- Resizable game details with developer, publisher and release date; size is remembered and can be locked.
+- Set, edit or remove a target price per game.
+- Select seven retailers: **GOG, Steam, Epic Games Store, GamesPlanet DE, Ubisoft Store, Microsoft Store and EA Store**.
+- Show up to three cheapest valid offers in the widget and all selected retailers in details, with prices, discounts and retailer links; invalid or expired offers are filtered out.
+- Refresh manually; failed requests retain saved prices. Automatic target-price checks at **08:00 and 20:00** while the application and widget are running, with missed checks caught up at startup when needed.
+- Windows notifications when the target price is reached, with persistent duplicate suppression; monitoring and notifications are independently configurable.
+- Price history for **7, 30 and 90 days**, with independent chart-only retailer filters, smooth curves, retailer colors, legend, target-price line and point details via tooltip or keyboard selection.
+- Distinguish supplied historical prices, local observations and the last recorded price; local observations are additionally stored in SQLite. A separate offline test-data mode is available.
+- Supports **Minimal**, **Clean** and **Glow** and different DPI settings.
 
 ### 📰 Feeds
 

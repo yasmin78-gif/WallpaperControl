@@ -19,6 +19,8 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 
 ## ✨ Neu in 2.6.1
 
+- Neues PriceWatch-Desktop-Widget mit Spiele-Beobachtungsliste, Händlervergleich, Wunschpreisbenachrichtigungen und Preisverlauf.
+- Notizen & Reminder mit monatlicher, jährlicher und individueller Wiederholung; Serientermine erscheinen erst ab Fälligkeit.
 - WallpaperControl vom Android-Handy im privaten Heimnetz steuern: Besuchermodus, Pause/Fortsetzen, nächstes Bild, Intervall, Zufallsreihenfolge, Darstellung und hinterlegte Videowiedergabe.
 - Sicher über den PC-QR-Code und übereinstimmende Vergleichscodes koppeln. Die Fernsteuerung bleibt standardmäßig aus; Geräte haben eigene, widerrufbare Rechte. Das Ausschalten des Besuchermodus benötigt eine gesonderte Berechtigung.
 - Native Android-Besuchermodus-Widgets in **1×1** und **2×1** hinzufügen. Aktivieren mit einem Tipp ohne Appfenster; Ausschalten nur mit frisch bestätigtem Zustand und Sicherheitsabfrage.
@@ -27,6 +29,22 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
 [Windows-x64-Installer](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl-2.6.1-Setup-x64.exe) · [Android-APK 1.1.7](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl.Remote-1.1.7.apk) · [SHA-256-Prüfsummen](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/SHA256SUMS.txt) · [Release Notes](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.6.1)
 
 **Android einrichten:** Android 12 oder neuer, ARM64. Die APK ohne vorherige Deinstallation als Update installieren. Am PC unter **Einstellungen → Allgemein → WallpaperControl Remote** den privaten Netzwerkadapter freigeben und per QR-Code koppeln. Anschließend im Widget-Auswahldialog des Handys eine Variante hinzufügen. Android kann Hintergrundaktualisierungen verzögern; die Statusanzeige trägt einen Zeitstempel. Bei unbekanntem oder veraltetem Zustand aktiviert ein Tipp ausschließlich, statt blind auszuschalten. [Einrichtungsanleitung](https://github.com/yasmin78-gif/WallpaperControl/blob/v2.6.1/docs/REMOTE_PRODUCTION_GUIDE.md).
+
+## 📱 WallpaperControl Remote für Android
+
+Der integrierte HTTPS-Server ist standardmäßig deaktiviert und erfordert die bewusste Auswahl eines privaten physischen Netzwerkadapters. Bei der Einrichtung ist eine optional eng begrenzte Windows-Firewallfreigabe möglich. QR-Code scannen, Vergleichscodes prüfen und am PC bestätigen. Geräte am PC umbenennen, Rechte ändern oder Zugriff entziehen; zum Ausschalten des Besuchermodus ist ein eigenes Recht erforderlich.
+
+Die dunkle Kartenoberfläche steuert Besuchermodus, Pause/Fortsetzen, nächstes Bild, Intervall, Zufallsreihenfolge, Darstellung und hinterlegtes Video. Einen Zurück-Button gibt es nicht. Der Live-Zustand wird zwischen PC und verbundenen Geräten synchronisiert. Kopplungen bleiben über Neustarts erhalten; nach Host-Neustart oder WLAN-Unterbrechung erfolgt eine automatische Wiederverbindung. Lokale PC-Erkennung, manuelle Adresshilfe, Diagnose und Lizenzanzeige sind enthalten.
+
+### Native Android-Besuchermodus-Widgets
+
+**Kompakt 1×1** und **Schalter 2×1** sind unabhängig auswählbar. Ein Tipp aktiviert explizit den Besuchermodus, auch bei beendetem App-Prozess. Ausschalten erfordert einen frisch bestätigten Aktivzustand, Berechtigung und Sicherheitsbestätigung in einem separaten Dialog; Rechte und Serverzustand werden danach erneut geprüft. Alle Widget-Instanzen aktualisieren sich gemeinsam und zeigen Lade-, Fehler-, Offline- und veraltete Zustände. Mehrfachtipps führen nicht zu parallelen Befehlen; fehlgeschlagene Offlinebefehle werden nicht nachgeholt. Rückmeldung: „Besuchermodus aktiv. Zum Ausschalten erneut tippen.“ Beim Wechsel in den Hintergrund bleibt der Status ohne Verlängerung seiner Gültigkeit erhalten. Der NSD-Listener-Absturz beim Beenden der PC-Suche wurde behoben; kleine Layouts und Zeitangaben wurden an die tatsächlichen Pixel-Widgetgrößen angepasst.
+
+### Sicherheit und Release-Prüfungen
+
+HTTPS und WebSocket verwenden TLS-SPKI-Pinning und individuelle Geräteauthentifizierung. Zugangsdaten werden durch Windows-DPAPI beziehungsweise Android SecureStorage/Keystore geschützt. Anfragen sind begrenzt; Zeitlimits und Befehls-Deduplizierung verhindern unnötige Wiederholungen. Unklar ausgeführte Befehle werden nicht automatisch wiederholt. Die signierte APK verwendet einen dauerhaften Update-Schlüssel. Windows-Installer und APK werden mit einzelnen und gemeinsamen SHA-256-Prüfsummen veröffentlicht.
+
+Release-Prüfung: **6.302 Desktop-Regressionstests, 102 Remote-Prüfungen, 15 Android-Packagingprüfungen und 84 Installerprüfungen** erfolgreich. Echte Pixel-Tests umfassten Kaltstart, Statusrückmeldung beider Widgets und den vollständigen Aktivierungs-/Deaktivierungsablauf. Alle fünf README-Sprachen, Einrichtungsanleitungen und technischen Berichte wurden aktualisiert.
 
 ## ✨ Funktionen
 
@@ -88,7 +106,8 @@ der Anwendung die native Wallpaper-Verwaltung von Windows wieder her.
     -   Wetter-Widget mit optionaler 3-Tage-Vorhersage
     -   Kalender-Widget mit iCalendar-/ICS-Unterstützung
     -   Kompaktes Wallpaper-Info-Widget mit Statistiken zum aktuellen Wallpaper
-    -   Notizen-&-Reminder-Widget mit lokaler Aufgaben- und Erinnerungsverwaltung, einschließlich täglich wiederkehrender Aufgaben
+    -   Notizen-&-Reminder-Widget mit lokaler Aufgabenverwaltung und täglicher, monatlicher, jährlicher oder individueller Wiederholung
+    -   PriceWatch-Widget für Spielepreise, Wunschpreisbenachrichtigungen und Preisverlauf
     -   Paketverfolgungs-Widget mit Ship24-Unterstützung, automatischer Aktualisierung, Statusbenachrichtigungen und lokaler Unterstützung für Amazon Logistics
     -   Twitch-Widget mit live sendenden gefolgten Kanälen, Profilbildern, Kategorien, Zuschauerzahlen, Streamdauer und optionalen Live-Benachrichtigungen
     -   Größenveränderbares und einklappbares Web-Widget auf Basis von Microsoft WebView2
@@ -578,14 +597,12 @@ Beschreibung sowie optional Datum und Uhrzeit enthalten und über das
 Widget und den eigenen Manager erstellt, bearbeitet, erledigt, gelöscht
 und wieder geöffnet werden.
 
-Täglich wiederkehrende Aufgaben können mit Startdatum und optionaler
-Uhrzeit angelegt werden. Das Erledigen gilt nur für den aktuellen Tag;
-am nächsten Tag erscheint die Aufgabe automatisch wieder offen, ohne
-Duplikate zu erzeugen. Heute erledigte Aufgaben werden mit ihrer
-Erledigungszeit im einklappbaren Bereich **Heute erledigt** gesammelt.
+Zur Auswahl stehen Keine, Täglich, Monatlich, Jährlich und Individuell. Individuelle Intervalle bestehen aus einer positiven Anzahl von Tagen, Wochen, Monaten oder Jahren, etwa alle zwei Wochen oder drei Monate. Termine werden vom ursprünglichen Referenzdatum berechnet, damit Monatsenden und Schaltjahre den Rhythmus nicht dauerhaft verschieben. Lokale Uhrzeiten bleiben bei Sommer-/Winterzeitwechsel erhalten; ungültige Intervalle und Datumsüberläufe werden beim Speichern abgefangen.
+
+Wiederkehrende Einträge werden erst ab ihrem Fälligkeitstag im Desktop-Widget angezeigt und mitgezählt. Überfällige Einträge bleiben bis zur Erledigung sichtbar. Danach wird der nächste zukünftige Serientermin bestimmt und bis zur Fälligkeit ausgeblendet. Heute erledigte Aufgaben werden mit Erledigungszeit unter **Heute erledigt** gesammelt. Wiederholungszusätze und das tägliche Wiederholungssymbol entfallen in den Widget-Zeilen. Verwaltung und Editor unterstützen die neuen Optionen; Checkbox-Kontrast im Dunkeldesign, DPI-Anordnung und Texte in allen fünf Desktop-Sprachen wurden verbessert.
 
 Popup-Erinnerungen können **zur Fälligkeit** oder **5 / 10 Minuten
-vorher** ausgelöst werden, auch bei täglichen Aufgaben. Sie erscheinen
+vorher** ausgelöst werden, auch bei wiederkehrenden Aufgaben. Sie erscheinen
 über normalen Fenstern, ohne den Fokus zu übernehmen. Während eine
 Vollbildanwendung aktiv ist, werden Erinnerungen zurückgehalten und
 anschließend angezeigt. Der vollständige Notiztext wird angezeigt;
@@ -602,6 +619,19 @@ Editor folgen dem aktuellen Hell-/Dunkel-Design. Die Daten werden lokal
 als JSON mit atomarem Schreiben, Sicherung und Schutz beschädigter
 Dateien gespeichert. Bestehende Notizen bleiben kompatibel. Das Widget
 unterstützt **Minimal**, **Clean** und **Glow**.
+
+### 🎮 PriceWatch
+
+- Spiele suchen und einer dauerhaft gespeicherten Beobachtungsliste hinzufügen oder daraus entfernen; Cover und Lauftext für lange Titel.
+- Skalierbares Detailfenster mit Entwickler, Publisher und Erscheinungsdatum; Größe speichern und Größenänderung sperren.
+- Wunschpreis pro Spiel festlegen, bearbeiten oder entfernen.
+- Sieben Händler auswählen: **GOG, Steam, Epic Games Store, GamesPlanet DE, Ubisoft Store, Microsoft Store und EA Store**.
+- Bis zu drei günstigste gültige Angebote im Widget, alle ausgewählten Händler im Detailfenster; Preise, Rabatte und Händlerlinks, Filter für ungültige oder abgelaufene Angebote.
+- Manuelle Aktualisierung; bei Abruffehlern bleiben gespeicherte Preisstände erhalten. Automatische Wunschpreisprüfung um **08:00 und 20:00 Uhr**, solange Programm und Widget laufen; verpasste Prüfungen bei Bedarf beim Start nachholen.
+- Windows-Benachrichtigungen beim Erreichen des Wunschpreises mit dauerhaft gespeicherter Duplikatunterdrückung; Überwachung und Benachrichtigungen separat konfigurierbar.
+- Preisverlauf für **7, 30 und 90 Tage** mit separaten Händlerfiltern im Diagramm, geglätteten Kurven, Händlerfarben, Legende, Wunschpreislinie und Punktinformationen per Tooltip oder Tastaturauswahl.
+- Gelieferte historische Preise, lokale Beobachtungen und letzten erfassten Preisstand unterscheiden; lokale Beobachtungen zusätzlich in SQLite speichern. Separater Offline-Testdatenmodus.
+- Unterstützt **Minimal**, **Clean** und **Glow** sowie unterschiedliche DPI-Einstellungen.
 
 ### 📰 Feeds
 

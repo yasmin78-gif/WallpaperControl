@@ -19,6 +19,8 @@ gestion native des fonds d'écran lorsque l'application se ferme.
 
 ## ✨ Nouveautés de la version 2.6.1
 
+- Nouveau widget PriceWatch : liste de jeux, comparaison des boutiques, alertes de prix cible et historique.
+- Notes et rappels : répétition mensuelle, annuelle ou personnalisée ; affichage à partir de l’échéance.
 - Commandez WallpaperControl depuis un téléphone Android sur votre réseau local privé : mode Visiteur, pause/reprise, image suivante, intervalle, ordre aléatoire, affichage et vidéo déjà configurée.
 - Associez le téléphone avec le code QR du PC et les codes de confirmation correspondants. La commande à distance est désactivée par défaut ; les appareils disposent de droits individuels révocables. Désactiver le mode Visiteur nécessite un droit distinct.
 - Ajoutez les widgets Android natifs du mode Visiteur en **1×1** ou **2×1**. Un toucher active le mode sans ouvrir l'application ; sa désactivation exige un état récemment confirmé et une confirmation de sécurité.
@@ -27,6 +29,22 @@ gestion native des fonds d'écran lorsque l'application se ferme.
 [Installateur Windows x64](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl-2.6.1-Setup-x64.exe) · [APK Android 1.1.7](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/WallpaperControl.Remote-1.1.7.apk) · [Sommes SHA-256](https://github.com/yasmin78-gif/WallpaperControl/releases/download/v2.6.1/SHA256SUMS.txt) · [Notes de version](https://github.com/yasmin78-gif/WallpaperControl/releases/tag/v2.6.1)
 
 **Installation Android :** Android 12 ou ultérieur, ARM64 ; l'interface de l'application est actuellement en allemand. Installez l'APK comme mise à jour, sans désinstallation. Sur le PC, ouvrez **Paramètres → Général → WallpaperControl Remote**, activez l'adaptateur du réseau privé et scannez le code QR. Ajoutez ensuite un widget depuis le sélecteur du téléphone. Android peut retarder les mises à jour en arrière-plan ; l'état est horodaté. Un toucher sur un état inconnu ou périmé tente uniquement l'activation, jamais une désactivation aveugle. [Guide de configuration (allemand)](https://github.com/yasmin78-gif/WallpaperControl/blob/v2.6.1/docs/REMOTE_PRODUCTION_GUIDE.md).
+
+## 📱 WallpaperControl Remote pour Android
+
+Serveur HTTPS intégré, désactivé par défaut, avec sélection explicite d’un adaptateur réseau physique privé et règle de pare-feu Windows facultative et limitée. Association par QR, comparaison des codes et confirmation sur le PC. Renommage des appareils, modification et révocation des droits ; droit distinct pour désactiver le mode Visiteur.
+
+Interface sombre à cartes : mode Visiteur, pause/reprise, image suivante (pas de bouton Précédent), intervalle, ordre aléatoire, affichage et vidéo configurée. Synchronisation en direct avec le PC et les appareils, association conservée après redémarrage, reconnexion automatique après redémarrage du serveur ou interruption Wi-Fi. Découverte locale, aide à la saisie manuelle de l’adresse, diagnostic et licences.
+
+### Widgets Android du mode Visiteur
+
+Compact **1×1** et interrupteur **2×1**, indépendants. Un toucher active explicitement le mode même si le processus de l’application est arrêté. La désactivation exige un état actif récent confirmé, le droit et une confirmation dans un dialogue séparé ; droits et état du serveur sont revérifiés ensuite. Toutes les instances sont actualisées ensemble et affichent chargement, erreur, hors ligne et état périmé. Les commandes parallèles sont bloquées et les échecs hors ligne ne sont pas rejoués. Un message confirme l’activation et invite à toucher de nouveau pour désactiver. Le passage en arrière-plan conserve l’état sans prolonger sa validité. Correction du plantage du listener NSD à l’arrêt de la recherche ; petits formats et horodatages adaptés aux tailles Pixel.
+
+### Sécurité et validation
+
+Épinglage TLS SPKI pour HTTPS et WebSocket, authentification individuelle, stockage protégé par Windows DPAPI et Android SecureStorage/Keystore. Limites de requêtes, délais et déduplication ; aucune répétition automatique des commandes à exécution incertaine. APK signée avec clé de mise à jour permanente ; installateur Windows et APK publiés avec sommes SHA-256 individuelles et communes.
+
+Validation : **6 302 tests de régression bureau, 102 contrôles Remote, 15 contrôles de packaging Android et 84 contrôles de l’installateur** réussis. Tests réels sur Pixel : démarrage à froid, retour d’état des deux widgets et cycle complet d’activation/désactivation. Les cinq README, guides et rapports techniques ont été actualisés.
 
 ## ✨ Fonctionnalités
 
@@ -87,7 +105,8 @@ gestion native des fonds d'écran lorsque l'application se ferme.
     -   Widget Météo avec prévisions optionnelles sur 3 jours
     -   Widget Calendrier avec prise en charge d'iCalendar / ICS
     -   Widget compact d'informations sur le fond d'écran avec statistiques du fond actuel
-    -   Widget Notes et rappels avec gestion locale des tâches et rappels, y compris les tâches quotidiennes récurrentes
+    -   Widget Notes et rappels avec gestion locale et répétition quotidienne, mensuelle, annuelle ou personnalisée
+    -   Widget PriceWatch pour les prix des jeux, alertes et historique
     -   Widget de suivi des colis avec prise en charge de Ship24, actualisation automatique, notifications d'état et gestion locale d'Amazon Logistics
     -   Widget Twitch affichant les chaînes suivies actuellement en direct, les images de profil, les catégories, le nombre de spectateurs, la durée du direct et des notifications facultatives
     -   Widget Web redimensionnable et repliable basé sur Microsoft WebView2
@@ -580,15 +599,12 @@ rappels directement sur le bureau. Les entrées peuvent contenir un
 titre, une description ainsi qu'une date et une heure facultatives, et
 peuvent être créées, modifiées, terminées, supprimées et rouvertes.
 
-Les tâches quotidiennes récurrentes peuvent être configurées avec une
-date de début et une heure facultative. Une tâche terminée ne l'est que
-pour le jour en cours et réapparaît automatiquement le lendemain sans
-créer de doublons. Les tâches terminées aujourd'hui sont regroupées avec
-leur heure d'achèvement dans la section repliable **Terminées
-aujourd'hui**.
+Choisissez aucune répétition, quotidienne, mensuelle, annuelle ou personnalisée, avec un nombre positif de jours, semaines, mois ou années. Les échéances sont calculées depuis la date de référence initiale pour éviter les décalages dus aux fins de mois et années bissextiles. L’heure locale est conservée lors des changements d’heure ; les intervalles invalides et dépassements de date sont refusés.
+
+Les tâches récurrentes ne sont affichées et comptées qu’à partir de leur échéance. Les tâches en retard restent visibles jusqu’à leur achèvement ; la prochaine échéance future reste ensuite masquée. Les tâches terminées aujourd’hui sont regroupées avec leur heure dans **Terminées aujourd'hui**. Les suffixes et l’icône de répétition quotidienne sont supprimés des lignes. Le gestionnaire et l’éditeur prennent en charge ces options ; le contraste des cases désactivées en thème sombre, la disposition DPI et les textes des cinq langues sont améliorés.
 
 Des rappels contextuels peuvent être déclenchés **à l'échéance** ou **5
-/ 10 minutes avant**, y compris pour les tâches quotidiennes. Ils
+/ 10 minutes avant**, y compris pour les tâches récurrentes. Ils
 s'affichent au-dessus des fenêtres normales sans prendre le focus. En
 plein écran, les rappels sont différés jusqu'à la fin du mode plein
 écran. Le texte complet de la note est affiché et les contenus longs
@@ -605,6 +621,19 @@ Les données sont stockées localement en JSON avec écriture atomique,
 sauvegarde et protection des fichiers endommagés. Les notes existantes
 restent compatibles. Le widget prend en charge **Minimal**, **Clean** et
 **Glow**.
+
+### 🎮 PriceWatch
+
+- Rechercher des jeux, les ajouter ou les retirer d’une liste persistante ; pochettes et défilement des titres longs.
+- Détails redimensionnables avec développeur, éditeur et date de sortie ; taille mémorisée et verrouillable.
+- Définir, modifier ou supprimer un prix cible par jeu.
+- Sept boutiques sélectionnables : **GOG, Steam, Epic Games Store, GamesPlanet DE, Ubisoft Store, Microsoft Store et EA Store**.
+- Jusqu’aux trois offres valides les moins chères dans le widget, toutes les boutiques sélectionnées dans les détails ; prix, remises, liens et exclusion des offres invalides ou expirées.
+- Actualisation manuelle avec conservation des prix en cas d’échec ; contrôle automatique à **08:00 et 20:00** lorsque le programme et le widget fonctionnent, rattrapage au démarrage si nécessaire.
+- Notifications Windows au prix cible, suppression persistante des doublons ; surveillance et notifications configurables séparément.
+- Historique sur **7, 30 et 90 jours**, filtres de boutiques propres au graphique, courbes lissées, couleurs, légende, ligne de prix cible et détails des points par infobulle ou clavier.
+- Distinction des prix historiques fournis, observations locales et dernier prix relevé ; stockage supplémentaire des observations dans SQLite et mode de test hors ligne séparé.
+- Styles **Minimal**, **Clean**, **Glow** et adaptation DPI.
 
 ### 📰 Flux RSS/Atom
 
