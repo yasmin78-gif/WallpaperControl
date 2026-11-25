@@ -2,6 +2,10 @@
 
 Stand: 25.11.2026. **Teilnachweis mit installierbarer Test-APK; Phase 01 noch nicht vollständig bestanden. Phase 02 derzeit nicht zur Freigabe empfohlen.**
 
+Nachtrag zur anschließenden Nutzerabnahme: Test-APK **0.1.1 / versionCode 2** liegt unter `artifacts/remote-phase01/WallpaperControl.Remote.Experiment-0.1.1.apk`. Nach einem zunächst nur an Loopback gebundenen Host wurde ein Listener an der LAN-Adresse nachgewiesen. Die Android-App meldete anschließend `JsonException`; die genaue betroffene Antwort und Ursache sind aus dem Screenshot nicht feststellbar. Version 0.1.1 nutzt explizite generierte JSON-Verträge für REST, QR und SecureStorage, liest auch bisherige PascalCase-Speicherdaten und zeigt bei Fehlern die konkrete Kopplungsstufe plus HTTP-Status bzw. JSON-Zeile/Byte an. Es werden keine Antwortinhalte, Tokens oder QR-Geheimnisse angezeigt. Mobile Loopback-QRs werden vor einer Anfrage mit einer verständlichen Meldung abgewiesen. TLS-Prüfung unverändert.
+
+Die erweiterte Windows-Suite besteht mit **61 Prüfungen**, einschließlich derselben TLS-/WSS-Matrix und zusätzlicher Prüfungen der von Android verwendeten JSON-Metadaten gegen echte Kopplungsantworten. Neue Nachweise: `evidence/serialization-checks.log`, `evidence/android-0.1.1-build.log`, `evidence/apk-0.1.1-verification.log`. Die nachfolgenden ursprünglichen Messungen/58er-Protokolle bleiben als eingefrorener Erststand erhalten. Eine erfolgreiche Kopplung mit Version 0.1.1 am Pixel ist weiterhin **nicht nachgewiesen**. Der laufende Desktop-Testhost und Netzwerk-/Firewallkonfiguration wurden für diesen Nachtrag nicht verändert.
+
 Basis: freigegebener Architekturcommit `3bd3342`, sauberer Branch `codex/remote-phase-00-architecture`, dessen Parent `230bfb3` weiterhin den erweiterten Reminderstand enthält. Neuer Branch: `codex/remote-phase-01-feasibility`. Kein Reset, Merge oder Push. Die verbindlichen Benutzerentscheidungen wurden im Architekturbericht nachgetragen und die entschiedenen Produktfragen dort aufgelöst.
 
 ## 1. Ergebnis und Statusbegriffe

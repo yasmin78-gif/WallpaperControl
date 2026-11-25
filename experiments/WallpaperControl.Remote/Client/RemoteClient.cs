@@ -56,7 +56,7 @@ public sealed class RemoteClient : IAsyncDisposable
         hub.Reconnected += async _ => { try { await RefreshAsync(); Connected = true; Changed?.Invoke(); } catch { Connected = false; Changed?.Invoke(); } };
         await hub.StartAsync();
     }
-    public async Task<Snapshot> RefreshAsync() { var state = await http.GetFromJsonAsync<Snapshot>("/api/v1/state") ?? throw new InvalidOperationException("emptyState"); Accept(state); return state; }
+    public async Task<Snapshot> RefreshAsync() { var state = await http.GetFromJsonAsync("/api/v1/state", WireJson.Type<Snapshot>()) ?? throw new InvalidOperationException("emptyState"); Accept(state); return state; }
     public async Task<Result> SendAsync(string type, string value)
     {
         if (!Connected || State == null) throw new InvalidOperationException("offline");
@@ -66,9 +66,9 @@ public sealed class RemoteClient : IAsyncDisposable
     {
         try
         {
-            using var response = await http.PostAsJsonAsync("/api/v1/commands", command);
+            using var response = await http.PostAsJsonAsync("/api/v1/commands", command, WireJson.Type<Command>());
             if ((int)response.StatusCode is not (200 or 409)) response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<Result>() ?? throw new InvalidOperationException("emptyResult"); Accept(result.State); return result;
+            var result = await response.Content.ReadFromJsonAsync(WireJson.Type<Result>()) ?? throw new InvalidOperationException("emptyResult"); Accept(result.State); return result;
         }
         catch { Connected = false; Changed?.Invoke(); throw; }
     }

@@ -19,6 +19,7 @@ public sealed class MainPage : ContentPage
     private CancellationTokenSource? loop;
     private string? discovered;
     private bool loading;
+    private string pairingStage = "QR lesen";
     public MainPage()
     {
         Title = "WC Remote – Experiment"; BackgroundColor = Color.FromArgb("#10141c");
@@ -51,7 +52,7 @@ public sealed class MainPage : ContentPage
     {
         base.OnAppearing(); if (loading) return; loading = true;
         if (OperatingSystem.IsAndroidVersionAtLeast(37) && await Permissions.RequestAsync<LocalNetworkPermission>() != PermissionStatus.Granted) { pairing.Text = "Lokaler Netzwerkzugriff nicht erlaubt"; return; }
-        try { string? json = await SecureStorage.Default.GetAsync(StorageKey); if (json != null) saved = JsonSerializer.Deserialize<SavedConnection>(json); }
+        try { string? json = await SecureStorage.Default.GetAsync(StorageKey); if (json != null) saved = JsonSerializer.Deserialize(json, WireJson.Type<SavedConnection>()); }
         catch { pairing.Text = "Sicherer Speicher nicht lesbar: neu koppeln"; }
         Resume();
     }
@@ -96,7 +97,7 @@ public sealed class MainPage : ContentPage
         }
         finally { gate.Release(); MainThread.BeginInvokeOnMainThread(Render); }
     }
-    private async Task SaveAsync() { if (saved != null) await SecureStorage.Default.SetAsync(StorageKey, JsonSerializer.Serialize(saved)); }
+    private async Task SaveAsync() { if (saved != null) await SecureStorage.Default.SetAsync(StorageKey, JsonSerializer.Serialize(saved, WireJson.Type<SavedConnection>())); }
     private void Render()
     {
         bool connected = client?.Connected == true;
@@ -120,14 +121,19 @@ public sealed class MainPage : ContentPage
             await Navigation.PopAsync();
             try
             {
+                pairingStage = "QR lesen";
                 string? value = detected.Results.FirstOrDefault()?.Value;
                 if (value == null || value.Length > 4096) throw new ArgumentException("QR size");
-                var qr = JsonSerializer.Deserialize<PairQr>(value) ?? throw new ArgumentException("QR");
+                var qr = JsonSerializer.Deserialize(value, WireJson.Type<PairQr>()) ?? throw new ArgumentException("QR");
                 if (qr.Version != 1 || qr.Pin.Length != 64 || qr.Secret.Length != 64 || qr.ServerId.Length != 32) throw new ArgumentException("QR schema");
-                Trust.Endpoint(qr.Address);
+                var endpoint = Trust.Endpoint(qr.Address);
+                if (System.Net.IPAddress.IsLoopback(System.Net.IPAddress.Parse(endpoint.DnsSafeHost.Trim('[', ']'))))
+                { pairing.Text = "Dieser QR enthält die PC-Loopbackadresse. Am PC den privaten Ethernet-/WLANadapter wählen und einen neuen QR erzeugen."; return; }
                 await PairAsync(qr);
             }
-            catch (Exception ex) { pairing.Text = "Kopplung fehlgeschlagen: " + ex.GetType().Name; }
+            catch (JsonException ex) { pairing.Text = $"JSON-Fehler bei: {pairingStage}; Zeile {ex.LineNumber}, Byte {ex.BytePositionInLine}. App 0.1.1"; }
+            catch (HttpRequestException ex) { pairing.Text = $"HTTP-Fehler bei: {pairingStage}; Status {(ex.StatusCode is { } status ? ((int)status).ToString() : "keine HTTP-Antwort")}. App 0.1.1"; }
+            catch (Exception ex) { pairing.Text = $"Kopplung fehlgeschlagen bei: {pairingStage}; {ex.GetType().Name}. App 0.1.1"; }
         });
         page.Disappearing += (_, _) => scanner.IsDetecting = false;
         await Navigation.PushAsync(page);
@@ -135,16 +141,23 @@ public sealed class MainPage : ContentPage
     private async Task PairAsync(PairQr qr)
     {
         using var http = new HttpClient(Trust.Handler(qr.Pin)) { BaseAddress = Trust.Endpoint(qr.Address), Timeout = TimeSpan.FromSeconds(10) };
-        using var response = await http.PostAsJsonAsync("api/v1/pairing/requests", new PairRequest(qr.Session, qr.Secret, "Android Testgerät")); response.EnsureSuccessStatusCode();
-        var pending = await response.Content.ReadFromJsonAsync<PairPending>() ?? throw new InvalidOperationException("pairing");
+        pairingStage = "Kopplungsanfrage senden";
+        using var response = await http.PostAsJsonAsync("api/v1/pairing/requests", new PairRequest(qr.Session, qr.Secret, "Android Testgerät"), WireJson.Type<PairRequest>()); response.EnsureSuccessStatusCode();
+        pairingStage = $"Kopplungsantwort lesen (HTTP {(int)response.StatusCode})";
+        var pending = await response.Content.ReadFromJsonAsync(WireJson.Type<PairPending>()) ?? throw new InvalidOperationException("pairing");
         pairing.Text = "Vergleichscode " + pending.Code + " – jetzt am PC bestätigen";
         for (int i = 0; i < 150; i++)
         {
             await Task.Delay(2000);
-            using var claimed = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim));
+            pairingStage = "PC-Freigabe abfragen";
+            using var claimed = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim), WireJson.Type<ClaimRequest>());
             if ((int)claimed.StatusCode == 409) continue;
-            claimed.EnsureSuccessStatusCode(); var credential = await claimed.Content.ReadFromJsonAsync<Credential>() ?? throw new InvalidOperationException("credential");
-            saved = new(qr with { Secret = "", Session = "" }, credential); discovered = null; await SaveAsync(); StartDiscovery(); await ConnectAsync(); pairing.Text = "Gekoppelt und sicher gespeichert"; return;
+            claimed.EnsureSuccessStatusCode(); pairingStage = $"Zugangsdaten lesen (HTTP {(int)claimed.StatusCode})";
+            var credential = await claimed.Content.ReadFromJsonAsync(WireJson.Type<Credential>()) ?? throw new InvalidOperationException("credential");
+            saved = new(qr with { Secret = "", Session = "" }, credential); discovered = null;
+            pairingStage = "Sicher speichern"; await SaveAsync();
+            pairingStage = "Geräteerkennung starten"; StartDiscovery();
+            pairingStage = "WSS verbinden und Vollzustand lesen"; await ConnectAsync(); pairing.Text = "Gekoppelt und sicher gespeichert"; return;
         }
         throw new TimeoutException("Pairing expired");
     }

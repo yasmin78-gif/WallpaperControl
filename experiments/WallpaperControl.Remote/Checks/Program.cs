@@ -35,6 +35,11 @@ internal static class Program
     static async Task Run(Form form)
     {
         using var cert = Trust.CreateCertificate(); using var foreign = Trust.CreateCertificate(); using var expired = Trust.CreateCertificate(true);
+        var pendingJson = "{\"claim\":\"test-claim\",\"code\":\"123456\"}";
+        Check(JsonSerializer.Deserialize(pendingJson, WireJson.Type<PairPending>()) == new PairPending("test-claim", "123456"), "Android wire metadata reads camelCase pairing response");
+        var saved = new SavedConnection(new(1, "https://127.0.0.1/", "server", "pin", "", ""), new("device", "test-token", false));
+        Check(JsonSerializer.Deserialize(JsonSerializer.Serialize(saved), WireJson.Type<SavedConnection>()) == saved, "wire metadata reads previous PascalCase secure-storage data");
+        Check(JsonSerializer.Deserialize(JsonSerializer.Serialize(saved, WireJson.Type<SavedConnection>()), WireJson.Type<SavedConnection>()) == saved, "wire metadata secure-storage roundtrip");
         Check(Trust.Validate(cert, Trust.Pin(cert)), "certificate SPKI/EKU/time valid");
         Check(!Trust.Validate(foreign, Trust.Pin(cert)), "foreign certificate policy");
         Check(!Trust.Validate(expired, Trust.Pin(expired)), "expired even with matching pin");
@@ -127,11 +132,11 @@ internal static class Program
         var session = Guid.NewGuid().ToString("N"); var secret = Trust.Secret(); host.Pairing.Begin(session, secret);
         using var http = new HttpClient(Trust.Handler(Trust.Pin(certificate))) { BaseAddress = new($"https://127.0.0.1:{host.Port}/") };
         using var response = await http.PostAsJsonAsync("api/v1/pairing/requests", new PairRequest(session, secret, "test phone"));
-        var pending = (await response.Content.ReadFromJsonAsync<PairPending>())!; Check(response.IsSuccessStatusCode && pending.Code.Length == 6, "pairing request comparison code");
+        var pending = (await response.Content.ReadFromJsonAsync(WireJson.Type<PairPending>()))!; Check(response.IsSuccessStatusCode && pending.Code.Length == 6, "pairing request comparison code with Android wire metadata");
         using var replay = await http.PostAsJsonAsync("api/v1/pairing/requests", new PairRequest(session, secret, "replay")); Check(replay.StatusCode == HttpStatusCode.Forbidden, "QR secret one-time reservation");
         using var early = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim)); Check(early.StatusCode == HttpStatusCode.Conflict, "no credentials before local approval");
         host.Pairing.Confirm(false);
-        using var granted = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim)); var credential = (await granted.Content.ReadFromJsonAsync<Credential>())!;
+        using var granted = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim), WireJson.Type<ClaimRequest>()); var credential = (await granted.Content.ReadFromJsonAsync(WireJson.Type<Credential>()))!;
         Check(!credential.CanDisableVisitor && credential.Token.Length == 64, "individual credential default disable permission false");
         using var retried = await http.PostAsJsonAsync("api/v1/pairing/claim", new ClaimRequest(pending.Claim)); Check(await retried.Content.ReadFromJsonAsync<Credential>() == credential, "claim retry does not issue second device");
         using var query = await http.GetAsync("api/v1/state?access_token=deliberately-not-a-real-token"); Check(query.StatusCode == HttpStatusCode.BadRequest, "query token rejected");
