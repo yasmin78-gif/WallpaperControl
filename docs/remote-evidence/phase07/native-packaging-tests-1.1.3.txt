@@ -1,0 +1,15 @@
+PASS merged CompactVisitorWidget is private and registered exactly once
+PASS merged SwitchVisitorWidget is private and registered exactly once
+PASS merged VisitorWidgetActionReceiver is private and registered exactly once
+PASS control receiver has no externally matched intent filter
+PASS deactivation dialog is private and excluded from recents
+PASS widgets introduce no foreground-service, alarm, boot, location, wake-lock or other permission
+PASS cleartext and application backup remain disabled
+PASS application explicitly references both actual launcher icons
+PASS compact exposes the requested launcher grid dimensions
+PASS compact background refresh is at least thirty minutes
+PASS compact layout uses only supported native RemoteViews types
+PASS switch exposes the requested launcher grid dimensions
+PASS switch background refresh is at least thirty minutes
+PASS switch layout uses only supported native RemoteViews types
+All 14 native widget packaging checks passed. No Android device execution is implied.

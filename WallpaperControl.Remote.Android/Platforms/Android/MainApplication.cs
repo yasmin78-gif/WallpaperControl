@@ -3,4 +3,7 @@ using Android.Runtime;
 namespace WallpaperControl.Remote.AndroidApp;
 [Application]
 public class MainApplication(nint handle, JniHandleOwnership ownership) : MauiApplication(handle, ownership)
-{ protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp(); }
+{
+    protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+    public override void OnCreate() { base.OnCreate(); WidgetRuntime.RenderAll(); }
+}

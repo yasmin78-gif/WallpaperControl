@@ -1,0 +1,13 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Contracts\WallpaperControl.Remote.Contracts.csproj" wiederhergestellt (in 60 ms.).
+  "C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Server\WallpaperControl.Remote.Server.csproj" wiederhergestellt (in 362 ms.).
+  "C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl\WallpaperControl.csproj" wiederhergestellt (in 400 ms.).
+  WallpaperControl.Remote.Contracts -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Contracts\bin\Release\net10.0\WallpaperControl.Remote.Contracts.dll
+  WallpaperControl.Remote.Server -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl.Remote.Server\bin\Release\net10.0-windows\WallpaperControl.Remote.Server.dll
+  WallpaperControl -> C:\Users\yasmi\source\repos\WallpaperControl\WallpaperControl\bin\Release\net10.0-windows10.0.17763.0\WallpaperControl.dll
+
+Der Buildvorgang wurde erfolgreich ausgeführt.
+    0 Warnung(en)
+    0 Fehler
+
+Verstrichene Zeit 00:00:07.86

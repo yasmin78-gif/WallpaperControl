@@ -1,0 +1,18 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): false
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v3.2 scheme (APK Signature Scheme v3.2): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+V3.0 Signer: certificate DN: CN=WallpaperControl Remote, O=WallpaperControl, C=DE
+V3.0 Signer: certificate SHA-256 digest: cdb9a437cd36dd41facc19fe3020d2e3a8972defd2ac730d5bf03676ddb5f93e
+V3.0 Signer: certificate SHA-1 digest: 912c3830c83d0277c21fe9f86d860fcf617dbe17
+V3.0 Signer: certificate MD5 digest: 2837fa42302bb679f71c6972b0004e45
+V3.0 Signer: key algorithm: RSA
+V3.0 Signer: key size (bits): 3072
+V3.0 Signer: public key SHA-256 digest: 94e88f82684a81df22058dd9faa9bb8d8de219c0ee64ead81684f3a6ce23cd24
+V3.0 Signer: public key SHA-1 digest: d3064f0397a98074e9d8cd649dbbe537a245884d
+V3.0 Signer: public key MD5 digest: 8b7bd3c91fede09ba678fb644afaf502

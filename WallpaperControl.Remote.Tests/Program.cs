@@ -11,7 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Microsoft.Win32;
 
-internal static class Program
+internal static partial class Program
 {
     private static int count;
     private static readonly string Root = Path.Combine(Path.GetTempPath(), "WallpaperControl.Remote.Tests", Guid.NewGuid().ToString("N"));
@@ -28,7 +28,7 @@ internal static class Program
             try
             {
                 if (args.Contains("--measure")) await MeasureAsync(args);
-                else { await SecurityAndTransport(); await DesktopIntegration(); Console.WriteLine($"All {count} remote production checks passed."); }
+                else { await SecurityAndTransport(); await DesktopIntegration(); await VisitorWidgetChecks(); Console.WriteLine($"All {count} remote production checks passed."); }
             }
             catch (Exception ex) { Console.WriteLine("FAIL " + ex); Environment.ExitCode = 1; }
             finally { form.Close(); }

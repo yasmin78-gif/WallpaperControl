@@ -1,0 +1,5 @@
+PASS device diagnostic refresh 1 stays open and confirms state in same process
+PASS device diagnostic refresh 2 stays open and confirms state in same process
+PASS device diagnostic refresh 3 stays open and confirms state in same process
+PASS device diagnostic refresh 4 stays open and confirms state in same process
+PASS device diagnostic refresh 5 stays open and confirms state in same process

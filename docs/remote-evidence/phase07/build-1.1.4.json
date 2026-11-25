@@ -1,0 +1,10 @@
+{
+  "Version": "1.1.4",
+  "VersionCode": 7,
+  "ApkSHA256": "857985CCA45874067AC089E3C83135C237AE55F218DE9F1069C9ABE65C77EDEE",
+  "PackagingChecks": 14,
+  "Change": "Guarded nonmodal diagnostic page with no initial network request",
+  "DeviceAcceptance": "Pending; widget fault not claimed resolved",
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "Committed": false
+}

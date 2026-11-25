@@ -184,6 +184,12 @@ public sealed class MainPage : ContentPage
         {
             if (await DisplayAlertAsync("Verbindung entfernen?", "Zum erneuten Verbinden ist ein neuer QR-Code nötig. Geräteberechtigungen können am PC entfernt werden.", "Entfernen", "Abbrechen")) { await session.ForgetAsync(); await Navigation.PopAsync(); }
         }; body.Add(forget);
+        var widgets = Button("Widgetstatus und Fehlerbericht", 14);
+        widgets.Clicked += async (_, _) =>
+        {
+            try { await Navigation.PushAsync(new WidgetDiagnosticsPage()); }
+            catch { message.Text = "Die Diagnoseseite konnte nicht geöffnet werden."; }
+        }; body.Add(widgets);
         var licenses = Button("Open-Source-Lizenzen", 14); licenses.Clicked += async (_, _) =>
         {
             try

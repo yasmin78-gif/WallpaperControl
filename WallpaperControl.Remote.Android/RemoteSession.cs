@@ -6,7 +6,6 @@ namespace WallpaperControl.Remote.AndroidApp;
 
 internal sealed class RemoteSession
 {
-    private const string StorageKey = "wallpapercontrol.remote.connection.v1";
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly SemaphoreSlim wake = new(0, 1);
     private readonly ConcurrentDictionary<string, DateTimeOffset> candidates = new();
@@ -29,6 +28,7 @@ internal sealed class RemoteSession
     {
         if (State is { } state && state.CapturedAt != stateTimestamp) { stateTimestamp = state.CapturedAt; received = Stopwatch.GetTimestamp(); }
         Changed?.Invoke();
+        WidgetRuntime.Observe(State, Connected, Saved != null, desiredRunning && lifetime != null);
     }
     public long? Remaining => !Connected || State?.RemainingMilliseconds == null ? null : Math.Max(0, State.RemainingMilliseconds.Value
         - (State.Playback == "paused" || State.Busy ? 0 : (long)Stopwatch.GetElapsedTime(received).TotalMilliseconds));
@@ -36,15 +36,14 @@ internal sealed class RemoteSession
     {
         try
         {
-            string? json = await SecureStorage.Default.GetAsync(StorageKey);
-            if (json != null) Saved = JsonSerializer.Deserialize(json, RemoteJson.Type<SavedRemote>());
+            Saved = await RemoteCredentialStore.ReadAsync();
         }
         catch { Message = "Gespeicherte Verbindung ist nicht lesbar. Bitte den PC erneut koppeln."; }
         Resume(); Notify();
     }
     private async Task SaveAsync(SavedRemote saved)
     {
-        await SecureStorage.Default.SetAsync(StorageKey, JsonSerializer.Serialize(saved, RemoteJson.Type<SavedRemote>()));
+        await RemoteCredentialStore.WriteAsync(saved);
         Saved = saved;
     }
     public void Resume()
@@ -58,7 +57,7 @@ internal sealed class RemoteSession
     public void Suspend() => Pause(permanent: true);
     private void Pause(bool permanent)
     {
-        if (permanent) desiredRunning = false;
+        if (permanent) { desiredRunning = false; WidgetRuntime.Observe(State, Connected, Saved != null, false); }
         Connectivity.Current.ConnectivityChanged -= NetworkChanged;
         lifetime?.Cancel(); lifetime?.Dispose(); lifetime = null; discovery?.Stop(); _ = DisconnectAsync();
     }
@@ -150,6 +149,7 @@ internal sealed class RemoteSession
     }
     public async Task PairAsync(RemoteQr qr, Action<string> showCode, CancellationToken cancellation)
     {
+        WidgetRuntime.Controller.Invalidate();
         Pause(permanent: false); await DisconnectAsync();
         try
         {
@@ -169,6 +169,7 @@ internal sealed class RemoteSession
     }
     public async Task ForgetAsync()
     {
-        Pause(permanent: false); await DisconnectAsync(); SecureStorage.Default.Remove(StorageKey); Saved = null; candidates.Clear(); authorizationLost = false; Message = "Verbindung entfernt. Am PC kann das Gerät zusätzlich gelöscht werden."; if (desiredRunning) Resume();
+        WidgetRuntime.Controller.Invalidate(unpaired: true);
+        Pause(permanent: false); await DisconnectAsync(); RemoteCredentialStore.Remove(); Saved = null; candidates.Clear(); authorizationLost = false; Message = "Verbindung entfernt. Am PC kann das Gerät zusätzlich gelöscht werden."; if (desiredRunning) Resume(); Notify();
     }
 }

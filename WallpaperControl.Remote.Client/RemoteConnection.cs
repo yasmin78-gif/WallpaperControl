@@ -40,6 +40,12 @@ public sealed class RemoteConnection : IAsyncDisposable
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation); deadline.CancelAfter(TimeSpan.FromSeconds(5));
         await ProbeWebSocketAsync(deadline.Token); await RefreshAsync(deadline.Token); Connected = true; Changed?.Invoke();
     }
+    // Bounded one-shot consumers use the exact same pinned/authenticated REST path without a hub.
+    public async Task ConnectRestAsync(CancellationToken cancellation = default)
+    {
+        if (disposed) throw new ObjectDisposedException(nameof(RemoteConnection));
+        await RefreshAsync(cancellation); Connected = true; Changed?.Invoke();
+    }
     public async Task ProbeWebSocketAsync(CancellationToken cancellation = default)
     {
         if (disposed) throw new ObjectDisposedException(nameof(RemoteConnection));
@@ -94,7 +100,8 @@ public sealed class RemoteConnection : IAsyncDisposable
             // Never replay navigation after an uncertain response; retrieve only the original result.
             try
             {
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+                timeout.CancelAfter(TimeSpan.FromSeconds(3));
                 using var resultResponse = await http.GetAsync("api/v1/commands/" + command.Id, timeout.Token);
                 if (resultResponse.IsSuccessStatusCode && await resultResponse.Content.ReadFromJsonAsync(RemoteJson.Type<RemoteResult>(), timeout.Token) is { } result) { Accept(result.State); return result; }
             }

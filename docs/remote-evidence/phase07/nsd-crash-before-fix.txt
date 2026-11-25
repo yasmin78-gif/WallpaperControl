@@ -1,0 +1,7 @@
+11-25 22:40:24.711 17145 17179 E DOTNET  : Stack overflow.
+11-25 22:40:24.744 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)
+11-25 22:40:24.744 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)
+11-25 22:40:24.744 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)
+11-25 22:40:24.745 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)
+11-25 22:40:24.745 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)
+11-25 22:40:24.746 17145 17212 E DOTNET  :    at Android.Net.Nsd.NsdManager+IDiscoveryListenerInvoker.OnDiscoveryStopped(System.String)

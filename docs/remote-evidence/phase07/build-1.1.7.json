@@ -1,0 +1,18 @@
+{
+  "Version": "1.1.7",
+  "VersionCode": 10,
+  "ApkSHA256": "EEA0D69D09C939D55FB5CCECDDEE2B20A07DD9E30968994514107C02D3B096EE",
+  "PackagingChecks": 15,
+  "Device": "Pixel 9 Pro XL, Android 17",
+  "InstalledAsUpdate": true,
+  "LiveInactiveToActiveViaWidget": true,
+  "BothWidgetsConfirmedActive": true,
+  "NativeDeactivationDialogVerified": true,
+  "ExplicitDeactivationConfirmed": true,
+  "BothWidgetsConfirmedInactive": true,
+  "FinalActivity": "Pixel launcher",
+  "FinalVisitorActive": false,
+  "NativeCrashObserved": false,
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "Committed": false
+}

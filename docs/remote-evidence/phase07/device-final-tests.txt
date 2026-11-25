@@ -1,0 +1,12 @@
+PASS device has the expected signed update installed
+PASS cycle 1 starts with no app process (not force-stop)
+PASS cycle 1 has a real placed widget on launcher
+PASS cycle 1 confirms every placed widget directly on launcher without opening app
+PASS cycle 1 process survives asynchronous discovery shutdown
+PASS cycle 1 has no stack overflow or fatal signal
+PASS cycle 2 starts with no app process (not force-stop)
+PASS cycle 2 has a real placed widget on launcher
+PASS cycle 2 confirms every placed widget directly on launcher without opening app
+PASS cycle 2 process survives asynchronous discovery shutdown
+PASS cycle 2 has no stack overflow or fatal signal
+All 11 actual Android device checks passed. Activation only; no visitorOff was sent.

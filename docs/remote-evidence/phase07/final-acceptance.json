@@ -1,0 +1,18 @@
+{
+  "DesktopVersion": "2.6.1",
+  "DesktopFileVersion": "2.6.1.0",
+  "AndroidVersion": "1.1.7",
+  "RemoteChecks": 102,
+  "NativePackagingChecks": 15,
+  "ManualAcceptance": "User confirmed functionality and explicitly authorized commit and push",
+  "Artifacts": [
+    {
+      "Name": "WallpaperControl.exe",
+      "SHA256": "B4B0D397BAE7CEC78EFA1C6EA7DFA9C59B3ECCE58717F6CD6EDEC49A6FD93125"
+    },
+    {
+      "Name": "WallpaperControl-2.6.1-win-x64.zip",
+      "SHA256": "3827961852ED5FF333B95A1863590DBC05303F985A273F5C3875F1120A082AC0"
+    }
+  ]
+}

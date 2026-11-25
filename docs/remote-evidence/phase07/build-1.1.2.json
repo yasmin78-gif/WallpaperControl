@@ -1,0 +1,9 @@
+{
+  "Version": "1.1.2",
+  "VersionCode": 5,
+  "ApkSHA256": "CB37876EED0D5B5EB50B86481ED684C53CBD4BC6BE121CC129251518FC92112C",
+  "PackagingChecks": 13,
+  "DeviceAcceptance": "Pending: PC changes but widget feedback missing; diagnostic requested",
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "Committed": false
+}

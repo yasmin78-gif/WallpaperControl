@@ -1,0 +1,10 @@
+{
+  "Version": "1.1.3",
+  "VersionCode": 6,
+  "ApkSHA256": "71D9BA259DF072E802EE66F5D161834613ED4311FC59D9A5E609C6583395532A",
+  "RemoteChecks": 102,
+  "PackagingChecks": 14,
+  "DeviceAcceptance": "Pending",
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "Committed": false
+}

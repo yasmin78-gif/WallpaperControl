@@ -1,0 +1,17 @@
+ M WallpaperControl.Remote.Android/MainPage.cs
+ M WallpaperControl.Remote.Android/NsdDiscovery.cs
+ M WallpaperControl.Remote.Android/Platforms/Android/AndroidManifest.xml
+ M WallpaperControl.Remote.Android/Platforms/Android/MainApplication.cs
+ M WallpaperControl.Remote.Android/RemoteSession.cs
+ M WallpaperControl.Remote.Android/WallpaperControl.Remote.Android.csproj
+ M WallpaperControl.Remote.Client/RemoteConnection.cs
+ M WallpaperControl.Remote.Tests/Program.cs
+?? WallpaperControl.Remote.Android/Platforms/Android/Resources/
+?? WallpaperControl.Remote.Android/RemoteCredentialStore.cs
+?? WallpaperControl.Remote.Android/VisitorWidgets/
+?? WallpaperControl.Remote.Client/VisitorWidgetController.cs
+?? WallpaperControl.Remote.Tests/VisitorWidgetChecks.cs
+?? build/Test-VisitorWidgetDevice.ps1
+?? build/Test-VisitorWidgets.ps1
+?? docs/REMOTE_PHASE_07_ANDROID_VISITOR_WIDGET_REPORT.md
+?? docs/remote-evidence/phase07/

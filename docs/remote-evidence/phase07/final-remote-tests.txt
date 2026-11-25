@@ -1,0 +1,105 @@
+PASS default disabled without persistence writes
+PASS server identity valid with matching SPKI
+PASS wrong pin rejected
+PASS per-device disable permission defaults off
+PASS device credential and server identity survive reload
+PASS persisted credential data contains no plaintext token
+PASS corrupt encrypted credential store fails closed
+PASS corrupt store is never silently reset or overwritten
+PASS permission change invalidates old grant
+PASS pairing comparison code is identical locally and remotely
+PASS QR token single use
+PASS no permanent credential before local confirmation
+PASS claim retry issues one device with default permission off
+PASS completed pairing destroys temporary credential delivery
+PASS QR expires at five minutes monotonic deadline
+PASS on-link subnet boundary enforced
+PASS IPv6 subnet boundary enforced
+PASS native Windows private-profile query returns only explicit local adapters
+PRIVATE_ADAPTER_COUNT 1
+PASS native private-profile change notifications can be subscribed and released
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS unsafe production endpoint rejected
+PASS production REST/WSS authenticated full synchronization
+PASS repeated snapshots and custom PC name do not create spurious revisions
+PASS remote visitor activation accepted
+PASS unauthorized visitor deactivation denied server-side
+PASS repeated production navigation command has one effect
+PASS command ID payload conflict rejected
+PASS five production clients connected simultaneously
+PASS forty serialized mutations each receive completion confirmation
+PASS five clients converge to authoritative state after burst
+PASS unchanged state does not generate redundant live messages
+PASS query-string token route rejected
+PASS rights changes terminate active WSS session immediately
+PASS reconnection receives current per-device permission
+PASS granted visitor deactivation accepted
+PASS revocation closes WSS and rejects existing REST credentials
+PASS wrong pin rejected on production WSS
+PASS wrong pin rejected on production REST
+PASS foreign production certificate rejected
+PASS REST rejects foreign
+PASS independent WSS probe rejects foreign
+PASS expired test identity retains exact SPKI
+PASS REST rejects expired with matching SPKI
+PASS independent WSS probe rejects expired with matching SPKI
+PASS certificate renewal preserves trusted SPKI and restores valid dates
+PASS wire state contains no local test path
+PASS occupied production port fails closed
+PASS production native DNS-SD registration and callback on loopback
+PASS real MainForm single visitor blocks normal playback capabilities
+PASS real MainForm independently rejects visitor deactivation without device permission
+PASS real MainForm protects visitor against normal video switch
+PASS real visitor folder remote pause uses existing service
+PASS real visitor interval uses existing clock and persistence path
+PASS real visitor shuffle shares existing configuration
+PASS remote visitor options preserve normal restore snapshot
+PASS remote resume preserves independent fullscreen pause
+PASS fullscreen suppression remains enforced for remote navigation
+PASS real MainForm snapshot never exports media or resume paths
+PASS remote settings preview stays disabled without applying
+UI_RENDER C:\Users\yasmi\AppData\Local\Temp\WallpaperControl.Remote.Tests\7654c0f743d546448dc572062bb9b70a\remote-settings.png
+PASS returning to launcher and intentional hub disposal preserve original widget confirmation
+PASS background session notifications never extend widget confirmation deadline
+PASS expired snapshot retains historical value without current confirmation or off permission
+PASS reopened connected app supplies a new confirmed widget state
+PASS real foreground connection loss still clears confirmation
+PASS forgetting pairing while backgrounded still clears all widget state
+PASS widget cold process starts unknown and cannot disable
+PASS unknown widget explicitly activates, never toggles
+PASS unrelated app hub disconnect cannot erase a confirmed widget REST result
+PASS late live-session disconnect cannot overwrite independent REST confirmation
+PASS all widget observers receive identical state transitions
+PASS repeated activation of active visitor is idempotent and cannot deactivate
+PASS widget deactivation requires explicit dialog confirmation
+PASS expired confirmed state cannot offer or execute deactivation
+PASS expired widget state becomes explicitly unknown
+PASS stale gesture only attempts activation even if PC is already active
+PASS device without visitor disable permission cannot deactivate
+PASS permission revoked after dialog opening is rechecked on server snapshot
+PASS confirmed authorized off uses explicit visitorOff and waits for result
+PASS older app snapshot cannot overwrite newer widget result
+PASS pending activation never reports success before server confirmation
+PASS twenty rapid taps across instances execute no duplicate mutation
+PASS actual completion confirms activation for every widget
+PASS disconnect removes active confirmation and disable affordance
+PASS interrupted mutation has no false active success
+PASS restored connection refreshes only and never replays an offline command
+PASS unreachable PC never receives a queued activation
+PASS server failure cannot be shown as successful activation
+PASS missing PC visitor source/capability produces useful failure
+PASS bounded cancellation cannot leave widget marked successful
+PASS fresh coordinator after simulated process death rejects old off intent and can activate
+PASS missing shared pairing routes widget to setup state
+PASS pairing change invalidates all widget confirmation
+PASS forgetting pairing during connection prevents the pending command from being sent
+PASS foreground app visitor error cannot create a green confirmed widget
+PASS already canceled widget request returns safely without sending
+PASS widget activates over real pinned authenticated HTTPS with zero WSS sessions
+PASS real REST repeated activation has no further mutation
+PASS real REST widget confirms authorized deactivation
+PASS real revoked right blocks widget off before mutation
+PASS revoked real device credential fails closed without mutation
+All 102 remote production checks passed.

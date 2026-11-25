@@ -2,8 +2,9 @@
   <PropertyGroup>
     <TargetFramework>net11.0-android</TargetFramework><OutputType>Exe</OutputType><UseMaui>true</UseMaui><SingleProject>true</SingleProject>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>WallpaperControl.Remote.AndroidApp</RootNamespace>
     <ApplicationTitle>WallpaperControl Remote</ApplicationTitle><ApplicationId>de.wallpapercontrol.remote</ApplicationId>
-    <ApplicationDisplayVersion>1.0.1</ApplicationDisplayVersion><ApplicationVersion>2</ApplicationVersion>
+    <ApplicationDisplayVersion>1.1.7</ApplicationDisplayVersion><ApplicationVersion>10</ApplicationVersion>
     <SupportedOSPlatformVersion>31.0</SupportedOSPlatformVersion><MauiVersion>11.0.10</MauiVersion>
     <AndroidPackageFormats>apk</AndroidPackageFormats><RuntimeIdentifier>android-arm64</RuntimeIdentifier>
     <UseNativeHttpHandler>false</UseNativeHttpHandler><PublishReadyToRun>false</PublishReadyToRun>

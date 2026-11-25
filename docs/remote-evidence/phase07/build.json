@@ -1,0 +1,18 @@
+{
+  "Version": "1.1.0",
+  "VersionCode": 3,
+  "ApplicationId": "de.wallpapercontrol.remote",
+  "ApkBytes": 19096830,
+  "ApkSHA256": "E02B586D977C591622FC033860FA611AACEEF616C0B739BC1DEC8DB4BC677065",
+  "DropboxCopy": "C:/Users/yasmi/Dropbox/WallpaperControl.Remote-1.1.0.apk",
+  "SigningCertificateSHA256": "cdb9a437cd36dd41facc19fe3020d2e3a8972defd2ac730d5bf03676ddb5f93e",
+  "RegressionChecks": 6302,
+  "RegressionResult": "All 6302 checks passed. Test data: C:\\Users\\yasmi\\source\\repos\\WallpaperControl\\WallpaperControl.RegressionTests\\bin\\Release\\net10.0-windows10.0.17763.0\\test-data\\83a5dc021be94d95b5fd3ccb22e35903",
+  "RegressionLogSHA256": "B7881E3DD2F61CED4AD10519EA581862CC27BDDCEC5F0F69C0E64793D7356BDF",
+  "RemoteChecks": 94,
+  "NativePackagingChecks": 13,
+  "AndroidDeviceTests": "Not performed: no attached adb device",
+  "GitBranch": "codex/remote-production",
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "ManualAcceptance": "Pending; no commit, merge or push"
+}

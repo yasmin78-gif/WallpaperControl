@@ -4,15 +4,15 @@ Die produktive Desktop-Integration wurde am 25.11.2026 ausdrücklich freigegeben
 
 ## Bereitgestellte Ausgaben
 
-- Desktop: `artifacts/remote-production/desktop/WallpaperControl.exe`, Version **2.6.0**, Windows x64, eigenständige .NET-10-Ausgabe.
-- Android: `artifacts/remote-production/WallpaperControl.Remote.apk`, **WallpaperControl Remote 1.0.1**, Android 12 oder neuer, ARM64 (passend zum Pixel 9 Pro XL).
+- Desktop: `artifacts/remote-production/desktop/WallpaperControl.exe`, Version **2.6.1**, Windows x64, eigenständige .NET-10-Ausgabe.
+- Android: `artifacts/remote-production/WallpaperControl.Remote.apk`, **WallpaperControl Remote 1.1.7**, Android 12 oder neuer, ARM64 (passend zum Pixel 9 Pro XL).
 - Prüfsummen: `artifacts/remote-production/manifest.json`.
 
 Die gesamte Desktopausgabe zusammenlassen, insbesondere `video-runtime` und `licenses`. Die bestehende WallpaperControl-Instanz vor dem Austausch regulär über **Beenden** schließen. Die neue Ausgabe ersetzt keine laufende Installation automatisch. Die produktive Android-App hat eine eigene Application-ID `de.wallpapercontrol.remote` und einen eigenen Release-Signierschlüssel. Sie wird separat neben „WC Remote Experiment“ installiert; andere Apps müssen nicht deinstalliert werden. Spätere Updates derselben produktiven App funktionieren mit identischer Application-ID und identischem Schlüssel ohne Deinstallation.
 
 ## PC und Handy koppeln
 
-1. WallpaperControl 2.6.0 starten. Unter **Einstellungen → Allgemein → WallpaperControl Remote einrichten** die Fernsteuerung öffnen.
+1. WallpaperControl 2.6.1 starten. Unter **Einstellungen → Allgemein → WallpaperControl Remote einrichten** die Fernsteuerung öffnen.
 2. **Fernsteuerung im privaten Heimnetz aktivieren** auswählen. Bewusst den privaten physischen Ethernet-/WLANadapter wählen. VPN-, Tunnel-, virtuelle und öffentliche Adapter stehen nicht zur Auswahl. Standardport ist **47831/TCP**.
 3. **Übernehmen**. Der Status muss ein aktives HTTPS-Endpunkt anzeigen. Bei fehlendem privaten Profil oder unsicherer Ablage bleibt der Zugriff geschlossen. Die Windows-Netzwerkkategorie wird nicht automatisch verändert.
 4. Falls nötig **Enge Windows-Firewallfreigabe einrichten** wählen und die Administratorabfrage bestätigen. Dies legt eine Regel nur für die veröffentlichte EXE, TCP-Port, ausgewählten Adapter, lokale Subnetze und das Profil **Privat** an. Lokale IP-Änderungen werden durch die Adapterbindung der Regel unterstützt. Keine Routerfreigaben und keine VPN-Änderungen.

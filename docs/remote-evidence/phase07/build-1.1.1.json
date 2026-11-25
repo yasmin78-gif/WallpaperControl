@@ -1,0 +1,15 @@
+{
+  "Version": "1.1.1",
+  "VersionCode": 4,
+  "ApkSHA256": "69E6FFC07BA33ADB3A2FD7FD0A2235DB6C023C4552231AAD01F9A499D9779B86",
+  "RemoteChecks": 100,
+  "PackagingChecks": 13,
+  "DeviceAcceptance": "Pending: immediate unknown status needs Pixel retest",
+  "Changes": [
+    "Preserve confirmation on intentional background disconnect",
+    "Explicit Android provider component names",
+    "On-demand widget status refresh and diagnostics"
+  ],
+  "GitHead": "37cde555725fc320e485de5d7bd03697bccdd065",
+  "Committed": false
+}
